@@ -56,7 +56,9 @@ export type GraphProjection = {
 };
 
 export type WorldlineEntry = {
+  day?: number;
   time: string;
+  absoluteMinute?: number;
   eventId: string;
   variantId?: string;
   title: string;
