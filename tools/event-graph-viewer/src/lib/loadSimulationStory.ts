@@ -12,10 +12,10 @@ export async function loadSimulationStory(): Promise<{
   definition: SimulationDefinition;
 }> {
   const [initialState, actionsDocument, event1831, event2114] = await Promise.all([
-    loadYaml('/story/world/day_01_initial.yaml'),
-    loadYaml('/story/actions/day_01_actions.yaml'),
-    loadYaml('/story/events/day_01_1831.yaml'),
-    loadYaml('/story/events/day_01_2114.yaml'),
+    loadYaml('story/world/day_01_initial.yaml'),
+    loadYaml('story/actions/day_01_actions.yaml'),
+    loadYaml('story/events/day_01_1831.yaml'),
+    loadYaml('story/events/day_01_2114.yaml'),
   ]);
 
   const actions = (actionsDocument as { actions?: ActionDefinition[] })?.actions;
