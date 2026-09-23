@@ -8,9 +8,15 @@ describe('SimulationQueue', () => {
     queue.enqueue({ kind: 'delayed-effect', executeAt: 1111, delayedEffectId: 'b', effects: [] });
     queue.enqueue({ kind: 'scheduled-event', executeAt: 1100, eventId: 'early' });
 
-    expect(queue.dequeue()?.eventId).toBe('early');
-    expect(queue.dequeue()?.eventId).toBe('a');
-    expect(queue.dequeue()?.delayedEffectId).toBe('b');
+    const first = queue.dequeue();
+    const second = queue.dequeue();
+    const third = queue.dequeue();
+
+    expect(first?.kind).toBe('scheduled-event');
+    expect(first && 'eventId' in first ? first.eventId : undefined).toBe('early');
+    expect(second && 'eventId' in second ? second.eventId : undefined).toBe('a');
+    expect(third?.kind).toBe('delayed-effect');
+    expect(third && 'delayedEffectId' in third ? third.delayedEffectId : undefined).toBe('b');
   });
 
   it('returns a snapshot from peekAll', () => {
