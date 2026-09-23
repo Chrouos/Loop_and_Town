@@ -30,7 +30,7 @@
 
 ## Event Graph
 
-劇情邏輯以機器可讀資料作為 Source of Truth，視覺化工具只負責編輯、檢查與模擬。
+劇情邏輯以機器可讀資料作為 Source of Truth，視覺化工具只負責檢查、比較與模擬。
 
 ```text
 YAML 劇情檔
@@ -43,6 +43,40 @@ YAML 劇情檔
 
 - [`story/events/day_01_1831.yaml`](story/events/day_01_1831.yaml)：18:31 事件與不同世界線 Variant。
 - [`story/schemas/event-graph.schema.json`](story/schemas/event-graph.schema.json)：初版 Event Graph JSON Schema。
+
+## Event Graph Viewer v0.1
+
+[`tools/event-graph-viewer/`](tools/event-graph-viewer/) 已提供第一版 read-only 劇情除錯工具。
+
+目前可查看：
+
+```text
+Event Graph
+→ Event / Variant / Delayed Effect 因果關係
+
+Timeline
+→ 單一 Loop 真正發生過的事件
+
+Worldline Diff
+→ 比較兩輪同一 Event 如何被改寫
+```
+
+本機啟動：
+
+```bash
+cd tools/event-graph-viewer
+npm install
+npm run dev
+```
+
+測試與建置：
+
+```bash
+npm test
+npm run build
+```
+
+詳細說明請見 [`tools/event-graph-viewer/README.md`](tools/event-graph-viewer/README.md)。
 
 ## 世界線設計方向
 
@@ -63,10 +97,9 @@ Loop 03：18:31 無人死亡
 
 ## 後續開發方向
 
-- Event Graph Viewer
-- Timeline View
-- Worldline Diff
-- 世界線 Simulator
+- 世界線 Simulator / runtime log
 - 現實時間同步與 Offline Report
 - NPC Schedule / Relation / Knowledge State
-- Event Graph Validator / CI
+- Event Graph Validator
+- `story/layouts/*.json` 與可拖曳 Graph layout
+- Event Graph 編輯器
