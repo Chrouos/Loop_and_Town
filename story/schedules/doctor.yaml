@@ -1,0 +1,14 @@
+character_id: doctor
+entries:
+  - id: doctor_leave_hospital
+    at: { day: 0, time: "17:40" }
+    visibility: hidden
+    when: { path: characters.doctor.route, op: eq, value: old_station }
+    effects:
+      - set: { path: characters.doctor.location, value: road_to_old_station }
+  - id: doctor_arrive_station
+    at: { day: 0, time: "17:58" }
+    visibility: hidden
+    when: { path: characters.doctor.route, op: eq, value: old_station }
+    effects:
+      - set: { path: characters.doctor.location, value: old_station }
