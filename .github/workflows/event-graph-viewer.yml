@@ -1,0 +1,34 @@
+name: Event Graph Viewer
+
+on:
+  push:
+    branches:
+      - feature/event-graph-viewer-v0.1
+    paths:
+      - 'tools/event-graph-viewer/**'
+      - 'story/**'
+      - '.github/workflows/event-graph-viewer.yml'
+  pull_request:
+    paths:
+      - 'tools/event-graph-viewer/**'
+      - 'story/**'
+
+jobs:
+  verify-viewer:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tools/event-graph-viewer
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: npm install
+      - name: Sync story data
+        run: npm run sync-story
+      - name: Run tests
+        run: npm test
+      - name: Build viewer
+        run: npm run build
