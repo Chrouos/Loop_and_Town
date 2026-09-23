@@ -34,3 +34,27 @@ it('rejects an inverted loop range', () => {
   const initialState = { clock: { day: 0, time: '14:20' } };
   expect(() => validateDefinition(definition as never, initialState)).toThrow('Invalid loop range');
 });
+
+it('accepts the inclusive loop end and rejects a scheduled event after it', () => {
+  const base = {
+    loop: {
+      id: 'loop_test',
+      range: {
+        start: { day: 0, time: '14:20' },
+        end: { day: 1, time: '00:00' },
+      },
+    },
+    actions: [],
+  };
+  const initialState = { clock: { day: 0, time: '14:20' } };
+  const event = (at: { day: number; time: string }) => ({
+    id: 'evt_boundary',
+    title: 'boundary',
+    at,
+    variants: [{ id: 'always', priority: 0, fallback: true, effects: [] }],
+  });
+
+  expect(() => validateDefinition({ ...base, events: [event({ day: 1, time: '00:00' })] } as never, initialState)).not.toThrow();
+  expect(() => validateDefinition({ ...base, events: [event({ day: 1, time: '00:01' })] } as never, initialState))
+    .toThrow('Scheduled event outside loop range: evt_boundary');
+});
