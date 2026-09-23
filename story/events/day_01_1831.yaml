@@ -1,78 +1,43 @@
 id: evt_1831_station
 title: "18:31 車站事件"
-time: "18:31"
+at: "18:31"
 location: old_station
-
-conditions:
-  all:
-    - world.loop_active == true
 
 variants:
   - id: wakaharu_dies
     priority: 100
     when:
-      all:
-        - characters.wakaharu.location == old_station
-        - characters.wakaharu.status == alive
-        - characters.doctor.intervened == false
+      path: characters.wakaharu.location
+      op: eq
+      value: old_station
     effects:
-      - set: characters.wakaharu.status
-        value: dead
-      - set: cards.event_1831.victim
-        value: wakaharu
-      - set: cards.event_1831.location
-        value: old_station
-      - set: cards.event_1831.time
-        value: "18:31"
+      - set:
+          path: characters.wakaharu.status
+          value: dead
     delayed_effects:
       - id: reporter_missing_after_wakaharu_death
         delay_minutes: 163
-        when:
-          all:
-            - characters.reporter.exposed_by_player == true
         effects:
-          - set: characters.reporter.status
-            value: missing
-          - emit_event: evt_2114_reporter_missing
+          - emit_event:
+              event_id: evt_2114_reporter_missing
 
   - id: doctor_dies
     priority: 90
     when:
-      all:
-        - characters.wakaharu.protected == true
-        - characters.doctor.location == old_station
-        - characters.doctor.status == alive
+      path: characters.doctor.location
+      op: eq
+      value: old_station
     effects:
-      - set: characters.doctor.status
-        value: dead
-      - set: cards.event_1831.victim
-        value: doctor
-      - set: cards.event_1831.location
-        value: old_station
-      - set: cards.event_1831.time
-        value: "18:31"
+      - set:
+          path: characters.doctor.status
+          value: dead
 
   - id: no_death
-    priority: 10
-    when:
-      all:
-        - characters.wakaharu.location != old_station
-        - characters.doctor.location != old_station
+    priority: 0
+    fallback: true
     effects:
-      - set: cards.event_1831.victim
-        value: null
-      - set: cards.event_1831.time
-        value: "18:31"
       - add_flag: world.anomaly_1831_observed
 
-history_fields:
-  - resolved_variant
-  - player_actions
-  - state_before
-  - state_after
-  - card_mutations
-  - scheduled_delayed_effects
-
 notes:
-  - "18:31 應被視為事件本體，而不是某個角色的固定死亡時間。"
-  - "不同 Loop 可改寫 victim，但時間本身預計是早期可觀察到的 invariant。"
+  - "18:31 是事件本體，不是某個角色的固定死亡時間。"
+  - "wakaharu_dies 會在 163 分鐘後觸發 21:14 記者失蹤事件。"
