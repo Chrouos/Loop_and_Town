@@ -14,25 +14,43 @@ function validateCondition(condition: Condition, state: WorldState): void {
   if ('all' in condition) return condition.all.forEach((item) => validateCondition(item, state));
   if ('any' in condition) return condition.any.forEach((item) => validateCondition(item, state));
   if ('not' in condition) return validateCondition(condition.not, state);
-  if ((condition.op === 'eq' || condition.op === 'neq') && !hasPath(state, condition.path)) {
+
+  const operator = (condition as { op?: unknown }).op;
+  if (!['eq', 'neq', 'exists', 'not_exists'].includes(String(operator))) {
+    throw new Error(`Unknown condition operator: ${String(operator)}`);
+  }
+
+  if ((operator === 'eq' || operator === 'neq') && !hasPath(state, condition.path)) {
     throw new Error(`Unknown state path: ${condition.path}`);
   }
 }
 
 function validateEffects(effects: Effect[], state: WorldState, eventIds: Set<string>): void {
   for (const effect of effects) {
-    if ('set' in effect && !hasPath(state, effect.set.path)) {
-      throw new Error(`Unknown state path: ${effect.set.path}`);
+    if ('set' in effect) {
+      if (!hasPath(state, effect.set.path)) {
+        throw new Error(`Unknown state path: ${effect.set.path}`);
+      }
+      continue;
     }
-    if ('add_flag' in effect && !hasPath(state, effect.add_flag)) {
-      throw new Error(`Unknown state path: ${effect.add_flag}`);
+
+    if ('add_flag' in effect) {
+      if (!hasPath(state, effect.add_flag)) {
+        throw new Error(`Unknown state path: ${effect.add_flag}`);
+      }
+      continue;
     }
+
     if ('emit_event' in effect) {
       if (!eventIds.has(effect.emit_event.event_id)) {
         throw new Error(`Unknown emitted event: ${effect.emit_event.event_id}`);
       }
       if (effect.emit_event.at) parseTime(effect.emit_event.at);
+      continue;
     }
+
+    const operation = Object.keys(effect as Record<string, unknown>)[0] ?? 'unknown';
+    throw new Error(`Unknown effect operation: ${operation}`);
   }
 }
 
