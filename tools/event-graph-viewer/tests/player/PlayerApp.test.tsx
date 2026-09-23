@@ -17,6 +17,9 @@ it('opens the envelope and records a deliberate action before the deadline', asy
   const user = userEvent.setup();
   await user.click(await screen.findByRole('button', { name: /拆開信封/ }));
   expect(screen.getByText('回來一趟。')).toBeDefined();
+  expect(screen.queryByRole('button', { name: /保護若晴/ })).toBeNull();
+  await user.click(screen.getByRole('button', { name: /讀予安的留言/ }));
+  expect(screen.getByText(/她看起來不想自己去/)).toBeDefined();
   await user.click(screen.getByRole('button', { name: /保護若晴/ }));
   expect(readSave(storage, 1000).loops[1].actionIds).toContain('protect_wakaharu');
 });
