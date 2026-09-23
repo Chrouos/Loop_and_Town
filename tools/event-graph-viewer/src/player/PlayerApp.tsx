@@ -60,6 +60,7 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
   const records = visibleRecords(save, clock.loop);
   const opened = save.knowledge.opened.includes('1:letter') || save.knowledge.opened.includes('letter');
   const record = records.find(x => x.id === selected) ?? records[0];
+  const incoming = records.filter(item => item.revealMinute > 0 && !save.knowledge.opened.includes(`${clock.loop}:${item.id}`));
   const hasAction = (id: ActionId) => save.loops[clock.loop]?.actionIds.includes(id) ?? false;
   const canAct = clock.minute < 1100;
   const next = clock.minute < 1100 ? '18:20 前，你還能改變今晚的行程' : clock.minute < 1111 ? '18:31，舊車站' : clock.minute < 1120 ? '等候鎮上的通報' : clock.minute < 1280 ? '21:20，予安說會再聯絡' : '午夜，日期會回到今天';
@@ -89,12 +90,18 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
     <header className="player-header"><div className="wordmark">灰潮鎮 <span>／ 第七封信</span></div><div className="header-actions"><span className="town-time">鎮內 {displayMinute(clock.minute)}</span><button onClick={e => showDrawer('case', e.currentTarget)}>案卷 <i>{records.length}</i></button><button onClick={e => showDrawer('board', e.currentTarget)}>推理桌</button><button onClick={e => showDrawer('worldlines', e.currentTarget)}>世界線</button><button onClick={e => showDrawer('save', e.currentTarget)}>存檔</button></div></header>
     <main className="player-stage">
       {error ? <p role="alert">無法讀取鎮上的紀錄：{error}</p> : !story ? <p>正在取出案卷……</p> : !opened ? <div className="opening"><p>你回到灰潮鎮時，信已經躺在門縫裡。</p><p>信封沒有寄件地址。郵戳是昨天的。</p><p>寄件人那一欄，寫著林知夏。</p><p>她五年前就死了。</p><button className="envelope-button" onClick={() => openRecord('letter')} aria-label="拆開信封，讀姊姊的信"><span className="envelope" aria-hidden="true"><span className="envelope-flap"/><span className="envelope-name">林知夏　寄</span></span><span className="envelope-action">拆開信封</span></button></div> : <div className="reading-scene" key={`${clock.loop}:${record?.id}`}>
+        {incoming.length > 0 && <div className="incoming-records" aria-label="新消息"><p>鎮上有新消息</p>{incoming.map(item => <button key={item.id} onClick={() => openRecord(item.id)}>閱讀新消息：{item.title}</button>)}</div>}
         <div className="document-top"><span>第 {clock.loop} 次今天</span><span>{record?.source}　／　{record?.formedAt}</span></div>
         <h1>{record?.title}</h1>
         <div className="document-lines">{record?.body.map((line, i) => <p key={i}>{line}</p>)}</div>
         {record?.excerpts.length ? <div className="excerpts"><span>留下你認為重要的句子</span>{record.excerpts.map(part => <button key={part.id} onClick={() => pin(`${record.id}:${part.id}`)}>{part.text}<span>＋</span></button>)}</div> : null}
         {record?.id === 'letter' && records.some(x => x.id === 'yu-an-message') && <div className="decisions"><p>手機震了一下。予安留了話。</p><button onClick={() => openRecord('yu-an-message')}>讀予安的留言</button></div>}
         {record?.id === 'yu-an-message' && canAct ? <div className="decisions"><p>18:20 前，你可以答應陪若晴，也可以請予安去醫院。現在還沒有人知道今晚會怎樣。</p><button disabled={hasAction('protect_wakaharu')} onClick={() => choose('protect_wakaharu')}>{hasAction('protect_wakaharu') ? '已和若晴約好' : '保護若晴，陪她留在家裡'}</button><button disabled={hasAction('stop_doctor')} onClick={() => choose('stop_doctor')}>{hasAction('stop_doctor') ? '予安已答應去醫院' : '請予安幫忙攔住醫生'}</button></div> : null}
+        {record?.id === 'yu-an-message' && (hasAction('protect_wakaharu') || hasAction('stop_doctor')) && <div className="choice-replies" aria-label="今晚的回覆">
+          {hasAction('protect_wakaharu') && <p>若晴回了訊息：「好，我今晚先不去車站。你來的時候，我把信給你看。」</p>}
+          {hasAction('stop_doctor') && <p>予安回覆：「我現在去醫院找陳柏勳。會試著留住他，之後再回你。」</p>}
+          <small>約定已記下。車站的消息會在鎮上傳來時出現在這裡。</small>
+        </div>}
         {note && <p className="inline-note" role="status">{note}</p>}
       </div>}
     </main>
