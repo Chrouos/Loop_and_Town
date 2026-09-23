@@ -1,0 +1,11 @@
+id: evt_2114_reporter_missing
+title: "21:14 記者失蹤"
+
+variants:
+  - id: reporter_missing
+    priority: 0
+    fallback: true
+    effects:
+      - set:
+          path: characters.reporter.status
+          value: missing
