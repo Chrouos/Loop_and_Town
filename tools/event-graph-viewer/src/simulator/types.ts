@@ -71,6 +71,9 @@ export type DelayedQueueItem = QueueItemBase & {
 };
 
 export type QueueItem = EventQueueItem | DelayedQueueItem;
+export type QueueItemInput =
+  | Omit<EventQueueItem, 'insertionOrder'>
+  | Omit<DelayedQueueItem, 'insertionOrder'>;
 
 export type StateChange = {
   path: string;
@@ -94,7 +97,7 @@ export type WorldlineHistoryEntry = {
 export type ResolverContext = {
   state: WorldState;
   queue: {
-    enqueue(item: Omit<QueueItem, 'insertionOrder'>): QueueItem;
+    enqueue(item: QueueItemInput): QueueItem;
   };
   events: Map<string, EventDefinition>;
   currentMinute: number;
