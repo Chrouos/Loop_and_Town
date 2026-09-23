@@ -4,17 +4,16 @@ import { fileURLToPath } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(here, '../../..');
-const sourceEvents = resolve(repoRoot, 'story/events');
-const sourceSchemas = resolve(repoRoot, 'story/schemas');
 const outputRoot = resolve(here, '../public/story');
-const outputEvents = resolve(outputRoot, 'events');
-const outputSchemas = resolve(outputRoot, 'schemas');
+const sources = ['events', 'schemas', 'world', 'actions'];
 
-await access(sourceEvents);
-await access(sourceSchemas);
 await rm(outputRoot, { recursive: true, force: true });
 await mkdir(outputRoot, { recursive: true });
-await cp(sourceEvents, outputEvents, { recursive: true });
-await cp(sourceSchemas, outputSchemas, { recursive: true });
+
+for (const directory of sources) {
+  const source = resolve(repoRoot, 'story', directory);
+  await access(source);
+  await cp(source, resolve(outputRoot, directory), { recursive: true });
+}
 
 console.log('Story sync complete.');
