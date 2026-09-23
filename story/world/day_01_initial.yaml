@@ -1,0 +1,21 @@
+clock:
+  day: 1
+  time: "18:20"
+
+characters:
+  wakaharu:
+    location: old_station
+    status: alive
+  doctor:
+    location: old_station
+    status: alive
+  reporter:
+    location: hotel
+    status: alive
+
+world:
+  anomaly_1831_observed: false
+
+flags:
+  player_protected_wakaharu: false
+  player_stopped_doctor: false
