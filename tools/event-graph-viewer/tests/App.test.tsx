@@ -2,22 +2,35 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import App from '../src/App';
 
-const yaml = `id: evt_1831_station\ntitle: "18:31 車站事件"\ntime: "18:31"\nvariants:\n  - id: no_death\n    when: {}\n    effects: []\n`;
+const initial = `clock:\n  day: 1\n  time: "18:20"\ncharacters:\n  wakaharu: { location: old_station, status: alive }\n  doctor: { location: old_station, status: alive }\n  reporter: { location: hotel, status: alive }\nworld:\n  anomaly_1831_observed: false\nflags:\n  player_protected_wakaharu: false\n  player_stopped_doctor: false\n`;
+
+const actions = `actions:\n  - id: protect_wakaharu\n    at: "18:20"\n    label: 阻止若晴前往舊車站\n    effects:\n      - set: { path: characters.wakaharu.location, value: home }\n      - add_flag: flags.player_protected_wakaharu\n  - id: stop_doctor\n    at: "18:20"\n    label: 阻止醫生前往舊車站\n    effects:\n      - set: { path: characters.doctor.location, value: clinic }\n      - add_flag: flags.player_stopped_doctor\n`;
+
+const event1831 = `id: evt_1831_station\ntitle: "18:31 車站事件"\nat: "18:31"\nvariants:\n  - id: wakaharu_dies\n    priority: 100\n    when: { path: characters.wakaharu.location, op: eq, value: old_station }\n    effects:\n      - set: { path: characters.wakaharu.status, value: dead }\n    delayed_effects:\n      - id: reporter_missing_after_wakaharu_death\n        delay_minutes: 163\n        effects:\n          - emit_event: { event_id: evt_2114_reporter_missing }\n  - id: doctor_dies\n    priority: 90\n    when: { path: characters.doctor.location, op: eq, value: old_station }\n    effects:\n      - set: { path: characters.doctor.status, value: dead }\n  - id: no_death\n    priority: 0\n    fallback: true\n    effects:\n      - add_flag: world.anomaly_1831_observed\n`;
+
+const event2114 = `id: evt_2114_reporter_missing\ntitle: "21:14 記者失蹤"\nvariants:\n  - id: reporter_missing\n    priority: 0\n    fallback: true\n    effects:\n      - set: { path: characters.reporter.status, value: missing }\n`;
+
+function responseFor(path: string) {
+  const text = path.includes('/world/') ? initial
+    : path.includes('/actions/') ? actions
+    : path.includes('2114') ? event2114
+    : event1831;
+  return { ok: true, text: async () => text };
+}
 
 afterEach(() => vi.restoreAllMocks());
 
 describe('App', () => {
-  it('switches between Graph, Timeline and Worldline Diff', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, text: async () => yaml })));
+  it('switches views and renders simulator-generated variants', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (input: RequestInfo | URL) => responseFor(String(input))));
     render(<App />);
 
     await waitFor(() => expect(screen.getByText(/Loaded: evt_1831_station/)).toBeTruthy());
-    expect(screen.getByRole('button', { name: 'Event Graph' })).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Timeline' })).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Worldline Diff' })).toBeTruthy();
+    expect(screen.getByRole('checkbox', { name: '阻止若晴前往舊車站' })).toBeTruthy();
 
+    fireEvent.click(screen.getByRole('checkbox', { name: '阻止若晴前往舊車站' }));
     fireEvent.click(screen.getByRole('button', { name: 'Timeline' }));
-    expect(screen.getByRole('heading', { name: 'Timeline' })).toBeTruthy();
+    expect(screen.getByText('doctor_dies')).toBeTruthy();
 
     fireEvent.click(screen.getByRole('button', { name: 'Worldline Diff' }));
     expect(screen.getByRole('heading', { name: 'Worldline Diff' })).toBeTruthy();
