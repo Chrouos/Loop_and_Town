@@ -11,7 +11,7 @@ type DisplayEntry = WorldlineEntry | WorldlineHistoryEntry;
 
 function label(entry?: DisplayEntry) {
   if (!entry) return '未發生';
-  const dayPrefix = 'day' in entry && entry.day > 0 ? `D${entry.day} ` : '';
+  const dayPrefix = 'day' in entry && typeof entry.day === 'number' && entry.day > 0 ? `D${entry.day} ` : '';
   const variant = entry.variantId ? ` · ${entry.variantId}` : '';
   return `${dayPrefix}${entry.time} ${entry.title}${variant}`;
 }
