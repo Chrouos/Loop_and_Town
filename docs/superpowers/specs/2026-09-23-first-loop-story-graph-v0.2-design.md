@@ -1,7 +1,7 @@
 # First Loop Story Graph v0.2 Design
 
 **Date:** 2026-09-23  
-**Status:** Draft for review  
+**Status:** Revised draft for review  
 **Depends on:** `feature/worldline-simulator-v0.1` / PR #2  
 **Source material:** `docs/first-loop-story.md`, `docs/core-gameplay.md`, `docs/event-graph-spec.md`, `docs/worldbuilding.md`
 
@@ -9,373 +9,788 @@
 
 ## 1. Goal
 
-把目前的 Worldline Simulator v0.1 從「18:31 + 21:14 技術驗證」推進成第一個完整、可重播、可比較的 **第一輪故事因果圖**。
+把目前的 Worldline Simulator v0.1 從「少數手寫事件的技術驗證」推進成第一個真正符合遊戲核心的 **完整 Loop 模型**。
 
-這一階段不是把整篇小說逐句變成 Event，也不是建立完整 Visual Novel runtime。
+這一版的核心不是「一天等於一個 Loop」，也不是「玩家選 A 就跳到劇情 A」。
 
-核心目標是建立第一輪的 **Causal Spine**：
+正式模型是：
 
 ```text
-玩家行動
+Loop Range
++ NPC Base Schedule
++ Hidden World Conditions
++ Player Intervention
+↓
+Schedule / State Override
+↓
+Event Conditions
+↓
+Event Variant / Delayed Consequence
+↓
+Worldline History
+↓
+Player 只看到可觀察到的結果
+```
+
+玩家前期不會直接知道自己改變了哪個關鍵條件，也不會被系統告知真正因果。
+
+第一個 Loop 只需要做到：
+
+```text
+Day 0 14:20
+→ 世界依 NPC 原本生活軌跡運作
+→ 玩家做少量介入
+→ 某些 NPC 行程因此偏移
+→ 隱藏條件被改變
+→ 數十分鐘到數小時後出現不同結果
+→ Day 1 00:00 Loop Range 結束
+```
+
+---
+
+## 2. Core Design Principle
+
+### 2.1 Loop 不等於 Day
+
+Loop 是一段作者定義的時間範圍：
+
+```text
+Loop = [start, end)
+```
+
+第一版剛好是：
+
+```text
+start = Day 0 14:20
+end   = Day 1 00:00
+```
+
+未來可以是：
+
+```text
+Day 0 08:00
+→ Day 3 23:59
+```
+
+Simulator 不應假設一個 Loop 只能有一天。
+
+### 2.2 NPC 先有生活，劇情才發生
+
+NPC 不是等待玩家點擊的劇情節點。
+
+每個核心 NPC 有自己的 Base Schedule：
+
+```text
+時間到
+→ NPC 移動 / 工作 / 見面 / 離開
 → World State 改變
-→ Event Variant 改變
-→ 後續事件 / 情報 / 延遲後果改變
-→ Worldline History 可解釋
+→ 某個 Event 的條件可能成立
 ```
 
-同時保留 **Narrative Layer**，讓故事文字與情緒節奏可以附著在因果節點上，但不讓敘事內容參與 simulator 判定。
+如果玩家什麼都不做，世界依 Baseline Worldline 自行演進。
 
----
+### 2.3 玩家改變條件，不直接改結果
 
-## 2. Player Experience Target
+玩家行動只能改變：
 
-第一輪不是讓玩家解開案件，而是讓玩家建立一個「看似合理但錯誤」的模型：
+- NPC location
+- NPC route / assignment
+- world flag
+- knowledge / observable fact
+- 某些未來 Schedule Entry 是否仍有效
+
+玩家不能直接執行：
 
 ```text
-17:40 醫生秘密離院
-→ 18:05 與若晴接觸
-→ 18:31 若晴死亡
-→ 玩家自然懷疑醫生
+choose doctor_dies
+choose reporter_missing
 ```
 
-同一輪必須另外埋下兩種世界線思考：
+結果仍由 Event Conditions 決定。
 
-1. **資訊取捨**：派周予安去郵局，就會得到郵局異常，但失去車站目擊情報。
-2. **延遲因果**：16:40 拆穿葉庭安，直到 21:14 才看到「失蹤」後果。
+### 2.4 真正因果對玩家隱藏
 
-午夜時玩家才真正知道這是一個 Loop：
+Simulator 知道：
 
 ```text
-23:59 鐘聲
-→ 00:00 Loop End
-→ 世界將在下一階段的 Loop Runtime 中重置
+A + B + C
+→ Event X
 ```
 
-第一輪結束後，玩家應自然產生下一輪實驗：
-
-> 如果阻止許若晴去車站，她還會死嗎？
-
----
-
-## 3. Design Principles
-
-1. **Causal events only**：只有會改變世界狀態、情報、後續事件或世界線理解的節點進 Event Graph。
-2. **Narrative is not logic**：對白、氛圍與小說文字不能成為 condition expression。
-3. **Actions mutate state, not endings**：玩家不能直接選 `wakaharu_dies` / `doctor_dies`。
-4. **Delayed consequences are first-class**：16:40 的行動可以到 21:14 才產生可見結果。
-5. **Trade-offs over correct answers**：第一輪選擇應讓玩家交換情報，而不是單純正確 / 錯誤。
-6. **Simulator remains deterministic**：相同 initial state + actions + story definitions 必須產生相同結果。
-7. **First Loop does not require the final game runtime**：這一版仍以作者 / debug simulator 為主要驗證介面。
-8. **Do not over-model**：Relationship、NPC Knowledge、完整 Schedule、Truth Card Engine 等留待後續專門階段。
-
----
-
-## 4. Scope
-
-### In scope
-
-- 第一輪 14:20 → 次日 00:00 的完整因果骨架。
-- 第一輪核心事件 YAML。
-- 三個第一輪故事 Action：
-  - `send_yuan_to_post_office`
-  - `show_letter_to_wakaharu`
-  - `confront_reporter`
-- 現有 debug Actions：
-  - `protect_wakaharu`
-  - `stop_doctor`
-  仍保留給 Worldline Simulator / 作者測試使用。
-- 正式修正 21:14 因果來源。
-- 周予安郵局 / 車站目擊資訊取捨。
-- 跨午夜 absolute story time。
-- 跨時間 Action 的 deterministic orchestration。
-- 第一輪 canonical scenario test。
-- 至少兩組 Worldline Diff acceptance cases。
-- Event / Variant 的最小 Narrative metadata。
-
-### Out of scope
-
-- 真正執行世界 reset。
-- Loop 02 runtime。
-- 玩家跨 Loop Knowledge persistence。
-- 完整 Event Card / Truth Card engine。
-- Trust / Relationship 數值模型。
-- NPC 通用 Schedule engine。
-- Offline / real-time clock synchronization。
-- 完整 VN dialogue renderer。
-- 自由文字玩家行動。
-- LLM NPC。
-- 隨機事件。
-
----
-
-## 5. First Loop Causal Spine
-
-第一輪主要節點：
+玩家可能只看到：
 
 ```text
-Day 0
-14:20  evt_1420_return_to_town
-15:00  evt_1500_sister_room
-16:10  evt_1610_wakaharu_cafe
-16:40  evt_1640_reporter_encounter
-17:40  evt_1740_doctor_leaves_hospital
-17:58  evt_1758_doctor_arrives_station
-18:05  evt_1805_envelope_handoff
-18:10  evt_1810_yuan_station_observation
-18:18  evt_1818_wakaharu_last_conversation
-18:31  evt_1831_station
-19:10  evt_1910_yuan_information       # emitted only when Yuan was sent
-20:30  evt_2030_old_case_reveal
-21:14  evt_2114_reporter_missing       # emitted only when reporter was confronted
-22:40  evt_2240_sister_warning
-23:59  evt_2359_midnight_bells
-
-Day 1
-00:00  evt_0000_loop_end
+我做了 A
+...
+Event X 發生了
 ```
 
-不是所有事件都要有多個 Variant。
+因此玩家得到的是 correlation，而不是系統直接告訴他的 causation。
 
-例如 `evt_2030_old_case_reveal` 可以是 deterministic beat，其功能只是把：
-
-```text
-林知夏死亡時間 = 18:31
-```
-
-正式寫入本輪可見資訊。
-
-`evt_1910_yuan_information` 與 `evt_2114_reporter_missing` **沒有固定 `at`**；它們由玩家 Action 使用 `emit_event.at` 排入 Queue，因此未滿足行動條件時，事件本身完全不會發生。
+這是跨 Loop 推理的核心。
 
 ---
 
-## 6. First Loop Actions
+## 3. Four-Layer World Model
 
-### 6.1 `send_yuan_to_post_office`
+v0.2 將世界明確分成四層。
 
-時間：Day 0 15:00。
+### Layer 1 — World Truth
 
-效果：
+完整的內部世界狀態。
+
+例如：
+
+```text
+reporter_confronted = true
+reporter.location = old_lab
+doctor.location = old_station
+lab_power = true
+```
+
+這些資料允許 Event Resolver 判斷真正結果。
+
+玩家不一定知道這些值。
+
+### Layer 2 — NPC Schedule
+
+角色原本會怎麼生活。
+
+```text
+17:40 doctor leaves hospital
+17:58 doctor arrives old station
+18:05 doctor meets wakaharu
+```
+
+Schedule 是世界自然運作的基線。
+
+### Layer 3 — Worldline Overrides
+
+玩家行動或已發生事件造成的偏移。
+
+例如：
+
+```text
+17:35 player stops doctor
+↓
+doctor route override = stay_hospital
+```
+
+原始 Base Schedule 保留不變；目前世界線使用 Effective Schedule。
+
+### Layer 4 — Player Knowledge
+
+玩家實際知道的事情。
+
+例如玩家可能只知道：
+
+```text
+16:40 我拆穿了葉庭安
+21:14 葉庭安失蹤
+```
+
+但不知道：
+
+```text
+19:50 她前往舊研究所
+20:03 研究所電力恢復
+```
+
+v0.2 不做自動因果推理，只記錄「玩家已觀察到哪些 facts / events」。
+
+---
+
+## 4. Loop Range
+
+新增 Loop Definition：
+
+```yaml
+id: gray_tide_first_loop
+range:
+  start:
+    day: 0
+    time: "14:20"
+  end:
+    day: 1
+    time: "00:00"
+reset_policy: at_range_end
+```
+
+### v0.2 semantics
+
+- Simulator 只執行 range 內的事件、Schedule Entries、Player Actions。
+- `runUntil()` 不得越過 Loop end。
+- Day 1 00:00 記錄 `loop_end`。
+- v0.2 不實際執行 world reset。
+- v0.2 不啟動下一個 Loop。
+
+`reset_policy: at_range_end` 是第一版固定策略。
+
+未來可以擴充條件式 reset / loop escape，但不在這一版實作。
+
+---
+
+## 5. Story Time
+
+使用跨日 absolute minute。
+
+```ts
+interface StoryTime {
+  day: number;
+  time: string;
+}
+
+type StoryTimeInput = string | StoryTime;
+```
+
+舊格式仍合法：
+
+```yaml
+at: "18:31"
+```
+
+等同：
+
+```yaml
+at:
+  day: 0
+  time: "18:31"
+```
+
+換算：
+
+```text
+absoluteMinute = day * 1440 + minuteOfDay
+```
+
+因此：
+
+```text
+Day 0 23:59 = 1439
+Day 1 00:00 = 1440
+```
+
+---
+
+## 6. NPC Base Schedule
+
+新增 `story/schedules/`。
+
+第一版只替真正影響核心因果的 NPC 建 Schedule：
+
+- 許若晴 `wakaharu`
+- 陳柏勳 `doctor`
+- 葉庭安 `reporter`
+- 周予安 `yuan`
+
+周志遠與其他 NPC 暫時仍可由 Event 表達，不需要為了完整而建立無作用行程。
+
+### Schedule Definition
+
+```yaml
+character: doctor
+entries:
+  - id: doctor_leave_hospital
+    at:
+      day: 0
+      time: "17:40"
+    effects:
+      - set:
+          path: characters.doctor.location
+          value: road_to_old_station
+
+  - id: doctor_arrive_station
+    at:
+      day: 0
+      time: "17:58"
+    when:
+      path: characters.doctor.route
+      op: eq
+      value: old_station
+    effects:
+      - set:
+          path: characters.doctor.location
+          value: old_station
+```
+
+Schedule Entry 可以有 `when`。
+
+若條件不成立，該 entry 會被記錄為 skipped，但不執行 effects。
+
+這讓玩家改變 route 後，不需要刪掉原始 Schedule。
+
+---
+
+## 7. Base Schedule vs Effective Schedule
+
+Simulator 不直接修改 authored schedule。
+
+概念：
+
+```text
+Base Schedule
++ Current World State
++ Worldline Overrides
+↓
+Effective Schedule
+```
+
+v0.2 不建立複雜通用 Schedule Planner。
+
+Worldline Override 只透過 World State 表達，例如：
+
+```text
+characters.doctor.route = stay_hospital
+characters.yuan.assignment = post_office
+characters.reporter.route = hotel_then_old_lab
+```
+
+後續 Schedule Entry 的 `when` 自然決定是否執行。
+
+因此不新增：
+
+```text
+cancel_schedule_entry
+replace_schedule
+patch_schedule
+```
+
+等額外 DSL。
+
+YAGNI：第一版只需要 state-driven schedule conditions。
+
+---
+
+## 8. Hidden World Conditions
+
+「玩家不知道自己觸發了什麼」不是額外的特殊系統，而是 Event Graph 的正常行為。
+
+作者可定義：
+
+```yaml
+variants:
+  - id: reporter_missing
+    when:
+      all:
+        - path: flags.reporter_confronted
+          op: eq
+          value: true
+        - path: characters.reporter.location
+          op: eq
+          value: old_lab
+        - path: world.lab_power
+          op: eq
+          value: true
+```
+
+這些 condition 是 World Truth。
+
+Player View 不顯示完整 condition expression。
+
+### 設計原則
+
+不要讓每個日常操作都造成重大蝴蝶效應。
+
+第一輪應該是：
+
+```text
+大量普通生活行為
+→ 大部分只改局部狀態
+
+少數關鍵行為
+→ 改變 hidden condition
+→ 延遲後果
+```
+
+世界必須可理解，而不是純 Chaos。
+
+---
+
+## 9. Visibility / Observation
+
+Event 與 Schedule Entry 可帶最小 visibility metadata：
+
+```ts
+type Visibility = 'observable' | 'hidden' | 'debug';
+```
+
+語意：
+
+- `observable`：玩家在當下可直接看到，加入 Player Knowledge。
+- `hidden`：世界有發生，但玩家當下不知道。
+- `debug`：只給 Author / Debug Viewer 顯示。
+
+Event / Variant 可額外帶：
+
+```yaml
+narrative:
+  summary: "葉庭安提早離開。"
+  beat: unease
+visibility: observable
+```
+
+完整對白仍不塞入 Event YAML。
+
+---
+
+## 10. History Separation
+
+Simulator 應保留完整 Worldline History，但 Player View 使用投影後資料。
+
+### Full Worldline History
+
+記錄：
+
+```text
+schedule entry applied / skipped
+player action
+state effect
+event resolved
+delayed / emitted event
+hidden event
+observable event
+```
+
+這是作者的真實因果紀錄。
+
+### Player History
+
+只包含：
+
+```text
+observable events
+player actions
+已公開 facts
+```
+
+不顯示：
+
+```text
+hidden conditions
+hidden schedule transitions
+未被玩家觀察到的 NPC 行為
+```
+
+因此同一輪可以有：
+
+```text
+Author Timeline
+16:40 reporter confronted
+17:30 reporter returns hotel
+19:50 reporter enters old lab
+20:03 lab power restored
+21:14 reporter missing
+```
+
+而 Player Timeline 只有：
+
+```text
+16:40 拆穿葉庭安
+21:14 葉庭安失蹤
+```
+
+---
+
+## 11. First Loop Range
+
+第一個 Loop：
+
+```text
+Day 0 14:20
+→ Day 1 00:00
+```
+
+這只是第一章的第一個 range，不是引擎限制。
+
+第一輪主要 Causal Spine：
+
+```text
+14:20  玩家回到灰潮鎮
+15:00  姊姊房間
+16:10  許若晴咖啡店
+16:40  葉庭安出現
+17:40  醫生 Base Schedule：離院
+17:58  醫生抵達舊車站
+18:05  醫生與若晴碰面
+18:10  周予安可能目擊葉庭安
+18:18  若晴最後一次對話
+18:31  車站異常事件
+19:10  周予安可能帶回郵局情報
+20:30  五年前舊案
+21:14  葉庭安可能失蹤
+22:40  姊姊警告
+23:59  鐘聲
+Day 1 00:00  Loop End
+```
+
+---
+
+## 12. First Loop Base Schedules
+
+### 12.1 許若晴
+
+Baseline：
+
+```text
+14:20 cafe
+16:10 cafe
+17:52 leaves cafe
+18:05 old_station
+18:18 old_station
+18:31 old_station
+```
+
+核心 state：
+
+```text
+characters.wakaharu.location
+characters.wakaharu.route
+characters.wakaharu.status
+```
+
+第二輪 Debug Action `protect_wakaharu` 可以讓 route 改成 `home`。
+
+### 12.2 陳柏勳
+
+Baseline：
+
+```text
+14:20 hospital
+17:40 leaves hospital
+17:58 old_station
+18:05 meets wakaharu
+18:20 route_back_hospital
+```
+
+核心 state：
+
+```text
+characters.doctor.location
+characters.doctor.route
+characters.doctor.status
+```
+
+Debug Action `stop_doctor` 改 `route = stay_hospital`。
+
+### 12.3 葉庭安
+
+Baseline：
+
+```text
+16:40 meets player
+17:30 follows normal route
+19:50 does not enter old lab
+21:14 available
+```
+
+若玩家 `confront_reporter`：
+
+```text
+route = hotel_then_old_lab
+17:30 hotel
+19:50 old_lab
+21:14 hidden condition may resolve reporter_missing
+```
+
+### 12.4 周予安
+
+Baseline：
+
+```text
+15:00 with player
+17:50 shopping_street
+18:10 station_area
+18:30 clock_shop
+```
+
+若 `send_yuan_to_post_office`：
+
+```text
+assignment = post_office
+17:50 post_office
+18:10 post_office
+18:30 returning
+19:10 reports postal anomaly
+```
+
+這自然造成情報 trade-off。
+
+---
+
+## 13. First Loop Player Interventions
+
+第一輪正式可用的 Story Actions：
+
+### `send_yuan_to_post_office`
+
+Day 0 15:00。
 
 ```text
 characters.yuan.assignment = post_office
-flags.yuan_sent_to_post_office = true
-schedule evt_1910_yuan_information at Day 0 19:10
 ```
 
-YAML concept：
-
-```yaml
-effects:
-  - set:
-      path: characters.yuan.assignment
-      value: post_office
-  - add_flag: flags.yuan_sent_to_post_office
-  - emit_event:
-      event_id: evt_1910_yuan_information
-      at:
-        day: 0
-        time: "19:10"
-```
-
-因果：
+結果：
 
 ```text
-15:00 派周予安去郵局
-→ 18:10 他不在車站附近
-→ 無法提供葉庭安目擊資訊
-→ 19:10 帶回郵局異常
+18:10 無法目擊葉庭安
+19:10 得到郵局異常
 ```
 
-### 6.2 `show_letter_to_wakaharu`
+### `show_letter_to_wakaharu`
 
-時間：Day 0 16:10。
-
-v0.2 不建立完整 Trust System，只使用明確 flag：
+Day 0 16:10。
 
 ```text
 flags.wakaharu_saw_letter = true
 ```
 
-它允許 18:18 事件採用「若晴願意留下警告」的 Variant。
+結果：
 
-### 6.3 `confront_reporter`
+```text
+18:18 若晴願意說出更多資訊
+```
 
-時間：Day 0 16:40。
+### `confront_reporter`
 
-效果：
+Day 0 16:40。
 
 ```text
 flags.reporter_confronted = true
 characters.reporter.route = hotel_then_old_lab
-schedule evt_2114_reporter_missing at Day 0 21:14
 ```
 
-YAML concept：
+玩家當下只看到葉庭安改變態度並離開。
 
-```yaml
-effects:
-  - add_flag: flags.reporter_confronted
-  - set:
-      path: characters.reporter.route
-      value: hotel_then_old_lab
-  - emit_event:
-      event_id: evt_2114_reporter_missing
-      at:
-        day: 0
-        time: "21:14"
-```
+真正後續透過她的 Schedule + Event Conditions 發生。
 
-真正的 delayed chain：
+### Debug-only Actions
+
+保留：
 
 ```text
-16:40 confront_reporter
-→ reporter route changes
-→ 19:50 reporter goes to old lab（敘事上發生，v0.2 不另建通用 Schedule）
-→ 21:14 evt_2114_reporter_missing
+protect_wakaharu
+stop_doctor
 ```
 
-v0.2 **不新增 Action-level `delayed_effects` DSL**；直接重用既有 `emit_event.at`，把「未來會發生的事件」排入同一個 deterministic Queue。
-
-21:14 不再由 `wakaharu_dies` 觸發。
+它們用來驗證第二輪可能的世界線，但第一輪 Player UI 不解鎖。
 
 ---
 
-## 7. Information Trade-off: 周予安
+## 14. 18:31 Event
 
-這是第一輪最重要的「沒有完美選項」示範。
+`evt_1831_station` 繼續是核心 Event。
 
-### Worldline A — 派去郵局
+結果由 18:31 當下 state 決定，而不是由玩家直接選。
 
-```text
-15:00 send_yuan_to_post_office
-→ 18:10 evt_1810_yuan_station_observation / yuan_absent
-→ 19:10 evt_1910_yuan_information / postal_anomaly
-→ 玩家得知：郵戳是真的，但系統沒有寄件紀錄
-```
-
-### Worldline B — 留在身邊
+Acceptance：
 
 ```text
-15:00 不派周予安
-→ 18:10 evt_1810_yuan_station_observation / saw_reporter
-→ flags.yuan_saw_reporter_at_station = true
-→ 19:10 evt_1910_yuan_information 不發生
+wakaharu at station
+→ wakaharu_dies
+
+wakaharu absent + doctor at station
+→ doctor_dies
+
+wakaharu absent + doctor absent
+→ no_death
 ```
 
-這兩個資訊互斥不是因為 UI 強制選 A/B，而是因為角色同一時間不能出現在兩個地方。
+第一輪 baseline：
 
-v0.2 不建立通用 NPC Schedule solver；只用 World State + Event Variant 表達這個因果。
+```text
+wakaharu_dies
+```
+
+這仍然刻意建立 False Causality：
+
+```text
+醫生秘密離院
+→ 醫生與若晴見面
+→ 若晴死亡
+→ 玩家自然懷疑醫生
+```
 
 ---
 
-## 8. Formal 21:14 Delayed Consequence
+## 15. 21:14 Reporter Event
 
 v0.1 的技術 demo：
 
 ```text
 wakaharu_dies
-→ delay 163 minutes
-→ evt_2114_reporter_missing
+→ reporter_missing
 ```
 
-在 v0.2 必須移除。
+必須移除。
 
-正式故事因果：
+正式模型：
 
 ```text
-confront_reporter at 16:40
-→ emit_event scheduled for 21:14
-→ evt_2114_reporter_missing
+16:40 confront_reporter
+→ reporter.route 改變
+→ Schedule 讓她在 19:50 到 old_lab
+→ Hidden Conditions 在 21:14 被重新判斷
+→ reporter_missing 或 safe
 ```
+
+第一版 condition 可以保持最小：
+
+```text
+reporter_confronted == true
+AND reporter.location == old_lab
+→ reporter_missing
+```
+
+不要為了戲劇性提前加入尚未需要的 `lab_power` 等第三條件。
+
+重要的是架構支援未來加入更多 hidden conditions。
 
 Acceptance：
 
 ```text
 confront_reporter
-→ 21:14 reporter_missing occurs
-
-no confront_reporter
-→ 21:14 reporter_missing does not occur
-```
-
-18:31 的 victim 不應決定 21:14 是否發生。
-
-因此以下兩條世界線都必須成立：
-
-```text
-wakaharu_dies + confront_reporter
 → reporter_missing
 
-wakaharu_dies + no confront_reporter
+no confrontation
 → reporter remains available
 ```
 
-這個測試用來防止 v0.1 demo 因果殘留。
+而且 18:31 的 victim 不影響這個判斷。
 
 ---
 
-## 9. 18:31 Event
+## 16. Information Trade-off: 周予安
 
-`evt_1831_station` 繼續作為核心 Event。
-
-作者 Debug Simulator 仍支援：
+不派去郵局：
 
 ```text
-no protection
-→ wakaharu_dies
-
-protect_wakaharu
-→ doctor_dies
-
-stop_doctor
-→ wakaharu_dies
-
-protect_wakaharu + stop_doctor
-→ no_death
+18:10 yuan at station_area
+→ observable event: saw_reporter
+→ player knowledge += reporter_was_near_station
 ```
 
-但第一輪 canonical story 不主動給玩家 `protect_wakaharu` / `stop_doctor` 這兩個能力。
-
-原因：第一輪的功能是讓玩家先觀察規律，而不是第一次就完成因果實驗。
-
-因此 canonical baseline：
+派去郵局：
 
 ```text
-Loop 01 baseline
-→ evt_1831_station / wakaharu_dies
+18:10 yuan at post_office
+→ saw_reporter event condition 不成立
+19:10 postal anomaly report
+→ player knowledge += postal_record_missing
 ```
 
-第一輪仍可以因 `send_yuan_to_post_office`、`show_letter_to_wakaharu`、`confront_reporter` 產生調查分歧；「canonical baseline」只代表沒有使用第二輪才合理的救援 / 阻止類 debug intervention。
+不額外寫：
 
-Debug worldlines 可以偏離 baseline，但不代表玩家第一輪 UI 已經解鎖這些 Action。
+```text
+if chose post office: hide reporter clue
+```
 
-Action availability / unlock system 不在 v0.2 實作。
+情報差異必須從 Schedule / State 自然產生。
 
 ---
 
-## 10. Narrative Layer
+## 17. Narrative Layer
 
-Simulator data 與敘事文字分開。
-
-### Minimal metadata
-
-Event / Variant 可選擇帶入：
-
-```yaml
-narrative:
-  summary: "玩家回到灰潮鎮，第一次注意到鐘樓。"
-  beat: unease
-```
-
-Variant 也可帶：
-
-```yaml
-narrative:
-  summary: "若晴倒在舊車站，玩家把醫生視為最大嫌疑人。"
-  beat: false_causality
-```
-
-v0.2 只定義以下欄位：
+Narrative metadata 與 simulator logic 分離。
 
 ```ts
 interface NarrativeMetadata {
@@ -384,236 +799,135 @@ interface NarrativeMetadata {
 }
 ```
 
-它必須滿足：
+規則：
 
-- Simulator 可以完全忽略它。
-- Condition / Effect 不可引用 narrative 欄位。
-- Viewer 可以顯示 summary，但不是 v0.2 必要 acceptance。
-- 完整對白仍保留在 `docs/first-loop-story.md` 或未來 narrative content files。
-
-不把長篇小說文字塞入 Event YAML。
+- Simulator 可以完全忽略 narrative。
+- Condition / Effect 不得讀取 narrative。
+- Narrative 可以依 Event Variant 不同而改變。
+- 長篇故事仍保留於 `docs/first-loop-story.md` 或未來專門 content files。
 
 ---
 
-## 11. World State Additions
+## 18. Simulation Ordering
 
-第一輪最小 state：
+所有世界變化都進入同一條 absolute-time orchestration。
 
-```yaml
-clock:
-  day: 0
-  time: "14:20"
-
-characters:
-  wakaharu:
-    location: cafe
-    status: alive
-  doctor:
-    location: hospital
-    status: alive
-  reporter:
-    location: town
-    status: available
-    route: normal
-  yuan:
-    location: town
-    assignment: none
-
-flags:
-  yuan_sent_to_post_office: false
-  yuan_saw_reporter_at_station: false
-  postal_record_anomaly_found: false
-  wakaharu_saw_letter: false
-  reporter_confronted: false
-  old_case_1831_revealed: false
-  sister_warning_found: false
-  midnight_bells_heard: false
-  loop_ended: false
-```
-
-只增加第一輪因果需要的 facts。
-
-不加入 trust score、inventory system、knowledge graph 等泛化資料。
-
----
-
-## 12. Cross-Midnight Story Time
-
-目前 v0.1 使用 minute-of-day：
+同時間固定 precedence：
 
 ```text
-23:59 = 1439
-00:00 = 0
+1. Base Schedule Entry
+2. Scheduled / Emitted Event
+3. Player Action
 ```
 
-這無法表達第一輪從 23:59 前進到「下一天 00:00」。
+理由：玩家必須先看到該時間點已經發生的世界狀態，再做出介入。
 
-v0.2 引入最小 `StoryTime`：
-
-```ts
-interface StoryTime {
-  day: number;
-  time: string;
-}
-```
-
-轉換：
-
-```text
-absoluteMinute = day * 1440 + parseTime(time)
-```
-
-例：
-
-```text
-Day 0 14:20 = 860
-Day 0 23:59 = 1439
-Day 1 00:00 = 1440
-```
-
-### Authored syntax
-
-Scheduled Event：
-
-```yaml
-at:
-  day: 0
-  time: "23:59"
-```
-
-跨日 Event：
-
-```yaml
-at:
-  day: 1
-  time: "00:00"
-```
-
-為了相容 v0.1，以下仍合法：
-
-```yaml
-at: "18:31"
-```
-
-其語意等同：
-
-```yaml
-at:
-  day: 0
-  time: "18:31"
-```
-
-Action 與 `emit_event.at` 採同一個 `StoryTimeInput`。
-
-```ts
-type StoryTimeInput = string | StoryTime;
-```
-
-History 繼續提供 `time`，並新增：
-
-```ts
-day: number;
-absoluteMinute: number;
-```
-
-Timeline / Queue / Diff 的時間排序都以 `absoluteMinute` 為準；顯示時仍可以使用 `Day 0 18:31` 或只顯示 `18:31`。
-
----
-
-## 13. Action / Event Ordering Semantics
-
-這是 v0.2 必須修改的 simulator orchestration。
-
-v0.1 的 one-shot `simulate()` 先依序 `applyAction()`，最後才 `runUntil()`；這只適用於所有 Action 都發生在第一個 scheduled event 以前的 demo。
-
-第一輪故事有：
-
-```text
-14:20 Event
-15:00 Event → Action
-16:10 Event → Action
-16:40 Event → Action
-...
-```
-
-因此 v0.2 的 one-shot simulation 必須把 Action 按時間插入世界運行中。
-
-### Required algorithm
-
-```text
-1. Resolve requested actions to authored ActionDefinitions.
-2. Sort actions by absolute time; same-time actions preserve caller input order.
-3. For each action:
-   a. runUntil(action.at) — 先處理 executeAt <= action time 的 Event / queued consequence。
-   b. applyAction(action) — 再套用該時間點玩家做出的決定。
-4. After all actions, runUntil(final target).
-```
-
-因此同一時間：
+例如：
 
 ```text
 15:00 evt_1500_sister_room
 → 15:00 send_yuan_to_post_office
 ```
 
-而不是 Action 先於讓玩家做出該決定的 Event。
+而不是 Action 先發生。
 
-### Determinism
+同類型同分鐘則維持 insertion order。
 
-- 不允許 Action 時間早於目前 simulation time。
-- 同時間多個 Action 依 input order 執行。
-- Queue 中同時間 Event 仍依既有 insertion order。
-- Event-at-time 永遠先於 one-shot simulation 中同時間的 player Action。
-
-`createSimulation()` + 手動 `runUntil()` / `applyAction()` API 保持可用；上述規則主要定義 one-shot `simulate()` 的 orchestration。
-
----
-
-## 14. Loop End Semantics
-
-`evt_0000_loop_end` 在 v0.2 是一個普通可記錄 Event：
+### One-shot simulation
 
 ```text
-Day 1 00:00
-→ flags.loop_ended = true
-→ history append evt_0000_loop_end
+1. 建立 Loop Range。
+2. Enqueue range 內 Base Schedule Entries。
+3. Enqueue authored scheduled Events。
+4. Resolve requested Actions，依 absolute time 排序；同分鐘維持 caller order。
+5. Simulator 逐分鐘順序處理 Schedule → Event → Action。
+6. Event / Action 可以 enqueue 未來 emitted events。
+7. 到 Loop end 停止。
 ```
 
-它 **不執行**：
-
-- world reset
-- NPC reset
-- action reset
-- card persistence
-- player memory persistence
-- Loop ID increment
-
-這些屬於下一個 `Loop Runtime` subsystem。
-
-如此可以完整描述第一輪故事，而不提前綁死未來 loop architecture。
+手動 `createSimulation()` API 仍保留。
 
 ---
 
-## 15. Story File Structure
+## 19. Data Model Additions
 
-建議：
+### Loop
+
+```ts
+interface LoopDefinition {
+  id: string;
+  range: {
+    start: StoryTime;
+    end: StoryTime;
+  };
+  reset_policy: 'at_range_end';
+}
+```
+
+### Schedule
+
+```ts
+interface ScheduleDefinition {
+  character: string;
+  entries: ScheduleEntryDefinition[];
+}
+
+interface ScheduleEntryDefinition {
+  id: string;
+  at: StoryTimeInput;
+  when?: Condition;
+  effects: Effect[];
+  visibility?: Visibility;
+  narrative?: NarrativeMetadata;
+}
+```
+
+### Event / Variant
+
+沿用 v0.1，新增：
+
+```ts
+visibility?: Visibility;
+narrative?: NarrativeMetadata;
+```
+
+### History
+
+新增：
+
+```ts
+day: number;
+absoluteMinute: number;
+visibility: Visibility;
+kind: 'schedule' | 'player-action' | 'event' | 'effect' | 'delayed-effect';
+```
+
+Schedule skipped 記錄於 Full History，但不進 Player History。
+
+---
+
+## 20. Story File Structure
 
 ```text
 story/
 ├─ manifests/
-│  └─ day_01.yaml
+│  └─ first_loop.yaml
+├─ loops/
+│  └─ first_loop.yaml
 ├─ world/
-│  └─ day_01_initial.yaml
+│  └─ first_loop_initial.yaml
+├─ schedules/
+│  ├─ wakaharu.yaml
+│  ├─ doctor.yaml
+│  ├─ reporter.yaml
+│  └─ yuan.yaml
 ├─ actions/
-│  └─ day_01_actions.yaml
+│  └─ first_loop_actions.yaml
 └─ events/
    ├─ day_01_1420.yaml
    ├─ day_01_1500.yaml
    ├─ day_01_1610.yaml
    ├─ day_01_1640.yaml
-   ├─ day_01_1740.yaml
-   ├─ day_01_1758.yaml
-   ├─ day_01_1805.yaml
    ├─ day_01_1810.yaml
    ├─ day_01_1818.yaml
    ├─ day_01_1831.yaml
@@ -625,20 +939,26 @@ story/
    └─ day_02_0000_loop_end.yaml
 ```
 
-新增 manifest：
+醫生 17:40 / 17:58 / 18:05 等生活軌跡改由 Schedule 表達，不再為每一個移動建立 Event。
+
+這是 v0.1 → v0.2 很重要的資料模型修正。
+
+### Manifest
 
 ```yaml
-# story/manifests/day_01.yaml
-world: world/day_01_initial.yaml
-actions: actions/day_01_actions.yaml
+loop: loops/first_loop.yaml
+world: world/first_loop_initial.yaml
+actions: actions/first_loop_actions.yaml
+schedules:
+  - schedules/wakaharu.yaml
+  - schedules/doctor.yaml
+  - schedules/reporter.yaml
+  - schedules/yuan.yaml
 events:
   - events/day_01_1420.yaml
   - events/day_01_1500.yaml
   - events/day_01_1610.yaml
   - events/day_01_1640.yaml
-  - events/day_01_1740.yaml
-  - events/day_01_1758.yaml
-  - events/day_01_1805.yaml
   - events/day_01_1810.yaml
   - events/day_01_1818.yaml
   - events/day_01_1831.yaml
@@ -650,331 +970,302 @@ events:
   - events/day_02_0000_loop_end.yaml
 ```
 
-Manifest 只負責列 Story Definition 成員，不負責流程順序；事件真正執行順序仍由 `at` / Queue 決定。
+---
 
-`evt_1910_yuan_information`、`evt_2114_reporter_missing` 雖然列在 manifest 中，但沒有 authored `at`；只有被 Action emit 時才會進 Queue。
+## 21. Author View vs Player View
+
+### Author / Debug View
+
+可以看到：
+
+```text
+Base Schedule
+Effective Schedule
+Hidden World State
+Event Conditions
+Matched / Failed Conditions
+Hidden Events
+Full Worldline History
+```
+
+### Player View
+
+只看到：
+
+```text
+自己的 Action
+observable Event
+已取得的 Facts
+Event Card / Timeline 可見內容
+```
+
+Player View 不顯示：
+
+```text
+「你因為 16:40 拆穿記者，所以觸發 21:14 失蹤」
+```
+
+即使 Author View 完整知道這條因果。
 
 ---
 
-## 16. Simulator Changes Required
+## 22. First Loop Acceptance Scenarios
 
-v0.2 對 simulator 的必要改動限制在：
+### A — Baseline worldline
 
-1. `StoryTimeInput` / absolute minute。
-2. Queue 改用 absolute minute。
-3. History 支援 `day` + `absoluteMinute`。
-4. One-shot `simulate()` 按時間交錯執行 Event 與 Action。
-5. Loader 支援 manifest。
-6. Event / Variant optional Narrative metadata。
-7. `emit_event.at` 支援 `StoryTimeInput`。
-8. 移除 v0.1 `wakaharu_dies → reporter_missing` delayed definition。
-9. 支援第一輪新增 action / event story files。
-
-不加入：
-
-- general schedule resolver
-- relationship engine
-- knowledge engine
-- reset engine
-
----
-
-## 17. Canonical First Loop Baseline
-
-Baseline 不套用任何 optional story Action，也不套用第二輪 debug intervention：
+無 Story Action。
 
 ```text
-Day 0 14:20  回到灰潮鎮
-Day 0 15:00  姊姊房間
-Day 0 16:10  若晴咖啡店
-Day 0 16:40  記者出現
-Day 0 17:40  醫生秘密離院
-Day 0 17:58  醫生抵達車站
-Day 0 18:05  信封交接
-Day 0 18:10  周予安目擊葉庭安
-Day 0 18:18  若晴保持警戒 / 不完整警告
-Day 0 18:31  wakaharu_dies
-Day 0 20:30  old_case_1831_revealed
-Day 0 22:40  sister_warning_found
-Day 0 23:59  midnight_bells
-Day 1 00:00  loop_end
+18:10 yuan sees reporter
+18:18 wakaharu gives incomplete warning
+18:31 wakaharu_dies
+19:10 postal event absent
+21:14 reporter missing absent
+23:59 bells
+Day 1 00:00 loop_end
 ```
 
-第一輪有效世界線可以加入三個 story Actions，產生 18:18、19:10、21:14 等差異。
-
-「Canonical baseline」不是唯一正確玩法，而是 Worldline Diff 的基準世界線。
-
----
-
-## 18. Acceptance Scenarios
-
-### Scenario A — 郵局情報
+### B — Send Yuan to post office
 
 ```text
-Actions:
-- send_yuan_to_post_office
-
-Expected:
-- evt_1810_yuan_station_observation resolves yuan_absent
-- evt_1910_yuan_information occurs
-- evt_1910_yuan_information resolves postal_anomaly
-- postal_record_anomaly_found = true
-- yuan_saw_reporter_at_station = false
+15:00 send_yuan_to_post_office
+→ yuan assignment changes
+→ 18:10 yuan is not at station
+→ reporter sighting absent
+→ 19:10 postal anomaly observable
 ```
 
-### Scenario B — 車站目擊
+### C — Show letter to Wakaharu
 
 ```text
-Actions:
-- no send_yuan_to_post_office
-
-Expected:
-- evt_1810_yuan_station_observation resolves saw_reporter
-- yuan_saw_reporter_at_station = true
-- evt_1910_yuan_information does not occur
-- postal_record_anomaly_found = false
+16:10 show_letter_to_wakaharu
+→ 18:18 warning_revealed
+→ player learns "18:31 不是死亡時間"
 ```
 
-### Scenario C — 拆穿記者
+### D — Confront reporter
 
 ```text
-Actions:
-- confront_reporter
-
-Expected:
-- evt_2114_reporter_missing occurs
-- reporter.status = missing
+16:40 confront_reporter
+→ reporter route changes
+→ 19:50 reporter reaches old_lab through schedule
+→ 21:14 reporter_missing
 ```
 
-### Scenario D — 不拆穿記者
+Player History 不顯示 19:50 hidden movement。
+
+### E — Reporter causality decoupled from 18:31
 
 ```text
-Actions:
-- no confront_reporter
-
-Expected:
-- evt_2114_reporter_missing does not occur
-- reporter.status != missing
-```
-
-### Scenario E — 21:14 與 18:31 解耦
-
-```text
-Actions:
-- confront_reporter
-- protect_wakaharu
-
-Expected:
-- evt_1831_station may resolve doctor_dies
-- evt_2114_reporter_missing still occurs
+confront_reporter + protect_wakaharu
+→ 18:31 may become doctor_dies
+→ 21:14 reporter_missing still occurs
 ```
 
 與：
 
 ```text
-Actions:
-- no confront_reporter
-- no protect_wakaharu
-
-Expected:
-- evt_1831_station resolves wakaharu_dies
-- evt_2114_reporter_missing does not occur
+no confrontation + baseline
+→ 18:31 wakaharu_dies
+→ 21:14 reporter_missing does not occur
 ```
 
-### Scenario F — 若晴看過信
+### F — Debug schedule override
 
 ```text
-Actions:
-- show_letter_to_wakaharu
-
-Expected:
-- evt_1818_wakaharu_last_conversation resolves warning_revealed
-- history contains narrative/event evidence for "18:31 不是死亡時間"
+stop_doctor
+→ doctor.route = stay_hospital
+→ 17:40+ station schedule entries skipped
+→ doctor remains hospital-side
 ```
 
-不使用完整 Trust System。
+Base Schedule 定義本身保持不變。
 
-### Scenario G — Cross-midnight
+### G — Cross-midnight
 
 ```text
-runUntil Day 1 00:00
-
-Expected:
-- evt_2359_midnight_bells occurs before evt_0000_loop_end
-- history ordering remains deterministic
-- flags.loop_ended = true
+23:59 bells
+<
+Day 1 00:00 loop_end
 ```
 
-### Scenario H — Same-time event/action ordering
+History absoluteMinute 單調不減。
+
+### H — Hidden causality
+
+Author History：
 
 ```text
-15:00 evt_1500_sister_room
-15:00 send_yuan_to_post_office
-
-Expected history order:
-- evt_1500_sister_room
-- send_yuan_to_post_office
+16:40 confront_reporter
+19:50 reporter enters old_lab
+21:14 reporter_missing
 ```
 
-用來鎖住「先看到情境，再做行動」的語意。
+Player History：
+
+```text
+16:40 confront_reporter
+21:14 reporter_missing
+```
+
+用測試保證 hidden schedule entry 不洩漏到 Player View。
 
 ---
 
-## 19. Worldline Diff Acceptance
+## 23. Worldline Diff Acceptance
 
-至少驗證兩組對照。
+至少驗證：
 
-### Diff 1 — Reporter delayed consequence
-
-```text
-Worldline A                     Worldline B
-16:40 confront_reporter         16:40 no confrontation
-21:14 reporter_missing       →  21:14 未發生
-```
-
-### Diff 2 — Information trade-off
+### Reporter Diff
 
 ```text
-Worldline A                     Worldline B
-15:00 派周予安去郵局            15:00 周予安留下
-18:10 yuan_absent            →  18:10 saw_reporter
-19:10 postal_anomaly         →  19:10 未發生
+Worldline A                    Worldline B
+16:40 confront                16:40 no confront
+19:50 old_lab [hidden]        19:50 normal route [hidden]
+21:14 missing              →  21:14 no event
 ```
 
-Diff 必須來自 simulator-generated history，不建立新的 fixture worldlines。
+Player Diff 不直接顯示 hidden 19:50 root cause。
+
+### Yuan Diff
+
+```text
+Worldline A                    Worldline B
+15:00 post office             15:00 baseline
+18:10 no sighting          →  18:10 sees reporter
+19:10 postal anomaly       →  19:10 no postal event
+```
+
+Diff 必須由 simulator-generated history 產生，不建立手寫 fixture worldlines。
 
 ---
 
-## 20. Validation Requirements
+## 24. Validation Requirements
 
 延續 v0.1 validation，新增：
 
-- `StoryTime.day` 必須是非負整數。
-- `StoryTime.time` 必須為合法 `HH:mm`。
-- Manifest 引用的 story file 必須存在。
-- Manifest 不可重複引用同一 Event ID。
-- Scheduled Event absolute time 不得早於 initial clock，除非未來明確支援 past events。
-- Action absolute time 不得早於 initial clock。
-- `emit_event.at` 不得早於 Action / Effect 執行當下；禁止用未來 Action 排入過去事件。
-- Delayed / emitted event 不可排到負 absolute minute。
-- History `absoluteMinute` 必須單調不減；同分鐘以 sequence 保持 deterministic ordering。
-- Narrative metadata 不參與 state path validation。
+- Loop range start 必須早於 end。
+- `StoryTime.day` 必須為非負整數。
+- Schedule Entry 必須位於 Loop Range 內。
+- Player Action 必須位於 Loop Range 內。
+- Scheduled Event 必須位於 Loop Range 內。
+- emitted event 不得排入目前時間之前。
+- Schedule ID 在同一 character 內不可重複。
+- Manifest 不可重複引用同一 schedule / event。
+- Schedule character 必須存在於 initial world state。
+- Schedule `when` path 必須存在於 initial schema/state path set。
+- History absoluteMinute 必須單調不減。
+- 同時間 precedence 必須保持 Schedule → Event → Action。
+- Narrative / visibility metadata 不參與 condition state path validation。
+- `visibility` 僅允許 `observable | hidden | debug`。
 
-v0.2 不嘗試靜態證明所有 unreachable events。
+v0.2 不做 general unreachable-event static analysis。
 
 ---
 
-## 21. Testing Strategy
+## 25. Testing Strategy
 
 TDD 順序：
 
 ```text
-StoryTime tests
-→ Queue cross-day ordering
-→ one-shot Action/Event ordering
-→ History cross-day projection
+StoryTime
+→ Loop Range
+→ Schedule Queue / ordering
+→ Conditional Schedule Entry
+→ Player Action schedule override
+→ Full History / Player History projection
 → Manifest loader
-→ First-loop story state tests
-→ 21:14 causal decoupling tests
-→ 周予安 information trade-off tests
-→ canonical story end-to-end
-→ Viewer Timeline / Diff integration
+→ Real first-loop schedules
+→ Yuan information trade-off
+→ Reporter hidden delayed chain
+→ 18:31 event
+→ Cross-midnight loop end
+→ Worldline Diff
+→ Viewer integration
 ```
 
-測試必須至少包含：
-
-- Day 0 23:59 < Day 1 00:00。
-- 舊 `at: "18:31"` syntax 向後相容。
-- Event 與同時間 Action 的順序固定為 Event → Action。
-- 同時間多 Action 保留 caller input order。
-- 相同 inputs 仍 deterministic。
-- 真實 `story/*.yaml` 被 acceptance tests 直接讀取。
-- `wakaharu_dies` 本身不能再觸發 21:14。
-- `confront_reporter` 不依賴 18:31 victim 仍可觸發 21:14。
-- `send_yuan_to_post_office` 與 18:10 station observation 互斥結果正確。
+必須直接測真實 `story/*.yaml`，不能只測 hardcoded fixtures。
 
 ---
 
-## 22. Migration Strategy
+## 26. Scope
 
-1. 以 PR #2 的 simulator branch 為 base。
-2. 先加入 StoryTime，保持舊 string time syntax 綠燈。
-3. 修改 one-shot `simulate()`，讓 Action 與 Event 按時間交錯執行。
-4. 加 manifest loader，先讓既有 18:31 / 21:14 data 走 manifest。
-5. 新增第一輪事件檔，包括 18:10 observation。
-6. 將 21:14 source 從 `wakaharu_dies` 移到 `confront_reporter` 的 scheduled `emit_event`。
-7. 將 19:10 郵局結果改為 `send_yuan_to_post_office` 排入的 emitted event。
-8. 擴充 initial state 與第一輪 actions。
-9. 加 canonical story acceptance tests。
-10. 最後才更新 Viewer，讓 Timeline / Diff 顯示完整第一輪。
+### In scope
 
-每一步都必須保持已有 v0.1 acceptance tests 可解釋；若正式故事因果刻意改變舊 acceptance，測試名稱與 spec 必須同步更新，而不是靜默刪除。
+- 一個完整 Loop Range：Day 0 14:20 → Day 1 00:00。
+- Loop Definition。
+- 四名核心 NPC Base Schedule。
+- State-driven schedule overrides。
+- Hidden / Observable visibility。
+- Full History / Player History 分離。
+- 三個第一輪 Story Actions。
+- 兩個 debug intervention actions。
+- 18:31 世界線變化。
+- 21:14 hidden causal chain。
+- 周予安情報 trade-off。
+- Cross-midnight StoryTime。
+- Manifest loader。
+- Author / Player projection foundation。
+
+### Out of scope
+
+- 第二個 Loop 的 runtime。
+- 真正 reset world state。
+- Loop ID progression。
+- 跨 Loop Knowledge persistence。
+- 玩家自動畫 causal edge。
+- 自動因果推理 / hypothesis engine。
+- 完整 Event Card / Truth Card engine。
+- Relationship / Trust 數值系統。
+- 通用任務系統。
+- 完整 NPC AI。
+- LLM NPC。
+- Offline real-time synchronization。
+- 完整 Visual Novel renderer。
+- 隨機事件。
 
 ---
 
-## 23. Branch / PR Strategy
+## 27. Migration from v0.1
 
-此功能依賴尚未 merge 的 PR #2。
+1. 保留 v0.1 deterministic Event Resolver / Condition AST / Effect Executor。
+2. `StoryTimeInput` 取代純 `HH:mm` 假設。
+3. 新增 Loop Range validation。
+4. 新增 Schedule Definition 與 Schedule Queue Item。
+5. 將 17:40 / 17:58 / 18:05 等 NPC 行程從劇情 Event 移至 schedules。
+6. `simulate()` 改為 Schedule → Event → Action 的 chronological orchestration。
+7. `wakaharu_dies → reporter_missing` demo delayed effect 移除。
+8. `confront_reporter` 改變 reporter route。
+9. Reporter schedule 使她進 old_lab。
+10. 21:14 Event 依當下 Hidden World Conditions 判斷。
+11. History 增加 visibility 並建立 Player History projection。
+12. Story loader 改為 manifest 驅動。
+13. Viewer 仍保留 Author Debug 能力；Player View 僅使用 observable projection。
 
-因此 spec 與後續 implementation 使用 stacked branch：
+---
+
+## 28. Definition of Done
+
+v0.2 完成時，必須可以從真實 Story YAML 重播第一個 Loop，並證明：
 
 ```text
-main
-└─ feature/worldline-simulator-v0.1       # PR #2
-   └─ docs/first-loop-story-graph-v0.2    # this spec
-      └─ feature/first-loop-story-graph-v0.2  # implementation later
+NPC 沒有玩家介入時會依自己的 Schedule 生活。
+
+玩家的行動改的是 world state / route，
+不是直接指定故事結果。
+
+Schedule 因 state 改變而自然偏離。
+
+Hidden condition 可以在玩家不知道的情況下成立。
+
+玩家可能數小時後才看到結果。
+
+Author 可以看完整真正因果；
+Player 只能看到自己實際觀察到的片段。
+
+同樣 Event 在不同 world state 下可以得到不同 Variant。
+
+Loop 是時間 Range，不等於一天。
 ```
 
-PR #2 merge 後，再把 v0.2 implementation PR retarget 到 `main`。
-
-不 force-push 既有 PR branch。
-
----
-
-## 24. Completion Criteria
-
-First Loop Story Graph v0.2 完成時，repository 必須能從 canonical story files deterministic 地產生：
-
-```text
-14:20 回鄉
-→ 15:00 調查姊姊房間
-→ 16:10 若晴
-→ 16:40 記者
-→ 17:40 / 17:58 / 18:05 醫生與信封路徑
-→ 18:10 周予安條件式目擊
-→ 18:18 若晴條件式警告
-→ 18:31 第一個死亡事件
-→ 19:10 條件式郵局情報
-→ 20:30 五年前 18:31
-→ 21:14 條件式延遲後果
-→ 22:40 姊姊警告
-→ 23:59 鐘聲
-→ Day 1 00:00 Loop End
-```
-
-並證明：
-
-1. 第一輪故事不是線性 fixture，而是由 state / conditions / variants 產生。
-2. 派周予安去郵局會造成資訊 trade-off。
-3. 拆穿記者會造成真正的 delayed consequence。
-4. 21:14 已與 18:31 victim 解耦。
-5. 23:59 → Day 1 00:00 可被 simulator 正確排序。
-6. 跨時間 Action 會在對應 Event 發生後才被套用。
-7. Timeline / Worldline Diff 能使用生成的 history 顯示這些差異。
-8. Simulator 不需要理解小說文字，就能重播整條第一輪因果鏈。
-
----
-
-## 25. Future Work
-
-完成 v0.2 後才考慮：
-
-- Loop Runtime / world reset。
-- Action unlock / availability。
-- Event Card runtime。
-- Truth Card / cross-loop knowledge。
-- NPC generic schedules。
-- Relationship / trust。
-- Offline real-time simulation。
-- 第一輪正式 VN presentation layer。
-- 第二輪「阻止若晴」作為玩家第一次因果實驗。
+第一版只需把這一個 Loop 做好，不擴充第二輪或多日內容。
