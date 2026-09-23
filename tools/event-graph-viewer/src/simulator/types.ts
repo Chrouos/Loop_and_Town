@@ -15,6 +15,8 @@ export type LoopDefinition = {
   };
 };
 
+export type Visibility = 'observable' | 'hidden' | 'debug';
+
 export type LeafCondition = {
   path: string;
   op: 'eq' | 'neq' | 'exists' | 'not_exists';
@@ -61,16 +63,36 @@ export type ActionDefinition = {
   effects: Effect[];
 };
 
+export type ScheduleEntryDefinition = {
+  id: string;
+  at: StoryTimeInput;
+  visibility?: Visibility;
+  when?: Condition;
+  effects: Effect[];
+};
+
+export type ScheduleDefinition = {
+  characterId: string;
+  entries: ScheduleEntryDefinition[];
+};
+
 export type SimulationDefinition = {
   loop?: LoopDefinition;
   actions: ActionDefinition[];
   events: EventDefinition[];
+  schedules?: ScheduleDefinition[];
 };
 
 export type QueueItemBase = {
-  kind: 'scheduled-event' | 'emitted-event' | 'delayed-effect';
+  kind: 'schedule' | 'scheduled-event' | 'emitted-event' | 'delayed-effect';
   executeAt: number;
   insertionOrder?: number;
+};
+
+export type ScheduleQueueItem = QueueItemBase & {
+  kind: 'schedule';
+  characterId: string;
+  entry: ScheduleEntryDefinition;
 };
 
 export type EventQueueItem = QueueItemBase & {
@@ -86,8 +108,9 @@ export type DelayedQueueItem = QueueItemBase & {
   effects: Effect[];
 };
 
-export type QueueItem = EventQueueItem | DelayedQueueItem;
+export type QueueItem = ScheduleQueueItem | EventQueueItem | DelayedQueueItem;
 export type QueueItemInput =
+  | Omit<ScheduleQueueItem, 'insertionOrder'>
   | Omit<EventQueueItem, 'insertionOrder'>
   | Omit<DelayedQueueItem, 'insertionOrder'>;
 
@@ -101,10 +124,13 @@ export type WorldlineHistoryEntry = {
   sequence: number;
   time: string;
   minute: number;
-  kind: 'player-action' | 'event' | 'effect' | 'delayed-effect';
+  kind: 'schedule' | 'player-action' | 'event' | 'effect' | 'delayed-effect';
   eventId?: string;
   variantId?: string;
   actionId?: string;
+  scheduleEntryId?: string;
+  scheduleStatus?: 'applied' | 'skipped';
+  characterId?: string;
   title: string;
   sourceId?: string;
   changes?: StateChange[];

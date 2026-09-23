@@ -28,16 +28,12 @@ function validateCondition(condition: Condition, state: WorldState): void {
 function validateEffects(effects: Effect[], state: WorldState, eventIds: Set<string>): void {
   for (const effect of effects) {
     if ('set' in effect) {
-      if (!hasPath(state, effect.set.path)) {
-        throw new Error(`Unknown state path: ${effect.set.path}`);
-      }
+      if (!hasPath(state, effect.set.path)) throw new Error(`Unknown state path: ${effect.set.path}`);
       continue;
     }
 
     if ('add_flag' in effect) {
-      if (!hasPath(state, effect.add_flag)) {
-        throw new Error(`Unknown state path: ${effect.add_flag}`);
-      }
+      if (!hasPath(state, effect.add_flag)) throw new Error(`Unknown state path: ${effect.add_flag}`);
       continue;
     }
 
@@ -67,7 +63,7 @@ function initialMinute(definition: SimulationDefinition, initialState: WorldStat
 function assertInLoopRange(
   definition: SimulationDefinition,
   at: StoryTimeInput,
-  kind: 'event' | 'action',
+  kind: 'event' | 'action' | 'schedule',
   id: string,
 ): void {
   if (!definition.loop) return;
@@ -75,7 +71,7 @@ function assertInLoopRange(
   const end = toAbsoluteMinute(definition.loop.range.end);
   const value = toAbsoluteMinute(at);
   if (value < start || value > end) {
-    const label = kind === 'event' ? 'Scheduled event' : 'Action';
+    const label = kind === 'event' ? 'Scheduled event' : kind === 'schedule' ? 'Schedule entry' : 'Action';
     throw new Error(`${label} outside loop range: ${id}`);
   }
 }
@@ -83,6 +79,9 @@ function assertInLoopRange(
 export function validateDefinition(definition: SimulationDefinition, initialState: WorldState): void {
   assertUnique(definition.events.map((event) => event.id), 'Event ID');
   assertUnique(definition.actions.map((action) => action.id), 'Action ID');
+  const schedules = definition.schedules ?? [];
+  assertUnique(schedules.map((schedule) => schedule.characterId), 'Schedule character ID');
+  assertUnique(schedules.flatMap((schedule) => schedule.entries.map((entry) => entry.id)), 'Schedule entry ID');
   const eventIds = new Set(definition.events.map((event) => event.id));
 
   if (definition.loop) {
@@ -100,13 +99,21 @@ export function validateDefinition(definition: SimulationDefinition, initialStat
     validateEffects(action.effects, initialState, eventIds);
   }
 
+  for (const schedule of schedules) {
+    for (const entry of schedule.entries) {
+      const entryTime = toAbsoluteMinute(entry.at);
+      assertInLoopRange(definition, entry.at, 'schedule', entry.id);
+      if (entryTime < initialTime) throw new Error(`Schedule entry before initial clock: ${entry.id}`);
+      if (entry.when) validateCondition(entry.when, initialState);
+      validateEffects(entry.effects, initialState, eventIds);
+    }
+  }
+
   for (const event of definition.events) {
     if (event.at) {
       const eventTime = toAbsoluteMinute(event.at);
       assertInLoopRange(definition, event.at, 'event', event.id);
-      if (eventTime < initialTime) {
-        throw new Error(`Scheduled event before initial clock: ${event.id}`);
-      }
+      if (eventTime < initialTime) throw new Error(`Scheduled event before initial clock: ${event.id}`);
     }
     assertUnique(event.variants.map((variant) => variant.id), `Variant ID in ${event.id}`);
     const fallbacks = event.variants.filter((variant) => variant.fallback);

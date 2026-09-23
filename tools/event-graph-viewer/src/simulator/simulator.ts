@@ -1,6 +1,7 @@
 import { executeEffects } from './effectExecutor';
 import { SimulationQueue } from './eventQueue';
 import { resolveEvent } from './eventResolver';
+import { resolveScheduleEntry } from './schedule';
 import { cloneValue } from './state';
 import { fromAbsoluteMinute, parseTime, toAbsoluteMinute } from './time';
 import type {
@@ -51,6 +52,17 @@ export function createSimulation(definition: SimulationDefinition, initialState:
   let currentMinute = initialMinute(definition, state);
   let sequence = 0;
 
+  for (const schedule of definition.schedules ?? []) {
+    for (const entry of schedule.entries) {
+      queue.enqueue({
+        kind: 'schedule',
+        executeAt: toAbsoluteMinute(entry.at),
+        characterId: schedule.characterId,
+        entry,
+      });
+    }
+  }
+
   for (const event of definition.events) {
     if (event.at) queue.enqueue({ kind: 'scheduled-event', executeAt: toAbsoluteMinute(event.at), eventId: event.id });
   }
@@ -89,6 +101,19 @@ export function createSimulation(definition: SimulationDefinition, initialState:
 
       const item = queue.dequeue()!;
       currentMinute = item.executeAt;
+
+      if (item.kind === 'schedule') {
+        const resolved = resolveScheduleEntry({ state, queue, events, currentMinute }, item.entry);
+        record({
+          kind: 'schedule',
+          title: item.entry.id,
+          scheduleEntryId: item.entry.id,
+          scheduleStatus: resolved.status,
+          characterId: item.characterId,
+          changes: resolved.changes,
+        });
+        continue;
+      }
 
       if (item.kind === 'delayed-effect') {
         const changes = executeEffects({ state, queue, events, currentMinute }, item.effects);
