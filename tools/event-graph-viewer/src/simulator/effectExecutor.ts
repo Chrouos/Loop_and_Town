@@ -19,11 +19,11 @@ export function executeEffects(context: ResolverContext, effects: Effect[]): Sta
     if ('emit_event' in effect) {
       const eventId = effect.emit_event.event_id;
       if (!context.events.has(eventId)) throw new Error(`Unknown emitted event: ${eventId}`);
-      context.queue.enqueue({
-        kind: 'emitted-event',
-        executeAt: effect.emit_event.at ? toAbsoluteMinute(effect.emit_event.at) : context.currentMinute,
-        eventId,
-      });
+      const executeAt = effect.emit_event.at ? toAbsoluteMinute(effect.emit_event.at) : context.currentMinute;
+      if (executeAt < context.currentMinute) {
+        throw new Error(`Cannot emit event into the past: ${eventId}`);
+      }
+      context.queue.enqueue({ kind: 'emitted-event', executeAt, eventId });
       continue;
     }
 
