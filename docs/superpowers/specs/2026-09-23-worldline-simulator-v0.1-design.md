@@ -1,35 +1,70 @@
 # Worldline Simulator v0.1 Design
 
 Date: 2026-09-23
-Status: Draft for review
+Status: Approved for implementation
 Depends on: PR #1 `feat: add Event Graph Viewer v0.1`
 
 ## 1. Goal
 
 Build the first deterministic world simulation layer for **Loop_and_Town**.
 
-The simulator must prove one core gameplay promise:
+The simulator must prove the core gameplay promise:
 
 > The player changes one condition, the world recalculates its event chain, and a different worldline emerges automatically.
 
-The first milestone is intentionally narrow. It only needs to simulate the 18:31 station event and its delayed consequences, then feed the generated history into the existing Timeline and Worldline Diff views.
+v0.1 intentionally focuses on one causal chain: player interventions before 18:31, the 18:31 station event, and a delayed consequence at 21:14.
 
-## 2. Success criteria
+## 2. Binding acceptance scenario
+
+The simulator is not complete unless the same initial state produces all four outcomes below by changing Player Actions only.
+
+```text
+do_nothing ([])
+→ 18:31 wakaharu_dies
+→ 若晴死亡
+→ 21:14 reporter_missing 發生
+
+protect_wakaharu
+→ 18:31 doctor_dies
+→ 醫生死亡
+→ 21:14 reporter_missing 不發生
+
+stop_doctor
+→ 18:31 wakaharu_dies
+→ 若晴死亡
+→ 21:14 reporter_missing 發生
+
+protect_wakaharu + stop_doctor
+→ 18:31 no_death
+→ 無人死亡
+→ 21:14 reporter_missing 不發生
+```
+
+`do_nothing` is represented by an empty action list, not by a special engine action.
+
+The 21:14 divergence is mandatory. It proves that a changed worldline can produce a delayed consequence instead of merely changing one immediate card.
+
+For v0.1, `wakaharu_dies` schedules the 21:14 reporter event directly. Extra conditions such as `reporter.exposed_by_player` are intentionally excluded from this acceptance path so the delayed consequence remains deterministic and testable.
+
+## 3. Success criteria
 
 Simulator v0.1 is successful when all of the following are true:
 
 1. A World State can be created from a deterministic initial snapshot.
-2. A Player Action can mutate World State before a scheduled event.
-3. Event conditions can be evaluated against World State.
-4. Exactly one matching Variant can be selected deterministically by priority.
-5. Variant effects mutate World State.
-6. Delayed effects are scheduled and later executed.
-7. Every action/event/effect produces Worldline History entries.
-8. Two different Player Actions can produce different 18:31 outcomes.
-9. The resulting histories can be displayed by the existing Timeline and Worldline Diff views without manually authored fixtures.
-10. The same initial state + same action sequence always produces the same result.
+2. Player Actions mutate World State before scheduled events.
+3. Authored events with `at` are inserted into the simulation queue when a simulation is created.
+4. Event conditions are evaluated against World State.
+5. Exactly one matching Variant is selected deterministically.
+6. Variant effects mutate World State.
+7. Delayed effects are queued and later executed.
+8. `emit_event` can enqueue a named event at a specified time or immediately at the current simulation time.
+9. Every action/event/effect/delayed effect produces append-only Worldline History.
+10. All four binding acceptance scenarios pass.
+11. At least one 18:31 outcome changes whether the 21:14 event occurs.
+12. Timeline and Worldline Diff consume simulator-generated output rather than authored worldline fixtures.
+13. Same initial state + same action sequence + same story definition always produces identical state and history.
 
-## 3. Explicit non-goals
+## 4. Explicit non-goals
 
 Do not include these in v0.1:
 
@@ -46,66 +81,47 @@ Do not include these in v0.1:
 - Visual Event Graph editing.
 - Complex expression language or arbitrary code execution inside YAML.
 
-These are future systems and must not be required for the first simulator proof.
-
-## 4. Core architecture
+## 5. Architecture
 
 ```text
 Story YAML
    |
    v
-Story Loader / Normalizer
+Story Loader / Validator
    |
-   +--------------------+
-   |                    |
-   v                    v
-World Definition     Event Definition
-   |                    |
-   +---------+----------+
-             |
-             v
-       World Simulator
-             |
-      +------+------+----------------+
-      |             |                |
-      v             v                v
-World State   Event Queue   Worldline History
-                                  |
-                             +----+----+
-                             |         |
-                             v         v
-                         Timeline    Diff
+   +---------------------------+
+   |                           |
+   v                           v
+Initial World State        Event / Action Definitions
+   |                           |
+   +-------------+-------------+
+                 |
+                 v
+           World Simulator
+                 |
+      +----------+-----------+
+      |                      |
+      v                      v
+ World State          Simulation Queue
+                             |
+                             v
+                    Worldline History
+                             |
+                       Viewer Projection
+                        /           \
+                       v             v
+                  Timeline       Worldline Diff
 ```
 
 The simulator must remain independent from React/UI code.
 
-The Viewer consumes simulator output; the simulator must not depend on Viewer components.
-
-## 5. Determinism rule
-
-All v0.1 simulation is deterministic.
-
-Given:
-
-```text
-Initial World State
-+
-Player Action sequence
-+
-Story Event definitions
-```
-
-The output must always be identical.
-
-No random numbers, timestamps from the local machine, network state, or LLM output may influence resolution.
-
-This is important because worldline comparison only becomes trustworthy when the same inputs reproduce the same timeline.
+Story data is the Source of Truth. Viewer components never mutate simulation state.
 
 ## 6. World State
 
-World State is the current truth of the simulated world.
+World State stores facts, not narrative prose.
 
-Example shape:
+Example:
 
 ```yaml
 clock:
@@ -131,69 +147,41 @@ flags:
   player_stopped_doctor: false
 ```
 
-### Rules
-
-- State contains facts, not narrative prose.
-- State mutation must happen only through explicit simulator actions/effects.
-- UI may read State but must not mutate it directly.
-- Story YAML references State through known paths such as `characters.wakaharu.location`.
+State mutation occurs only through explicit actions/effects.
 
 ## 7. Player Actions
 
-Player Action is an explicit intervention that mutates World State.
+Player Actions are authored data that mutate World State.
 
-For v0.1, actions are authored data, not free-form commands.
-
-Example:
+Required v0.1 actions:
 
 ```yaml
-id: protect_wakaharu
-at: "18:20"
-label: 阻止若晴前往舊車站
+- id: protect_wakaharu
+  at: "18:20"
+  label: 阻止若晴前往舊車站
+  effects:
+    - set:
+        path: characters.wakaharu.location
+        value: home
+    - add_flag: flags.player_protected_wakaharu
 
-effects:
-  - set:
-      path: characters.wakaharu.location
-      value: home
-  - set:
-      path: flags.player_protected_wakaharu
-      value: true
+- id: stop_doctor
+  at: "18:20"
+  label: 阻止醫生前往舊車站
+  effects:
+    - set:
+        path: characters.doctor.location
+        value: clinic
+    - add_flag: flags.player_stopped_doctor
 ```
 
-Minimum v0.1 scenario actions:
-
-```text
-A. do_nothing
-B. protect_wakaharu
-C. stop_doctor
-D. protect_wakaharu + stop_doctor
-```
-
-Expected demonstration outcome:
-
-```text
-do_nothing
-→ 若晴死亡
-
-protect_wakaharu
-→ 醫生死亡
-
-stop_doctor
-→ 若晴死亡
-
-protect_wakaharu + stop_doctor
-→ 無人死亡
-```
-
-The exact story logic remains editable in YAML; these outcomes define the initial acceptance scenario, not hard-coded engine behavior.
+Actions change State; they never directly select an ending or Variant.
 
 ## 8. Condition model
 
-v0.1 must not use `eval()` or arbitrary JavaScript expressions from YAML.
+No `eval()` or arbitrary JavaScript is allowed.
 
-Use a constrained condition AST.
-
-Example:
+Condition AST:
 
 ```yaml
 when:
@@ -206,7 +194,7 @@ when:
       value: alive
 ```
 
-Supported operators for v0.1:
+Supported operators:
 
 ```text
 eq
@@ -223,18 +211,13 @@ any
 not
 ```
 
-This keeps validation, debugging, and future visualization predictable.
+Missing paths are explicit evaluation errors for `eq` / `neq`; `exists` and `not_exists` are the supported way to test path presence.
 
 ## 9. Variant resolution
 
-An Event may contain multiple Variants.
-
-Example:
+An Event contains ordered Variants.
 
 ```yaml
-id: evt_1831_station
-at: "18:31"
-
 variants:
   - id: wakaharu_dies
     priority: 100
@@ -248,35 +231,33 @@ variants:
 
   - id: no_death
     priority: 0
-    when: ...
+    fallback: true
     effects: ...
 ```
 
-Resolution algorithm:
+Resolution:
 
 ```text
-1. Load Event
-2. Sort Variants by priority descending
-3. Evaluate each Variant condition
-4. Select first matching Variant
-5. Apply effects
-6. Schedule delayed effects
-7. Record Worldline History
+matching conditional variants
+→ highest priority
+→ if none match, explicit fallback
+→ effects
+→ delayed effects
+→ history
 ```
 
-### Ambiguity policy
+Rules:
 
-If multiple Variants match, priority decides.
-
-If two matching Variants have the same priority, simulator should fail validation or raise an explicit ambiguity error in v0.1.
-
-Silent non-deterministic selection is forbidden.
+- Multiple matching conditional Variants may exist; highest priority wins.
+- Two matching conditional Variants with the same priority are an ambiguity error.
+- At most one Variant per Event may have `fallback: true`.
+- A fallback Variant must not define `when`.
+- Fallback is evaluated only after all conditional Variants fail.
+- No match and no fallback is a definition/runtime error.
 
 ## 10. Effect model
 
-Use a constrained set of effect operations.
-
-Required v0.1 operations:
+Required operations:
 
 ### set
 
@@ -288,15 +269,13 @@ Required v0.1 operations:
 
 ### add_flag
 
-Convenience alias for setting a boolean flag to true.
-
 ```yaml
 - add_flag: world.anomaly_1831_observed
 ```
 
-### emit_event
+Equivalent to setting the referenced path to `true`.
 
-Schedule another named event.
+### emit_event
 
 ```yaml
 - emit_event:
@@ -304,55 +283,81 @@ Schedule another named event.
     at: "21:14"
 ```
 
-No arbitrary scripts are allowed.
+Semantics:
 
-## 11. Delayed Effects / Event Queue
+```text
+emit_event with `at`
+→ enqueue named event at that absolute virtual time
 
-Delayed consequences are a first-class gameplay system.
+emit_event without `at`
+→ enqueue named event at current simulation time
+```
 
-Example:
+An emitted event is resolved through the same Event Resolver as authored scheduled events.
+
+## 11. Simulation Queue
+
+There is one deterministic ordered queue for all executable simulation work.
+
+Queue item kinds:
+
+```text
+scheduled-event
+emitted-event
+delayed-effect
+```
+
+On `createSimulation()`:
+
+```text
+load authored Event definitions
+→ every Event with `at` becomes a scheduled-event queue item
+```
+
+Minimum queue fields:
+
+```text
+kind
+executeAt
+insertionOrder
+eventId?
+sourceEventId?
+sourceVariantId?
+delayedEffectId?
+effects?
+```
+
+Ordering:
+
+```text
+earlier executeAt first
+then lower insertionOrder first
+```
+
+This ordering applies across all queue item kinds.
+
+## 12. Delayed effects
+
+Delayed effects are first-class data.
+
+For the binding acceptance scenario:
 
 ```yaml
 delayed_effects:
-  - id: reporter_missing_after_station
+  - id: reporter_missing_after_wakaharu_death
     delay_minutes: 163
     effects:
       - emit_event:
           event_id: evt_2114_reporter_missing
 ```
 
-The simulator maintains an ordered queue.
+18:31 + 163 minutes = 21:14.
 
-Queue item minimum fields:
+A delayed effect executes its own effects at `executeAt`; an `emit_event` without `at` therefore emits at 21:14 in this case.
 
-```text
-executeAt
-sourceEventId
-sourceVariantId
-delayedEffectId
-effects
-```
+## 13. Simulation clock
 
-Ordering rule:
-
-```text
-earlier executeAt first
-then insertion order
-```
-
-This guarantees deterministic resolution when multiple delayed effects share the same timestamp.
-
-## 12. Simulation clock
-
-v0.1 uses a virtual clock, not real time.
-
-Recommended internal representation:
-
-```text
-minute-of-day integer
-```
-
-Examples:
+Use a virtual minute-of-day integer internally.
 
 ```text
 18:20 = 1100
@@ -360,20 +365,18 @@ Examples:
 21:14 = 1274
 ```
 
-YAML remains human-readable as `HH:mm`; loader converts it to minutes.
+YAML remains `HH:mm`.
 
-This avoids timezone and Date-object complexity in the engine.
+`runUntil(target)` processes queue items whose `executeAt <= target` and advances the virtual clock to the requested target after processing.
 
-## 13. Worldline History
+Calling `runUntil()` with a time earlier than the current virtual clock is an error.
 
-Worldline History is an append-only simulation log.
+## 14. Worldline History
 
-It records what actually happened in a specific run.
-
-Suggested entry shape:
+History is append-only and records what actually happened.
 
 ```ts
-interface WorldlineEntry {
+interface WorldlineHistoryEntry {
   sequence: number;
   time: string;
   minute: number;
@@ -387,23 +390,37 @@ interface WorldlineEntry {
 }
 ```
 
-StateChange example:
-
 ```ts
-{
-  path: 'characters.wakaharu.status',
-  before: 'alive',
-  after: 'dead'
+interface StateChange {
+  path: string;
+  before: unknown;
+  after: unknown;
 }
 ```
 
-This allows Viewer to explain not only that a worldline changed, but why.
+History must be sufficient to explain why two worldlines differ.
 
-## 14. Simulator API
+## 15. Viewer projection
 
-Keep the engine API small.
+The simulator's complete history is not the same type as a Viewer row.
 
-Suggested public interface:
+Use an explicit projection boundary:
+
+```text
+WorldlineHistoryEntry[]
+        |
+        +→ projectTimelineEntries()
+        |
+        +→ projectWorldlineEvents()
+```
+
+`projectWorldlineEvents()` yields at most one event-resolution row per Event occurrence and is the input to Worldline Diff.
+
+This prevents the existing `Map<eventId, ...>` style diff from accidentally collapsing action/effect history while keeping the simulator log complete.
+
+The existing authored Event Graph continues to visualize story definitions, not runtime history.
+
+## 16. Simulator API
 
 ```ts
 createSimulation(definition, initialState)
@@ -417,7 +434,7 @@ simulation.getHistory()
 simulation.getPendingEvents()
 ```
 
-Alternative one-shot helper:
+One-shot helper:
 
 ```ts
 simulate({
@@ -428,72 +445,187 @@ simulate({
 })
 ```
 
-The one-shot form is useful for tests and Worldline Diff generation.
+`getState()` and `getHistory()` must return data that callers cannot mutate to change simulator internals.
 
-## 15. Integration with existing Viewer
+## 17. Story data for v0.1
 
-Viewer v0.1 already contains Graph, Timeline, and Worldline Diff views.
-
-Simulator integration should change the data flow from:
+Required files:
 
 ```text
-hard-coded fixture
-→ Timeline / Diff
+story/world/day_01_initial.yaml
+story/actions/day_01_actions.yaml
+story/events/day_01_1831.yaml
+story/events/day_01_2114.yaml
 ```
 
-into:
+The minimum scenario data is migrated to the structured AST in this spec.
+
+Do not build a repository-wide migration framework.
+
+## 18. 18:31 scenario definition
+
+The 18:31 event must derive the four acceptance outcomes from State.
+
+Conceptually:
 
 ```text
-Scenario controls
-→ Simulator
-→ Worldline History
-→ Timeline / Diff
+wakaharu at station + doctor at station
+→ wakaharu_dies
+
+wakaharu away + doctor at station
+→ doctor_dies
+
+wakaharu at station + doctor away
+→ wakaharu_dies
+
+wakaharu away + doctor away
+→ no_death
 ```
 
-The Event Graph view remains based on authored story definitions.
+`wakaharu_dies` schedules `reporter_missing_after_wakaharu_death`.
 
-The Timeline and Diff views display actual simulator output.
+`doctor_dies` and `no_death` do not schedule it.
 
-## 16. Minimal Scenario UI
+## 19. 21:14 scenario definition
 
-The first integration UI should stay intentionally simple.
+`evt_2114_reporter_missing` is a normal Event definition.
 
-Example:
+When emitted at 21:14 it mutates:
 
 ```text
-Scenario: 18:31 車站事件
-
-[ ] 阻止若晴去車站
-[ ] 阻止醫生去車站
-
-[Simulate]
+characters.reporter.status: alive → missing
 ```
 
-Then show:
+and records an event-resolution History entry.
+
+The event must not be globally pre-scheduled at simulator creation; it occurs only when emitted by the delayed causal chain.
+
+## 20. Validation
+
+Reject before simulation when detectable:
+
+- duplicate Event IDs.
+- duplicate Action IDs.
+- duplicate Variant IDs within an Event.
+- duplicate delayed-effect IDs within a Variant.
+- invalid time format.
+- unknown condition operators.
+- unknown effect operations.
+- invalid state paths for authored `set` / condition paths where validation can determine them from the initial state.
+- more than one fallback Variant.
+- fallback Variant with `when`.
+- matching conditional Variants with duplicate priority.
+- negative delayed-effect delay.
+- emitted Event IDs that do not exist.
+- authored scheduled event earlier than initial clock.
+
+## 21. Error behavior
+
+Errors are explicit and debuggable.
+
+Examples:
 
 ```text
-Worldline A
-vs
-Worldline B
+Unknown state path: characters.foo.location
+Ambiguous variants in evt_1831_station at priority 100
+Unknown emitted event: evt_missing
+No matching variant for evt_1831_station
+Cannot run simulation backwards: 21:14 -> 18:31
+Processed event limit exceeded: 1000
 ```
 
-The simulator itself must not contain UI-specific assumptions.
+## 22. Tests and TDD
 
-## 17. Suggested project structure
+Implementation uses RED → GREEN → REFACTOR.
+
+Required unit coverage:
+
+```text
+Condition Evaluator
+- eq / neq
+- exists / not_exists
+- all / any / not
+- missing path error
+
+Effect Executor
+- set
+- add_flag
+- emit_event current-time scheduling
+- emit_event absolute-time scheduling
+- state-change recording
+
+Event Resolver
+- priority selection
+- explicit fallback
+- duplicate matching priority ambiguity
+- no-match error
+
+Simulation Queue
+- time ordering
+- same-time insertion ordering
+- authored scheduled events
+- delayed execution
+
+Simulator
+- cannot run backwards
+- processed event safety limit
+- deterministic repeat run
+- immutable returned snapshots
+```
+
+Binding scenario tests:
+
+```text
+[]
+→ 18:31 wakaharu_dies
+→ 21:14 reporter_missing
+
+[protect_wakaharu]
+→ 18:31 doctor_dies
+→ no 21:14 reporter_missing
+
+[stop_doctor]
+→ 18:31 wakaharu_dies
+→ 21:14 reporter_missing
+
+[protect_wakaharu, stop_doctor]
+→ 18:31 no_death
+→ no 21:14 reporter_missing
+```
+
+UI integration test:
+
+```text
+select action sets
+→ simulate
+→ Timeline renders generated event history
+→ Diff renders changed/missing generated events
+```
+
+## 23. Performance / safety
+
+v0.1 targets a tiny scenario.
+
+Maximum processed queue items per `runUntil`/one-shot run: **1,000**.
+
+Exceeding the limit is an explicit error to prevent malformed emit cycles from locking the browser.
+
+## 24. Suggested project structure
 
 ```text
 tools/event-graph-viewer/
 └─ src/
    ├─ simulator/
    │  ├─ types.ts
+   │  ├─ time.ts
    │  ├─ state.ts
    │  ├─ conditionEvaluator.ts
+   │  ├─ eventQueue.ts
    │  ├─ effectExecutor.ts
    │  ├─ eventResolver.ts
-   │  ├─ eventQueue.ts
+   │  ├─ validation.ts
    │  ├─ simulator.ts
-   │  └─ history.ts
-   │
+   │  └─ projection.ts
    └─ components/
       └─ ScenarioSimulator.tsx
 
@@ -507,132 +639,17 @@ story/
    └─ day_01_2114.yaml
 ```
 
-The engine may live in the Viewer package for v0.1, but code boundaries must allow extracting it into a standalone package later.
+The engine may live in the Viewer package for v0.1, but UI imports the engine; the engine must never import React components.
 
-## 18. Story data migration
+## 25. Branch / integration constraint
 
-The current `day_01_1831.yaml` prototype uses string-like conditions/effects in places.
+Implementation must be based on the branch containing PR #1 Viewer code, not the old `main` snapshot.
 
-Simulator v0.1 should migrate only the minimum required sample data to the structured AST described in this spec.
+The design-spec branch already has PR #1 head as its parent, so implementation may branch from `docs/worldline-simulator-v0.1-spec` after this spec is finalized.
 
-Do not attempt a repository-wide migration framework yet.
+## 26. Future extension points
 
-## 19. Validation requirements
-
-Before simulation, definitions should reject:
-
-- duplicate Event IDs.
-- duplicate Variant IDs within the same Event.
-- invalid time format.
-- unknown condition operators.
-- unknown effect operations.
-- invalid state paths where detectable.
-- matching Variants with duplicate priority where ambiguity can occur.
-- delayed effects with negative delay.
-- emitted Event IDs that do not exist.
-
-v0.1 validation can be implemented as TypeScript runtime validation plus tests. A full schema compiler is not required.
-
-## 20. Error behavior
-
-Errors must be explicit and debuggable.
-
-Examples:
-
-```text
-Unknown state path: characters.foo.location
-Ambiguous variants in evt_1831_station at priority 100
-Unknown emitted event: evt_missing
-No matching variant for evt_1831_station
-```
-
-For v0.1, `No matching variant` should be considered a definition error unless the Event explicitly defines a fallback Variant.
-
-## 21. Test strategy
-
-Use TDD for simulator behavior.
-
-### Unit tests
-
-Condition Evaluator:
-
-```text
-eq / neq
-all / any / not
-missing paths
-```
-
-Effect Executor:
-
-```text
-set
-add_flag
-state change recording
-```
-
-Event Resolver:
-
-```text
-priority selection
-fallback
-ambiguity detection
-```
-
-Event Queue:
-
-```text
-time ordering
-same-time insertion ordering
-delayed execution
-```
-
-### Scenario tests
-
-Primary acceptance scenario:
-
-```text
-Initial state
-+ no action
-→ wakaharu_dies
-
-Initial state
-+ protect_wakaharu
-→ doctor_dies
-
-Initial state
-+ stop_doctor
-→ wakaharu_dies
-
-Initial state
-+ protect_wakaharu + stop_doctor
-→ no_death
-```
-
-Then verify at least one 18:31 outcome changes whether a 21:14 event occurs.
-
-### UI integration test
-
-Select two action sets, run simulation, confirm Worldline Diff displays the generated differences.
-
-## 22. Performance expectations
-
-v0.1 targets a tiny scenario.
-
-No optimization work is needed beyond avoiding obviously unbounded loops.
-
-The simulator should include a safety guard such as:
-
-```text
-maximum processed events per run
-```
-
-This prevents malformed emit-event cycles from locking the browser.
-
-Suggested initial limit: 1,000 processed events.
-
-## 23. Future extension points
-
-The architecture should allow, but not implement yet:
+Architecture should allow, but not implement yet:
 
 ```text
 NPC Schedule
@@ -641,7 +658,7 @@ Relationships
 Trust
 Inventory
 Observation / player-known vs world-true state
-Randomized events with seeded RNG
+Seeded RNG
 Real-time synchronization
 Offline simulation
 Save / replay
@@ -650,50 +667,43 @@ Cross-loop memory
 Invariant detection
 ```
 
-A likely future split is:
+A future split is expected:
 
 ```text
-World Truth State
-!=
-Player Knowledge State
+World Truth State != Player Knowledge State
 ```
 
-This distinction is central to the game design, but belongs after the deterministic simulator is stable.
+## 27. Core design principles
 
-## 24. Core design principles
+1. Story data is the Source of Truth.
+2. Simulation is deterministic before it becomes dynamic.
+3. Player Actions change State; they do not directly select endings.
+4. Events resolve from State conditions.
+5. Delayed effects are first-class queue work.
+6. All executable work shares deterministic queue ordering.
+7. Worldline History is append-only and explainable.
+8. Viewer projection is separate from simulator history.
+9. Viewer visualizes results; it does not own game logic.
+10. No arbitrary code execution from story YAML.
+11. The smallest playable causal loop is more valuable than a broad incomplete simulator.
 
-1. **Story data is the Source of Truth.**
-2. **Simulation is deterministic before it becomes dynamic.**
-3. **Player Actions change State; they do not directly select endings.**
-4. **Events resolve from State conditions.**
-5. **Delayed effects are first-class, not special-case callbacks.**
-6. **Worldline History is append-only and explainable.**
-7. **Viewer visualizes results; it does not own game logic.**
-8. **No arbitrary code execution from story YAML.**
-9. **The smallest playable causal loop is more valuable than a broad incomplete simulator.**
+## 28. Completion definition
 
-## 25. v0.1 completion definition
-
-Worldline Simulator v0.1 is complete when this flow works end-to-end:
+v0.1 is complete when this works end-to-end:
 
 ```text
-Load initial state
-        |
-Apply Player Action(s)
-        |
-Advance virtual clock
-        |
-Resolve 18:31 Event from conditions
-        |
-Mutate World State
-        |
-Schedule / execute delayed consequence
-        |
-Generate Worldline History
-        |
-Render Timeline
-        |
-Compare against another run in Worldline Diff
+Load deterministic initial State
+→ Apply authored Player Actions
+→ Advance virtual clock
+→ Resolve 18:31 from State
+→ Mutate State
+→ Schedule delayed consequence when applicable
+→ Execute delayed effect at 21:14
+→ Resolve emitted 21:14 Event
+→ Generate complete Worldline History
+→ Project History for Viewer
+→ Render Timeline
+→ Compare two generated histories in Worldline Diff
 ```
 
-And the repository demonstrates at least two materially different worldlines generated from the same initial world by changing Player Actions only.
+The four binding acceptance scenarios must pass exactly as written in section 2.
