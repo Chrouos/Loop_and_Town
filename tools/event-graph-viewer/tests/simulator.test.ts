@@ -99,3 +99,17 @@ describe('worldline simulator acceptance', () => {
     expect(simulation.getHistory().length).toBeGreaterThan(0);
   });
 });
+
+describe('story definition validation', () => {
+  it('rejects an unknown condition operator before simulation starts', () => {
+    const invalid = structuredClone(definition) as any;
+    invalid.events[0].variants[0].when.op = 'gt';
+    expect(() => createSimulation(invalid, initialState)).toThrow('Unknown condition operator: gt');
+  });
+
+  it('rejects an unknown effect operation before simulation starts', () => {
+    const invalid = structuredClone(definition) as any;
+    invalid.actions[0].effects = [{ teleport: { character: 'wakaharu', to: 'home' } }];
+    expect(() => createSimulation(invalid, initialState)).toThrow('Unknown effect operation: teleport');
+  });
+});
