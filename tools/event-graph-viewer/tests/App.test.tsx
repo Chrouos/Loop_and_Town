@@ -31,6 +31,16 @@ describe('App', () => {
     expect(screen.getByText('21:14 葉庭安失蹤')).toBeTruthy();
   });
 
+  it('shows the cross-day loop end with an explicit Day 1 label', async () => {
+    stubRealStoryFetch();
+    render(<App />);
+
+    await screen.findByRole('group', { name: '世界線 B' });
+    fireEvent.click(screen.getByRole('button', { name: 'Timeline' }));
+
+    expect(screen.getByText('D1 00:00')).toBeTruthy();
+  });
+
   it('applies draft worldline changes only after explicit simulation', async () => {
     stubRealStoryFetch();
     render(<App />);
