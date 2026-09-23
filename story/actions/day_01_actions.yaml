@@ -1,0 +1,18 @@
+actions:
+  - id: protect_wakaharu
+    at: "18:20"
+    label: 阻止若晴前往舊車站
+    effects:
+      - set:
+          path: characters.wakaharu.location
+          value: home
+      - add_flag: flags.player_protected_wakaharu
+
+  - id: stop_doctor
+    at: "18:20"
+    label: 阻止醫生前往舊車站
+    effects:
+      - set:
+          path: characters.doctor.location
+          value: clinic
+      - add_flag: flags.player_stopped_doctor
