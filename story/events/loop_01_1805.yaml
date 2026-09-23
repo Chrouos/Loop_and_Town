@@ -1,0 +1,17 @@
+id: evt_1805_envelope_handoff
+title: 舊車站的信封
+at: { day: 0, time: "18:05" }
+visibility: observable
+variants:
+  - id: envelope_handoff
+    priority: 100
+    when:
+      all:
+        - { path: characters.wakaharu.location, op: eq, value: old_station }
+        - { path: characters.doctor.location, op: eq, value: old_station }
+    effects: []
+  - id: no_handoff
+    priority: 0
+    fallback: true
+    visibility: hidden
+    effects: []

@@ -1,0 +1,10 @@
+id: evt_2240_sister_warning
+title: 姊姊留下的警告
+at: { day: 0, time: "22:40" }
+visibility: observable
+variants:
+  - id: warning_found
+    priority: 0
+    fallback: true
+    effects:
+      - add_flag: flags.sister_warning_found

@@ -1,0 +1,10 @@
+id: evt_0000_loop_end
+title: Loop End
+at: { day: 1, time: "00:00" }
+visibility: observable
+variants:
+  - id: loop_end
+    priority: 0
+    fallback: true
+    effects:
+      - add_flag: flags.loop_ended
