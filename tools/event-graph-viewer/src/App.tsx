@@ -16,7 +16,12 @@ export default function App() {
   const [document, setDocument] = useState<EventGraphDocument | null>(null);
   const [definition, setDefinition] = useState<SimulationDefinition | null>(null);
   const [initialState, setInitialState] = useState<WorldState | null>(null);
-  const [selectedActionIds, setSelectedActionIds] = useState<string[]>([]);
+  const [leftDraftActionIds, setLeftDraftActionIds] = useState<string[]>([]);
+  const [rightDraftActionIds, setRightDraftActionIds] = useState<string[]>([]);
+  const [appliedActionIds, setAppliedActionIds] = useState<{ left: string[]; right: string[] }>({
+    left: [],
+    right: [],
+  });
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -34,16 +39,23 @@ export default function App() {
 
   const generated = useMemo(() => {
     if (!definition || !initialState) return null;
-    const baseline = simulate({ definition, initialState, actions: [], until: '23:59' });
-    const selected = simulate({ definition, initialState, actions: selectedActionIds, until: '23:59' });
+    const left = simulate({ definition, initialState, actions: appliedActionIds.left, until: '23:59' });
+    const right = simulate({ definition, initialState, actions: appliedActionIds.right, until: '23:59' });
     return {
-      baseline,
-      selected,
-      timeline: projectTimelineEntries(selected.history),
-      baselineEvents: projectWorldlineEvents(baseline.history),
-      selectedEvents: projectWorldlineEvents(selected.history),
+      left,
+      right,
+      timeline: projectTimelineEntries(right.history),
+      leftEvents: projectWorldlineEvents(left.history),
+      rightEvents: projectWorldlineEvents(right.history),
     };
-  }, [definition, initialState, selectedActionIds]);
+  }, [definition, initialState, appliedActionIds]);
+
+  function simulateDrafts() {
+    setAppliedActionIds({
+      left: [...leftDraftActionIds],
+      right: [...rightDraftActionIds],
+    });
+  }
 
   return (
     <main className="app-shell">
@@ -67,16 +79,19 @@ export default function App() {
         <>
           <ScenarioSimulator
             actions={definition.actions}
-            selectedActionIds={selectedActionIds}
-            onChange={setSelectedActionIds}
+            leftActionIds={leftDraftActionIds}
+            rightActionIds={rightDraftActionIds}
+            onLeftChange={setLeftDraftActionIds}
+            onRightChange={setRightDraftActionIds}
+            onSimulate={simulateDrafts}
           />
 
           {view === 'graph' ? (
             <EventGraphView document={document} />
           ) : view === 'timeline' ? (
-            <TimelineView entries={generated.timeline} loopLabel="目前世界線" />
+            <TimelineView entries={generated.timeline} loopLabel="世界線 B" />
           ) : (
-            <WorldlineDiffView left={generated.baselineEvents} right={generated.selectedEvents} />
+            <WorldlineDiffView left={generated.leftEvents} right={generated.rightEvents} />
           )}
         </>
       )}
