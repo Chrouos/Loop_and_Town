@@ -40,6 +40,23 @@ it('preserves caller order for actions at the same minute', () => {
     .toEqual(['first_input', 'second_input']);
 });
 
+it('sorts actions by story time before preserving caller order ties', () => {
+  const definition: SimulationDefinition = {
+    loop: { id: 'loop', range: { start: '14:20', end: '15:00' } },
+    schedules: [],
+    events: [],
+    actions: [
+      { id: 'early', at: '14:30', label: 'early', effects: [] },
+      { id: 'late_a', at: '15:00', label: 'late_a', effects: [] },
+      { id: 'late_b', at: '15:00', label: 'late_b', effects: [] },
+    ],
+  };
+
+  const result = simulate({ definition, initialState, actions: ['late_b', 'early', 'late_a'], until: '15:00' });
+  expect(result.history.filter((entry) => entry.kind === 'player-action').map((entry) => entry.actionId))
+    .toEqual(['early', 'late_b', 'late_a']);
+});
+
 it('rejects an emitted event scheduled into the past', () => {
   const definition: SimulationDefinition = {
     loop: { id: 'loop', range: { start: '14:20', end: '15:00' } },
