@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import App from '../src/App';
 
@@ -21,19 +21,40 @@ function responseFor(path: string) {
 afterEach(() => vi.restoreAllMocks());
 
 describe('App', () => {
-  it('switches views and renders simulator-generated variants', async () => {
+  it('applies draft worldline changes only after explicit simulation', async () => {
     vi.stubGlobal('fetch', vi.fn(async (input: RequestInfo | URL) => responseFor(String(input))));
     render(<App />);
 
     await waitFor(() => expect(screen.getByText(/Loaded: evt_1831_station/)).toBeTruthy());
-    expect(screen.getByRole('checkbox', { name: '阻止若晴前往舊車站' })).toBeTruthy();
 
-    fireEvent.click(screen.getByRole('checkbox', { name: '阻止若晴前往舊車站' }));
+    const right = screen.getByRole('group', { name: '世界線 B' });
+    fireEvent.click(within(right).getByRole('checkbox', { name: '阻止若晴前往舊車站' }));
+
     fireEvent.click(screen.getByRole('button', { name: 'Timeline' }));
+    expect(screen.getByText('wakaharu_dies')).toBeTruthy();
+    expect(screen.queryByText('doctor_dies')).toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: '重算世界線' }));
     expect(screen.getByText('doctor_dies')).toBeTruthy();
+  });
+
+  it('compares two independently configured worldlines including delayed consequences', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (input: RequestInfo | URL) => responseFor(String(input))));
+    render(<App />);
+
+    await waitFor(() => expect(screen.getByText(/Loaded: evt_1831_station/)).toBeTruthy());
+
+    const left = screen.getByRole('group', { name: '世界線 A' });
+    const right = screen.getByRole('group', { name: '世界線 B' });
+    fireEvent.click(within(left).getByRole('checkbox', { name: '阻止醫生前往舊車站' }));
+    fireEvent.click(within(right).getByRole('checkbox', { name: '阻止若晴前往舊車站' }));
+    fireEvent.click(within(right).getByRole('checkbox', { name: '阻止醫生前往舊車站' }));
+    fireEvent.click(screen.getByRole('button', { name: '重算世界線' }));
 
     fireEvent.click(screen.getByRole('button', { name: 'Worldline Diff' }));
     expect(screen.getByRole('heading', { name: 'Worldline Diff' })).toBeTruthy();
+    expect(screen.getByText(/21:14 記者失蹤/)).toBeTruthy();
+    expect(screen.getByText('未發生')).toBeTruthy();
   });
 
   it('shows a readable load error', async () => {
