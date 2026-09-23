@@ -31,7 +31,7 @@ describe('App', () => {
     fireEvent.click(within(right).getByRole('checkbox', { name: '阻止若晴前往舊車站' }));
 
     fireEvent.click(screen.getByRole('button', { name: 'Timeline' }));
-    expect(screen.getByText('wakaharu_dies')).toBeTruthy();
+    expect(screen.getAllByText('wakaharu_dies').length).toBeGreaterThan(0);
     expect(screen.queryByText('doctor_dies')).toBeNull();
 
     fireEvent.click(screen.getByRole('button', { name: '重算世界線' }));
