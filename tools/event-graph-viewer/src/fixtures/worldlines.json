@@ -1,0 +1,12 @@
+{
+  "loop04": [
+    {"time":"17:40","eventId":"doctor_leaves","title":"醫生離院","source":"event"},
+    {"time":"18:05","eventId":"station_meeting","title":"醫生與若晴碰面","source":"event"},
+    {"time":"18:31","eventId":"evt_1831_station","variantId":"wakaharu_dies","title":"若晴死亡","source":"event"}
+  ],
+  "loop05": [
+    {"time":"17:40","eventId":"doctor_leaves","variantId":"blocked","title":"醫生被攔下","source":"player"},
+    {"time":"18:31","eventId":"evt_1831_station","variantId":"doctor_dies","title":"醫生死亡","source":"event"},
+    {"time":"21:14","eventId":"evt_2114_reporter_missing","variantId":"missing","title":"記者失蹤","source":"delayed"}
+  ]
+}

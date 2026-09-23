@@ -24,18 +24,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-          cache-dependency-path: tools/event-graph-viewer/package-lock.json
       - name: Install dependencies
         run: npm install
       - name: Sync story data
         run: npm run sync-story
-      - name: Run tests when present
-        run: |
-          if find tests -type f -name '*.test.*' -print -quit | grep -q .; then
-            npm test
-          else
-            echo 'No tests yet; skipping test step.'
-          fi
+      - name: Run tests
+        run: npm test
       - name: Build viewer
         run: npm run build
