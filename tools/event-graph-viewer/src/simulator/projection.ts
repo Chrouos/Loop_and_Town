@@ -9,7 +9,9 @@ export function projectTimelineEntries(history: WorldlineHistoryEntry[]): Worldl
   return history
     .filter((entry) => entry.kind !== 'effect')
     .map((entry) => ({
+      day: entry.day,
       time: entry.time,
+      absoluteMinute: entry.absoluteMinute,
       eventId: entry.eventId ?? entry.actionId ?? `history-${entry.sequence}`,
       variantId: entry.variantId,
       title: entry.title,
@@ -21,7 +23,9 @@ export function projectWorldlineEvents(history: WorldlineHistoryEntry[]): Worldl
   return history
     .filter((entry) => entry.kind === 'event' && entry.eventId)
     .map((entry) => ({
+      day: entry.day,
       time: entry.time,
+      absoluteMinute: entry.absoluteMinute,
       eventId: entry.eventId!,
       variantId: entry.variantId,
       title: entry.title,
