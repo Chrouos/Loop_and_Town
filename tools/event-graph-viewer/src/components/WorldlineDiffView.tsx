@@ -1,12 +1,23 @@
 import { diffWorldlines } from '../lib/worldlineDiff';
+import type { StoryDiffRow } from '../simulator/worldlineDiff';
+import type { WorldlineHistoryEntry } from '../simulator/types';
 import type { WorldlineEntry } from '../types/story';
 
-function label(entry?: WorldlineEntry) {
-  return entry ? `${entry.time} ${entry.title}` : '未發生';
+type Props =
+  | { rows: StoryDiffRow[]; left?: undefined; right?: undefined }
+  | { rows?: undefined; left: WorldlineEntry[]; right: WorldlineEntry[] };
+
+type DisplayEntry = WorldlineEntry | WorldlineHistoryEntry;
+
+function label(entry?: DisplayEntry) {
+  if (!entry) return '未發生';
+  const dayPrefix = 'day' in entry && entry.day > 0 ? `D${entry.day} ` : '';
+  const variant = entry.variantId ? ` · ${entry.variantId}` : '';
+  return `${dayPrefix}${entry.time} ${entry.title}${variant}`;
 }
 
-export function WorldlineDiffView({ left, right }: { left: WorldlineEntry[]; right: WorldlineEntry[] }) {
-  const rows = diffWorldlines(left, right);
+export function WorldlineDiffView(props: Props) {
+  const rows = props.rows ?? diffWorldlines(props.left ?? [], props.right ?? []);
   return (
     <section className="panel">
       <div className="panel-heading">
@@ -14,11 +25,11 @@ export function WorldlineDiffView({ left, right }: { left: WorldlineEntry[]; rig
           <p className="eyebrow">世界線比較</p>
           <h2>Worldline Diff</h2>
         </div>
-        <p>同一 Event 的 Variant 改變會保留在同一列</p>
+        <p>Author History · 包含 hidden schedule 與實際 Event Variant</p>
       </div>
       <div className="diff-table" role="table" aria-label="Worldline comparison">
         <div className="diff-header" role="row">
-          <strong>Loop 04</strong><span>狀態</span><strong>Loop 05</strong>
+          <strong>世界線 A</strong><span>狀態</span><strong>世界線 B</strong>
         </div>
         {rows.map((row) => (
           <div className={`diff-row ${row.status}`} role="row" key={row.key}>
