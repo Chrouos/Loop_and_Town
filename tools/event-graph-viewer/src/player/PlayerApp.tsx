@@ -58,7 +58,7 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
 
   const clock = timeAt(save.anchorMs, Math.max(currentMs, save.lastConfirmedMs));
   const records = visibleRecords(save, clock.loop);
-  const opened = save.knowledge.opened.includes('letter');
+  const opened = save.knowledge.opened.includes('1:letter') || save.knowledge.opened.includes('letter');
   const record = records.find(x => x.id === selected) ?? records[0];
   const hasAction = (id: ActionId) => save.loops[clock.loop]?.actionIds.includes(id) ?? false;
   const canAct = clock.minute < 1100;
@@ -71,7 +71,8 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
   }
   function openRecord(id: string) {
     const nextSave = normalizeSave(save, now());
-    if (!nextSave.knowledge.opened.includes(id)) nextSave.knowledge.opened.push(id);
+    const readKey = `${clock.loop}:${id}`;
+    if (!nextSave.knowledge.opened.includes(readKey)) nextSave.knowledge.opened.push(readKey);
     commit(nextSave); setSelected(id); setDrawer(null);
   }
   function pin(ref: string) {
@@ -99,7 +100,7 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
     <footer className="player-footer"><span>{next}</span><span>案卷只保存在這台裝置</span></footer>
     {drawer && <div className="drawer-shade" onMouseDown={e => { if (e.target === e.currentTarget) setDrawer(null); }}><section className={`drawer ${drawer === 'board' ? 'wide' : ''}`} role="dialog" aria-modal="true" aria-label={drawer === 'case' ? '案卷' : drawer === 'board' ? '推理桌' : drawer === 'save' ? '存檔' : '世界線'}>
       <header><h2>{drawer === 'case' ? '案卷' : drawer === 'board' ? '推理桌' : drawer === 'save' ? '存檔' : '世界線歷史'}</h2><button autoFocus onClick={() => setDrawer(null)} aria-label="關閉">×</button></header>
-      {drawer === 'case' && <div className="case-list">{records.map(item => <button key={item.id} onClick={() => openRecord(item.id)}><small>{item.source} · {item.obtainedAt}</small><strong>{item.title}</strong>{!save.knowledge.opened.includes(item.id) && <em>新</em>}</button>)}</div>}
+      {drawer === 'case' && <div className="case-list">{records.map(item => <button key={item.id} onClick={() => openRecord(item.id)}><small>{item.source} · {item.obtainedAt}</small><strong>{item.title}</strong>{!save.knowledge.opened.includes(`${clock.loop}:${item.id}`) && <em>新</em>}</button>)}</div>}
       {drawer === 'board' && <EvidenceBoard save={save} onChange={commit} onNotice={setNote} />}
       {drawer === 'worldlines' && <WorldlineNotebook save={save} currentLoop={clock.loop} knownDiff={knownDiff} />}
       {drawer === 'save' && <div className="save-panel"><p>進度存在此瀏覽器。要換裝置，可以複製 JSON 後在新裝置貼上。</p><button onClick={() => setExporting(v => !v)}>顯示這台裝置的存檔</button>{exporting && <textarea readOnly aria-label="目前存檔" value={exportSave(save)} />}
