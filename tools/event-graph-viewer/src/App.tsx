@@ -26,7 +26,7 @@ export default function App() {
 
   useEffect(() => {
     Promise.all([
-      loadEventGraph('/story/events/day_01_1831.yaml'),
+      loadEventGraph('story/events/day_01_1831.yaml'),
       loadSimulationStory(),
     ])
       .then(([graph, simulationStory]) => {
