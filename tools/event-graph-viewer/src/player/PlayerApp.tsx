@@ -93,7 +93,8 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
         <h1>{record?.title}</h1>
         <div className="document-lines">{record?.body.map((line, i) => <p key={i}>{line}</p>)}</div>
         {record?.excerpts.length ? <div className="excerpts"><span>留下你認為重要的句子</span>{record.excerpts.map(part => <button key={part.id} onClick={() => pin(`${record.id}:${part.id}`)}>{part.text}<span>＋</span></button>)}</div> : null}
-        {record?.id === 'letter' && canAct ? <div className="decisions"><p>今晚之前，你可以做兩件事。你只能決定自己的行動；結果還沒有人知道。</p><button disabled={hasAction('protect_wakaharu')} onClick={() => choose('protect_wakaharu')}>{hasAction('protect_wakaharu') ? '已和若晴約好' : '保護若晴，陪她留在家裡'}</button><button disabled={hasAction('stop_doctor')} onClick={() => choose('stop_doctor')}>{hasAction('stop_doctor') ? '予安已答應去醫院' : '請予安幫忙攔住醫生'}</button></div> : null}
+        {record?.id === 'letter' && records.some(x => x.id === 'yu-an-message') && <div className="decisions"><p>手機震了一下。予安留了話。</p><button onClick={() => openRecord('yu-an-message')}>讀予安的留言</button></div>}
+        {record?.id === 'yu-an-message' && canAct ? <div className="decisions"><p>18:20 前，你可以答應陪若晴，也可以請予安去醫院。現在還沒有人知道今晚會怎樣。</p><button disabled={hasAction('protect_wakaharu')} onClick={() => choose('protect_wakaharu')}>{hasAction('protect_wakaharu') ? '已和若晴約好' : '保護若晴，陪她留在家裡'}</button><button disabled={hasAction('stop_doctor')} onClick={() => choose('stop_doctor')}>{hasAction('stop_doctor') ? '予安已答應去醫院' : '請予安幫忙攔住醫生'}</button></div> : null}
         {note && <p className="inline-note" role="status">{note}</p>}
       </div>}
     </main>
