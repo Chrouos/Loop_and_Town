@@ -1,5 +1,20 @@
 export type WorldState = Record<string, unknown>;
 
+export type StoryTime = {
+  day: number;
+  time: string;
+};
+
+export type StoryTimeInput = string | StoryTime;
+
+export type LoopDefinition = {
+  id: string;
+  range: {
+    start: StoryTimeInput;
+    end: StoryTimeInput;
+  };
+};
+
 export type LeafCondition = {
   path: string;
   op: 'eq' | 'neq' | 'exists' | 'not_exists';
@@ -14,7 +29,7 @@ export type Condition =
 
 export type SetEffect = { set: { path: string; value: unknown } };
 export type AddFlagEffect = { add_flag: string };
-export type EmitEventEffect = { emit_event: { event_id: string; at?: string } };
+export type EmitEventEffect = { emit_event: { event_id: string; at?: StoryTimeInput } };
 export type Effect = SetEffect | AddFlagEffect | EmitEventEffect;
 
 export type DelayedEffectDefinition = {
@@ -35,18 +50,19 @@ export type EventVariantDefinition = {
 export type EventDefinition = {
   id: string;
   title: string;
-  at?: string;
+  at?: StoryTimeInput;
   variants: EventVariantDefinition[];
 };
 
 export type ActionDefinition = {
   id: string;
-  at: string;
+  at: StoryTimeInput;
   label: string;
   effects: Effect[];
 };
 
 export type SimulationDefinition = {
+  loop?: LoopDefinition;
   actions: ActionDefinition[];
   events: EventDefinition[];
 };

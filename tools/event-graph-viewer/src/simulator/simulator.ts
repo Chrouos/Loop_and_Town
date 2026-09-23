@@ -2,12 +2,13 @@ import { executeEffects } from './effectExecutor';
 import { SimulationQueue } from './eventQueue';
 import { resolveEvent } from './eventResolver';
 import { cloneValue } from './state';
-import { formatTime, parseTime } from './time';
+import { fromAbsoluteMinute, parseTime, toAbsoluteMinute } from './time';
 import type {
   ActionDefinition,
   EventDefinition,
   SimulationDefinition,
   SimulationResult,
+  StoryTimeInput,
   WorldState,
   WorldlineHistoryEntry,
 } from './types';
@@ -17,16 +18,26 @@ const MAX_PROCESSED_ITEMS = 1000;
 
 export type Simulation = {
   applyAction(action: ActionDefinition | string): void;
-  runUntil(time: string): void;
+  runUntil(time: StoryTimeInput): void;
   getState(): WorldState;
   getHistory(): WorldlineHistoryEntry[];
   getPendingEvents(): ReturnType<SimulationQueue['peekAll']>;
 };
 
-function initialMinute(state: WorldState): number {
+function initialMinute(definition: SimulationDefinition, state: WorldState): number {
   const clock = state.clock;
   if (!clock || typeof clock !== 'object' || !('time' in clock)) return 0;
-  return parseTime(String((clock as Record<string, unknown>).time));
+  const record = clock as Record<string, unknown>;
+  if (!definition.loop) return parseTime(String(record.time));
+  return toAbsoluteMinute({
+    day: typeof record.day === 'number' ? record.day : 0,
+    time: String(record.time),
+  });
+}
+
+function displayMinute(value: number): string {
+  const storyTime = fromAbsoluteMinute(value);
+  return storyTime.day === 0 ? storyTime.time : `D${storyTime.day} ${storyTime.time}`;
 }
 
 export function createSimulation(definition: SimulationDefinition, initialState: WorldState): Simulation {
@@ -37,38 +48,38 @@ export function createSimulation(definition: SimulationDefinition, initialState:
   const events = new Map<string, EventDefinition>(definition.events.map((event) => [event.id, event]));
   const actions = new Map<string, ActionDefinition>(definition.actions.map((action) => [action.id, action]));
   const history: WorldlineHistoryEntry[] = [];
-  let currentMinute = initialMinute(state);
+  let currentMinute = initialMinute(definition, state);
   let sequence = 0;
 
   for (const event of definition.events) {
-    if (event.at) queue.enqueue({ kind: 'scheduled-event', executeAt: parseTime(event.at), eventId: event.id });
+    if (event.at) queue.enqueue({ kind: 'scheduled-event', executeAt: toAbsoluteMinute(event.at), eventId: event.id });
   }
 
   function record(entry: Omit<WorldlineHistoryEntry, 'sequence' | 'time' | 'minute'> & { minute?: number }): void {
     const minute = entry.minute ?? currentMinute;
-    history.push({ ...entry, sequence: sequence++, minute, time: formatTime(minute) });
+    history.push({ ...entry, sequence: sequence++, minute, time: fromAbsoluteMinute(minute).time });
   }
 
   function applyAction(actionOrId: ActionDefinition | string): void {
     const action = typeof actionOrId === 'string' ? actions.get(actionOrId) : actionOrId;
     if (!action) throw new Error(`Unknown action: ${String(actionOrId)}`);
-    const actionMinute = parseTime(action.at);
+    const actionMinute = toAbsoluteMinute(action.at);
     if (actionMinute < currentMinute) {
-      throw new Error(`Cannot apply action backwards: ${formatTime(currentMinute)} -> ${action.at}`);
+      throw new Error(`Cannot apply action backwards: ${displayMinute(currentMinute)} -> ${displayMinute(actionMinute)}`);
     }
     const next = queue.peek();
     if (next && next.executeAt < actionMinute) {
-      throw new Error(`Action ${action.id} occurs after pending event at ${formatTime(next.executeAt)}`);
+      throw new Error(`Action ${action.id} occurs after pending event at ${displayMinute(next.executeAt)}`);
     }
     currentMinute = actionMinute;
     const changes = executeEffects({ state, queue, events, currentMinute }, action.effects);
     record({ kind: 'player-action', actionId: action.id, title: action.label, changes });
   }
 
-  function runUntil(time: string): void {
-    const target = parseTime(time);
+  function runUntil(time: StoryTimeInput): void {
+    const target = toAbsoluteMinute(time);
     if (target < currentMinute) {
-      throw new Error(`Cannot run simulation backwards: ${formatTime(currentMinute)} -> ${time}`);
+      throw new Error(`Cannot run simulation backwards: ${displayMinute(currentMinute)} -> ${displayMinute(target)}`);
     }
 
     let processed = 0;
@@ -116,7 +127,9 @@ export function createSimulation(definition: SimulationDefinition, initialState:
     currentMinute = target;
     const clock = state.clock;
     if (clock && typeof clock === 'object' && 'time' in clock) {
-      (clock as Record<string, unknown>).time = formatTime(target);
+      const point = fromAbsoluteMinute(target);
+      (clock as Record<string, unknown>).time = point.time;
+      if (definition.loop) (clock as Record<string, unknown>).day = point.day;
     }
   }
 
@@ -133,7 +146,7 @@ export function simulate(input: {
   definition: SimulationDefinition;
   initialState: WorldState;
   actions: Array<ActionDefinition | string>;
-  until: string;
+  until: StoryTimeInput;
 }): SimulationResult {
   const simulation = createSimulation(input.definition, input.initialState);
   for (const action of input.actions) simulation.applyAction(action);

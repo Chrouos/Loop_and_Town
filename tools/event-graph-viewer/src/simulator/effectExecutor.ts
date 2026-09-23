@@ -1,5 +1,5 @@
 import { setPath } from './state';
-import { parseTime } from './time';
+import { toAbsoluteMinute } from './time';
 import type { Effect, ResolverContext, StateChange } from './types';
 
 export function executeEffects(context: ResolverContext, effects: Effect[]): StateChange[] {
@@ -21,7 +21,7 @@ export function executeEffects(context: ResolverContext, effects: Effect[]): Sta
       if (!context.events.has(eventId)) throw new Error(`Unknown emitted event: ${eventId}`);
       context.queue.enqueue({
         kind: 'emitted-event',
-        executeAt: effect.emit_event.at ? parseTime(effect.emit_event.at) : context.currentMinute,
+        executeAt: effect.emit_event.at ? toAbsoluteMinute(effect.emit_event.at) : context.currentMinute,
         eventId,
       });
       continue;
