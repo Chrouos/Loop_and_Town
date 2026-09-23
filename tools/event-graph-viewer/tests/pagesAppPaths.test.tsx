@@ -9,7 +9,11 @@ describe('GitHub Pages viewer entry path', () => {
   });
 
   it('does not request story assets from the domain root', async () => {
-    const fetchMock = vi.fn(async () => ({ ok: false, status: 404, text: async () => '' }));
+    const fetchMock = vi.fn(async (_input: RequestInfo | URL) => ({
+      ok: false,
+      status: 404,
+      text: async () => '',
+    }));
     vi.stubGlobal('fetch', fetchMock);
 
     render(<App />);
