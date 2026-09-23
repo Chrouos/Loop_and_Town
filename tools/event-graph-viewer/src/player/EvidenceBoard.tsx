@@ -8,6 +8,7 @@ type Props = { save: PlayerSave; onChange: (save: PlayerSave) => void; onNotice:
 export function EvidenceBoard({ save, onChange, onNotice }: Props) {
   const [first, setFirst] = useState<string | null>(null);
   const [pair, setPair] = useState<[string, string] | null>(null);
+  const [feedback, setFeedback] = useState('');
   const [dragging, setDragging] = useState<{ ref: string; x: number; y: number; startX: number; startY: number } | null>(null);
   const coords = (ref: string, index: number) => save.knowledge.positions[ref] ?? { x: 60 + (index % 3) * 260, y: 80 + Math.floor(index / 3) * 220 };
   function connect(ref: string) {
@@ -43,7 +44,7 @@ export function EvidenceBoard({ save, onChange, onNotice }: Props) {
     const p = coords(a, i), q = coords(b, j);
     return <line key={connection} x1={p.x + 105} y1={p.y + 72} x2={q.x + 105} y2={q.y + 72} />;
   });
-  return <div className="board-wrap"><p>留下真正需要比對的句子。選兩張「連線」，再判斷它們能支持什麼說法。</p>
+  return <div className="board-wrap"><p>留下真正需要比對的句子。選兩張「連線」，再判斷它們能支持什麼說法。</p>{feedback && <p role="status" className="board-feedback">{feedback}</p>}
     <div className="board-canvas"><svg aria-hidden="true" className="evidence-lines" viewBox="0 0 1200 950">{lines}</svg>
       {save.knowledge.pins.map((ref, i) => {
         const [recordId, excerptId] = ref.split(':'); const source = recordById(recordId);
@@ -55,7 +56,7 @@ export function EvidenceBoard({ save, onChange, onNotice }: Props) {
       })}
       {!save.knowledge.pins.length && <p className="board-empty">推理桌上還沒有文字。回到信件，挑出值得留下的那句。</p>}
     </div>
-    {pair && <div className="claim-panel"><p>這兩句話能讓你確定什麼？</p>{claimsFor(...pair).length ? claimsFor(...pair).map(claim => <button key={claim.id} onClick={() => { const next = normalizeSave(save, save.lastConfirmedMs); const result = judgeLink(next, pair[0], pair[1], claim.id); onChange(result.save); onNotice(result.feedback); setPair(null); }}>{claim.text}</button>) : <p>這兩份紀錄之間還缺一段可核對的資料。</p>}<button onClick={() => setPair(null)}>先不下結論</button></div>}
+    {pair && <div className="claim-panel"><p>這兩句話能讓你確定什麼？</p>{claimsFor(...pair).length ? claimsFor(...pair).map(claim => <button key={claim.id} onClick={() => { const next = normalizeSave(save, save.lastConfirmedMs); const result = judgeLink(next, pair[0], pair[1], claim.id); onChange(result.save); setFeedback(result.feedback); onNotice(result.feedback); setPair(null); }}>{claim.text}</button>) : <p>這兩份紀錄之間還缺一段可核對的資料。</p>}<button onClick={() => setPair(null)}>先不下結論</button></div>}
     {!!save.knowledge.connections.length && <div className="board-conclusions"><h3>目前可以支持的說法</h3>{save.knowledge.connections.map(c => <p key={c}>{c.endsWith('letter-after-death') ? '這封信是在姊姊死亡紀錄之後投遞的。交件人仍未知。' : '18:31 仍有異常，但這次沒有人死亡。'}</p>)}</div>}
   </div>;
 }
