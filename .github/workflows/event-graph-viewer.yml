@@ -1,0 +1,41 @@
+name: Event Graph Viewer
+
+on:
+  push:
+    branches:
+      - feature/event-graph-viewer-v0.1
+    paths:
+      - 'tools/event-graph-viewer/**'
+      - 'story/**'
+      - '.github/workflows/event-graph-viewer.yml'
+  pull_request:
+    paths:
+      - 'tools/event-graph-viewer/**'
+      - 'story/**'
+
+jobs:
+  verify-viewer:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tools/event-graph-viewer
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: tools/event-graph-viewer/package-lock.json
+      - name: Install dependencies
+        run: npm install
+      - name: Sync story data
+        run: npm run sync-story
+      - name: Run tests when present
+        run: |
+          if find tests -type f -name '*.test.*' -print -quit | grep -q .; then
+            npm test
+          else
+            echo 'No tests yet; skipping test step.'
+          fi
+      - name: Build viewer
+        run: npm run build
