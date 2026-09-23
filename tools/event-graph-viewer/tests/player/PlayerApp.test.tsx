@@ -20,3 +20,19 @@ it('opens the envelope and records a deliberate action before the deadline', asy
   await user.click(screen.getByRole('button', { name: /保護若晴/ }));
   expect(readSave(storage, 1000).loops[1].actionIds).toContain('protect_wakaharu');
 });
+
+it('marks a fresh loop bulletin unread even when the same document was read last loop', async () => {
+  const storage = window.localStorage;
+  storage.clear();
+  const save = normalizeSave(null, 0);
+  save.lastConfirmedMs = 24 * 3_600_000 + 40 * 60_000;
+  save.knowledge.opened = ['letter', 'station-bulletin-wakaharu'];
+  save.loops[1].revealedIds = ['1:letter', '1:station-bulletin-wakaharu'];
+  save.loops[1].sealed = true;
+  save.loops[2] = { actionIds: [], revealedIds: ['2:letter', '2:station-bulletin-wakaharu'], sealed: false };
+  storage.setItem(SAVE_KEY, JSON.stringify(save));
+  render(<PlayerApp now={() => save.lastConfirmedMs} storage={storage} loadStory={async () => ({ definition, initialState: initial })} />);
+  const user = userEvent.setup();
+  await user.click(await screen.findByRole('button', { name: /案卷/ }));
+  expect(screen.getByRole('button', { name: /車站通報.*新/ })).toBeDefined();
+});
