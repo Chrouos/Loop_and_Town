@@ -32,7 +32,7 @@ export type EventGraphDocument = {
   notes: string[];
 };
 
-export type GraphNodeRole = 'event' | 'variant' | 'delayed';
+export type GraphNodeRole = 'action' | 'schedule' | 'event' | 'variant' | 'delayed';
 
 export type GraphNode = {
   id: string;
