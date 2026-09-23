@@ -33,6 +33,27 @@ it('keeps reporter disappearance causally independent from the 18:31 victim', ()
   expect(result.fullHistory.find((entry) => entry.eventId === 'evt_2114_reporter_status')?.variantId).toBe('reporter_missing');
 });
 
+it.each(['WL-00', 'WL-01', 'WL-02', 'WL-03', 'WL-04', 'WL-05', 'WL-06', 'WL-07'])('%s reaches the bells before the inclusive loop end', (id) => {
+  const result = simulateNamedWorldline(loadRealStory(), id);
+  const bells = result.fullHistory.find((entry) => entry.kind === 'event' && entry.eventId === 'evt_2359_midnight_bells');
+  const loopEnd = result.fullHistory.find((entry) => entry.kind === 'event' && entry.eventId === 'evt_0000_loop_end');
+
+  expect(bells?.variantId).toBe('bells_ring');
+  expect(loopEnd?.variantId).toBe('loop_end');
+  expect(bells?.absoluteMinute).toBe(1439);
+  expect(loopEnd?.absoluteMinute).toBe(1440);
+  expect(bells!.sequence).toBeLessThan(loopEnd!.sequence);
+});
+
+it('WL-03 player history reveals confrontation and disappearance but not hidden reporter movement', () => {
+  const result = simulateNamedWorldline(loadRealStory(), 'WL-03');
+
+  expect(result.playerHistory.some((entry) => entry.kind === 'player-action' && entry.actionId === 'confront_reporter')).toBe(true);
+  expect(result.playerHistory.some((entry) => entry.kind === 'event' && entry.eventId === 'evt_2114_reporter_status' && entry.variantId === 'reporter_missing')).toBe(true);
+  expect(result.playerHistory.some((entry) => entry.scheduleEntryId === 'reporter_return_hotel')).toBe(false);
+  expect(result.playerHistory.some((entry) => entry.scheduleEntryId === 'reporter_enter_old_lab')).toBe(false);
+});
+
 it('is deterministic for the same named worldline', () => {
   const story = loadRealStory();
   const first = simulateNamedWorldline(story, 'WL-03');
