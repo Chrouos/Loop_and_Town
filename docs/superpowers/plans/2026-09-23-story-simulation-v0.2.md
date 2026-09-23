@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build the first executable Loop 01 story model so the repository can deterministically simulate WL-00 through WL-07, expose full and player-safe histories, generate an author Event Graph, and compare worldlines before any Player Game UI work begins.
+**Goal:** Build the first executable Loop 01 story model so the repository can deterministically simulate WL-00 through WL-07, expose full and player-safe histories, generate the complete author Story Graph, and compare worldlines before any Player Game work begins.
 
-**Architecture:** Extend the existing deterministic Worldline Simulator instead of replacing it. Story data remains YAML source-of-truth; the runtime adds cross-day `StoryTime`, NPC schedule queue items, visibility-aware history, chronological orchestration, manifest loading, named-worldline helpers, and author projections. The existing React Event Graph Viewer remains an author/debug tool and consumes simulator-generated graph/timeline/diff data.
+**Architecture:** Extend the existing Worldline Simulator instead of replacing it. YAML remains the story source of truth; runtime layers add cross-day time, NPC base schedules, visibility-aware history, chronological orchestration, manifest loading, named-worldline simulation, graph projection, and worldline diff. The existing React Event Graph Viewer remains an author/debug surface only.
 
 **Tech Stack:** TypeScript 5.6, Vitest 2, React 18, Vite 5, js-yaml 4, @xyflow/react 12.
 
@@ -12,67 +12,61 @@
 
 ## Global Constraints
 
-- Loop 01 range is Day 0 14:20 through Day 1 00:00, end inclusive.
-- A Loop is an authored range, not synonymous with one day.
-- Legacy `at: "HH:mm"` syntax remains valid and means Day 0.
-- All runtime ordering uses absolute minutes; display time remains day + `HH:mm`.
-- Same-minute precedence is `Schedule → Event → Player Action`; ties inside one class remain stable by authored/input order.
-- NPC authored Base Schedules are immutable at runtime; interventions change world state, and schedule `when` conditions determine applied/skipped entries.
-- Hidden/debug history is available to author tooling but must not appear in Player History.
-- Player actions mutate state; they never select event variants directly.
-- `wakaharu_dies` must not cause the 21:14 reporter disappearance.
-- No Player Game UI, real-time replay, offline catch-up, loop reset runtime, Loop 02, relationship engine, Evidence Board, or cross-loop persistence in this plan.
-- All story acceptance tests must read the real `story/*.yaml` files, not hardcoded duplicate fixtures.
+- Loop 01 is Day 0 14:20 → Day 1 00:00, end inclusive.
+- Loop is a time range, not a synonym for one day.
+- Legacy `at: "HH:mm"` means Day 0 and remains valid.
+- Runtime ordering uses absolute minutes.
+- Same-minute precedence is `Schedule → Event → Player Action`; ties inside one class are stable.
+- Authored Base Schedules are immutable; interventions mutate state and `when` decides which entries apply.
+- Hidden/debug history is available to author tooling but never Player History or Player Diff.
+- Player actions mutate state only; they never choose an event variant directly.
+- `wakaharu_dies` must not trigger the reporter disappearance.
+- No Player Game UI, real-time replay, offline catch-up, loop reset runtime, Loop 02, relationship engine, Evidence Board, or cross-loop persistence.
+- Story acceptance tests load the real `story/*.yaml` source files.
 
 ## Review Focus
 
-1. Cross-midnight and range boundaries: Day 1 00:00 must execute, while items outside the Loop Range must fail validation.
-2. Schedule safety: `when=false` must record a skipped author-history row without applying effects or leaking the row into Player History.
-3. Same-minute determinism: Schedule, Event, then Action; multiple actions in the same minute must preserve caller input order.
-4. Visibility safety: `hidden` and `debug` rows must never appear in Player History or Player Diff.
-5. Causal independence: changing the 18:31 victim must not affect the reporter chain unless the reporter conditions themselves change.
+1. **Range boundary:** Day 1 00:00 executes; any authored scheduled item after the Loop end fails validation. Covered by Task 1.
+2. **Schedule skip safety:** `when=false` records an author-only skipped row and performs zero state mutations. Covered by Tasks 2–3.
+3. **Same-minute determinism:** Schedule → Event → Action, with caller order for same-minute actions. Covered by Task 4.
+4. **Visibility safety:** hidden/debug rows never enter Player History or Player Diff. Covered by Tasks 3 and 12.
+5. **Causal independence:** changing the 18:31 victim does not change the reporter chain unless reporter conditions change. Covered by Tasks 8 and 10.
 
 ---
 
-## File Structure Locked by This Plan
+## Locked File Structure
 
 ### Runtime
-
-- Modify `tools/event-graph-viewer/src/simulator/types.ts` — cross-day time, schedules, visibility, loop/worldline types.
-- Modify `tools/event-graph-viewer/src/simulator/time.ts` — parse/format `StoryTimeInput` and absolute minutes.
-- Modify `tools/event-graph-viewer/src/simulator/eventQueue.ts` — queue schedule entries alongside events/effects.
-- Create `tools/event-graph-viewer/src/simulator/schedule.ts` — resolve/apply one schedule entry.
-- Modify `tools/event-graph-viewer/src/simulator/simulator.ts` — chronological orchestration and loop-range execution.
-- Modify `tools/event-graph-viewer/src/simulator/projection.ts` — full/player timeline projection.
-- Modify `tools/event-graph-viewer/src/simulator/validation.ts` — loop/schedule/time/visibility validation.
-- Create `tools/event-graph-viewer/src/simulator/storySimulation.ts` — `simulateStory`, `simulateNamedWorldline`.
-- Create `tools/event-graph-viewer/src/simulator/worldlineDiff.ts` — author/player diffs from history.
-- Create `tools/event-graph-viewer/src/simulator/storyGraph.ts` — project story definitions to one author graph.
+- Modify `tools/event-graph-viewer/src/simulator/types.ts`
+- Modify `tools/event-graph-viewer/src/simulator/time.ts`
+- Modify `tools/event-graph-viewer/src/simulator/eventQueue.ts`
+- Create `tools/event-graph-viewer/src/simulator/schedule.ts`
+- Modify `tools/event-graph-viewer/src/simulator/simulator.ts`
+- Modify `tools/event-graph-viewer/src/simulator/projection.ts`
+- Modify `tools/event-graph-viewer/src/simulator/validation.ts`
+- Create `tools/event-graph-viewer/src/simulator/storySimulation.ts`
+- Create `tools/event-graph-viewer/src/simulator/storyGraph.ts`
+- Create `tools/event-graph-viewer/src/simulator/worldlineDiff.ts`
 
 ### Loading / Author Viewer
+- Modify `tools/event-graph-viewer/src/lib/loadSimulationStory.ts`
+- Modify `tools/event-graph-viewer/src/types/story.ts`
+- Modify `tools/event-graph-viewer/src/components/EventGraphView.tsx`
+- Modify `tools/event-graph-viewer/src/App.tsx`
+- Modify `tools/event-graph-viewer/scripts/sync-story.mjs`
 
-- Modify `tools/event-graph-viewer/src/lib/loadSimulationStory.ts` — manifest-driven browser loader.
-- Modify `tools/event-graph-viewer/src/types/story.ts` — graph/timeline source roles required by schedules/actions.
-- Modify `tools/event-graph-viewer/src/components/EventGraphView.tsx` — render complete Story Graph projection.
-- Modify `tools/event-graph-viewer/src/App.tsx` — run named/custom worldlines through Story Simulation APIs.
-
-### Story Source of Truth
-
+### Story Source
 - Create `story/manifests/loop_01.yaml`
 - Create `story/loops/loop_01.yaml`
 - Create `story/world/loop_01_initial.yaml`
-- Create `story/schedules/wakaharu.yaml`
-- Create `story/schedules/doctor.yaml`
-- Create `story/schedules/reporter.yaml`
-- Create `story/schedules/yuan.yaml`
+- Create `story/schedules/{wakaharu,doctor,reporter,yuan}.yaml`
 - Create `story/actions/loop_01_actions.yaml`
-- Create the Loop 01 event files listed in the spec under `story/events/loop_01_*.yaml`
+- Create the Loop 01 event files specified by the design under `story/events/`
 - Create `story/worldlines/loop_01_worldlines.yaml`
-- Modify `tools/event-graph-viewer/scripts/sync-story.mjs` — sync manifests/loops/schedules/worldlines in addition to current story folders.
 
 ---
 
-### Task 1: Cross-day StoryTime and Loop Range
+### Task 1: StoryTime + Loop Range
 
 **Files:**
 - Modify: `tools/event-graph-viewer/src/simulator/types.ts`
@@ -81,45 +75,56 @@
 - Create: `tools/event-graph-viewer/tests/storyTime.test.ts`
 
 **Interfaces:**
-- Consumes: existing `parseTime("HH:mm")` semantics.
-- Produces: `StoryTime`, `StoryTimeInput`, `LoopDefinition`, `toAbsoluteMinute(input)`, `fromAbsoluteMinute(value)`, `formatStoryTime(input)`.
+- Produces `StoryTime`, `StoryTimeInput`, `LoopDefinition`.
+- Produces `toAbsoluteMinute(input)`, `fromAbsoluteMinute(value)`, `formatStoryTime(input)`.
+- Changes all authored `at` fields and `simulate(...until)` to `StoryTimeInput`.
 
-- [ ] **Step 1: Write failing StoryTime and range tests**
+- [ ] **Step 1: Write the failing tests**
 
 ```ts
-import { describe, expect, it } from 'vitest';
+import { expect, it } from 'vitest';
 import { fromAbsoluteMinute, toAbsoluteMinute } from '../src/simulator/time';
 
-it('orders cross-midnight StoryTime correctly', () => {
+it('orders midnight across days', () => {
   expect(toAbsoluteMinute({ day: 0, time: '23:59' })).toBe(1439);
   expect(toAbsoluteMinute({ day: 1, time: '00:00' })).toBe(1440);
 });
 
-it('keeps legacy string time on day zero', () => {
-  expect(toAbsoluteMinute('18:31')).toBe(18 * 60 + 31);
+it('keeps the legacy string syntax on day zero', () => {
+  expect(toAbsoluteMinute('18:31')).toBe(1111);
 });
 
-it('converts absolute minutes back to story time', () => {
+it('round-trips absolute minutes', () => {
   expect(fromAbsoluteMinute(1440)).toEqual({ day: 1, time: '00:00' });
 });
 
-it('rejects negative days', () => {
+it('rejects a negative story day', () => {
   expect(() => toAbsoluteMinute({ day: -1, time: '12:00' })).toThrow('Invalid story day');
 });
 ```
 
-Add validation coverage that `loop.range.start <= loop.range.end` and Day 1 00:01 is rejected when the Loop ends at Day 1 00:00.
+Add this exact range test after `validateDefinition` accepts a loop argument:
 
-- [ ] **Step 2: Run the focused test and verify RED**
+```ts
+it('rejects scheduled content after the inclusive loop end', () => {
+  expect(() => validateDefinition(definitionWithEventAt({ day: 1, time: '00:01' }), initialState, {
+    id: 'loop', range: { start: { day: 0, time: '14:20' }, end: { day: 1, time: '00:00' } },
+  })).toThrow('Scheduled item outside loop range');
+});
+```
+
+Define `definitionWithEventAt` locally in the test as a minimal definition containing one fallback event at the supplied time.
+
+- [ ] **Step 2: Verify RED**
 
 ```bash
 cd tools/event-graph-viewer
 npm test -- storyTime.test.ts
 ```
 
-Expected: FAIL because `StoryTime`, conversion helpers, and loop-range validation do not exist.
+Expected: FAIL because cross-day types/functions do not exist.
 
-- [ ] **Step 3: Implement the minimal StoryTime model**
+- [ ] **Step 3: Implement the minimal time model**
 
 ```ts
 export interface StoryTime { day: number; time: string }
@@ -137,20 +142,19 @@ export function toAbsoluteMinute(input: StoryTimeInput): number {
 
 export function fromAbsoluteMinute(value: number): StoryTime {
   if (!Number.isInteger(value) || value < 0) throw new Error(`Invalid absolute minute: ${value}`);
-  const day = Math.floor(value / 1440);
-  return { day, time: formatTime(value % 1440) };
+  return { day: Math.floor(value / 1440), time: formatTime(value % 1440) };
 }
 ```
 
-Update validation to compare all authored times with `toAbsoluteMinute`.
+Validation compares loop start/end and every authored scheduled time using absolute minutes.
 
-- [ ] **Step 4: Run focused and existing simulator tests**
+- [ ] **Step 4: Verify GREEN + regressions**
 
 ```bash
 npm test -- storyTime.test.ts simulator.test.ts eventQueue.test.ts
 ```
 
-Expected: PASS, including legacy Day 0 behavior.
+Expected: PASS.
 
 - [ ] **Step 5: Commit**
 
@@ -161,71 +165,83 @@ git commit -m "feat: add cross-day story time"
 
 ---
 
-### Task 2: NPC Base Schedule Queue and Execution
+### Task 2: NPC Base Schedule Runtime
 
 **Files:**
 - Modify: `tools/event-graph-viewer/src/simulator/types.ts`
 - Modify: `tools/event-graph-viewer/src/simulator/eventQueue.ts`
-- Create: `tools/event-graph-viewer/src/simulator/schedule.ts`
 - Modify: `tools/event-graph-viewer/src/simulator/validation.ts`
+- Create: `tools/event-graph-viewer/src/simulator/schedule.ts`
 - Create: `tools/event-graph-viewer/tests/schedule.test.ts`
 
 **Interfaces:**
-- Consumes: `Condition`, `Effect`, `StoryTimeInput`, `WorldState`.
-- Produces: `ScheduleDefinition`, `ScheduleEntryDefinition`, `ScheduleQueueItem`, `resolveScheduleEntry(context, entry)` returning applied/skipped + changes.
+- Produces `Visibility`, `ScheduleDefinition`, `ScheduleEntryDefinition`, `ScheduleQueueItem`.
+- Produces `resolveScheduleEntry(context, entry)` → `{ status, changes }`.
 
-- [ ] **Step 1: Write failing schedule tests**
+- [ ] **Step 1: Write the failing tests with local fixtures**
 
 ```ts
-it('applies a schedule entry when its condition is true', () => {
-  const state = { characters: { doctor: { route: 'old_station', location: 'hospital' } } };
-  const result = resolveScheduleEntry(context(state), {
-    id: 'doctor_leave_hospital',
-    at: { day: 0, time: '17:40' },
-    visibility: 'hidden',
-    when: { path: 'characters.doctor.route', op: 'eq', value: 'old_station' },
-    effects: [{ set: { path: 'characters.doctor.location', value: 'road_to_old_station' } }],
-  });
-  expect(result.status).toBe('applied');
-  expect(state.characters.doctor.location).toBe('road_to_old_station');
+import { expect, it } from 'vitest';
+import { resolveScheduleEntry } from '../src/simulator/schedule';
+
+const entry = {
+  id: 'doctor_leave_hospital',
+  at: { day: 0, time: '17:40' },
+  visibility: 'hidden' as const,
+  when: { path: 'characters.doctor.route', op: 'eq' as const, value: 'old_station' },
+  effects: [{ set: { path: 'characters.doctor.location', value: 'road_to_old_station' } }],
+};
+
+function makeContext(route: string) {
+  return {
+    state: { characters: { doctor: { route, location: 'hospital' } } },
+    queue: { enqueue: () => { throw new Error('not used'); } },
+    events: new Map(),
+    currentMinute: 1060,
+  };
+}
+
+it('applies effects when the schedule condition is true', () => {
+  const ctx = makeContext('old_station');
+  expect(resolveScheduleEntry(ctx, entry).status).toBe('applied');
+  expect(ctx.state.characters.doctor.location).toBe('road_to_old_station');
 });
 
-it('skips without mutating state when condition is false', () => {
-  const state = { characters: { doctor: { route: 'stay_hospital', location: 'hospital' } } };
-  const result = resolveScheduleEntry(context(state), doctorLeaveEntry);
-  expect(result.status).toBe('skipped');
-  expect(state.characters.doctor.location).toBe('hospital');
-  expect(result.changes).toEqual([]);
+it('skips without mutating when the condition is false', () => {
+  const ctx = makeContext('stay_hospital');
+  const result = resolveScheduleEntry(ctx, entry);
+  expect(result).toEqual({ status: 'skipped', changes: [] });
+  expect(ctx.state.characters.doctor.location).toBe('hospital');
 });
 ```
 
-Also assert queue ordering for two same-minute schedules preserves authored insertion order.
+Add a queue test enqueuing two same-minute schedule items and assert dequeue order matches insertion order.
 
-- [ ] **Step 2: Run focused test and verify RED**
+- [ ] **Step 2: Verify RED**
 
 ```bash
-npm test -- schedule.test.ts
+npm test -- schedule.test.ts eventQueue.test.ts
 ```
 
-Expected: FAIL because schedule types/queue items/runtime are missing.
+Expected: FAIL because schedule items are unsupported.
 
-- [ ] **Step 3: Implement schedule model and resolver**
+- [ ] **Step 3: Implement schedule types, queue item, resolver, validation**
 
 ```ts
 export type Visibility = 'observable' | 'hidden' | 'debug';
 export type ScheduleEntryDefinition = {
   id: string;
   at: StoryTimeInput;
-  visibility?: Visibility;
+  visibility: Visibility;
   when?: Condition;
   effects: Effect[];
 };
 export type ScheduleDefinition = { characterId: string; entries: ScheduleEntryDefinition[] };
 ```
 
-`resolveScheduleEntry` must evaluate `when` against current state; false returns `{ status: 'skipped', changes: [] }`; true executes effects through existing `executeEffects`.
+`resolveScheduleEntry` calls `evaluateCondition` when `when` exists and `executeEffects` only when applied.
 
-- [ ] **Step 4: Run schedule, queue, condition, and effect tests**
+- [ ] **Step 4: Verify GREEN**
 
 ```bash
 npm test -- schedule.test.ts eventQueue.test.ts conditionEvaluator.test.ts eventResolver.test.ts
@@ -242,7 +258,7 @@ git commit -m "feat: add deterministic npc schedules"
 
 ---
 
-### Task 3: Visibility-aware Full History and Player History
+### Task 3: Full History vs Player History
 
 **Files:**
 - Modify: `tools/event-graph-viewer/src/simulator/types.ts`
@@ -250,64 +266,55 @@ git commit -m "feat: add deterministic npc schedules"
 - Create: `tools/event-graph-viewer/tests/visibilityProjection.test.ts`
 
 **Interfaces:**
-- Consumes: `WorldlineHistoryEntry[]`.
-- Produces: history entries with `visibility`, `day`, `absoluteMinute`, schedule metadata; `projectPlayerHistory(history)` and author projections.
+- Extends history with `day`, `absoluteMinute`, `visibility`, `scheduleEntryId`, `scheduleStatus`.
+- Produces `projectPlayerHistory(history)`.
 
-- [ ] **Step 1: Write failing visibility projection tests**
+- [ ] **Step 1: Write the failing visibility tests**
 
 ```ts
-it('removes hidden and debug rows from player history', () => {
-  const history = [
-    historyEntry({ sequence: 0, visibility: 'observable', title: '回到灰潮鎮' }),
-    historyEntry({ sequence: 1, visibility: 'hidden', kind: 'schedule', title: '記者回旅館' }),
-    historyEntry({ sequence: 2, visibility: 'debug', title: 'condition matched' }),
-  ];
-  expect(projectPlayerHistory(history).map(x => x.title)).toEqual(['回到灰潮鎮']);
-});
+import { expect, it } from 'vitest';
+import { projectPlayerHistory } from '../src/simulator/projection';
+import type { WorldlineHistoryEntry } from '../src/simulator/types';
 
-it('always keeps the player own action observable', () => {
-  const row = historyEntry({ kind: 'player-action', visibility: 'observable', title: '拆穿葉庭安' });
-  expect(projectPlayerHistory([row])).toHaveLength(1);
+function row(sequence: number, visibility: 'observable' | 'hidden' | 'debug', title: string): WorldlineHistoryEntry {
+  return {
+    sequence, day: 0, time: '17:30', absoluteMinute: 1050,
+    kind: 'event', visibility, title,
+  };
+}
+
+it('filters hidden and debug truth from player history', () => {
+  expect(projectPlayerHistory([
+    row(0, 'observable', '回到灰潮鎮'),
+    row(1, 'hidden', 'reporter_return_hotel'),
+    row(2, 'debug', 'condition matched'),
+  ]).map(x => x.title)).toEqual(['回到灰潮鎮']);
 });
 ```
 
-- [ ] **Step 2: Run focused test and verify RED**
+Add a schedule-skipped row with `visibility: hidden` and assert it is absent from Player History.
+
+- [ ] **Step 2: Verify RED**
 
 ```bash
 npm test -- visibilityProjection.test.ts
 ```
 
-Expected: FAIL because history has no visibility/player projection.
-
-- [ ] **Step 3: Add the history fields and projections**
+- [ ] **Step 3: Implement history fields and player projection**
 
 ```ts
-export type WorldlineHistoryEntry = {
-  sequence: number;
-  day: number;
-  time: string;
-  absoluteMinute: number;
-  kind: 'schedule' | 'player-action' | 'event' | 'effect' | 'delayed-effect';
-  visibility: Visibility;
-  scheduleEntryId?: string;
-  scheduleStatus?: 'applied' | 'skipped';
-  // existing event/action/change fields remain
-};
-
-export function projectPlayerHistory(history: WorldlineHistoryEntry[]) {
+export function projectPlayerHistory(history: WorldlineHistoryEntry[]): WorldlineHistoryEntry[] {
   return history.filter(entry => entry.visibility === 'observable' && entry.kind !== 'effect');
 }
 ```
 
-Keep `projectTimelineEntries` as author-facing unless the caller explicitly passes Player History.
+Keep full history append-only and preserve all hidden/skipped rows there.
 
-- [ ] **Step 4: Run projection regression suite**
+- [ ] **Step 4: Verify GREEN + existing projections**
 
 ```bash
 npm test -- visibilityProjection.test.ts projection.test.ts timeline.test.ts worldlineDiff.test.ts
 ```
-
-Expected: PASS.
 
 - [ ] **Step 5: Commit**
 
@@ -318,7 +325,7 @@ git commit -m "feat: separate author and player history"
 
 ---
 
-### Task 4: Chronological Schedule → Event → Action Orchestration
+### Task 4: Chronological Orchestration
 
 **Files:**
 - Modify: `tools/event-graph-viewer/src/simulator/simulator.ts`
@@ -327,68 +334,65 @@ git commit -m "feat: separate author and player history"
 - Create: `tools/event-graph-viewer/tests/storyOrchestration.test.ts`
 
 **Interfaces:**
-- Consumes: Loop range, schedules, events, actions, absolute-minute queue.
-- Produces: `createSimulation` that processes schedules/events in queue; `simulate` that interleaves authored actions by time.
+- `SimulationDefinition` gains `loop` and `schedules`.
+- `simulate(...until)` accepts `StoryTimeInput`.
+- One-shot simulation groups actions by absolute minute and runs queued schedule/event work at that minute before actions.
 
-- [ ] **Step 1: Write failing ordering tests**
+- [ ] **Step 1: Write the failing same-minute ordering test**
 
 ```ts
-it('runs Schedule then Event then Action at the same minute', () => {
-  const result = simulate({ definition, initialState, actions: ['act_1500'], until: { day: 0, time: '15:00' } });
-  expect(result.history.filter(x => x.kind !== 'effect').map(x => [x.kind, x.title])).toEqual([
-    ['schedule', 'schedule_1500'],
-    ['event', 'event_1500'],
-    ['player-action', 'action_1500'],
-  ]);
-});
-
-it('preserves caller order for same-minute actions', () => {
-  const result = simulate({ definition, initialState, actions: ['action_a', 'action_b'], until: '15:00' });
-  expect(result.history.filter(x => x.kind === 'player-action').map(x => x.actionId)).toEqual(['action_a', 'action_b']);
+it('orders schedule then event then action at the same minute', () => {
+  const initialState = { clock: { day: 0, time: '14:20' }, flags: { scheduled: false, evented: false, acted: false } };
+  const definition = {
+    loop: { id: 'loop', range: { start: '14:20', end: '15:00' } },
+    schedules: [{ characterId: 'x', entries: [{
+      id: 'schedule_1500', at: '15:00', visibility: 'observable', effects: [{ add_flag: 'flags.scheduled' }],
+    }] }],
+    events: [{ id: 'event_1500', title: 'event_1500', at: '15:00', visibility: 'observable', variants: [{
+      id: 'resolved', priority: 0, fallback: true, effects: [{ add_flag: 'flags.evented' }],
+    }] }],
+    actions: [{ id: 'action_1500', at: '15:00', label: 'action_1500', effects: [{ add_flag: 'flags.acted' }] }],
+  };
+  const result = simulate({ definition, initialState, actions: ['action_1500'], until: '15:00' });
+  expect(result.history.filter(x => x.kind !== 'effect').map(x => x.kind)).toEqual(['schedule', 'event', 'player-action']);
 });
 ```
 
-Add a regression test that an emitted event scheduled before current time throws rather than time-travels backwards.
+Add two actions at 15:00 and assert action history IDs preserve caller input order. Add an emitted event with `at` before `currentMinute` and assert `Cannot emit event into the past`.
 
-- [ ] **Step 2: Run focused test and verify RED**
+- [ ] **Step 2: Verify RED**
 
 ```bash
 npm test -- storyOrchestration.test.ts
 ```
 
-Expected: FAIL because current `simulate()` applies every action before running the queue.
-
-- [ ] **Step 3: Implement stable chronological orchestration**
-
-Use one absolute-minute queue for schedule/event/effect items. For one-shot actions:
+- [ ] **Step 3: Implement stable ordering**
 
 ```ts
-const orderedActions = input.actions
-  .map((value, index) => ({ action: resolveAction(value), index }))
-  .sort((a, b) => toAbsoluteMinute(a.action.at) - toAbsoluteMinute(b.action.at) || a.index - b.index);
+const orderedActions = resolvedActions
+  .map((action, index) => ({ action, index, minute: toAbsoluteMinute(action.at) }))
+  .sort((a, b) => a.minute - b.minute || a.index - b.index);
 
-for (const group of groupActionsByMinute(orderedActions)) {
-  simulation.runUntil(group.absoluteMinute); // queue runs schedule/event first
-  for (const item of group.actions) simulation.applyAction(item.action);
+for (const group of groupByMinute(orderedActions)) {
+  simulation.runUntil(fromAbsoluteMinute(group.minute));
+  for (const item of group.items) simulation.applyAction(item.action);
 }
 simulation.runUntil(input.until);
 ```
 
-`runUntil` must process queue items at the target minute before returning.
+Queue priority for equal absolute minute is schedule before event before delayed/effect work, with insertion order breaking ties inside a class. `runUntil(target)` processes items at `target` before returning.
 
-- [ ] **Step 4: Run all simulator unit tests**
+- [ ] **Step 4: Verify GREEN**
 
 ```bash
 npm test -- storyOrchestration.test.ts simulator.test.ts eventQueue.test.ts eventResolver.test.ts
 ```
 
-Expected: PASS.
-
 - [ ] **Step 5: Commit**
 
 ```bash
 git add tools/event-graph-viewer/src/simulator tools/event-graph-viewer/tests/storyOrchestration.test.ts
-git commit -m "feat: interleave schedules events and actions"
+git commit -m "feat: orchestrate story chronology"
 ```
 
 ---
@@ -403,84 +407,73 @@ git commit -m "feat: interleave schedules events and actions"
 - Create: `story/loops/loop_01.yaml`
 
 **Interfaces:**
-- Consumes: manifest paths to loop/world/schedules/actions/events/worldlines.
-- Produces: `StoryBundle = { loop, initialState, definition, schedules, worldlines }` and `loadSimulationStory(manifestPath?)`.
+- Produces `StoryManifest`, `WorldlineDefinition`, `StoryBundle`.
+- Produces pure `buildStoryBundleFromDocuments(documents)` used by browser loading and real-YAML tests.
+- `loadSimulationStory('/story/manifests/loop_01.yaml')` fetches the manifest and all references.
 
-- [ ] **Step 1: Write a failing loader test using fetch mocks**
+- [ ] **Step 1: Write the failing loader test with complete minimal documents**
 
 ```ts
-it('loads every definition declared by the manifest', async () => {
-  installStoryFetchFixture({
-    '/story/manifests/loop_01.yaml': `loop: loops/loop_01.yaml\nworld: world/loop_01_initial.yaml\nschedules:\n  - schedules/doctor.yaml\nactions: actions/loop_01_actions.yaml\nevents:\n  - events/loop_01_1831.yaml\nworldlines: worldlines/loop_01_worldlines.yaml\n`,
-    // fixture bodies for each referenced file
-  });
+it('builds a StoryBundle from manifest references', async () => {
+  const files: Record<string, string> = {
+    '/story/manifests/loop_01.yaml': 'loop: loops/loop_01.yaml\nworld: world/loop_01_initial.yaml\nschedules:\n  - schedules/doctor.yaml\nactions: actions/loop_01_actions.yaml\nevents:\n  - events/loop_01_1831.yaml\nworldlines: worldlines/loop_01_worldlines.yaml\n',
+    '/story/loops/loop_01.yaml': 'id: gray_tide_loop_01\nrange:\n  start: "14:20"\n  end: { day: 1, time: "00:00" }\n',
+    '/story/world/loop_01_initial.yaml': 'clock: { day: 0, time: "14:20" }\nflags: { x: false }\n',
+    '/story/schedules/doctor.yaml': 'character_id: doctor\nentries: []\n',
+    '/story/actions/loop_01_actions.yaml': 'actions: []\n',
+    '/story/events/loop_01_1831.yaml': 'id: evt_1831_station\ntitle: station\nat: "18:31"\nvisibility: observable\nvariants:\n  - { id: fallback, priority: 0, fallback: true, effects: [] }\n',
+    '/story/worldlines/loop_01_worldlines.yaml': 'worldlines:\n  - { id: WL-00, title: Baseline, action_ids: [] }\n',
+  };
+  vi.stubGlobal('fetch', async (path: string) => new Response(files[path], { status: files[path] ? 200 : 404 }));
   const story = await loadSimulationStory('/story/manifests/loop_01.yaml');
   expect(story.loop.id).toBe('gray_tide_loop_01');
-  expect(story.schedules).toHaveLength(1);
-  expect(story.definition.events[0].id).toBe('evt_1831_station');
+  expect(story.schedules[0].characterId).toBe('doctor');
+  expect(story.worldlines[0].id).toBe('WL-00');
 });
 ```
 
-Also test duplicate loaded definition IDs throw a descriptive error.
+Add a second fixture where two event files both declare `id: duplicate` and assert `Duplicate Event ID: duplicate`.
 
-- [ ] **Step 2: Run focused test and verify RED**
+- [ ] **Step 2: Verify RED**
 
 ```bash
 npm test -- manifestLoader.test.ts
 ```
 
-Expected: FAIL because loader hardcodes two event files.
-
-- [ ] **Step 3: Implement manifest traversal and sync folders**
+- [ ] **Step 3: Implement manifest traversal + pure bundle builder**
 
 ```ts
 export type StoryManifest = {
-  loop: string;
-  world: string;
-  schedules: string[];
-  actions: string;
-  events: string[];
-  worldlines: string;
+  loop: string; world: string; schedules: string[]; actions: string; events: string[]; worldlines: string;
 };
 
-export async function loadSimulationStory(
-  manifestPath = '/story/manifests/loop_01.yaml',
-): Promise<StoryBundle> {
-  const manifest = asManifest(await loadYaml(manifestPath));
-  const base = '/story/';
-  const [loop, initialState, actionDoc, worldlineDoc] = await Promise.all([
-    loadYaml(base + manifest.loop),
-    loadYaml(base + manifest.world),
-    loadYaml(base + manifest.actions),
-    loadYaml(base + manifest.worldlines),
-  ]);
-  const schedules = await Promise.all(manifest.schedules.map(path => loadYaml(base + path)));
-  const events = await Promise.all(manifest.events.map(path => loadYaml(base + path)));
-  return buildStoryBundle({ manifest, loop, initialState, actionDoc, worldlineDoc, schedules, events });
+export function buildStoryBundleFromDocuments(input: {
+  loop: unknown; initialState: unknown; schedules: unknown[]; actions: unknown; events: unknown[]; worldlines: unknown;
+}): StoryBundle {
+  // parse typed documents, normalize snake_case authored keys, then call runtime validation
+  return { loop, initialState, schedules, definition: { loop, schedules, actions, events }, worldlines };
 }
 ```
 
-Update `sync-story.mjs` to copy `manifests`, `loops`, `schedules`, and `worldlines`.
+`loadSimulationStory` performs fetches then delegates to the pure builder. `sync-story.mjs` copies `manifests`, `loops`, `schedules`, and `worldlines` in addition to existing directories.
 
-- [ ] **Step 4: Run loader and build smoke tests**
+- [ ] **Step 4: Verify GREEN + sync**
 
 ```bash
 npm test -- manifestLoader.test.ts
 npm run sync-story
 ```
 
-Expected: PASS; synced public story tree contains all six story directories.
-
 - [ ] **Step 5: Commit**
 
 ```bash
 git add story/manifests story/loops tools/event-graph-viewer/src/lib/loadSimulationStory.ts tools/event-graph-viewer/scripts/sync-story.mjs tools/event-graph-viewer/tests/manifestLoader.test.ts
-git commit -m "feat: load story simulation from manifest"
+git commit -m "feat: load story simulation manifests"
 ```
 
 ---
 
-### Task 6: Loop 01 Initial State and Four NPC Base Schedules
+### Task 6: Loop 01 Initial State + Four Base Schedules
 
 **Files:**
 - Create: `story/world/loop_01_initial.yaml`
@@ -491,38 +484,37 @@ git commit -m "feat: load story simulation from manifest"
 - Create: `tools/event-graph-viewer/tests/firstLoopSchedules.test.ts`
 
 **Interfaces:**
-- Consumes: schedule runtime from Tasks 1–4.
-- Produces: deterministic baseline physical state for Wakaharu, Doctor, Reporter, Yuan.
+- Consumes `resolveScheduleEntry` and `buildStoryBundleFromDocuments` conventions.
+- Produces the baseline physical routes in the approved spec.
 
-- [ ] **Step 1: Write failing tests against raw real YAML imports**
+- [ ] **Step 1: Write failing tests by parsing the real schedule YAML directly**
 
 ```ts
+import yaml from 'js-yaml';
 import doctorText from '../../../story/schedules/doctor.yaml?raw';
-import reporterText from '../../../story/schedules/reporter.yaml?raw';
+import { resolveScheduleEntry } from '../src/simulator/schedule';
 
-it('doctor baseline reaches the old station', () => {
-  const result = simulateRealStory([]);
-  expect(scheduleRow(result, 'doctor_leave_hospital')?.scheduleStatus).toBe('applied');
-  expect(scheduleRow(result, 'doctor_arrive_station')?.scheduleStatus).toBe('applied');
-});
-
-it('reporter hidden baseline route does not enter old lab', () => {
-  const result = simulateRealStory([]);
-  expect(scheduleRow(result, 'reporter_enter_old_lab')?.scheduleStatus).toBe('skipped');
+it('doctor leave entry applies only on the old-station route', () => {
+  const doc = yaml.load(doctorText) as { entries: ScheduleEntryDefinition[] };
+  const entry = doc.entries.find(x => x.id === 'doctor_leave_hospital')!;
+  const state = { characters: { doctor: { route: 'old_station', location: 'hospital' } } };
+  const context = { state, queue: { enqueue: () => { throw new Error('not used'); } }, events: new Map(), currentMinute: 1060 };
+  expect(resolveScheduleEntry(context, entry).status).toBe('applied');
+  expect(state.characters.doctor.location).toBe('road_to_old_station');
 });
 ```
 
-- [ ] **Step 2: Run focused test and verify RED**
+Add a reporter test that `reporter_enter_old_lab` skips with route `normal` and applies with `hotel_then_old_lab`; add a Yuan test that station/post-office entries are mutually exclusive by `assignment`.
+
+- [ ] **Step 2: Verify RED**
 
 ```bash
 npm test -- firstLoopSchedules.test.ts
 ```
 
-Expected: FAIL because Loop 01 schedule files do not exist.
+- [ ] **Step 3: Author the initial state and four schedule files**
 
-- [ ] **Step 3: Author the initial world and schedules**
-
-Use route/assignment conditions exactly from the approved spec. Example doctor entries:
+Doctor example:
 
 ```yaml
 character_id: doctor
@@ -541,78 +533,76 @@ entries:
       - set: { path: characters.doctor.location, value: old_station }
 ```
 
-Reporter includes 17:30 `reporter_return_hotel` and 19:50 `reporter_enter_old_lab`, both hidden and gated by `characters.reporter.route == hotel_then_old_lab`.
+Reporter defines hidden `reporter_return_hotel` at 17:30 and `reporter_enter_old_lab` at 19:50. Yuan defines baseline station-area and post-office alternatives. Wakaharu route conditions gate station movements.
 
-- [ ] **Step 4: Run schedule determinism twice**
+- [ ] **Step 4: Verify GREEN**
 
 ```bash
-npm test -- firstLoopSchedules.test.ts
+npm test -- firstLoopSchedules.test.ts schedule.test.ts
 ```
-
-Expected: PASS and two baseline runs produce byte-equivalent history JSON.
 
 - [ ] **Step 5: Commit**
 
 ```bash
 git add story/world/loop_01_initial.yaml story/schedules tools/event-graph-viewer/tests/firstLoopSchedules.test.ts
-git commit -m "feat: define loop one npc schedules"
+git commit -m "feat: define loop one base schedules"
 ```
 
 ---
 
-### Task 7: Loop 01 Player and Author Interventions
+### Task 7: Loop 01 Interventions
 
 **Files:**
 - Create: `story/actions/loop_01_actions.yaml`
 - Create: `tools/event-graph-viewer/tests/firstLoopActions.test.ts`
 
 **Interfaces:**
-- Produces action IDs: `send_yuan_to_post_office`, `show_letter_to_wakaharu`, `confront_reporter`, `protect_wakaharu`, `stop_doctor`.
+- Defines `send_yuan_to_post_office`, `show_letter_to_wakaharu`, `confront_reporter`, `protect_wakaharu`, `stop_doctor`.
 
-- [ ] **Step 1: Write failing action-state tests**
+- [ ] **Step 1: Write failing raw-YAML action tests**
 
 ```ts
-it('post-office assignment changes Yuan route state only', () => {
-  const result = simulateRealStory(['send_yuan_to_post_office'], { day: 0, time: '15:00' });
-  expect(readPath(result.state, 'characters.yuan.assignment')).toBe('post_office');
-  expect(readPath(result.state, 'flags.yuan_sent_to_post_office')).toBe(true);
+import yaml from 'js-yaml';
+import actionsText from '../../../story/actions/loop_01_actions.yaml?raw';
+
+it('protect_wakaharu only changes route state', () => {
+  const doc = yaml.load(actionsText) as { actions: ActionDefinition[] };
+  const action = doc.actions.find(x => x.id === 'protect_wakaharu')!;
+  expect(action.effects).toEqual([{ set: { path: 'characters.wakaharu.route', value: 'home' } }]);
 });
 
-it('protecting Wakaharu does not directly select an 18:31 variant', () => {
-  const action = realAction('protect_wakaharu');
-  expect(action.effects).toEqual([{ set: { path: 'characters.wakaharu.route', value: 'home' } }]);
+it('confront_reporter changes the reporter conditions but not final status', () => {
+  const doc = yaml.load(actionsText) as { actions: ActionDefinition[] };
+  const action = doc.actions.find(x => x.id === 'confront_reporter')!;
+  expect(JSON.stringify(action.effects)).not.toContain('missing');
+  expect(JSON.stringify(action.effects)).toContain('hotel_then_old_lab');
 });
 ```
 
-- [ ] **Step 2: Run focused test and verify RED**
+- [ ] **Step 2: Verify RED**
 
 ```bash
 npm test -- firstLoopActions.test.ts
 ```
 
-Expected: FAIL because Loop 01 action file does not exist.
-
-- [ ] **Step 3: Author all five actions with state-only effects**
+- [ ] **Step 3: Author all five state-only actions**
 
 ```yaml
-actions:
-  - id: confront_reporter
-    at: { day: 0, time: "16:40" }
-    label: 拆穿葉庭安
-    effects:
-      - add_flag: flags.reporter_confronted
-      - set: { path: characters.reporter.route, value: hotel_then_old_lab }
+- id: confront_reporter
+  at: { day: 0, time: "16:40" }
+  label: 拆穿葉庭安
+  effects:
+    - add_flag: flags.reporter_confronted
+    - set: { path: characters.reporter.route, value: hotel_then_old_lab }
 ```
 
-No action effect may set `variantId`, kill a character directly, or directly set `reporter.status = missing`.
+No action directly sets a death/missing result or event variant.
 
-- [ ] **Step 4: Run action and orchestration tests**
+- [ ] **Step 4: Verify GREEN**
 
 ```bash
 npm test -- firstLoopActions.test.ts storyOrchestration.test.ts
 ```
-
-Expected: PASS.
 
 - [ ] **Step 5: Commit**
 
@@ -623,200 +613,173 @@ git commit -m "feat: define loop one interventions"
 
 ---
 
-### Task 8: Complete First Loop Event Graph YAML
+### Task 8: Complete First Loop Event Graph
 
 **Files:**
-- Create: all `story/events/loop_01_*.yaml` files listed in the spec.
+- Create: `story/events/loop_01_1420.yaml`
+- Create: `story/events/loop_01_1500.yaml`
+- Create: `story/events/loop_01_1610.yaml`
+- Create: `story/events/loop_01_1640.yaml`
+- Create: `story/events/loop_01_1805.yaml`
+- Create: `story/events/loop_01_1810.yaml`
+- Create: `story/events/loop_01_1818.yaml`
+- Create: `story/events/loop_01_1831.yaml`
+- Create: `story/events/loop_01_1910.yaml`
+- Create: `story/events/loop_01_2030.yaml`
+- Create: `story/events/loop_01_2114.yaml`
+- Create: `story/events/loop_01_2240.yaml`
+- Create: `story/events/loop_01_2359.yaml`
+- Create: `story/events/loop_01_end.yaml`
 - Create: `tools/event-graph-viewer/tests/firstLoopEvents.test.ts`
-- Remove causal dependency from old `story/events/day_01_1831.yaml` only after new manifest no longer references it.
 
 **Interfaces:**
-- Consumes: initial state, schedules, actions.
-- Produces: complete authored causal spine from 14:20 through Day 1 00:00.
+- Produces the causal spine from 14:20 to Day 1 00:00.
 
-- [ ] **Step 1: Write failing real-story event tests**
+- [ ] **Step 1: Write failing raw-YAML resolver tests**
 
 ```ts
-it('baseline 18:31 resolves Wakaharu death', () => {
-  const result = simulateRealStory([]);
-  expect(eventRow(result, 'evt_1831_station')?.variantId).toBe('wakaharu_dies');
+import yaml from 'js-yaml';
+import stationText from '../../../story/events/loop_01_1831.yaml?raw';
+import reporterText from '../../../story/events/loop_01_2114.yaml?raw';
+
+it('18:31 chooses Wakaharu first when she is at the station', () => {
+  const event = yaml.load(stationText) as EventDefinition;
+  const state = { characters: { wakaharu: { location: 'old_station', status: 'alive' }, doctor: { location: 'old_station', status: 'alive' } }, world: { anomaly_1831_observed: false } };
+  expect(resolveEvent(testResolverContext(state), event).variantId).toBe('wakaharu_dies');
 });
 
-it('reporter disappearance requires reporter at old lab', () => {
-  const baseline = simulateRealStory([]);
-  expect(eventRow(baseline, 'evt_2114_reporter_status')?.variantId).toBe('no_visible_event');
-  const confronted = simulateRealStory(['confront_reporter']);
-  expect(eventRow(confronted, 'evt_2114_reporter_status')?.variantId).toBe('reporter_missing');
+it('21:14 requires confrontation and old-lab presence', () => {
+  const event = yaml.load(reporterText) as EventDefinition;
+  const state = { flags: { reporter_confronted: true }, characters: { reporter: { location: 'old_lab', status: 'available' } } };
+  expect(resolveEvent(testResolverContext(state), event).variantId).toBe('reporter_missing');
 });
 
-it('Wakaharu death has no reporter delayed effect', () => {
-  const event = realEvent('evt_1831_station');
-  const death = event.variants.find(v => v.id === 'wakaharu_dies')!;
-  expect(death.delayed_effects ?? []).toEqual([]);
+it('18:31 no longer schedules reporter disappearance', () => {
+  const event = yaml.load(stationText) as EventDefinition;
+  expect(event.variants.find(x => x.id === 'wakaharu_dies')?.delayed_effects ?? []).toEqual([]);
 });
 ```
 
-- [ ] **Step 2: Run focused test and verify RED**
+In the test file define `testResolverContext(state)` as `{ state, queue: { enqueue: vi.fn() }, events: new Map(), currentMinute: 1111 }`.
+
+- [ ] **Step 2: Verify RED**
 
 ```bash
 npm test -- firstLoopEvents.test.ts
 ```
 
-Expected: FAIL because the complete Loop 01 graph is absent.
+- [ ] **Step 3: Author all event files**
 
-- [ ] **Step 3: Author the story events**
+18:31 variants are exactly `wakaharu_dies` priority 100, `doctor_dies` priority 90, and fallback `no_death` priority 0. 21:14 uses both `flags.reporter_confronted == true` and `characters.reporter.location == old_lab`. 23:59 bells and Day 1 00:00 loop-end events always resolve.
 
-Critical 18:31 ordering:
-
-```yaml
-variants:
-  - id: wakaharu_dies
-    priority: 100
-    when: { path: characters.wakaharu.location, op: eq, value: old_station }
-    effects:
-      - set: { path: characters.wakaharu.status, value: dead }
-  - id: doctor_dies
-    priority: 90
-    when: { path: characters.doctor.location, op: eq, value: old_station }
-    effects:
-      - set: { path: characters.doctor.status, value: dead }
-  - id: no_death
-    priority: 0
-    fallback: true
-    effects:
-      - add_flag: world.anomaly_1831_observed
-```
-
-Critical 21:14 condition:
-
-```yaml
-when:
-  all:
-    - { path: flags.reporter_confronted, op: eq, value: true }
-    - { path: characters.reporter.location, op: eq, value: old_lab }
-```
-
-`evt_2359_midnight_bells` and Day 1 `evt_0000_loop_end` are always resolved within range.
-
-- [ ] **Step 4: Run event + regression tests**
+- [ ] **Step 4: Verify GREEN + old resolver regression**
 
 ```bash
 npm test -- firstLoopEvents.test.ts eventResolver.test.ts storyScenario.test.ts
 ```
 
-Expected: PASS; old v0.1 four-way 18:31 logic still holds under new data.
-
 - [ ] **Step 5: Commit**
 
 ```bash
-git add story/events tools/event-graph-viewer/tests/firstLoopEvents.test.ts
+git add story/events/loop_01_*.yaml tools/event-graph-viewer/tests/firstLoopEvents.test.ts
 git commit -m "feat: author complete loop one event graph"
 ```
 
 ---
 
-### Task 9: Named Worldlines WL-00 through WL-07
+### Task 9: Named Worldlines WL-00…WL-07
 
 **Files:**
 - Create: `story/worldlines/loop_01_worldlines.yaml`
 - Create: `tools/event-graph-viewer/tests/worldlineDefinitions.test.ts`
 
 **Interfaces:**
-- Produces: `WorldlineDefinition = { id, title, actionIds }` for WL-00 … WL-07.
+- Defines `WorldlineDefinition = { id, title, actionIds }`.
 
-- [ ] **Step 1: Write failing worldline-definition tests**
+- [ ] **Step 1: Write failing real-YAML definition tests**
 
 ```ts
-it('defines exactly WL-00 through WL-07', () => {
-  expect(realWorldlines().map(x => x.id)).toEqual([
-    'WL-00', 'WL-01', 'WL-02', 'WL-03', 'WL-04', 'WL-05', 'WL-06', 'WL-07',
-  ]);
-});
+import yaml from 'js-yaml';
+import text from '../../../story/worldlines/loop_01_worldlines.yaml?raw';
 
-it('uses the approved independence actions for WL-07', () => {
-  expect(worldline('WL-07').actionIds).toEqual(['protect_wakaharu', 'confront_reporter']);
+it('defines the eight approved worldlines', () => {
+  const doc = yaml.load(text) as { worldlines: Array<{ id: string; title: string; action_ids: string[] }> };
+  expect(doc.worldlines.map(x => x.id)).toEqual(['WL-00','WL-01','WL-02','WL-03','WL-04','WL-05','WL-06','WL-07']);
+  expect(doc.worldlines.find(x => x.id === 'WL-07')?.action_ids).toEqual(['protect_wakaharu','confront_reporter']);
 });
 ```
 
-- [ ] **Step 2: Run focused test and verify RED**
+- [ ] **Step 2: Verify RED**
 
 ```bash
 npm test -- worldlineDefinitions.test.ts
 ```
 
-Expected: FAIL because named worldlines are absent.
-
-- [ ] **Step 3: Author the named scenarios**
+- [ ] **Step 3: Author the exact scenario table**
 
 ```yaml
 worldlines:
-  - id: WL-00
-    title: Baseline
-    action_ids: []
-  - id: WL-01
-    title: Postal
-    action_ids: [send_yuan_to_post_office]
-  - id: WL-02
-    title: Trust
-    action_ids: [show_letter_to_wakaharu]
-  - id: WL-03
-    title: Reporter
-    action_ids: [confront_reporter]
-  - id: WL-04
-    title: Rescue
-    action_ids: [protect_wakaharu]
-  - id: WL-05
-    title: Stop Doctor
-    action_ids: [stop_doctor]
-  - id: WL-06
-    title: Both
-    action_ids: [protect_wakaharu, stop_doctor]
-  - id: WL-07
-    title: Independence
-    action_ids: [protect_wakaharu, confront_reporter]
+  - { id: WL-00, title: Baseline, action_ids: [] }
+  - { id: WL-01, title: Postal, action_ids: [send_yuan_to_post_office] }
+  - { id: WL-02, title: Trust, action_ids: [show_letter_to_wakaharu] }
+  - { id: WL-03, title: Reporter, action_ids: [confront_reporter] }
+  - { id: WL-04, title: Rescue, action_ids: [protect_wakaharu] }
+  - { id: WL-05, title: Stop Doctor, action_ids: [stop_doctor] }
+  - { id: WL-06, title: Both, action_ids: [protect_wakaharu, stop_doctor] }
+  - { id: WL-07, title: Independence, action_ids: [protect_wakaharu, confront_reporter] }
 ```
 
-- [ ] **Step 4: Run definition validation**
+- [ ] **Step 4: Verify GREEN**
 
 ```bash
 npm test -- worldlineDefinitions.test.ts manifestLoader.test.ts
 ```
 
-Expected: PASS; every action ID exists.
-
 - [ ] **Step 5: Commit**
 
 ```bash
 git add story/worldlines/loop_01_worldlines.yaml tools/event-graph-viewer/tests/worldlineDefinitions.test.ts
-git commit -m "feat: define representative loop one worldlines"
+git commit -m "feat: define loop one worldlines"
 ```
 
 ---
 
-### Task 10: Story Simulation API and Eight-worldline Acceptance
+### Task 10: Real Story Loader Helper + Simulation API + WL Acceptance
 
 **Files:**
+- Create: `tools/event-graph-viewer/tests/helpers/loadRealStory.ts`
 - Create: `tools/event-graph-viewer/src/simulator/storySimulation.ts`
 - Create: `tools/event-graph-viewer/tests/storySimulationRunner.test.ts`
 - Create: `tools/event-graph-viewer/tests/storySimulationAcceptance.test.ts`
 
 **Interfaces:**
-- Produces:
-  - `simulateStory({ story, actionIds, until? }): StorySimulationResult`
-  - `simulateNamedWorldline(story, worldlineId): StorySimulationResult`
-- `StorySimulationResult = { state, fullHistory, playerHistory }`.
+- Produces `loadRealStory()` for tests from real YAML via `import.meta.glob`.
+- Produces `simulateStory({ story, actionIds, until? })`.
+- Produces `simulateNamedWorldline(story, worldlineId)`.
+- Produces `{ state, fullHistory, playerHistory }`.
 
-- [ ] **Step 1: Write failing API and acceptance tests**
+- [ ] **Step 1: Create the real-story helper and failing acceptance tests**
 
 ```ts
-it('simulates a named worldline to the inclusive loop end', () => {
-  const result = simulateNamedWorldline(realStory, 'WL-03');
-  expect(result.fullHistory.at(-1)?.eventId).toBe('evt_0000_loop_end');
-  expect(result.playerHistory.some(x => x.title.includes('old_lab'))).toBe(false);
-});
-```
+// tests/helpers/loadRealStory.ts
+import yaml from 'js-yaml';
+import { buildStoryBundleFromDocuments } from '../../src/lib/loadSimulationStory';
 
-Add a table-driven acceptance test:
+const rawFiles = import.meta.glob('../../../../story/**/*.yaml', { query: '?raw', import: 'default', eager: true }) as Record<string, string>;
+const parse = (suffix: string) => yaml.load(rawFiles[Object.keys(rawFiles).find(key => key.endsWith(suffix))!]);
+
+export function loadRealStory() {
+  const manifest = parse('/manifests/loop_01.yaml') as { loop: string; world: string; schedules: string[]; actions: string; events: string[]; worldlines: string };
+  return buildStoryBundleFromDocuments({
+    loop: parse('/' + manifest.loop),
+    initialState: parse('/' + manifest.world),
+    schedules: manifest.schedules.map(path => parse('/' + path)),
+    actions: parse('/' + manifest.actions),
+    events: manifest.events.map(path => parse('/' + path)),
+    worldlines: parse('/' + manifest.worldlines),
+  });
+}
+```
 
 ```ts
 it.each([
@@ -827,62 +790,54 @@ it.each([
   ['WL-05', 'wakaharu_dies', false, false],
   ['WL-06', 'no_death', false, false],
   ['WL-07', 'doctor_dies', false, true],
-])('%s resolves expected causal results', (id, stationVariant, postal, reporterMissing) => {
-  const result = simulateNamedWorldline(realStory, id);
-  expect(eventRow(result, 'evt_1831_station')?.variantId).toBe(stationVariant);
-  expect(Boolean(readPath(result.state, 'flags.postal_record_anomaly_found'))).toBe(postal);
-  expect(readPath(result.state, 'characters.reporter.status') === 'missing').toBe(reporterMissing);
+])('%s resolves the approved causal outcome', (id, stationVariant, postal, reporterMissing) => {
+  const result = simulateNamedWorldline(loadRealStory(), id);
+  const station = result.fullHistory.find(x => x.eventId === 'evt_1831_station' && x.kind === 'event');
+  expect(station?.variantId).toBe(stationVariant);
+  expect(Boolean((result.state.flags as Record<string, unknown>).postal_record_anomaly_found)).toBe(postal);
+  expect(((result.state.characters as any).reporter.status === 'missing')).toBe(reporterMissing);
 });
 ```
 
-Add WL-02 assertion for `warning_revealed`.
+Add WL-02 assertion that `evt_1818_wakaharu_last_conversation` resolves `warning_revealed`. Add a determinism test comparing `JSON.stringify(fullHistory)` across two runs of the same worldline.
 
-- [ ] **Step 2: Run focused tests and verify RED**
+- [ ] **Step 2: Verify RED**
 
 ```bash
 npm test -- storySimulationRunner.test.ts storySimulationAcceptance.test.ts
 ```
 
-Expected: FAIL because high-level Story Simulation API does not exist.
-
-- [ ] **Step 3: Implement the wrapper using only lower-level simulator APIs**
+- [ ] **Step 3: Implement the high-level API**
 
 ```ts
-export function simulateNamedWorldline(story: StoryBundle, worldlineId: string): StorySimulationResult {
-  const worldline = story.worldlines.find(item => item.id === worldlineId);
-  if (!worldline) throw new Error(`Unknown worldline: ${worldlineId}`);
+export function simulateNamedWorldline(story: StoryBundle, id: string): StorySimulationResult {
+  const worldline = story.worldlines.find(item => item.id === id);
+  if (!worldline) throw new Error(`Unknown worldline: ${id}`);
   return simulateStory({ story, actionIds: worldline.actionIds });
 }
 
-export function simulateStory(input: StorySimulationInput): StorySimulationResult {
-  const raw = simulate({
-    definition: { ...input.story.definition, schedules: input.story.schedules, loop: input.story.loop },
-    initialState: input.story.initialState,
-    actions: input.actionIds,
-    until: input.until ?? input.story.loop.range.end,
-  });
+export function simulateStory({ story, actionIds, until = story.loop.range.end }: StorySimulationInput): StorySimulationResult {
+  const raw = simulate({ definition: story.definition, initialState: story.initialState, actions: actionIds, until });
   return { state: raw.state, fullHistory: raw.history, playerHistory: projectPlayerHistory(raw.history) };
 }
 ```
 
-- [ ] **Step 4: Run all eight-worldline tests twice for determinism**
+- [ ] **Step 4: Verify GREEN and all eight worldlines**
 
 ```bash
 npm test -- storySimulationRunner.test.ts storySimulationAcceptance.test.ts
 ```
 
-Expected: PASS; repeated result history serializes identically.
-
 - [ ] **Step 5: Commit**
 
 ```bash
-git add tools/event-graph-viewer/src/simulator/storySimulation.ts tools/event-graph-viewer/tests/storySimulation*.test.ts
+git add tools/event-graph-viewer/src/simulator/storySimulation.ts tools/event-graph-viewer/tests/helpers/loadRealStory.ts tools/event-graph-viewer/tests/storySimulation*.test.ts
 git commit -m "feat: simulate named story worldlines"
 ```
 
 ---
 
-### Task 11: Project the Complete Story Definition into an Author Graph
+### Task 11: Complete Author Story Graph Projection
 
 **Files:**
 - Create: `tools/event-graph-viewer/src/simulator/storyGraph.ts`
@@ -891,14 +846,21 @@ git commit -m "feat: simulate named story worldlines"
 - Create: `tools/event-graph-viewer/tests/storyGraphProjection.test.ts`
 
 **Interfaces:**
-- Consumes: `StoryBundle`.
-- Produces: `projectStoryGraph(story): GraphProjection` with schedule/action/event/variant nodes and causal edges.
+- Produces `projectStoryGraph(story): GraphProjection`.
+- Graph roles become `action | schedule | event | variant | delayed`.
 
-- [ ] **Step 1: Write failing graph projection tests**
+**Deterministic edge rules:**
+1. Event → each Event Variant is a structural edge.
+2. Event Variant → emitted/delayed event is a structural edge.
+3. A definition that writes state path `P` → a later schedule/event whose `when` reads `P` is a causal edge labeled `P`.
+4. Consecutive schedule entries for the same character get a chronological schedule edge.
+5. Edges are sorted by source absolute time, target absolute time, then stable ID.
+
+- [ ] **Step 1: Write the failing graph tests using the real story**
 
 ```ts
-it('contains the reporter hidden causal chain', () => {
-  const graph = projectStoryGraph(realStory);
+it('projects the reporter chain from authored state dependencies', () => {
+  const graph = projectStoryGraph(loadRealStory());
   expect(graph.nodes.map(x => x.id)).toEqual(expect.arrayContaining([
     'action:confront_reporter',
     'schedule:reporter_return_hotel',
@@ -906,37 +868,29 @@ it('contains the reporter hidden causal chain', () => {
     'event:evt_2114_reporter_status',
   ]));
   expect(graph.edges).toEqual(expect.arrayContaining([
-    expect.objectContaining({ source: 'action:confront_reporter', target: 'schedule:reporter_return_hotel' }),
-    expect.objectContaining({ source: 'schedule:reporter_enter_old_lab', target: 'event:evt_2114_reporter_status' }),
+    expect.objectContaining({ source: 'action:confront_reporter', target: 'schedule:reporter_return_hotel', label: 'characters.reporter.route' }),
+    expect.objectContaining({ source: 'schedule:reporter_enter_old_lab', target: 'event:evt_2114_reporter_status', label: 'characters.reporter.location' }),
   ]));
 });
 ```
 
-Also assert the 18:31 event has variant children for `wakaharu_dies`, `doctor_dies`, `no_death`.
+Add an assertion that `evt_1831_station` connects to variants `wakaharu_dies`, `doctor_dies`, `no_death`.
 
-- [ ] **Step 2: Run focused test and verify RED**
+- [ ] **Step 2: Verify RED**
 
 ```bash
 npm test -- storyGraphProjection.test.ts
 ```
 
-Expected: FAIL because the existing graph only projects one event document.
+- [ ] **Step 3: Implement path-based static dependency projection**
 
-- [ ] **Step 3: Extend graph types and build the complete author projection**
+Create helpers `collectWrittenPaths(effects)` and `collectConditionPaths(condition)`. Build edges only when a writer is earlier than/equal to a reader and the path sets intersect. Preserve the structural rules above. Change `EventGraphView` to accept `projection: GraphProjection`; keep the existing single-event `buildEventGraph` tests intact as legacy coverage.
 
-```ts
-export type GraphNodeRole = 'action' | 'schedule' | 'event' | 'variant' | 'delayed';
-```
-
-Edges must be derived from authored conditions/effects and explicit IDs, not from runtime fixture output. For Loop 01, state-affecting action → gated schedule/event relationships should be explainable in the node details even when an exact automatic static dependency cannot be proven.
-
-- [ ] **Step 4: Run graph and existing event graph tests**
+- [ ] **Step 4: Verify GREEN**
 
 ```bash
 npm test -- storyGraphProjection.test.ts eventGraph.test.ts App.test.tsx
 ```
-
-Expected: PASS.
 
 - [ ] **Step 5: Commit**
 
@@ -947,7 +901,7 @@ git commit -m "feat: project complete story graph"
 
 ---
 
-### Task 12: Author and Player Worldline Diff from Simulation History
+### Task 12: Author / Player Worldline Diff
 
 **Files:**
 - Create: `tools/event-graph-viewer/src/simulator/worldlineDiff.ts`
@@ -955,51 +909,51 @@ git commit -m "feat: project complete story graph"
 - Create: `tools/event-graph-viewer/tests/storyWorldlineDiff.test.ts`
 
 **Interfaces:**
-- Produces: `compareWorldlines(left, right, mode: 'author' | 'player'): DiffRow[]`.
+- Produces `compareWorldlines(left, right, mode: 'author' | 'player'): DiffRow[]`.
 
-- [ ] **Step 1: Write failing diff tests for Reporter and Yuan**
+- [ ] **Step 1: Write the failing real-worldline diff tests**
 
 ```ts
-it('author diff exposes reporter hidden movements', () => {
-  const diff = compareWorldlines(wl00, wl03, 'author');
-  expect(diff.map(x => x.right?.title)).toEqual(expect.arrayContaining([
-    'reporter_return_hotel',
-    'reporter_enter_old_lab',
-  ]));
+const story = loadRealStory();
+const wl00 = simulateNamedWorldline(story, 'WL-00');
+const wl03 = simulateNamedWorldline(story, 'WL-03');
+const wl01 = simulateNamedWorldline(story, 'WL-01');
+
+it('author diff shows the hidden reporter movements', () => {
+  const titles = compareWorldlines(wl00, wl03, 'author').flatMap(x => [x.left?.title, x.right?.title]);
+  expect(titles).toContain('reporter_return_hotel');
+  expect(titles).toContain('reporter_enter_old_lab');
 });
 
-it('player diff does not expose reporter hidden movements', () => {
-  const diff = compareWorldlines(wl00, wl03, 'player');
-  expect(diff.flatMap(x => [x.left?.title, x.right?.title])).not.toContain('reporter_enter_old_lab');
-  expect(diff.some(x => x.right?.variantId === 'reporter_missing')).toBe(true);
+it('player diff hides those movements but keeps reporter_missing', () => {
+  const rows = compareWorldlines(wl00, wl03, 'player');
+  const titles = rows.flatMap(x => [x.left?.title, x.right?.title]);
+  expect(titles).not.toContain('reporter_enter_old_lab');
+  expect(rows.some(x => x.right?.variantId === 'reporter_missing')).toBe(true);
 });
 
-it('Yuan diff shows sighting versus postal anomaly', () => {
-  const diff = compareWorldlines(wl00, wl01, 'author');
-  expect(diff.some(x => x.left?.variantId === 'saw_reporter' && x.right?.variantId === 'yuan_absent')).toBe(true);
-  expect(diff.some(x => x.right?.variantId === 'postal_anomaly')).toBe(true);
+it('Yuan diff exposes station sighting versus postal anomaly', () => {
+  const rows = compareWorldlines(wl00, wl01, 'author');
+  expect(rows.some(x => x.left?.variantId === 'saw_reporter' && x.right?.variantId === 'yuan_absent')).toBe(true);
+  expect(rows.some(x => x.right?.variantId === 'postal_anomaly')).toBe(true);
 });
 ```
 
-- [ ] **Step 2: Run focused test and verify RED**
+- [ ] **Step 2: Verify RED**
 
 ```bash
 npm test -- storyWorldlineDiff.test.ts
 ```
 
-Expected: FAIL because current diff only handles old projected event arrays.
+- [ ] **Step 3: Implement diff from simulation history**
 
-- [ ] **Step 3: Implement diff from history projection**
+Author mode compares `fullHistory`; player mode compares `playerHistory`. Normalize each row key as `absoluteMinute|kind|eventId/scheduleEntryId/actionId|sequence-within-minute`, then reuse the existing `DiffRow` status model.
 
-Use full history for author mode and `projectPlayerHistory` for player mode, normalize by `(absoluteMinute, kind, stable id)` and preserve same-minute sequence.
-
-- [ ] **Step 4: Run old and new diff tests**
+- [ ] **Step 4: Verify GREEN + legacy diff**
 
 ```bash
 npm test -- storyWorldlineDiff.test.ts worldlineDiff.test.ts projection.test.ts
 ```
-
-Expected: PASS.
 
 - [ ] **Step 5: Commit**
 
@@ -1010,77 +964,80 @@ git commit -m "feat: compare simulated worldlines"
 
 ---
 
-### Task 13: Wire Story Simulation into the Author Viewer and Verify the Story Gate
+### Task 13: Author Viewer Integration + Story Review Gate
 
 **Files:**
 - Modify: `tools/event-graph-viewer/src/App.tsx`
 - Modify: `tools/event-graph-viewer/src/components/ScenarioSimulator.tsx`
 - Modify: `tools/event-graph-viewer/tests/App.test.tsx`
 - Modify: `tools/event-graph-viewer/tests/scenarioSimulator.test.tsx`
-- Modify: `.github/workflows/event-graph-viewer.yml` only if current CI commands do not already run `npm test` and `npm run build`.
 
 **Interfaces:**
-- Consumes: `loadSimulationStory`, `simulateStory`, `projectStoryGraph`, `compareWorldlines`.
-- Produces: author/debug Viewer able to select two action sets, run them, view the complete Story Graph, generated Timeline, and generated Worldline Diff.
+- App loads the Loop 01 manifest once.
+- Graph view uses `projectStoryGraph(story)`.
+- Timeline uses simulator-generated author history.
+- Diff uses `compareWorldlines`.
+- Scenario controls remain an author/debug tool.
 
-- [ ] **Step 1: Write failing author-viewer integration tests**
+- [ ] **Step 1: Write the failing author-viewer integration test**
 
 ```tsx
-it('loads the complete Loop 01 graph rather than a single event file', async () => {
-  render(<App />);
-  expect(await screen.findByText(/gray_tide_loop_01/i)).toBeInTheDocument();
-  expect(await screen.findByText(/reporter_enter_old_lab/i)).toBeInTheDocument();
-});
+import { render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
-it('recomputes two simulator-generated worldlines', async () => {
+it('recomputes a reporter worldline from the story simulator', async () => {
+  const user = userEvent.setup();
   render(<App />);
-  await selectAction('世界線 B', '拆穿葉庭安');
+  const right = await screen.findByRole('group', { name: '世界線 B' });
+  await user.click(within(right).getByRole('checkbox', { name: '拆穿葉庭安' }));
   await user.click(screen.getByRole('button', { name: '重算世界線' }));
   await user.click(screen.getByRole('button', { name: /Worldline Diff/i }));
   expect(await screen.findByText(/reporter_missing/i)).toBeInTheDocument();
 });
 ```
 
-- [ ] **Step 2: Run integration tests and verify RED**
+Add a graph assertion that the rendered author graph contains `reporter_enter_old_lab`, proving App no longer loads only `day_01_1831.yaml`.
+
+- [ ] **Step 2: Verify RED**
 
 ```bash
 npm test -- App.test.tsx scenarioSimulator.test.tsx
 ```
 
-Expected: FAIL because `App.tsx` still loads `/story/events/day_01_1831.yaml` and calls the old simulator directly.
+- [ ] **Step 3: Wire the author Viewer to Story Simulation**
 
-- [ ] **Step 3: Switch the author Viewer to Story Simulation**
+Replace `loadEventGraph('/story/events/day_01_1831.yaml')` with manifest loading + `projectStoryGraph`. Replace direct old `simulate()` calls with `simulateStory`, defaulting each run to `story.loop.range.end`. Keep the author view allowed to show hidden rows.
 
-Replace the single-event load with manifest loading, generate the graph from `StoryBundle`, and simulate to `story.loop.range.end` rather than hardcoded `23:59`.
+Do not add `player.html`, timers, localStorage progression, offline replay, Evidence Board, or narrative gameplay UI.
 
-The author tool may show hidden rows in its Timeline/Diff. Do not add `/player.html`, timers, localStorage progression, Evidence Board, or playable narrative UI in this task.
-
-- [ ] **Step 4: Run the complete verification suite**
+- [ ] **Step 4: Run complete verification**
 
 ```bash
 npm test
 npm run build
 ```
 
-Expected: all tests pass and Vite/TypeScript build succeeds.
+The existing `.github/workflows/event-graph-viewer.yml` already runs both commands on pull requests, so this plan makes no workflow change.
 
-Then manually inspect these acceptance outputs in the author Viewer:
+Verify these generated outcomes in tests and the author Viewer:
 
 ```text
-WL-00 → 18:31 wakaharu_dies; no 21:14 reporter_missing
-WL-01 → 18:10 yuan_absent; 19:10 postal_anomaly
-WL-03 → hidden 17:30 + 19:50 chain; 21:14 reporter_missing
-WL-04 → 18:31 doctor_dies
-WL-06 → 18:31 no_death; midnight bells still occur
+WL-00 → 18:31 wakaharu_dies; no reporter_missing
+WL-01 → yuan_absent + postal_anomaly
+WL-02 → warning_revealed
+WL-03 → hidden 17:30/19:50 + reporter_missing
+WL-04 → doctor_dies
+WL-05 → wakaharu_dies
+WL-06 → no_death + midnight bells
 WL-07 → doctor_dies + reporter_missing
 ```
 
-Confirm Player History for WL-03 contains confrontation + disappearance but not the 17:30/19:50 hidden movements.
+Player History for WL-03 must contain the confrontation and disappearance but omit both hidden movements.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add tools/event-graph-viewer/src tools/event-graph-viewer/tests .github/workflows/event-graph-viewer.yml
+git add tools/event-graph-viewer/src/App.tsx tools/event-graph-viewer/src/components/ScenarioSimulator.tsx tools/event-graph-viewer/tests/{App.test.tsx,scenarioSimulator.test.tsx}
 git commit -m "feat: expose story simulation in author viewer"
 ```
 
@@ -1095,24 +1052,25 @@ npm test
 npm run build
 ```
 
-Then verify the story-level invariants from generated simulation results, not from prose:
+The generated simulation, not the prose spec, must prove:
 
 ```text
 WL-00 / WL-01 / WL-02 / WL-03 / WL-05 → wakaharu_dies
 WL-04 / WL-07                         → doctor_dies
 WL-06                                 → no_death
 WL-03 / WL-07                         → reporter_missing
+WL-01                                 → postal anomaly and no station sighting
 all WL-00..07                         → evt_2359_midnight_bells
-all WL-00..07                         → evt_0000_loop_end after bells
+all WL-00..07                         → evt_0000_loop_end after the bells
 ```
 
-Story Review Gate remains manual after code verification:
+Then perform the manual Story Review Gate:
 
-- Baseline should plausibly imply the false doctor causality without encoding it as truth.
-- 18:31 should be salient across all worldlines.
-- Yuan information trade-off should emerge from location/schedule, not clue-hiding logic.
-- Reporter delayed causality should be visible to author tooling but hidden from Player History.
-- Protecting Wakaharu should produce an unintended replacement outcome instead of an immediate happy ending.
-- `no_death` must still feel anomalous because the 18:31 event and 23:59 bells remain.
+- Baseline plausibly creates the false doctor causality without encoding it as truth.
+- 18:31 remains salient in every representative worldline.
+- Yuan information trade-off emerges from location/schedule, not clue-hiding logic.
+- Reporter delayed causality is visible in Author History but hidden from Player History.
+- Protecting Wakaharu creates an unintended replacement outcome rather than an immediate happy ending.
+- `no_death` still feels anomalous because the 18:31 event and 23:59 bells remain.
 
-Only after that review passes should a separate Player Game spec/plan start.
+Only after this review passes should a separate Player Game spec/plan begin.
