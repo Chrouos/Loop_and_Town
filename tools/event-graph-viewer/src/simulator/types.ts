@@ -43,6 +43,7 @@ export type DelayedEffectDefinition = {
 export type EventVariantDefinition = {
   id: string;
   priority: number;
+  visibility?: Visibility;
   when?: Condition;
   fallback?: boolean;
   effects: Effect[];
@@ -53,6 +54,7 @@ export type EventDefinition = {
   id: string;
   title: string;
   at?: StoryTimeInput;
+  visibility?: Visibility;
   variants: EventVariantDefinition[];
 };
 
@@ -60,6 +62,7 @@ export type ActionDefinition = {
   id: string;
   at: StoryTimeInput;
   label: string;
+  visibility?: Visibility;
   effects: Effect[];
 };
 
@@ -122,8 +125,11 @@ export type StateChange = {
 
 export type WorldlineHistoryEntry = {
   sequence: number;
+  day?: number;
   time: string;
+  absoluteMinute?: number;
   minute: number;
+  visibility?: Visibility;
   kind: 'schedule' | 'player-action' | 'event' | 'effect' | 'delayed-effect';
   eventId?: string;
   variantId?: string;

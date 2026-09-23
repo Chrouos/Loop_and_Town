@@ -1,6 +1,10 @@
 import type { WorldlineEntry } from '../types/story';
 import type { WorldlineHistoryEntry } from './types';
 
+export function projectPlayerHistory(history: WorldlineHistoryEntry[]): WorldlineHistoryEntry[] {
+  return history.filter((entry) => entry.visibility === 'observable' && entry.kind !== 'effect');
+}
+
 export function projectTimelineEntries(history: WorldlineHistoryEntry[]): WorldlineEntry[] {
   return history
     .filter((entry) => entry.kind !== 'effect')

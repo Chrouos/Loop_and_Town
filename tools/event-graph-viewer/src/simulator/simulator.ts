@@ -10,6 +10,7 @@ import type {
   SimulationDefinition,
   SimulationResult,
   StoryTimeInput,
+  Visibility,
   WorldState,
   WorldlineHistoryEntry,
 } from './types';
@@ -67,9 +68,23 @@ export function createSimulation(definition: SimulationDefinition, initialState:
     if (event.at) queue.enqueue({ kind: 'scheduled-event', executeAt: toAbsoluteMinute(event.at), eventId: event.id });
   }
 
-  function record(entry: Omit<WorldlineHistoryEntry, 'sequence' | 'time' | 'minute'> & { minute?: number }): void {
+  function record(
+    entry: Omit<WorldlineHistoryEntry, 'sequence' | 'day' | 'time' | 'absoluteMinute' | 'minute' | 'visibility'> & {
+      minute?: number;
+      visibility?: Visibility;
+    },
+  ): void {
     const minute = entry.minute ?? currentMinute;
-    history.push({ ...entry, sequence: sequence++, minute, time: fromAbsoluteMinute(minute).time });
+    const point = fromAbsoluteMinute(minute);
+    history.push({
+      ...entry,
+      sequence: sequence++,
+      day: point.day,
+      time: point.time,
+      absoluteMinute: minute,
+      minute,
+      visibility: entry.visibility ?? 'debug',
+    });
   }
 
   function applyAction(actionOrId: ActionDefinition | string): void {
@@ -85,7 +100,13 @@ export function createSimulation(definition: SimulationDefinition, initialState:
     }
     currentMinute = actionMinute;
     const changes = executeEffects({ state, queue, events, currentMinute }, action.effects);
-    record({ kind: 'player-action', actionId: action.id, title: action.label, changes });
+    record({
+      kind: 'player-action',
+      actionId: action.id,
+      title: action.label,
+      changes,
+      visibility: action.visibility ?? 'observable',
+    });
   }
 
   function runUntil(time: StoryTimeInput): void {
@@ -111,6 +132,7 @@ export function createSimulation(definition: SimulationDefinition, initialState:
           scheduleStatus: resolved.status,
           characterId: item.characterId,
           changes: resolved.changes,
+          visibility: item.entry.visibility ?? 'hidden',
         });
         continue;
       }
@@ -124,6 +146,7 @@ export function createSimulation(definition: SimulationDefinition, initialState:
           eventId: item.sourceEventId,
           variantId: item.sourceVariantId,
           changes,
+          visibility: 'hidden',
         });
         continue;
       }
@@ -131,12 +154,15 @@ export function createSimulation(definition: SimulationDefinition, initialState:
       const event = events.get(item.eventId);
       if (!event) throw new Error(`Unknown emitted event: ${item.eventId}`);
       const resolved = resolveEvent({ state, queue, events, currentMinute }, event);
+      const resolvedVariant = event.variants.find((variant) => variant.id === resolved.variantId);
+      const visibility = resolvedVariant?.visibility ?? event.visibility ?? 'observable';
       record({
         kind: 'event',
         eventId: resolved.eventId,
         variantId: resolved.variantId,
         title: resolved.title,
         changes: resolved.changes,
+        visibility,
       });
       if (resolved.changes.length) {
         record({
@@ -145,6 +171,7 @@ export function createSimulation(definition: SimulationDefinition, initialState:
           variantId: resolved.variantId,
           title: `${resolved.title} effects`,
           changes: resolved.changes,
+          visibility: 'debug',
         });
       }
     }
