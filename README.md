@@ -1,15 +1,72 @@
 # 灰潮鎮：第七封信
 
-以安靜的文字敘事展開的輪迴推理遊戲。目前提供可玩的第一章原型；開啟 `dist/index.html` 即可體驗。
+以安靜的文字敘事展開的輪迴推理遊戲。
 
-## 目前內容
+玩家收到已故姊姊寄來的信後回到故鄉，逐漸發現這座小鎮被困在同一天。遊戲時間與現實世界同步，小鎮不會等待玩家；每次介入都可能改變 NPC 行程、關係與後續事件，甚至在數小時後才產生延遲後果。
 
-- 信件與調查場景、有限的案邊證據、輪迴中的事件與選擇。
-- `dist/`：瀏覽器遊戲與素材；`tests/`：遊戲邏輯測試；`docs/`：設計與實作紀錄。
-- 執行測試：`node --test tests/game.test.js`。
+## 核心玩法
 
-## 核心玩法方向
+```text
+觀察事件
+→ 建立假設
+→ 介入一個節點
+→ 世界自行運行
+→ Event Card 被改寫
+→ 比較世界線
+→ 找出因果與 Invariant
+→ 下一輪
+```
 
-觀察事件 → 建立假設 → 介入一個節點 → 世界自行運行 → 比較被改寫的事件卡與世界線 → 找出因果與不變條件。目標是讓介入經由人物行程、關係與情報產生延遲後果，而非只收集線索或答題。
+核心原則：
 
-設計參考：《輪迴推理遊戲｜核心玩法設計 v0.1》。目前的原型尚未完整實現現實時間持續運行、離線報告、事件圖與多條世界線疊合比較；這些是後續開發方向。
+> 改得動的，通常是結果；改不動的，才可能接近真相。
+
+## 設計文件
+
+- [`docs/core-gameplay.md`](docs/core-gameplay.md)：核心玩法、世界線、延遲影響、Event Card、Invariant、放置機制。
+- [`docs/worldbuilding.md`](docs/worldbuilding.md)：灰潮鎮、輪迴規則、核心人物與主線 Mystery。
+- [`docs/first-loop-story.md`](docs/first-loop-story.md)：第一輪《第一個今天》故事試稿。
+- [`docs/event-graph-spec.md`](docs/event-graph-spec.md)：Event Graph、Worldline History、視覺化工具與資料管理規格。
+
+## Event Graph
+
+劇情邏輯以機器可讀資料作為 Source of Truth，視覺化工具只負責編輯、檢查與模擬。
+
+```text
+YAML 劇情檔
+→ Schema Validation
+→ Event Graph Engine
+→ Graph View / Timeline / Worldline Diff / Simulator
+```
+
+目前範例：
+
+- [`story/events/day_01_1831.yaml`](story/events/day_01_1831.yaml)：18:31 事件與不同世界線 Variant。
+- [`story/schemas/event-graph.schema.json`](story/schemas/event-graph.schema.json)：初版 Event Graph JSON Schema。
+
+## 世界線設計方向
+
+同一事件會因玩家行動改寫，例如：
+
+```text
+Loop 01：18:31 許若晴死亡
+Loop 02：18:31 陳柏勳死亡
+Loop 03：18:31 無人死亡
+```
+
+玩家真正要推理的不是單一結果，而是：
+
+- 哪個行動造成分歧。
+- 哪些後果是延遲發生。
+- 哪些條件不論怎麼改都仍然存在。
+- 為什麼 18:31 一直出現。
+
+## 後續開發方向
+
+- Event Graph Viewer
+- Timeline View
+- Worldline Diff
+- 世界線 Simulator
+- 現實時間同步與 Offline Report
+- NPC Schedule / Relation / Knowledge State
+- Event Graph Validator / CI
