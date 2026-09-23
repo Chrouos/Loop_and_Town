@@ -1,12 +1,12 @@
 import { evaluateCondition } from './conditionEvaluator';
 import { executeEffects } from './effectExecutor';
-import type { EventDefinition, ResolvedEvent, ResolverContext } from './types';
+import type { EventDefinition, EventVariantDefinition, ResolvedEvent, ResolverContext } from './types';
 
 export function resolveEvent(context: ResolverContext, event: EventDefinition): ResolvedEvent {
   const conditional = event.variants.filter((variant) => !variant.fallback && variant.when);
   const matching = conditional.filter((variant) => evaluateCondition(variant.when!, context.state));
 
-  let selected = matching.sort((a, b) => b.priority - a.priority)[0];
+  let selected: EventVariantDefinition | undefined = matching.sort((a, b) => b.priority - a.priority)[0];
   if (selected) {
     const samePriority = matching.filter((variant) => variant.priority === selected!.priority);
     if (samePriority.length > 1) {
