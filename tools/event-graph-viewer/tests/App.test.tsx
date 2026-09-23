@@ -56,7 +56,7 @@ describe('App', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Worldline Diff' }));
 
     expect(await screen.findByRole('heading', { name: 'Worldline Diff' })).toBeTruthy();
-    expect(screen.getByText(/reporter_missing/)).toBeTruthy();
+    expect(screen.getAllByText(/reporter_missing/).length).toBeGreaterThan(0);
   });
 
   it('shows a readable load error', async () => {
