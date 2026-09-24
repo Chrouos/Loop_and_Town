@@ -1,4 +1,5 @@
 import type { ActivityRun } from '../narrative/activity';
+import type { PlannedTravel } from './travel';
 
 export type ForegroundFreeze = { sceneId: string; frozenMinute: number };
 
@@ -9,6 +10,7 @@ export type PlayerSessionV2 = {
   lastSeenRealTimeMs: number;
   currentLocation: string;
   activeActivity: ActivityRun | null;
+  activeTravel?: PlannedTravel | null;
   consumedSceneIds: string[];
   consumedAmbientBeatIds: string[];
   openedArtifactIds: string[];
@@ -26,6 +28,7 @@ export function createInitialPlayerSession(nowMs: number): PlayerSessionV2 {
     lastSeenRealTimeMs: nowMs,
     currentLocation: 'ash_tide_station',
     activeActivity: null,
+    activeTravel: null,
     consumedSceneIds: [],
     consumedAmbientBeatIds: [],
     openedArtifactIds: [],
