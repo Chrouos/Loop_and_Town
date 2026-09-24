@@ -16,7 +16,10 @@ export default function App() {
   const [story, setStory] = useState<StoryBundle | null>(null);
   const [leftDraftActionIds, setLeftDraftActionIds] = useState<string[]>([]);
   const [rightDraftActionIds, setRightDraftActionIds] = useState<string[]>([]);
-  const [appliedActionIds, setAppliedActionIds] = useState<{ left: string[]; right: string[] }>({ left: [], right: [] });
+  const [appliedActionIds, setAppliedActionIds] = useState<{ left: string[]; right: string[] }>({
+    left: [],
+    right: [],
+  });
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -26,15 +29,24 @@ export default function App() {
   }, []);
 
   const graphProjection = useMemo(() => story ? projectStoryGraph(story) : null, [story]);
+
   const generated = useMemo(() => {
     if (!story) return null;
     const left = simulateStory({ story, actionIds: appliedActionIds.left });
     const right = simulateStory({ story, actionIds: appliedActionIds.right });
-    return { left, right, timeline: projectTimelineEntries(right.fullHistory), diffRows: compareWorldlines(left, right, 'author') };
+    return {
+      left,
+      right,
+      timeline: projectTimelineEntries(right.fullHistory),
+      diffRows: compareWorldlines(left, right, 'author'),
+    };
   }, [story, appliedActionIds]);
 
   function simulateDrafts() {
-    setAppliedActionIds({ left: [...leftDraftActionIds], right: [...rightDraftActionIds] });
+    setAppliedActionIds({
+      left: [...leftDraftActionIds],
+      right: [...rightDraftActionIds],
+    });
   }
 
   return (
@@ -43,12 +55,20 @@ export default function App() {
         <div>
           <p className="eyebrow">灰潮鎮 · Narrative Debug Tool</p>
           <h1>Event Graph Viewer</h1>
-          {story && <p className="loaded">Loaded: {story.loop.id} / {story.definition.events.length} events · {story.definition.actions.length} actions</p>}
+          {story && (
+            <p className="loaded">
+              Loaded: {story.loop.id} / {story.definition.events.length} events · {story.definition.actions.length} actions
+            </p>
+          )}
         </div>
         <ViewTabs value={view} onChange={setView} />
       </header>
+
       {error ? (
-        <section className="panel error-state"><h2>無法載入 Event Graph</h2><p>{error}</p></section>
+        <section className="panel error-state">
+          <h2>無法載入 Event Graph</h2>
+          <p>{error}</p>
+        </section>
       ) : !story || !graphProjection || !generated ? (
         <section className="panel loading-state">載入劇情資料中…</section>
       ) : (
@@ -63,6 +83,7 @@ export default function App() {
               onSimulate={simulateDrafts}
             />
           )}
+
           {view === 'graph' ? (
             <EventGraphView projection={graphProjection} />
           ) : view === 'characters' ? (
