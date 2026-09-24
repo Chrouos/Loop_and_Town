@@ -117,6 +117,11 @@ export type NarrativeSceneDefinition = {
   observation?: NarrativeObservationRule;
   startsActivity?: string;
   artifactId?: string;
+  requiresFacts?: string[];
+  requiresLocation?: string;
+  afterActivityId?: string;
+  sourceEventId?: string;
+  sourceVariantId?: string;
 };
 
 export type ArtifactDefinition = {
