@@ -21,3 +21,9 @@ facts:
     summary: 輪迴後可能存在短暫的記憶殘留現象。
   - id: fact_missing_evidence_exists
     summary: 五年前案件有一項未登錄進正式證物清單的證物。
+  - id: fact_cafe_resident_chatter
+    summary: 在車站外咖啡店聽見居民談起灰潮鎮近年的變化。
+  - id: fact_shopkeeper_mistook_protagonist_for_zhixia
+    summary: 便利商店老闆一度把主角錯認成林知夏。
+  - id: fact_zhixia_letter_received
+    summary: 主角已發現並讀到林知夏署名、郵戳為昨天的信。

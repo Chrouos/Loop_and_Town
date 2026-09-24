@@ -28,6 +28,8 @@ export function loadRealStory() {
     protagonist_schedule?: string;
     narrative?: string;
     artifacts?: string[];
+    player_choices?: string;
+    travel?: string;
   };
 
   return buildStoryBundleFromDocuments({
@@ -44,5 +46,7 @@ export function loadRealStory() {
     protagonistSchedule: manifest.protagonist_schedule ? parse('/' + manifest.protagonist_schedule) : undefined,
     narrative: manifest.narrative ? parse('/' + manifest.narrative) : undefined,
     artifacts: manifest.artifacts?.map((path) => parse('/' + path)),
+    playerChoices: manifest.player_choices ? parse('/' + manifest.player_choices) : undefined,
+    travel: manifest.travel ? parse('/' + manifest.travel) : undefined,
   });
 }

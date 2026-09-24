@@ -44,6 +44,13 @@ export type KnowledgeFact = {
   summary: string;
 };
 
+export type AmbientBeatDefinition = {
+  id: string;
+  atMinute: number;
+  text: string;
+  requiresFacts?: string[];
+};
+
 export type ActivityPresentation = {
   start: string | string[];
   idle: string;
@@ -55,6 +62,7 @@ export type ActivityDefinition = {
   durationMinutes: number;
   interruptible: boolean;
   presentation: ActivityPresentation;
+  ambient?: AmbientBeatDefinition[];
 };
 
 export type ProtagonistScheduleEntry = {
@@ -69,11 +77,13 @@ export type ProtagonistScheduleDefinition = {
 };
 
 export type ObservationChannel = 'present' | 'phone' | 'artifact' | 'deferred';
+export type ObservationPersistence = 'ephemeral' | 'message' | 'missed-call' | 'artifact';
 
 export type NarrativeObservationRule = {
   channel: Exclude<ObservationChannel, 'deferred'>;
   location?: string;
   offlineMode?: 'deferred' | 'missed';
+  persistence?: ObservationPersistence;
 };
 
 export type NarrativeTextBlock = {
@@ -119,6 +129,28 @@ export type ArtifactDefinition = {
     title?: string;
     format?: string;
   };
+};
+
+export type PlayerChoiceEffect =
+  | { type: 'start-activity'; activityId: string }
+  | { type: 'submit-action'; actionId: string }
+  | { type: 'travel'; to: string }
+  | { type: 'learn-fact'; factId: string };
+
+export type PlayerChoiceDefinition = {
+  id: string;
+  sceneId: string;
+  label: string;
+  availableFrom?: number;
+  availableUntil?: number;
+  requiresFacts?: string[];
+  effects: PlayerChoiceEffect[];
+};
+
+export type TravelEdgeDefinition = {
+  from: string;
+  to: string;
+  minutes: number;
 };
 
 export type NarrativeFoundation = {

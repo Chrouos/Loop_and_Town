@@ -20,6 +20,8 @@ const sources = [
   'activities',
   'narrative',
   'artifacts',
+  'choices',
+  'travel',
 ];
 
 await rm(outputRoot, { recursive: true, force: true });

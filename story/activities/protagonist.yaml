@@ -27,6 +27,16 @@ activities:
       start: 整理了一陣子，我泡了杯茶，從書架抽出一本以前沒看完的小說。
       idle: 正在看書……
       complete: 我把書闔上，茶也差不多涼了。
+    ambient:
+      - id: read_motorbike
+        at_minute: 5
+        text: 樓下有人騎機車經過。聲音沿著巷子慢慢遠了。
+      - id: read_tea_cooling
+        at_minute: 11
+        text: 茶已經沒有剛才那麼燙了。
+      - id: read_same_paragraph
+        at_minute: 17
+        text: 我讀了三頁，才發現同一段看了兩次。
   - id: sort_mail
     duration_minutes: 10
     interruptible: true
@@ -55,3 +65,17 @@ activities:
       start: 現在能做的都做完了。我把手機放在手邊，先等消息。
       idle: 正在等消息……
       complete: 手機仍然安靜地躺在桌上。
+  - id: buy_coffee
+    duration_minutes: 8
+    interruptible: true
+    presentation:
+      start: 我拖著行李拐進月台外那間新開的咖啡店。
+      idle: 正在等咖啡……
+      complete: 紙杯摸起來有點燙，我重新往老街走。
+  - id: visit_convenience_store
+    duration_minutes: 6
+    interruptible: true
+    presentation:
+      start: 舊便利商店還在。我推門進去買瓶水。
+      idle: 正在便利商店……
+      complete: 我提著水走出店門。

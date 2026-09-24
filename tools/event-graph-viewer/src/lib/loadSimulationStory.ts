@@ -12,13 +12,17 @@ import { validateDefinition } from '../simulator/validation';
 import {
   emptyNarrativeFoundation,
   type ActivityDefinition,
+  type AmbientBeatDefinition,
   type ArtifactDefinition,
   type CharacterDefinition,
   type KnowledgeFact,
   type NarrativeFoundation,
   type NarrativeSceneDefinition,
+  type PlayerChoiceDefinition,
+  type PlayerChoiceEffect,
   type ProtagonistScheduleDefinition,
   type RelationshipDefinition,
+  type TravelEdgeDefinition,
 } from '../narrative/types';
 
 export type StoryManifest = {
@@ -35,6 +39,8 @@ export type StoryManifest = {
   protagonist_schedule?: string;
   narrative?: string;
   artifacts?: string[];
+  player_choices?: string;
+  travel?: string;
 };
 
 export type WorldlineDefinition = {
@@ -50,6 +56,8 @@ export type StoryBundle = {
   definition: SimulationDefinition;
   worldlines: WorldlineDefinition[];
   narrative: NarrativeFoundation;
+  playerChoices: PlayerChoiceDefinition[];
+  travelEdges: TravelEdgeDefinition[];
 };
 
 async function loadYaml(path: string): Promise<unknown> {
@@ -77,6 +85,8 @@ function asManifest(value: unknown): StoryManifest {
   if (record.protagonist_schedule !== undefined && typeof record.protagonist_schedule !== 'string') throw new Error('Invalid story manifest protagonist_schedule');
   if (record.narrative !== undefined && typeof record.narrative !== 'string') throw new Error('Invalid story manifest narrative');
   if (record.artifacts !== undefined && !Array.isArray(record.artifacts)) throw new Error('Invalid story manifest artifacts');
+  if (record.player_choices !== undefined && typeof record.player_choices !== 'string') throw new Error('Invalid story manifest player_choices');
+  if (record.travel !== undefined && typeof record.travel !== 'string') throw new Error('Invalid story manifest travel');
 
   return record as unknown as StoryManifest;
 }
@@ -129,6 +139,30 @@ function normalizeKnowledge(value: unknown): KnowledgeFact[] {
   return facts as KnowledgeFact[];
 }
 
+function normalizeAmbient(value: unknown, durationMinutes: number): AmbientBeatDefinition[] | undefined {
+  if (value === undefined) return undefined;
+  if (!Array.isArray(value)) throw new Error('Invalid activity ambient beats');
+  return value.map((item) => {
+    const record = item as Record<string, unknown>;
+    const atMinute = record.atMinute ?? record.at_minute;
+    const requiresFacts = record.requiresFacts ?? record.requires_facts;
+    if (
+      typeof record.id !== 'string'
+      || !Number.isInteger(atMinute)
+      || (atMinute as number) < 0
+      || (atMinute as number) >= durationMinutes
+      || typeof record.text !== 'string'
+      || (requiresFacts !== undefined && !Array.isArray(requiresFacts))
+    ) throw new Error('Invalid ambient beat');
+    return {
+      id: record.id,
+      atMinute: atMinute as number,
+      text: record.text,
+      requiresFacts: Array.isArray(requiresFacts) ? requiresFacts.map(String) : undefined,
+    };
+  });
+}
+
 function normalizeActivities(value: unknown): ActivityDefinition[] {
   if (value === undefined || value === null) return [];
   const entries = (value as { activities?: unknown })?.activities;
@@ -142,6 +176,7 @@ function normalizeActivities(value: unknown): ActivityDefinition[] {
     return {
       ...(record as unknown as ActivityDefinition),
       durationMinutes,
+      ambient: normalizeAmbient(record.ambient, durationMinutes),
     };
   });
 }
@@ -164,6 +199,16 @@ function normalizeProtagonistSchedule(value: unknown): ProtagonistScheduleDefini
   };
 }
 
+function normalizeObservation(value: unknown) {
+  if (!value || typeof value !== 'object') return undefined;
+  const record = value as Record<string, unknown>;
+  const offlineMode = record.offlineMode ?? record.offline_mode;
+  return {
+    ...(record as Record<string, unknown>),
+    offlineMode: typeof offlineMode === 'string' ? offlineMode : undefined,
+  } as NarrativeSceneDefinition['observation'];
+}
+
 function normalizeScenes(value: unknown): NarrativeSceneDefinition[] {
   if (value === undefined || value === null) return [];
   const scenes = (value as { scenes?: unknown })?.scenes;
@@ -182,6 +227,7 @@ function normalizeScenes(value: unknown): NarrativeSceneDefinition[] {
         : typeof record.artifact_id === 'string'
           ? record.artifact_id
           : undefined,
+      observation: normalizeObservation(record.observation),
     };
   });
 }
@@ -197,6 +243,79 @@ function normalizeArtifact(value: unknown): ArtifactDefinition {
     ...(record as unknown as ArtifactDefinition),
     formedAt: formedAt as StoryTimeInput,
   };
+}
+
+function normalizeChoiceEffect(value: unknown): PlayerChoiceEffect {
+  const record = value as Record<string, unknown>;
+  if (record.type === 'start-activity') {
+    const activityId = record.activityId ?? record.activity_id;
+    if (typeof activityId !== 'string') throw new Error('Invalid start-activity choice effect');
+    return { type: 'start-activity', activityId };
+  }
+  if (record.type === 'submit-action') {
+    const actionId = record.actionId ?? record.action_id;
+    if (typeof actionId !== 'string') throw new Error('Invalid submit-action choice effect');
+    return { type: 'submit-action', actionId };
+  }
+  if (record.type === 'travel') {
+    if (typeof record.to !== 'string' || !record.to) throw new Error('Invalid travel choice effect');
+    return { type: 'travel', to: record.to };
+  }
+  if (record.type === 'learn-fact') {
+    const factId = record.factId ?? record.fact_id;
+    if (typeof factId !== 'string') throw new Error('Invalid learn-fact choice effect');
+    return { type: 'learn-fact', factId };
+  }
+  throw new Error('Invalid player choice effect');
+}
+
+function normalizePlayerChoices(value: unknown): PlayerChoiceDefinition[] {
+  if (value === undefined || value === null) return [];
+  const entries = (value as { choices?: unknown })?.choices;
+  if (!Array.isArray(entries)) throw new Error('Invalid player choices document');
+  return entries.map((item) => {
+    const record = item as Record<string, unknown>;
+    const sceneId = record.sceneId ?? record.scene_id;
+    const availableFrom = record.availableFrom ?? record.available_from;
+    const availableUntil = record.availableUntil ?? record.available_until;
+    const requiresFacts = record.requiresFacts ?? record.requires_facts;
+    if (
+      typeof record.id !== 'string'
+      || typeof sceneId !== 'string'
+      || typeof record.label !== 'string'
+      || !Array.isArray(record.effects)
+      || (availableFrom !== undefined && !Number.isInteger(availableFrom))
+      || (availableUntil !== undefined && !Number.isInteger(availableUntil))
+      || (requiresFacts !== undefined && !Array.isArray(requiresFacts))
+    ) throw new Error('Invalid player choice definition');
+    return {
+      id: record.id,
+      sceneId,
+      label: record.label,
+      availableFrom: availableFrom as number | undefined,
+      availableUntil: availableUntil as number | undefined,
+      requiresFacts: Array.isArray(requiresFacts) ? requiresFacts.map(String) : undefined,
+      effects: record.effects.map(normalizeChoiceEffect),
+    };
+  });
+}
+
+function normalizeTravelEdges(value: unknown): TravelEdgeDefinition[] {
+  if (value === undefined || value === null) return [];
+  const entries = (value as { travel?: unknown })?.travel;
+  if (!Array.isArray(entries)) throw new Error('Invalid travel document');
+  return entries.map((item) => {
+    const record = item as Record<string, unknown>;
+    if (
+      typeof record.from !== 'string'
+      || !record.from
+      || typeof record.to !== 'string'
+      || !record.to
+      || !Number.isInteger(record.minutes)
+      || (record.minutes as number) <= 0
+    ) throw new Error('Invalid travel edge');
+    return { from: record.from, to: record.to, minutes: record.minutes as number };
+  });
 }
 
 function buildNarrativeFoundation(input: {
@@ -219,6 +338,43 @@ function buildNarrativeFoundation(input: {
   };
 }
 
+function validatePlayerNarrativeReferences(
+  narrative: NarrativeFoundation,
+  actions: ActionDefinition[],
+  playerChoices: PlayerChoiceDefinition[],
+): void {
+  const activityIds = new Set(narrative.activities.map((item) => item.id));
+  const actionIds = new Set(actions.map((item) => item.id));
+  const factIds = new Set(narrative.knowledgeFacts.map((item) => item.id));
+  const sceneIds = new Set(narrative.scenes.map((item) => item.id));
+
+  for (const activity of narrative.activities) {
+    for (const beat of activity.ambient ?? []) {
+      for (const factId of beat.requiresFacts ?? []) {
+        if (!factIds.has(factId)) throw new Error(`Unknown ambient fact: ${factId}`);
+      }
+    }
+  }
+
+  for (const choice of playerChoices) {
+    if (!sceneIds.has(choice.sceneId)) throw new Error(`Unknown choice scene: ${choice.sceneId}`);
+    for (const factId of choice.requiresFacts ?? []) {
+      if (!factIds.has(factId)) throw new Error(`Unknown choice fact: ${factId}`);
+    }
+    for (const effect of choice.effects) {
+      if (effect.type === 'start-activity' && !activityIds.has(effect.activityId)) {
+        throw new Error(`Unknown choice activity: ${effect.activityId}`);
+      }
+      if (effect.type === 'submit-action' && !actionIds.has(effect.actionId)) {
+        throw new Error(`Unknown choice action: ${effect.actionId}`);
+      }
+      if (effect.type === 'learn-fact' && !factIds.has(effect.factId)) {
+        throw new Error(`Unknown learned fact: ${effect.factId}`);
+      }
+    }
+  }
+}
+
 export function buildStoryBundleFromDocuments(input: {
   loop: unknown;
   initialState: unknown;
@@ -233,6 +389,8 @@ export function buildStoryBundleFromDocuments(input: {
   protagonistSchedule?: unknown;
   narrative?: unknown;
   artifacts?: unknown[];
+  playerChoices?: unknown;
+  travel?: unknown;
 }): StoryBundle {
   const loopRecord = input.loop as { loop?: LoopDefinition };
   const loop = loopRecord?.loop ?? input.loop as LoopDefinition;
@@ -251,20 +409,27 @@ export function buildStoryBundleFromDocuments(input: {
   };
   validateDefinition(definition, initialState);
 
+  const narrative = buildNarrativeFoundation(input);
+  const playerChoices = normalizePlayerChoices(input.playerChoices);
+  const travelEdges = normalizeTravelEdges(input.travel);
+  validatePlayerNarrativeReferences(narrative, actions, playerChoices);
+
   return {
     loop,
     initialState,
     schedules,
     definition,
     worldlines: normalizeWorldlines(input.worldlines),
-    narrative: buildNarrativeFoundation(input),
+    narrative,
+    playerChoices,
+    travelEdges,
   };
 }
 
 async function loadManifestStory(manifestPath: string): Promise<StoryBundle> {
   const manifest = asManifest(await loadYaml(manifestPath));
   const base = 'story/';
-  const [loop, initialState, actions, worldlines, schedules, events, characters, relationships, knowledge, activities, protagonistSchedule, narrative, artifacts] = await Promise.all([
+  const [loop, initialState, actions, worldlines, schedules, events, characters, relationships, knowledge, activities, protagonistSchedule, narrative, artifacts, playerChoices, travel] = await Promise.all([
     loadYaml(base + manifest.loop),
     loadYaml(base + manifest.world),
     loadYaml(base + manifest.actions),
@@ -278,6 +443,8 @@ async function loadManifestStory(manifestPath: string): Promise<StoryBundle> {
     manifest.protagonist_schedule ? loadYaml(base + manifest.protagonist_schedule) : Promise.resolve(undefined),
     manifest.narrative ? loadYaml(base + manifest.narrative) : Promise.resolve(undefined),
     manifest.artifacts ? Promise.all(manifest.artifacts.map((path) => loadYaml(base + path))) : Promise.resolve([]),
+    manifest.player_choices ? loadYaml(base + manifest.player_choices) : Promise.resolve(undefined),
+    manifest.travel ? loadYaml(base + manifest.travel) : Promise.resolve(undefined),
   ]);
   return buildStoryBundleFromDocuments({
     loop,
@@ -293,6 +460,8 @@ async function loadManifestStory(manifestPath: string): Promise<StoryBundle> {
     protagonistSchedule,
     narrative,
     artifacts,
+    playerChoices,
+    travel,
   });
 }
 
@@ -314,6 +483,8 @@ async function loadLegacyStory(): Promise<StoryBundle> {
     definition: { actions, events: [event1831, event2114] as EventDefinition[] },
     worldlines: [],
     narrative: emptyNarrativeFoundation(),
+    playerChoices: [],
+    travelEdges: [],
   };
 }
 

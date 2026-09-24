@@ -37,3 +37,5 @@ protagonist_schedule: schedules/protagonist.yaml
 narrative: narrative/loop_01_prologue.yaml
 artifacts:
   - artifacts/zhixia_letter.yaml
+player_choices: choices/loop_01_player.yaml
+travel: travel/loop_01.yaml
