@@ -1,0 +1,20 @@
+character_id: protagonist
+entries:
+  - id: protagonist_arrive
+    at: "14:20"
+    activity_id: walk_home
+  - id: protagonist_groceries
+    at: "14:30"
+    activity_id: buy_groceries
+  - id: protagonist_clean_house
+    at: "15:00"
+    activity_id: clean_old_house
+  - id: protagonist_read
+    at: "15:30"
+    activity_id: rest_and_read
+  - id: protagonist_sort_mail
+    at: "15:50"
+    activity_id: sort_mail
+  - id: protagonist_prepare_dinner
+    at: "17:20"
+    activity_id: prepare_dinner

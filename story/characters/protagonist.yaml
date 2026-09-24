@@ -29,3 +29,4 @@ knowledge:
     - fact_protagonist_returned_to_sell_house
   hidden: []
 secrets: []
+schedule_ref: schedules/protagonist.yaml

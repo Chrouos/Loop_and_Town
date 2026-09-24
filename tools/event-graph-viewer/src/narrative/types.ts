@@ -45,9 +45,9 @@ export type KnowledgeFact = {
 };
 
 export type ActivityPresentation = {
-  start: string[];
+  start: string | string[];
   idle: string;
-  complete: string[];
+  complete: string | string[];
 };
 
 export type ActivityDefinition = {
