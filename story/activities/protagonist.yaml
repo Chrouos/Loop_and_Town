@@ -58,6 +58,16 @@ activities:
       start: 我把筆電搬到桌上。這件事得花點時間查清楚。
       idle: 正在查資料……
       complete: 搜尋結果裡終於出現幾筆值得再看的資料。
+    ambient:
+      - id: research_old_news
+        at_minute: 9
+        text: 搜尋結果幾乎都是五年前的新聞。
+      - id: research_keywords
+        at_minute: 19
+        text: 我換了三組關鍵字，還是繞回同幾篇報導。
+      - id: research_clock
+        at_minute: 30
+        text: 網頁右下角的時間跳了一次。我才發現自己查了比想像中久。
   - id: wait_for_call
     duration_minutes: 20
     interruptible: true
@@ -79,3 +89,17 @@ activities:
       start: 舊便利商店還在。我推門進去買瓶水。
       idle: 正在便利商店……
       complete: 我提著水走出店門。
+  - id: sit_at_cafe
+    duration_minutes: 12
+    interruptible: true
+    presentation:
+      start: 我沒有立刻起身，只把杯子往旁邊挪了一點。
+      idle: 在咖啡店坐一會兒……
+      complete: 杯底只剩一小圈冷掉的咖啡。
+    ambient:
+      - id: cafe_machine
+        at_minute: 4
+        text: 咖啡機又響了一次，蒸氣聲蓋過附近桌子的談話。
+      - id: cafe_door
+        at_minute: 9
+        text: 門上的鈴鐺響了。有人進來，又很快離開。
