@@ -34,3 +34,6 @@ relationships: relationships/loop_01.yaml
 knowledge: knowledge/facts.yaml
 activities: activities/protagonist.yaml
 protagonist_schedule: schedules/protagonist.yaml
+narrative: narrative/loop_01_prologue.yaml
+artifacts:
+  - artifacts/zhixia_letter.yaml

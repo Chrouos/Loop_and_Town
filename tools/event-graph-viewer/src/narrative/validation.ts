@@ -12,10 +12,14 @@ function assertUniqueIds(items: Array<{ id: string }>, label: string): void {
 export function validateNarrativeFoundation(story: NarrativeFoundation): void {
   assertUniqueIds(story.characters, 'Character');
   assertUniqueIds(story.knowledgeFacts, 'Knowledge Fact');
+  assertUniqueIds(story.activities, 'Activity');
   assertUniqueIds(story.scenes, 'Narrative Scene');
+  assertUniqueIds(story.artifacts, 'Artifact');
 
   const characters = new Map(story.characters.map((character) => [character.id, character]));
   const factIds = new Set(story.knowledgeFacts.map((fact) => fact.id));
+  const activityIds = new Set(story.activities.map((activity) => activity.id));
+  const artifactIds = new Set(story.artifacts.map((artifact) => artifact.id));
 
   for (const relationship of story.relationships) {
     if (!characters.has(relationship.from)) {
@@ -28,22 +32,48 @@ export function validateNarrativeFoundation(story: NarrativeFoundation): void {
 
   for (const character of story.characters) {
     for (const factId of [...character.knowledge.initial, ...character.knowledge.hidden]) {
-      if (!factIds.has(factId)) {
-        throw new Error(`Character ${character.id}: unknown fact ${factId}`);
-      }
+      if (!factIds.has(factId)) throw new Error(`Character ${character.id}: unknown fact ${factId}`);
+    }
+  }
+
+  for (const entry of story.protagonistSchedule.entries) {
+    if (!activityIds.has(entry.activityId)) {
+      throw new Error(`Protagonist schedule ${entry.id}: unknown activity ${entry.activityId}`);
+    }
+  }
+
+  for (const artifact of story.artifacts) {
+    if (artifact.author && !characters.has(artifact.author)) {
+      throw new Error(`Artifact ${artifact.id}: unknown author ${artifact.author}`);
     }
   }
 
   for (const scene of story.scenes) {
     for (const participantId of scene.participants) {
-      if (!characters.has(participantId)) {
-        throw new Error(`Scene ${scene.id}: unknown participant ${participantId}`);
-      }
+      if (!characters.has(participantId)) throw new Error(`Scene ${scene.id}: unknown participant ${participantId}`);
+    }
+
+    if (scene.startsActivity && !activityIds.has(scene.startsActivity)) {
+      throw new Error(`Scene ${scene.id}: unknown activity ${scene.startsActivity}`);
+    }
+    if (scene.artifactId && !artifactIds.has(scene.artifactId)) {
+      throw new Error(`Scene ${scene.id}: unknown artifact ${scene.artifactId}`);
     }
 
     for (const block of scene.blocks) {
-      if (block.type !== 'dialogue') continue;
-      validateDialogueBlock(scene.id, block, characters, factIds);
+      if (block.type === 'dialogue') {
+        validateDialogueBlock(scene.id, block, characters, factIds);
+        continue;
+      }
+      if (block.type === 'artifact') {
+        if (!artifactIds.has(block.artifactId)) {
+          throw new Error(`Scene ${scene.id}: unknown artifact ${block.artifactId}`);
+        }
+        continue;
+      }
+      if (block.factId && !factIds.has(block.factId)) {
+        throw new Error(`Scene ${scene.id}: unknown fact ${block.factId}`);
+      }
     }
   }
 }
