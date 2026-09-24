@@ -54,34 +54,13 @@ export function projectObservation(
   rule: NarrativeObservationRule,
   context: ObservationContext,
 ): ObservedNarrativeEntry | null {
-  if (canObserve(entry, rule, context)) {
-    return {
-      sourceId: sourceIdOf(entry),
-      channel: rule.channel,
-      minute: entry.absoluteMinute ?? entry.minute,
-      day: entry.day,
-      time: entry.time,
-      title: entry.title,
-    };
-  }
-
-  if (
-    entry.visibility === 'observable'
-    && occursBy(entry, context)
-    && !context.online
-    && rule.channel === 'phone'
-    && rule.offlineMode === 'deferred'
-    && context.channels.includes('phone')
-  ) {
-    return {
-      sourceId: sourceIdOf(entry),
-      channel: 'deferred',
-      minute: entry.absoluteMinute ?? entry.minute,
-      day: entry.day,
-      time: entry.time,
-      title: entry.title,
-    };
-  }
-
-  return null;
+  if (!canObserve(entry, rule, context)) return null;
+  return {
+    sourceId: sourceIdOf(entry),
+    channel: rule.channel,
+    minute: entry.absoluteMinute ?? entry.minute,
+    day: entry.day,
+    time: entry.time,
+    title: entry.title,
+  };
 }
