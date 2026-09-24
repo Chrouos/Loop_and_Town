@@ -1,6 +1,10 @@
 import { sortTimeline } from '../lib/timeline';
 import type { WorldlineEntry } from '../types/story';
 
+function displayTime(entry: WorldlineEntry): string {
+  return entry.day && entry.day > 0 ? `D${entry.day} ${entry.time}` : entry.time;
+}
+
 export function TimelineView({ entries, loopLabel = 'Loop 04' }: { entries: WorldlineEntry[]; loopLabel?: string }) {
   const timeline = sortTimeline(entries);
   return (
@@ -14,8 +18,8 @@ export function TimelineView({ entries, loopLabel = 'Loop 04' }: { entries: Worl
       </div>
       <div className="timeline">
         {timeline.map((entry) => (
-          <article className="timeline-item" key={`${entry.time}:${entry.eventId}`}>
-            <time>{entry.time}</time>
+          <article className="timeline-item" key={`${entry.absoluteMinute ?? entry.time}:${entry.eventId}`}>
+            <time>{displayTime(entry)}</time>
             <div>
               <strong>{entry.title}</strong>
               <span>{entry.variantId ?? entry.eventId}</span>

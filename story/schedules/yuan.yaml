@@ -1,0 +1,38 @@
+character_id: yuan
+entries:
+  - id: yuan_town_1750
+    at: { day: 0, time: "17:50" }
+    visibility: hidden
+    when: { path: characters.yuan.assignment, op: eq, value: normal }
+    effects:
+      - set: { path: characters.yuan.location, value: town }
+  - id: yuan_post_office_1750
+    at: { day: 0, time: "17:50" }
+    visibility: hidden
+    when: { path: characters.yuan.assignment, op: eq, value: post_office }
+    effects:
+      - set: { path: characters.yuan.location, value: post_office }
+  - id: yuan_station_area_1810
+    at: { day: 0, time: "18:10" }
+    visibility: hidden
+    when: { path: characters.yuan.assignment, op: eq, value: normal }
+    effects:
+      - set: { path: characters.yuan.location, value: station_area }
+  - id: yuan_post_office_1810
+    at: { day: 0, time: "18:10" }
+    visibility: hidden
+    when: { path: characters.yuan.assignment, op: eq, value: post_office }
+    effects:
+      - set: { path: characters.yuan.location, value: post_office }
+  - id: yuan_clock_shop_1830
+    at: { day: 0, time: "18:30" }
+    visibility: hidden
+    when: { path: characters.yuan.assignment, op: eq, value: normal }
+    effects:
+      - set: { path: characters.yuan.location, value: clock_shop }
+  - id: yuan_return_route_1830
+    at: { day: 0, time: "18:30" }
+    visibility: hidden
+    when: { path: characters.yuan.assignment, op: eq, value: post_office }
+    effects:
+      - set: { path: characters.yuan.location, value: road_from_post_office }

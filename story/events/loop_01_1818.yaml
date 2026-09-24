@@ -1,0 +1,13 @@
+id: evt_1818_wakaharu_last_conversation
+title: 若晴最後的話
+at: { day: 0, time: "18:18" }
+visibility: observable
+variants:
+  - id: warning_revealed
+    priority: 100
+    when: { path: flags.wakaharu_saw_letter, op: eq, value: true }
+    effects: []
+  - id: guarded
+    priority: 0
+    fallback: true
+    effects: []

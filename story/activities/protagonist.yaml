@@ -1,0 +1,105 @@
+activities:
+  - id: walk_home
+    duration_minutes: 5
+    interruptible: true
+    presentation:
+      start: 我拖著行李離開車站，沿著以前走慣的路往老街走。
+      idle: 正在往老街走……
+      complete: 前面的街景終於和記憶裡重疊起來。
+  - id: buy_groceries
+    duration_minutes: 10
+    interruptible: true
+    presentation:
+      start: 冰箱大概什麼都沒有。我先繞去買點水和晚餐材料。
+      idle: 正在買東西……
+      complete: 我提著一小袋東西重新往老家走。
+  - id: clean_old_house
+    duration_minutes: 30
+    interruptible: true
+    presentation:
+      start: 我把窗戶全部推開。五年沒人長住，空氣裡全是灰和受潮木頭的味道。
+      idle: 正在整理老家……
+      complete: 第一批紙箱總算清出一塊能走路的地方。
+  - id: rest_and_read
+    duration_minutes: 20
+    interruptible: true
+    presentation:
+      start: 整理了一陣子，我泡了杯茶，從書架抽出一本以前沒看完的小說。
+      idle: 正在看書……
+      complete: 我把書闔上，茶也差不多涼了。
+    ambient:
+      - id: read_motorbike
+        at_minute: 5
+        text: 樓下有人騎機車經過。聲音沿著巷子慢慢遠了。
+      - id: read_tea_cooling
+        at_minute: 11
+        text: 茶已經沒有剛才那麼燙了。
+      - id: read_same_paragraph
+        at_minute: 17
+        text: 我讀了三頁，才發現同一段看了兩次。
+  - id: sort_mail
+    duration_minutes: 10
+    interruptible: true
+    presentation:
+      start: 門口還堆著一些廣告和沒人收的信。我乾脆一起整理掉。
+      idle: 正在整理郵件……
+      complete: 最後只剩幾封看起來不像廣告的信。
+  - id: prepare_dinner
+    duration_minutes: 30
+    interruptible: true
+    presentation:
+      start: 該做的事情差不多了。我把買來的東西放上流理台，準備晚餐。
+      idle: 正在準備晚餐……
+      complete: 廚房裡總算有了一點有人住的味道。
+  - id: research_online
+    duration_minutes: 35
+    interruptible: true
+    presentation:
+      start: 我把筆電搬到桌上。這件事得花點時間查清楚。
+      idle: 正在查資料……
+      complete: 搜尋結果裡終於出現幾筆值得再看的資料。
+    ambient:
+      - id: research_old_news
+        at_minute: 9
+        text: 搜尋結果幾乎都是五年前的新聞。
+      - id: research_keywords
+        at_minute: 19
+        text: 我換了三組關鍵字，還是繞回同幾篇報導。
+      - id: research_clock
+        at_minute: 30
+        text: 網頁右下角的時間跳了一次。我才發現自己查了比想像中久。
+  - id: wait_for_call
+    duration_minutes: 20
+    interruptible: true
+    presentation:
+      start: 現在能做的都做完了。我把手機放在手邊，先等消息。
+      idle: 正在等消息……
+      complete: 手機仍然安靜地躺在桌上。
+  - id: buy_coffee
+    duration_minutes: 8
+    interruptible: true
+    presentation:
+      start: 我拖著行李拐進月台外那間新開的咖啡店。
+      idle: 正在等咖啡……
+      complete: 紙杯摸起來有點燙，我重新往老街走。
+  - id: visit_convenience_store
+    duration_minutes: 6
+    interruptible: true
+    presentation:
+      start: 舊便利商店還在。我推門進去買瓶水。
+      idle: 正在便利商店……
+      complete: 我提著水走出店門。
+  - id: sit_at_cafe
+    duration_minutes: 12
+    interruptible: true
+    presentation:
+      start: 我沒有立刻起身，只把杯子往旁邊挪了一點。
+      idle: 在咖啡店坐一會兒……
+      complete: 杯底只剩一小圈冷掉的咖啡。
+    ambient:
+      - id: cafe_machine
+        at_minute: 4
+        text: 咖啡機又響了一次，蒸氣聲蓋過附近桌子的談話。
+      - id: cafe_door
+        at_minute: 9
+        text: 門上的鈴鐺響了。有人進來，又很快離開。

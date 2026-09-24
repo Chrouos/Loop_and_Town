@@ -1,0 +1,14 @@
+character_id: reporter
+entries:
+  - id: reporter_return_hotel
+    at: { day: 0, time: "17:30" }
+    visibility: hidden
+    when: { path: characters.reporter.route, op: eq, value: hotel_then_old_lab }
+    effects:
+      - set: { path: characters.reporter.location, value: hotel }
+  - id: reporter_enter_old_lab
+    at: { day: 0, time: "19:50" }
+    visibility: hidden
+    when: { path: characters.reporter.route, op: eq, value: hotel_then_old_lab }
+    effects:
+      - set: { path: characters.reporter.location, value: old_lab }
