@@ -43,6 +43,8 @@ function observationInputs(
       ? Number(sceneMinute.slice(0, 2)) * 60 + Number(sceneMinute.slice(3, 5))
       : sceneMinute.day * 24 * 60 + Number(sceneMinute.time.slice(0, 2)) * 60 + Number(sceneMinute.time.slice(3, 5));
     for (const entry of byMinute.get(absoluteMinute) ?? []) {
+      if (scene.sourceEventId && entry.eventId !== scene.sourceEventId) continue;
+      if (scene.sourceVariantId && entry.variantId !== scene.sourceVariantId) continue;
       result.push({ entry, rule: scene.observation });
     }
   }
@@ -83,7 +85,9 @@ export function reconcilePlayerRuntime(
     story: story.narrative,
     fullHistory: simulation.fullHistory,
     context,
+    activeActivity: advancedActivity,
     consumedSceneIds: session.consumedSceneIds,
+    knownFactIds: session.knownFactIds,
   });
 
   let insertionOrder = 0;
