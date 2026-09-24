@@ -4,7 +4,7 @@ import type { NarrativeObservationRule, ObservationChannel } from './types';
 export type ObservationContext = {
   protagonistLocation: string;
   online: boolean;
-  channels: Array<Exclude<ObservationChannel, 'deferred'>>;
+  channels: ReadonlyArray<Exclude<ObservationChannel, 'deferred'>>;
   minute: number;
 };
 
