@@ -11,6 +11,7 @@ events:
   - events/loop_01_1500.yaml
   - events/loop_01_1610.yaml
   - events/loop_01_1640.yaml
+  - events/loop_01_1755.yaml
   - events/loop_01_1805.yaml
   - events/loop_01_1810.yaml
   - events/loop_01_1818.yaml
@@ -34,8 +35,8 @@ relationships: relationships/loop_01.yaml
 knowledge: knowledge/facts.yaml
 activities: activities/protagonist.yaml
 protagonist_schedule: schedules/protagonist.yaml
-narrative: narrative/loop_01_prologue.yaml
+narrative: narrative/loop_01_player.yaml
 artifacts:
   - artifacts/zhixia_letter.yaml
-player_choices: choices/loop_01_player.yaml
+player_choices: choices/loop_01_player_v0_1.yaml
 travel: travel/loop_01.yaml
