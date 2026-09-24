@@ -51,6 +51,7 @@ function sceneIsEligible(
 ): boolean {
   const minute = toAbsoluteMinute(scene.at);
   if (minute > context.minute) return false;
+  if (scene.availableUntil !== undefined && context.minute > toAbsoluteMinute(scene.availableUntil)) return false;
   if (scene.requiresLocation && scene.requiresLocation !== context.protagonistLocation) return false;
   if ((scene.requiresFacts ?? []).some((factId) => !knownFacts.has(factId))) return false;
   if (scene.afterActivityId) {
