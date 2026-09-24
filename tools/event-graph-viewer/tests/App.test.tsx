@@ -31,6 +31,20 @@ describe('App', () => {
     expect(screen.getByText('21:14 葉庭安失蹤')).toBeTruthy();
   });
 
+  it('opens Character Graph and exposes visibility modes without leaking author relationships by default', async () => {
+    stubRealStoryFetch();
+    render(<App />);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Character Graph' }));
+    expect(await screen.findByRole('heading', { name: 'Character Graph' })).toBeTruthy();
+    expect(screen.getAllByText('周予安').length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/高中同學/).length).toBeGreaterThan(0);
+    expect(screen.queryAllByText(/研究所/)).toHaveLength(0);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Author Truth' }));
+    expect(screen.getAllByText(/研究所/).length).toBeGreaterThan(0);
+  });
+
   it('shows the cross-day loop end with an explicit Day 1 label', async () => {
     stubRealStoryFetch();
     render(<App />);

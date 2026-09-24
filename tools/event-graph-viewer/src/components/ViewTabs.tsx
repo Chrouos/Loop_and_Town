@@ -1,7 +1,8 @@
-export type ViewName = 'graph' | 'timeline' | 'diff';
+export type ViewName = 'graph' | 'characters' | 'timeline' | 'diff';
 
 const items: Array<{ id: ViewName; label: string }> = [
   { id: 'graph', label: 'Event Graph' },
+  { id: 'characters', label: 'Character Graph' },
   { id: 'timeline', label: 'Timeline' },
   { id: 'diff', label: 'Worldline Diff' },
 ];

@@ -1,6 +1,6 @@
 actions:
   - id: send_yuan_to_post_office
-    at: { day: 0, time: "15:00" }
+    at: { day: 0, time: "16:12" }
     label: 請周予安去郵局查寄件紀錄
     visibility: observable
     effects:
@@ -8,7 +8,7 @@ actions:
       - add_flag: flags.yuan_sent_to_post_office
 
   - id: show_letter_to_wakaharu
-    at: { day: 0, time: "16:10" }
+    at: { day: 0, time: "16:30" }
     label: 把姊姊的信給若晴看
     visibility: observable
     effects:

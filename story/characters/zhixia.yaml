@@ -1,0 +1,34 @@
+id: zhixia
+name: 林知夏
+age: 26
+identity:
+  occupation: 地方史研究者／圖書館員
+  hometown: 灰潮鎮
+background:
+  summary: 主角的姊姊，五年前死於舊車站附近；死亡前曾持續記錄異常的時間與日期。
+  history:
+    - 長期整理灰潮鎮地方史資料。
+    - 五年前死亡，案件以意外結案。
+personality:
+  traits:
+    - 冷靜
+    - 保護欲強
+    - 不輕易解釋自己的擔憂
+  habits:
+    - 用紙本留下索引與時間註記
+  dislikes:
+    - 把未確認的推測當成事實
+speech:
+  tone: restrained
+  calls:
+    protagonist: 妹妹
+    yuan: 予安
+    wakaharu: 若晴
+knowledge:
+  initial:
+    - fact_zhixia_dead_five_years
+  hidden:
+    - fact_1831_is_special
+    - fact_research_institute_connection
+secrets:
+  - 死亡前可能曾經保有過輪迴殘留記憶。

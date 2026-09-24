@@ -21,6 +21,13 @@ export function loadRealStory() {
     actions: string;
     events: string[];
     worldlines: string;
+    characters?: string[];
+    relationships?: string;
+    knowledge?: string;
+    activities?: string;
+    protagonist_schedule?: string;
+    narrative?: string;
+    artifacts?: string[];
   };
 
   return buildStoryBundleFromDocuments({
@@ -30,5 +37,12 @@ export function loadRealStory() {
     actions: parse('/' + manifest.actions),
     events: manifest.events.map((path) => parse('/' + path)),
     worldlines: parse('/' + manifest.worldlines),
+    characters: manifest.characters?.map((path) => parse('/' + path)),
+    relationships: manifest.relationships ? parse('/' + manifest.relationships) : undefined,
+    knowledge: manifest.knowledge ? parse('/' + manifest.knowledge) : undefined,
+    activities: manifest.activities ? parse('/' + manifest.activities) : undefined,
+    protagonistSchedule: manifest.protagonist_schedule ? parse('/' + manifest.protagonist_schedule) : undefined,
+    narrative: manifest.narrative ? parse('/' + manifest.narrative) : undefined,
+    artifacts: manifest.artifacts?.map((path) => parse('/' + path)),
   });
 }

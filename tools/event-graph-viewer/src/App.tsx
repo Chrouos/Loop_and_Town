@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { CharacterGraphView } from './components/CharacterGraphView';
 import { EventGraphView } from './components/EventGraphView';
 import { ScenarioSimulator } from './components/ScenarioSimulator';
 import { TimelineView } from './components/TimelineView';
@@ -72,17 +73,21 @@ export default function App() {
         <section className="panel loading-state">載入劇情資料中…</section>
       ) : (
         <>
-          <ScenarioSimulator
-            actions={story.definition.actions}
-            leftActionIds={leftDraftActionIds}
-            rightActionIds={rightDraftActionIds}
-            onLeftChange={setLeftDraftActionIds}
-            onRightChange={setRightDraftActionIds}
-            onSimulate={simulateDrafts}
-          />
+          {view !== 'characters' && (
+            <ScenarioSimulator
+              actions={story.definition.actions}
+              leftActionIds={leftDraftActionIds}
+              rightActionIds={rightDraftActionIds}
+              onLeftChange={setLeftDraftActionIds}
+              onRightChange={setRightDraftActionIds}
+              onSimulate={simulateDrafts}
+            />
+          )}
 
           {view === 'graph' ? (
             <EventGraphView projection={graphProjection} />
+          ) : view === 'characters' ? (
+            <CharacterGraphView story={story.narrative} />
           ) : view === 'timeline' ? (
             <TimelineView entries={generated.timeline} loopLabel="世界線 B · Author History" />
           ) : (
