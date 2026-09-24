@@ -355,6 +355,7 @@ scenes:
 
   - id: scene_1831_wakaharu
     at: { day: 0, time: "18:31" }
+    availableUntil: { day: 0, time: "18:31" }
     kind: narration
     participants: [protagonist, wakaharu]
     requiresLocation: old_station
@@ -370,6 +371,7 @@ scenes:
 
   - id: scene_1831_doctor
     at: { day: 0, time: "18:31" }
+    availableUntil: { day: 0, time: "18:31" }
     kind: narration
     participants: [protagonist, doctor]
     requiresLocation: old_station
@@ -385,6 +387,7 @@ scenes:
 
   - id: scene_1831_no_death
     at: { day: 0, time: "18:31" }
+    availableUntil: { day: 0, time: "18:31" }
     kind: narration
     participants: [protagonist]
     requiresLocation: old_station
