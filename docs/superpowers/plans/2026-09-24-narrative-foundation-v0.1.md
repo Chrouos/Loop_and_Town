@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build an executable narrative foundation for Loop 01: character source-of-truth data, directional relationships, knowledge validation, protagonist diegetic activities, observable narrative projection, Prologue 14:20–16:10, and a Character Graph author view, without yet rebuilding the full Player UI.
+**Goal:** Build an executable narrative foundation for Loop 01: canonical character data, directional relationships, knowledge validation, protagonist diegetic activities, observation-aware narrative projection, the 14:20–16:10 Prologue, and a Character Graph author view, without rebuilding the full Player UI yet.
 
-**Architecture:** Extend the existing Story Simulation v0.2 instead of replacing it. `story/` remains canonical; narrative data is loaded beside simulation data, validated against stable IDs, and projected from World Truth into player-visible narrative beats only when observation conditions are satisfied. The Event Graph remains world-causality tooling; Character Graph becomes a separate author/debug projection.
+**Architecture:** Extend Story Simulation v0.2. `story/` remains canonical; narrative data is loaded beside simulation data and validated against stable IDs. World Truth is projected into player-visible narrative beats only after visibility and observation rules pass. Event Graph remains world-causality tooling; Character Graph is a separate author/debug projection.
 
 **Tech Stack:** TypeScript 5.6, Vitest 2, React 18, Vite 5, js-yaml 4, @xyflow/react 12.
 
@@ -12,49 +12,43 @@
 
 ## Global Constraints
 
-- New Narrative Foundation rules override conflicting legacy `player-first-loop`, `first-loop-story.md`, and `story.ts` prototype assumptions.
-- Protagonist returns to 灰潮鎮 to clean and sell the old family home; the impossible letter is discovered only after returning home.
-- Player-facing prose is first-person and may include limited internal monologue, but must not solve the core mystery for the player.
-- Event, Narrative Scene, Activity, and Artifact are distinct data concepts.
+- Narrative Foundation rules override conflicting legacy `player-first-loop`, `first-loop-story.md`, and old `story.ts` prototype assumptions.
+- The protagonist returns to 灰潮鎮 to clean and sell the old family home; the impossible letter is discovered only after returning home.
+- Player-facing prose is first-person with limited internal monologue and must not solve the core mystery for the player.
+- Event, Narrative Scene, Activity, and Artifact are separate concepts.
 - Character identity/background/relationship/knowledge must not exist only in React components or prose.
-- Relationship edges are directional.
+- Relationships are directional.
 - `observable` World Truth is not automatically Player Knowledge; observation conditions must also pass.
-- Hidden world events must not interrupt protagonist activities.
+- Hidden world events do not interrupt protagonist activities.
 - Offline world simulation continues; missed observable information is projected later according to its channel.
-- Canonical activity duration is world minutes. Player runtime will later map 1 real minute = 1 world minute; real timestamps must not enter story YAML.
-- Existing WL-00..WL-07 causal acceptance must remain green unless a deliberately reviewed narrative timing change requires corresponding simulator data/test updates.
-- No full Player Narrative UI rewrite in this plan. This plan produces the data/runtime foundation and author tooling it will consume.
-- No changes to `.github/workflows/event-graph-viewer.yml` are required.
+- Activity duration is authored in world minutes. Real timestamps never enter story YAML.
+- Existing WL-00..WL-07 causal acceptance remains green unless a reviewed canonical timing change updates story data and tests in the same commit.
+- No full Player Narrative UI rewrite in this plan.
+- No `.github/workflows/event-graph-viewer.yml` changes in this feature.
 
 ## CI Safety Rules
 
-1. Do not push test-only RED commits to a pull request. Run RED/GREEN in an isolated local worktree when possible; only push commits after targeted tests, full `npm test`, and `npm run build` pass.
-2. Every pushed implementation commit must be followed by GitHub Actions verification before the next task that depends on it.
-3. Never weaken or skip existing tests to obtain a green build.
-4. Changes under `story/**` and `tools/event-graph-viewer/**` trigger the existing Event Graph Viewer workflow; treat that workflow as the release gate.
-5. If GitHub Actions fails, stop the task, inspect the exact failing job/log, fix the root cause, and restore green before continuing.
-6. Do not modify the workflow file during this feature unless a separate reviewed CI-only task is explicitly approved.
+1. Do not push test-only RED commits to GitHub PR branches.
+2. Run RED/GREEN in an isolated local worktree; push only after targeted tests, full `npm test`, and `npm run build` pass.
+3. After every pushed implementation commit, wait for the `Event Graph Viewer` workflow to succeed before starting a dependent task.
+4. Never skip, delete, loosen, or mark an existing regression test as expected failure merely to restore green.
+5. If Actions fails, stop implementation, inspect the exact failed step/log, fix the root cause, and restore green before continuing.
+6. `story/**` and `tools/event-graph-viewer/**` are CI-triggering paths; docs-only planning commits remain isolated from production CI.
 
 ## Review Focus
 
-1. **Unknown references:** a scene/relationship/character entry referencing an unknown character, fact, activity, artifact, event, or schedule must fail validation before rendering.
-2. **Knowledge leaks:** a character must not speak a fact they do not know at the scene time; author validation must report the character ID, scene ID, and fact ID.
-3. **Observation leaks:** observable history must still remain hidden when location/channel conditions are not met; offline missed events must project to the correct deferred form rather than reveal full World Truth.
-4. **Activity interruption:** only an eligible observable interrupt may pause an activity; hidden events and unrelated observable events must leave the activity running.
-5. **Legacy causal regression:** adding Prologue/narrative data must not change WL-00..WL-07 station/reporter outcomes or Day 1 loop-end ordering unless the task explicitly changes canonical event timing and updates acceptance tests in the same green commit.
+1. **Unknown references:** unknown character/fact/activity/artifact/event/schedule references fail validation before rendering. Covered by Tasks 1, 3, and 6.
+2. **Knowledge leaks:** a speaker cannot assert a fact they do not know. Covered by Task 3 and Task 11.
+3. **Observation leaks:** observable World Truth is still hidden when location/channel conditions fail; offline phone information becomes deferred narrative rather than raw state. Covered by Task 5 and Task 11.
+4. **Activity interruption:** only an eligible observed interrupt pauses an interruptible activity; hidden events do not. Covered by Tasks 4, 5, 7, and 11.
+5. **Causal regression:** Prologue/narrative additions preserve WL-00..WL-07, 23:59 bells, and Day 1 00:00 loop end. Covered by Tasks 2, 6, 8, and 11.
 
 ---
 
 ## Locked File Structure
 
 ### Canonical story data
-- Create `story/characters/protagonist.yaml`
-- Create `story/characters/zhixia.yaml`
-- Create `story/characters/yuan.yaml`
-- Create `story/characters/wakaharu.yaml`
-- Create `story/characters/doctor.yaml`
-- Create `story/characters/reporter.yaml`
-- Create `story/characters/detective.yaml`
+- Create `story/characters/{protagonist,zhixia,yuan,wakaharu,doctor,reporter,detective}.yaml`
 - Create `story/relationships/loop_01.yaml`
 - Create `story/knowledge/facts.yaml`
 - Create `story/activities/protagonist.yaml`
@@ -82,13 +76,7 @@
 - Modify `tools/event-graph-viewer/src/styles.css`
 
 ### Tests
-- Create `tools/event-graph-viewer/tests/narrativeLoader.test.ts`
-- Create `tools/event-graph-viewer/tests/characterBible.test.ts`
-- Create `tools/event-graph-viewer/tests/knowledgeValidation.test.ts`
-- Create `tools/event-graph-viewer/tests/activityRuntime.test.ts`
-- Create `tools/event-graph-viewer/tests/observationProjection.test.ts`
-- Create `tools/event-graph-viewer/tests/prologueNarrative.test.ts`
-- Create `tools/event-graph-viewer/tests/characterGraph.test.ts`
+- Create `tools/event-graph-viewer/tests/{narrativeLoader,characterBible,knowledgeValidation,activityRuntime,observationProjection,prologueNarrative,narrativeProjection,characterGraph,narrativeFoundationAcceptance}.test.ts`
 - Modify `tools/event-graph-viewer/tests/App.test.tsx`
 - Modify `tools/event-graph-viewer/tests/storySimulationAcceptance.test.ts`
 
@@ -104,46 +92,81 @@
 - Test: `tools/event-graph-viewer/tests/narrativeLoader.test.ts`
 
 **Interfaces:**
-- Produces `CharacterDefinition`, `RelationshipDefinition`, `KnowledgeFact`, `ActivityDefinition`, `NarrativeSceneDefinition`, `ArtifactDefinition`, `NarrativeFoundation`.
+- Produces `CharacterDefinition`, `RelationshipDefinition`, `KnowledgeFact`, `ActivityDefinition`, `ProtagonistScheduleDefinition`, `NarrativeSceneDefinition`, `ArtifactDefinition`, `NarrativeFoundation`.
 - Extends `StoryBundle` with `narrative: NarrativeFoundation`.
-- Manifest gains `characters`, `relationships`, `knowledge`, `activities`, `narrative`, `artifacts` paths.
+- Manifest adds `characters`, `relationships`, `knowledge`, `activities`, `protagonist_schedule`, `narrative`, `artifacts`.
 
-- [ ] **Step 1: Write failing loader tests**
+- [ ] **Step 1: Write the failing loader test with a complete local helper**
 
 ```ts
 import { expect, it } from 'vitest';
 import { buildStoryBundleFromDocuments } from '../src/lib/loadSimulationStory';
 
-it('loads narrative documents into the story bundle', () => {
-  const bundle = buildStoryBundleFromDocuments(makeDocuments({
-    characters: [{ id: 'protagonist', name: '主角' }],
+function minimalDocuments() {
+  return {
+    loop: { id: 'loop', range: { start: '14:20', end: { day: 1, time: '00:00' } } },
+    initialState: { clock: { day: 0, time: '14:20' }, flags: {} },
+    schedules: [],
+    actions: { actions: [] },
+    events: [],
+    worldlines: { worldlines: [] },
+    characters: [{
+      id: 'protagonist', name: '主角', identity: {},
+      background: { summary: '回鄉整理老家準備出售', history: [] },
+      personality: { traits: [], habits: [], dislikes: [] },
+      speech: { tone: 'quiet', calls: {} }, knowledge: { initial: [], hidden: [] }, secrets: [],
+    }],
     relationships: { relationships: [] },
     knowledge: { facts: [{ id: 'fact_zhixia_dead_five_years', summary: '林知夏五年前死亡' }] },
     activities: { activities: [] },
+    protagonistSchedule: { character_id: 'protagonist', entries: [] },
     narrative: { scenes: [] },
     artifacts: [],
-  }));
-  expect(bundle.narrative.characters[0].id).toBe('protagonist');
-  expect(bundle.narrative.knowledgeFacts[0].id).toBe('fact_zhixia_dead_five_years');
+  };
+}
+
+it('loads narrative documents beside simulation data', () => {
+  const bundle = buildStoryBundleFromDocuments(minimalDocuments());
+  expect(bundle.narrative.characters.map(x => x.id)).toEqual(['protagonist']);
+  expect(bundle.narrative.knowledgeFacts.map(x => x.id)).toEqual(['fact_zhixia_dead_five_years']);
+  expect(bundle.narrative.protagonistSchedule.characterId).toBe('protagonist');
 });
 ```
 
-Add a manifest fetch test asserting every new path is requested exactly once.
+- [ ] **Step 2: Add a failing manifest-fetch test**
 
-- [ ] **Step 2: Verify RED locally**
+The manifest fixture is exactly:
 
-Run:
+```yaml
+loop: loops/loop_01.yaml
+world: world/loop_01_initial.yaml
+schedules: []
+actions: actions/loop_01_actions.yaml
+events: []
+worldlines: worldlines/loop_01_worldlines.yaml
+characters:
+  - characters/protagonist.yaml
+relationships: relationships/loop_01.yaml
+knowledge: knowledge/facts.yaml
+activities: activities/protagonist.yaml
+protagonist_schedule: schedules/protagonist.yaml
+narrative: narrative/loop_01_prologue.yaml
+artifacts:
+  - artifacts/zhixia_letter.yaml
+```
+
+Assert each new path is fetched once.
+
+- [ ] **Step 3: Verify RED locally**
 
 ```bash
 cd tools/event-graph-viewer
 npm test -- narrativeLoader.test.ts
 ```
 
-Expected: FAIL because narrative types and manifest fields do not exist.
+Expected: FAIL because the new fields/types do not exist.
 
-- [ ] **Step 3: Implement minimal types and loader support**
-
-Use these core types:
+- [ ] **Step 4: Implement exact type boundary**
 
 ```ts
 export type NarrativeVisibility = 'public' | 'author' | 'player-known';
@@ -170,11 +193,13 @@ export type RelationshipDefinition = {
 };
 
 export type KnowledgeFact = { id: string; summary: string };
+export type ProtagonistScheduleEntry = { id: string; at: StoryTimeInput; activityId: string };
+export type ProtagonistScheduleDefinition = { characterId: 'protagonist'; entries: ProtagonistScheduleEntry[] };
 ```
 
-Do not add optional catch-all fields such as `metadata: any`.
+Normalize `character_id` → `characterId` exactly as existing NPC schedule loading does, but keep the protagonist schedule inside `bundle.narrative`; do **not** append it to `definition.schedules`.
 
-- [ ] **Step 4: Update story sync sources**
+- [ ] **Step 5: Update `sync-story.mjs`**
 
 Add exactly:
 
@@ -182,9 +207,9 @@ Add exactly:
 'characters', 'relationships', 'knowledge', 'activities', 'narrative', 'artifacts'
 ```
 
-to `sources` in `sync-story.mjs`.
+`schedules` is already copied, so no workflow change is required.
 
-- [ ] **Step 5: Verify GREEN and baseline**
+- [ ] **Step 6: Verify GREEN + baseline**
 
 ```bash
 npm test -- narrativeLoader.test.ts manifestLoader.test.ts
@@ -192,11 +217,7 @@ npm test
 npm run build
 ```
 
-Expected: all PASS.
-
-- [ ] **Step 6: Push only the GREEN commit and verify GitHub Actions succeeds before Task 2**
-
-Commit message:
+- [ ] **Step 7: Push one GREEN commit, then wait for GitHub Actions success**
 
 ```text
 feat: load narrative foundation data
@@ -204,37 +225,57 @@ feat: load narrative foundation data
 
 ---
 
-### Task 2: Character Bible + relationship source of truth
+### Task 2: Canonical Character Bible + relationships + facts
 
 **Files:**
-- Create: seven files under `story/characters/`
+- Create: seven `story/characters/*.yaml` files
 - Create: `story/relationships/loop_01.yaml`
 - Create: `story/knowledge/facts.yaml`
-- Create: `tools/event-graph-viewer/tests/characterBible.test.ts`
+- Test: `tools/event-graph-viewer/tests/characterBible.test.ts`
 
 **Interfaces:**
-- Consumes `CharacterDefinition`, `RelationshipDefinition`, `KnowledgeFact` from Task 1.
-- Produces seven stable character IDs: `protagonist`, `zhixia`, `yuan`, `wakaharu`, `doctor`, `reporter`, `detective`.
+- Stable IDs: `protagonist`, `zhixia`, `yuan`, `wakaharu`, `doctor`, `reporter`, `detective`.
 
 - [ ] **Step 1: Write real-data failing tests**
 
 ```ts
-it('defines the seven approved core characters exactly once', () => {
-  const story = loadRealStory();
-  expect(story.narrative.characters.map(c => c.id).sort()).toEqual([
+import { expect, it } from 'vitest';
+import { loadRealStory } from './helpers/loadRealStory';
+
+const byCharacter = (id: string) => {
+  const character = loadRealStory().narrative.characters.find(item => item.id === id);
+  if (!character) throw new Error(`Missing character ${id}`);
+  return character;
+};
+
+it('defines the seven core characters exactly once', () => {
+  expect(loadRealStory().narrative.characters.map(c => c.id).sort()).toEqual([
     'detective', 'doctor', 'protagonist', 'reporter', 'wakaharu', 'yuan', 'zhixia',
   ]);
 });
 
 it('locks the protagonist return-home premise', () => {
-  const protagonist = byCharacter(loadRealStory(), 'protagonist');
+  const protagonist = byCharacter('protagonist');
   expect(protagonist.background.summary).toContain('整理');
   expect(protagonist.background.summary).toContain('出售');
-  expect(protagonist.background.summary).not.toContain('因為收到信');
+  expect(protagonist.background.summary).not.toContain('收到信才回來');
+});
+
+it('uses only defined relationship endpoints and fact ids', () => {
+  const story = loadRealStory();
+  const characterIds = new Set(story.narrative.characters.map(c => c.id));
+  const factIds = new Set(story.narrative.knowledgeFacts.map(f => f.id));
+  for (const relation of story.narrative.relationships) {
+    expect(characterIds.has(relation.from)).toBe(true);
+    expect(characterIds.has(relation.to)).toBe(true);
+  }
+  for (const character of story.narrative.characters) {
+    for (const fact of [...character.knowledge.initial, ...character.knowledge.hidden]) {
+      expect(factIds.has(fact)).toBe(true);
+    }
+  }
 });
 ```
-
-Add tests that every relationship endpoint references a defined character and every `knowledge.initial/hidden` fact references a defined fact.
 
 - [ ] **Step 2: Verify RED**
 
@@ -242,13 +283,11 @@ Add tests that every relationship endpoint references a defined character and ev
 npm test -- characterBible.test.ts
 ```
 
-Expected: FAIL because canonical character/relationship/fact YAML files do not exist.
+- [ ] **Step 3: Create canonical data**
 
-- [ ] **Step 3: Add canonical data**
+Every character file contains `identity`, `background`, `personality`, `speech`, `knowledge`, `secrets`, and `schedule_ref` when applicable.
 
-Each character file must contain identity, background, personality, speech, knowledge, secrets, and schedule reference where applicable. Do not write mystery conclusions into protagonist knowledge.
-
-Minimum initial relationship set:
+Minimum directional relationships:
 
 ```yaml
 relationships:
@@ -274,7 +313,7 @@ relationships:
     summary: 試圖讓若晴遠離研究所事件
 ```
 
-- [ ] **Step 4: Verify GREEN + Story Simulation regression**
+- [ ] **Step 4: Verify GREEN + simulation regression**
 
 ```bash
 npm test -- characterBible.test.ts storySimulationAcceptance.test.ts
@@ -282,9 +321,7 @@ npm test
 npm run build
 ```
 
-- [ ] **Step 5: Push GREEN commit; wait for GitHub Actions success**
-
-Commit message:
+- [ ] **Step 5: Push GREEN commit and wait for CI**
 
 ```text
 feat: add canonical character bible
@@ -297,29 +334,66 @@ feat: add canonical character bible
 **Files:**
 - Create: `tools/event-graph-viewer/src/narrative/knowledge.ts`
 - Create: `tools/event-graph-viewer/src/narrative/validation.ts`
-- Create: `tools/event-graph-viewer/tests/knowledgeValidation.test.ts`
+- Test: `tools/event-graph-viewer/tests/knowledgeValidation.test.ts`
 
 **Interfaces:**
 - Produces `characterKnowsFact(character, factId): boolean`.
 - Produces `validateNarrativeFoundation(story): void`.
-- Narrative scene lines that assert knowledge use stable `factId` references.
 
-- [ ] **Step 1: Write failing tests**
+- [ ] **Step 1: Write failing tests with a complete fixture**
 
 ```ts
+import { expect, it } from 'vitest';
+import { validateNarrativeFoundation } from '../src/narrative/validation';
+import type { NarrativeFoundation } from '../src/narrative/types';
+
+function fixture(): NarrativeFoundation {
+  return {
+    characters: [{
+      id: 'yuan', name: '周予安', identity: {},
+      background: { summary: '', history: [] },
+      personality: { traits: [], habits: [], dislikes: [] },
+      speech: { tone: 'casual', calls: {} },
+      knowledge: { initial: ['fact_zhixia_dead_five_years'], hidden: [] }, secrets: [],
+    }],
+    relationships: [],
+    knowledgeFacts: [
+      { id: 'fact_zhixia_dead_five_years', summary: '林知夏五年前死亡' },
+      { id: 'fact_research_institute_truth', summary: '研究所真相' },
+    ],
+    activities: [],
+    protagonistSchedule: { characterId: 'protagonist', entries: [] },
+    artifacts: [],
+    scenes: [{
+      id: 'scene_1', at: '14:40', kind: 'dialogue', participants: ['yuan'],
+      blocks: [{ type: 'dialogue', speaker: 'yuan', text: '我知道研究所的事。', factId: 'fact_research_institute_truth' }],
+      observation: { channel: 'present' },
+    }],
+  };
+}
+
 it('rejects dialogue that exposes a fact the speaker does not know', () => {
-  const story = makeNarrativeStory({
-    speaker: 'yuan',
-    factId: 'fact_research_institute_truth',
-    yuanInitialFacts: ['fact_zhixia_dead_five_years'],
-  });
-  expect(() => validateNarrativeFoundation(story)).toThrow(
+  expect(() => validateNarrativeFoundation(fixture())).toThrow(
     'Scene scene_1: character yuan does not know fact fact_research_institute_truth',
   );
 });
 ```
 
-Also test duplicate fact IDs and unknown scene character IDs.
+Add concrete duplicate/unknown tests:
+
+```ts
+it('rejects duplicate fact ids', () => {
+  const data = fixture();
+  data.knowledgeFacts.push({ ...data.knowledgeFacts[0] });
+  expect(() => validateNarrativeFoundation(data)).toThrow('Duplicate knowledge fact: fact_zhixia_dead_five_years');
+});
+
+it('rejects an unknown participant', () => {
+  const data = fixture();
+  data.scenes[0].participants = ['unknown'];
+  expect(() => validateNarrativeFoundation(data)).toThrow('Scene scene_1: unknown character unknown');
+});
+```
 
 - [ ] **Step 2: Verify RED**
 
@@ -329,9 +403,9 @@ npm test -- knowledgeValidation.test.ts
 
 - [ ] **Step 3: Implement exact validation**
 
-`characterKnowsFact` must check only authored initial/hidden fact IDs in v0.1; do not infer knowledge from relationship prose.
+`characterKnowsFact` checks authored `initial` + `hidden` fact IDs only. Do not infer facts from prose or relationships.
 
-- [ ] **Step 4: Verify GREEN**
+- [ ] **Step 4: Verify GREEN + full suite/build**
 
 ```bash
 npm test -- knowledgeValidation.test.ts characterBible.test.ts
@@ -339,9 +413,7 @@ npm test
 npm run build
 ```
 
-- [ ] **Step 5: Push GREEN commit and verify CI**
-
-Commit message:
+- [ ] **Step 5: Push GREEN commit; wait for CI**
 
 ```text
 feat: validate character knowledge
@@ -349,36 +421,48 @@ feat: validate character knowledge
 
 ---
 
-### Task 4: Diegetic Idle Activity model
+### Task 4: Diegetic Idle Activity model + protagonist baseline schedule
 
 **Files:**
 - Create: `story/activities/protagonist.yaml`
 - Create: `story/schedules/protagonist.yaml`
 - Create: `tools/event-graph-viewer/src/narrative/activity.ts`
-- Create: `tools/event-graph-viewer/tests/activityRuntime.test.ts`
+- Test: `tools/event-graph-viewer/tests/activityRuntime.test.ts`
 
 **Interfaces:**
-- Produces `ActivityDefinition` with `id`, `durationMinutes`, `interruptible`, `presentation`.
-- Produces `ActivityRun` and `advanceActivity(run, targetMinute, interruptions)`.
-- Activity time uses absolute world minutes only.
+- Produces `startActivity(activityId, startedAt, definition): ActivityRun`.
+- Produces `advanceActivity(run, targetMinute, interruptions): ActivityRun`.
+- `ActivityRun.status`: `running | interrupted | complete`.
 
-- [ ] **Step 1: Write failing activity tests**
+- [ ] **Step 1: Write failing runtime tests**
 
 ```ts
-it('advances an activity in world minutes', () => {
-  const run = startActivity('rest_and_read', 930, { durationMinutes: 20, interruptible: true });
+import { expect, it } from 'vitest';
+import { advanceActivity, startActivity } from '../src/narrative/activity';
+
+const reading = { id: 'rest_and_read', durationMinutes: 20, interruptible: true,
+  presentation: { start: '我泡了杯茶。', idle: '正在看書……', complete: '我把書闔上。' } };
+
+it('advances by canonical world minutes', () => {
+  const run = startActivity('rest_and_read', 930, reading);
   expect(advanceActivity(run, 949, []).status).toBe('running');
   expect(advanceActivity(run, 950, []).status).toBe('complete');
 });
 
-it('ignores hidden interrupts', () => {
-  const run = startActivity('rest_and_read', 930, { durationMinutes: 20, interruptible: true });
-  const next = advanceActivity(run, 940, [{ minute: 940, visibility: 'hidden', sceneId: 'hidden_scene' }]);
+it('does not interrupt for hidden world activity', () => {
+  const run = startActivity('rest_and_read', 930, reading);
+  const next = advanceActivity(run, 940, [{ minute: 940, visibility: 'hidden', observable: false, sceneId: 'hidden_scene' }]);
   expect(next.status).toBe('running');
 });
-```
 
-Add a test that an eligible observable interrupt returns `status: 'interrupted'` and retains remaining minutes.
+it('interrupts and retains remaining minutes for an eligible observed event', () => {
+  const run = startActivity('rest_and_read', 930, reading);
+  const next = advanceActivity(run, 940, [{ minute: 940, visibility: 'observable', observable: true, sceneId: 'phone_call' }]);
+  expect(next.status).toBe('interrupted');
+  expect(next.consumedMinutes).toBe(10);
+  expect(next.remainingMinutes).toBe(10);
+});
+```
 
 - [ ] **Step 2: Verify RED**
 
@@ -386,7 +470,7 @@ Add a test that an eligible observable interrupt returns `status: 'interrupted'`
 npm test -- activityRuntime.test.ts
 ```
 
-- [ ] **Step 3: Implement minimal pure runtime**
+- [ ] **Step 3: Implement the pure runtime**
 
 ```ts
 export type ActivityRun = {
@@ -394,15 +478,16 @@ export type ActivityRun = {
   startedAt: number;
   durationMinutes: number;
   consumedMinutes: number;
+  remainingMinutes: number;
   status: 'running' | 'interrupted' | 'complete';
 };
 ```
 
-No `Date.now()` usage is allowed in this module.
+No `Date.now()`, localStorage, DOM, or React usage in this module.
 
-- [ ] **Step 4: Add protagonist baseline activities**
+- [ ] **Step 4: Create activity and protagonist baseline schedule data**
 
-Initial v0.1 activity IDs:
+Activity IDs:
 
 ```text
 walk_home
@@ -415,9 +500,20 @@ research_online
 wait_for_call
 ```
 
-`story/schedules/protagonist.yaml` describes the no-mystery baseline, but must not be loaded as an NPC schedule by the existing simulator until Task 6 defines the projection boundary.
+Baseline schedule must include at minimum:
 
-- [ ] **Step 5: Verify GREEN + baseline**
+```yaml
+character_id: protagonist
+entries:
+  - { id: protagonist_arrive, at: "14:20", activity_id: walk_home }
+  - { id: protagonist_groceries, at: "14:30", activity_id: buy_groceries }
+  - { id: protagonist_clean_house, at: "15:00", activity_id: clean_old_house }
+  - { id: protagonist_read, at: "15:30", activity_id: rest_and_read }
+  - { id: protagonist_sort_mail, at: "15:50", activity_id: sort_mail }
+  - { id: protagonist_prepare_dinner, at: "17:20", activity_id: prepare_dinner }
+```
+
+- [ ] **Step 5: Verify GREEN + Story Simulation unchanged**
 
 ```bash
 npm test -- activityRuntime.test.ts storySimulationAcceptance.test.ts
@@ -425,9 +521,7 @@ npm test
 npm run build
 ```
 
-- [ ] **Step 6: Push GREEN commit; verify CI**
-
-Commit message:
+- [ ] **Step 6: Push GREEN commit; wait for CI**
 
 ```text
 feat: add diegetic idle activities
@@ -439,26 +533,34 @@ feat: add diegetic idle activities
 
 **Files:**
 - Create: `tools/event-graph-viewer/src/narrative/observation.ts`
-- Create: `tools/event-graph-viewer/tests/observationProjection.test.ts`
+- Test: `tools/event-graph-viewer/tests/observationProjection.test.ts`
 
 **Interfaces:**
-- Produces `ObservationChannel = 'present' | 'phone' | 'artifact' | 'deferred'`.
-- Produces `ObservationContext` with protagonist location, online/offline state, available channels, and current minute.
-- Produces `canObserve(entry, rule, context)` and `projectObservation(...)`.
+- `ObservationChannel = 'present' | 'phone' | 'artifact' | 'deferred'`.
+- `ObservationContext = { protagonistLocation, online, channels, minute }`.
+- Produces `canObserve(entry, rule, context)` and `projectObservation(entry, rule, context)`.
 
-- [ ] **Step 1: Write failing leak-prevention tests**
+- [ ] **Step 1: Write failing leak-prevention tests with explicit fixtures**
 
 ```ts
-it('does not expose an observable station event when protagonist is elsewhere', () => {
+const stationEntry = {
+  sequence: 1, day: 0, time: '18:31', absoluteMinute: 1111, minute: 1111,
+  kind: 'event' as const, visibility: 'observable' as const,
+  eventId: 'evt_1831_station', variantId: 'wakaharu_dies', title: '18:31 車站事件',
+};
+
+it('does not expose a present-only event when protagonist is elsewhere', () => {
   expect(canObserve(stationEntry, { channel: 'present', location: 'old_station' }, {
     protagonistLocation: 'old_house', online: true, channels: ['present'], minute: 1111,
   })).toBe(false);
 });
 
-it('projects an offline phone message as deferred rather than full world truth', () => {
-  const result = projectObservation(reporterMissingEntry, { channel: 'phone', offlineMode: 'deferred' }, offlineContext);
-  expect(result?.channel).toBe('deferred');
-  expect(result?.worldTruthChanges).toBeUndefined();
+it('projects an offline phone event as deferred narrative without raw changes', () => {
+  const result = projectObservation(stationEntry, { channel: 'phone', offlineMode: 'deferred' }, {
+    protagonistLocation: 'old_house', online: false, channels: ['phone'], minute: 1120,
+  });
+  expect(result).toEqual(expect.objectContaining({ channel: 'deferred', sourceId: 'evt_1831_station' }));
+  expect('changes' in (result ?? {})).toBe(false);
 });
 ```
 
@@ -468,11 +570,11 @@ it('projects an offline phone message as deferred rather than full world truth',
 npm test -- observationProjection.test.ts
 ```
 
-- [ ] **Step 3: Implement rule-based projection**
+- [ ] **Step 3: Implement declarative rule evaluation**
 
-Rules must be declarative. Do not branch on specific event IDs inside `observation.ts`.
+No event-ID-specific branching is allowed in `observation.ts`.
 
-- [ ] **Step 4: Verify GREEN**
+- [ ] **Step 4: Verify GREEN + visibility regressions**
 
 ```bash
 npm test -- observationProjection.test.ts visibilityProjection.test.ts storyWorldlineDiff.test.ts
@@ -480,9 +582,7 @@ npm test
 npm run build
 ```
 
-- [ ] **Step 5: Push GREEN commit; verify CI**
-
-Commit message:
+- [ ] **Step 5: Push GREEN commit; wait for CI**
 
 ```text
 feat: project observable narrative information
@@ -490,33 +590,47 @@ feat: project observable narrative information
 
 ---
 
-### Task 6: Narrative Scene + Artifact schemas
+### Task 6: Narrative Scene + Artifact data and validation
 
 **Files:**
 - Extend: `tools/event-graph-viewer/src/narrative/types.ts`
 - Extend: `tools/event-graph-viewer/src/narrative/validation.ts`
 - Create: `story/artifacts/zhixia_letter.yaml`
 - Create: `story/narrative/loop_01_prologue.yaml`
-- Create: `tools/event-graph-viewer/tests/prologueNarrative.test.ts`
+- Test: `tools/event-graph-viewer/tests/prologueNarrative.test.ts`
 
 **Interfaces:**
-- `NarrativeSceneDefinition` contains `id`, `at`, `kind`, `participants`, `blocks`, `observation`, optional `startsActivity`, optional `artifactId`.
-- `ArtifactDefinition` contains `id`, `kind`, `author`, `formedAt`, `content`, and presentation metadata.
+- `NarrativeSceneDefinition = { id, at, kind, participants, blocks, observation, startsActivity?, artifactId? }`.
+- `ArtifactDefinition = { id, kind, author, formedAt, content, presentation }`.
 
-- [ ] **Step 1: Write failing Prologue structure tests**
+- [ ] **Step 1: Write failing structure tests**
 
 ```ts
-it('starts as ordinary life before the impossible letter', () => {
-  const story = loadRealStory();
-  const scenes = story.narrative.scenes;
+import { expect, it } from 'vitest';
+import { loadRealStory } from './helpers/loadRealStory';
+
+const sceneIndex = (id: string) => {
+  const index = loadRealStory().narrative.scenes.findIndex(scene => scene.id === id);
+  if (index < 0) throw new Error(`Missing scene ${id}`);
+  return index;
+};
+
+it('places ordinary life before the impossible letter', () => {
+  const scenes = loadRealStory().narrative.scenes;
   expect(scenes.find(s => s.id === 'prologue_arrival')?.at).toEqual({ day: 0, time: '14:20' });
   expect(scenes.find(s => s.id === 'prologue_yuan_reunion')?.at).toEqual({ day: 0, time: '14:40' });
   expect(scenes.find(s => s.id === 'prologue_letter_discovery')?.at).toEqual({ day: 0, time: '16:00' });
-  expect(indexOfScene(scenes, 'prologue_letter_discovery')).toBeGreaterThan(indexOfScene(scenes, 'prologue_rest_and_read'));
+  expect(sceneIndex('prologue_letter_discovery')).toBeGreaterThan(sceneIndex('prologue_rest_and_read'));
+});
+
+it('does not leak mystery vocabulary before the letter', () => {
+  const text = loadRealStory().narrative.scenes
+    .filter(scene => sceneIndex(scene.id) < sceneIndex('prologue_letter_discovery'))
+    .flatMap(scene => scene.blocks.map(block => block.text ?? ''))
+    .join('\n');
+  expect(text).not.toMatch(/18:31|輪迴|研究所真相/);
 });
 ```
-
-Add assertions that pre-letter scenes do not mention `18:31`, `輪迴`, `研究所真相`, or automatically create Evidence Cards.
 
 - [ ] **Step 2: Verify RED**
 
@@ -524,9 +638,7 @@ Add assertions that pre-letter scenes do not mention `18:31`, `輪迴`, `研究�
 npm test -- prologueNarrative.test.ts
 ```
 
-- [ ] **Step 3: Author the Prologue source**
-
-Required scene order:
+- [ ] **Step 3: Author exact Prologue scene order**
 
 ```text
 14:20 prologue_arrival
@@ -541,25 +653,39 @@ Required scene order:
 16:10 main_story_handoff
 ```
 
-The ordinary-life scenes may contain details with no mystery payoff. First Yuan appearance must establish who he is before using only `予安`.
+Ordinary-life scenes may contain details with no mystery payoff. First Yuan appearance establishes his relationship before shorthand `予安` is used.
 
-- [ ] **Step 4: Author the letter Artifact**
+- [ ] **Step 4: Author the letter artifact**
 
-The artifact content may include:
-
-```text
-回來一趟。
-這一次，先別來找我。
-如果午夜的鐘聲響起，就代表又失敗了。
+```yaml
+id: zhixia_letter
+kind: letter
+author: zhixia
+formed_at: { day: 0, time: "16:00" }
+content:
+  - 回來一趟。
+  - 這一次，先別來找我。
+  - 如果午夜的鐘聲響起，就代表又失敗了。
+presentation:
+  object: envelope_and_letter
 ```
 
-Do not create preselected evidence excerpts or `+` controls in data.
+No excerpt list, preselected important sentences, or `+` action exists in artifact data.
 
-- [ ] **Step 5: Validate knowledge / references**
+- [ ] **Step 5: Add unknown-reference validation tests**
 
-`validateNarrativeFoundation` must reject unknown `participants`, `artifactId`, `startsActivity`, and fact references.
+```ts
+it('rejects an unknown artifact reference', () => {
+  const story = loadRealStory();
+  const copy = structuredClone(story.narrative);
+  copy.scenes[0].artifactId = 'missing_artifact';
+  expect(() => validateNarrativeFoundation(copy)).toThrow(/unknown artifact missing_artifact/);
+});
+```
 
-- [ ] **Step 6: Verify GREEN + existing story acceptance**
+Repeat the same pattern for `startsActivity` and unknown participant IDs.
+
+- [ ] **Step 6: Verify GREEN + causal acceptance**
 
 ```bash
 npm test -- prologueNarrative.test.ts knowledgeValidation.test.ts storySimulationAcceptance.test.ts
@@ -567,9 +693,7 @@ npm test
 npm run build
 ```
 
-- [ ] **Step 7: Push GREEN commit; verify CI**
-
-Commit message:
+- [ ] **Step 7: Push GREEN commit; wait for CI**
 
 ```text
 feat: author Loop 01 narrative prologue
@@ -577,34 +701,57 @@ feat: author Loop 01 narrative prologue
 
 ---
 
-### Task 7: Narrative projection state machine
+### Task 7: Deterministic Narrative Projection
 
 **Files:**
 - Create: `tools/event-graph-viewer/src/narrative/projection.ts`
-- Extend: `tools/event-graph-viewer/tests/prologueNarrative.test.ts`
-- Create: `tools/event-graph-viewer/tests/narrativeProjection.test.ts`
+- Test: `tools/event-graph-viewer/tests/narrativeProjection.test.ts`
 
 **Interfaces:**
 - Produces `NarrativeBeat`.
-- Produces `projectNarrative({ story, fullHistory, context, activeActivity, consumedSceneIds })`.
-- Deterministic ordering: scheduled narrative scene → eligible observed interrupt at the same minute → resumed/continued activity; ties preserve authored scene order.
+- Produces `projectNarrative(input): NarrativeBeat[]`.
+- Same-minute order: authored scheduled scene → eligible observed interrupt → activity continuation/resume; authored ties remain stable.
 
-- [ ] **Step 1: Write failing deterministic projection tests**
+- [ ] **Step 1: Write failing deterministic tests using a local fixture builder**
 
 ```ts
-it('returns the same narrative queue for the same world state and context', () => {
-  const first = projectNarrative(input);
-  const second = projectNarrative(input);
+function projectionInput() {
+  return {
+    story: loadRealStory(),
+    fullHistory: [],
+    context: { protagonistLocation: 'old_house', online: true, channels: ['present', 'phone'], minute: 950 },
+    activeActivity: startActivity('rest_and_read', 930, activityById(loadRealStory(), 'rest_and_read')),
+    consumedSceneIds: new Set<string>(),
+  };
+}
+
+it('is deterministic for identical input', () => {
+  const first = projectNarrative(projectionInput());
+  const second = projectNarrative(projectionInput());
   expect(first).toEqual(second);
 });
 
-it('does not enqueue hidden world movement as a scene', () => {
-  const beats = projectNarrative(inputWithReporterHiddenMovement);
-  expect(beats.some(b => b.sourceId === 'reporter_enter_old_lab')).toBe(false);
+it('does not enqueue hidden reporter movement', () => {
+  const input = projectionInput();
+  input.fullHistory = [{
+    sequence: 1, day: 0, time: '19:50', absoluteMinute: 1190, minute: 1190,
+    kind: 'schedule', visibility: 'hidden', title: 'reporter_enter_old_lab',
+    scheduleEntryId: 'reporter_enter_old_lab', scheduleStatus: 'applied', characterId: 'reporter',
+  }];
+  const beats = projectNarrative(input);
+  expect(beats.some(beat => beat.sourceId === 'reporter_enter_old_lab')).toBe(false);
 });
 ```
 
-Add an activity interruption/resume test.
+`activityById` is defined in the test as:
+
+```ts
+const activityById = (story: StoryBundle, id: string) => {
+  const activity = story.narrative.activities.find(item => item.id === id);
+  if (!activity) throw new Error(`Missing activity ${id}`);
+  return activity;
+};
+```
 
 - [ ] **Step 2: Verify RED**
 
@@ -614,9 +761,13 @@ npm test -- narrativeProjection.test.ts
 
 - [ ] **Step 3: Implement pure projection**
 
-Do not store React state, localStorage, timestamps, or DOM concerns in this module.
+No React state, DOM, localStorage, or real timestamp access.
 
-- [ ] **Step 4: Verify GREEN**
+- [ ] **Step 4: Add explicit interruption/resume test**
+
+At minute 940, an observed phone beat interrupts `rest_and_read`; after consuming the scene, resume keeps `remainingMinutes === 10`.
+
+- [ ] **Step 5: Verify GREEN**
 
 ```bash
 npm test -- narrativeProjection.test.ts activityRuntime.test.ts observationProjection.test.ts
@@ -624,9 +775,7 @@ npm test
 npm run build
 ```
 
-- [ ] **Step 5: Push GREEN commit; verify CI**
-
-Commit message:
+- [ ] **Step 6: Push GREEN commit; wait for CI**
 
 ```text
 feat: project deterministic narrative beats
@@ -634,37 +783,48 @@ feat: project deterministic narrative beats
 
 ---
 
-### Task 8: Reconcile Prologue with canonical Event Graph without changing causal outcomes
+### Task 8: Reconcile Prologue with canonical Event Graph
 
 **Files:**
 - Modify only if required: `story/events/loop_01_1420.yaml`, `story/events/loop_01_1500.yaml`, `story/events/loop_01_1610.yaml`
 - Modify: `tools/event-graph-viewer/tests/storySimulationAcceptance.test.ts`
-- Extend: `tools/event-graph-viewer/tests/prologueNarrative.test.ts`
 
 **Interfaces:**
-- Event Graph remains World Truth only.
-- Ordinary-life Prologue beats remain narrative/activity data, not Events.
+- Ordinary life remains Narrative/Activity data, not Event Graph data.
 
-- [ ] **Step 1: Add regression assertions before editing event YAML**
+- [ ] **Step 1: Add exact causal regression map**
 
 ```ts
-it.each(['WL-00','WL-01','WL-02','WL-03','WL-04','WL-05','WL-06','WL-07'])('%s preserves approved post-prologue causal outcomes', (id) => {
+const stationVariants: Record<string, string> = {
+  'WL-00': 'wakaharu_dies',
+  'WL-01': 'wakaharu_dies',
+  'WL-02': 'wakaharu_dies',
+  'WL-03': 'wakaharu_dies',
+  'WL-04': 'doctor_dies',
+  'WL-05': 'wakaharu_dies',
+  'WL-06': 'no_death',
+  'WL-07': 'doctor_dies',
+};
+
+it.each(Object.keys(stationVariants))('%s preserves the approved station outcome', id => {
   const result = simulateNamedWorldline(loadRealStory(), id);
-  expect(result.fullHistory.find(e => e.eventId === 'evt_1831_station')?.variantId).toBe(expectedStationVariant(id));
-  expect(result.fullHistory.find(e => e.eventId === 'evt_2359_midnight_bells')).toBeTruthy();
+  expect(result.fullHistory.find(e => e.eventId === 'evt_1831_station')?.variantId).toBe(stationVariants[id]);
+  expect(result.fullHistory.find(e => e.eventId === 'evt_2359_midnight_bells')?.absoluteMinute).toBe(1439);
   expect(result.fullHistory.find(e => e.eventId === 'evt_0000_loop_end')?.absoluteMinute).toBe(1440);
 });
 ```
 
-- [ ] **Step 2: Verify the tests are GREEN before any timing change**
+- [ ] **Step 2: Verify this regression is GREEN before editing event YAML**
 
-This task is migration-first: there may be no necessary Event YAML change. If no conflict remains after Task 6, keep Event IDs/times unchanged.
+```bash
+npm test -- storySimulationAcceptance.test.ts
+```
 
-- [ ] **Step 3: If a canonical event conflicts with Narrative Foundation, change the smallest possible World Truth definition**
+- [ ] **Step 3: Compare existing 14:20/15:00/16:10 event semantics against the new Prologue**
 
-Example: if `evt_1500_sister_room` incorrectly claims an investigation happened, rename/reframe its title/variant to a neutral old-house arrival event while preserving IDs only if external references require them. If an ID must change, update every manifest/test reference in the same commit.
+If `evt_1500_sister_room` claims an investigation that no longer occurs, reframe its title/variant to a neutral old-house arrival event. Keep IDs if possible so downstream references remain stable. If an ID changes, update every manifest/test reference in the same commit.
 
-- [ ] **Step 4: Run all real-story acceptance**
+- [ ] **Step 4: Verify all real-story regressions**
 
 ```bash
 npm test -- storySimulationAcceptance.test.ts prologueNarrative.test.ts worldlineDefinitions.test.ts
@@ -672,15 +832,13 @@ npm test
 npm run build
 ```
 
-- [ ] **Step 5: Push only if green; verify CI before Task 9**
-
-Commit message if changes are needed:
+- [ ] **Step 5: Push only if a production change was required; wait for CI**
 
 ```text
 refactor: align Loop 01 events with narrative foundation
 ```
 
-If no production change is necessary, do not create an empty commit.
+Do not create an empty commit if the existing events are already compatible.
 
 ---
 
@@ -688,18 +846,17 @@ If no production change is necessary, do not create an empty commit.
 
 **Files:**
 - Create: `tools/event-graph-viewer/src/narrative/characterGraph.ts`
-- Extend: `tools/event-graph-viewer/src/types/story.ts`
-- Create: `tools/event-graph-viewer/tests/characterGraph.test.ts`
+- Modify: `tools/event-graph-viewer/src/types/story.ts`
+- Test: `tools/event-graph-viewer/tests/characterGraph.test.ts`
 
 **Interfaces:**
 - Produces `CharacterGraphMode = 'public' | 'author' | 'player-known'`.
-- Produces `CharacterGraphProjection` with nodes, directed edges, and selected-character detail data.
-- Produces `projectCharacterGraph(story, mode, playerKnownFactIds?)`.
+- Produces `CharacterGraphProjection` and `projectCharacterGraph(story, mode, playerKnownFactIds?)`.
 
 - [ ] **Step 1: Write failing graph tests**
 
 ```ts
-it('keeps directional relationships separate', () => {
+it('keeps opposite directional relationships as separate edges', () => {
   const graph = projectCharacterGraph(loadRealStory(), 'author');
   expect(graph.edges).toContainEqual(expect.objectContaining({ source: 'protagonist', target: 'yuan', type: 'old_friend' }));
   expect(graph.edges).toContainEqual(expect.objectContaining({ source: 'yuan', target: 'protagonist', type: 'concerned_friend' }));
@@ -707,7 +864,7 @@ it('keeps directional relationships separate', () => {
 
 it('hides author-only relationships in public mode', () => {
   const graph = projectCharacterGraph(loadRealStory(), 'public');
-  expect(graph.edges.some(edge => edge.summary.includes('研究所'))).toBe(false);
+  expect(graph.edges.some(edge => edge.visibility === 'author')).toBe(false);
 });
 ```
 
@@ -717,9 +874,9 @@ it('hides author-only relationships in public mode', () => {
 npm test -- characterGraph.test.ts
 ```
 
-- [ ] **Step 3: Implement projection with no React dependency**
+- [ ] **Step 3: Implement projection without React dependencies**
 
-Character detail projection includes background, visible relationships, knowledge IDs, secrets only in author mode, schedule reference, and narrative appearance IDs.
+Selected-character detail includes background, visible directional relationships, visible knowledge IDs, secrets only in author mode, schedule reference, and narrative appearance IDs.
 
 - [ ] **Step 4: Verify GREEN**
 
@@ -729,9 +886,7 @@ npm test
 npm run build
 ```
 
-- [ ] **Step 5: Push GREEN commit; verify CI**
-
-Commit message:
+- [ ] **Step 5: Push GREEN commit; wait for CI**
 
 ```text
 feat: project character relationship graph
@@ -749,10 +904,10 @@ feat: project character relationship graph
 - Modify: `tools/event-graph-viewer/tests/App.test.tsx`
 
 **Interfaces:**
-- Adds `ViewName = 'graph' | 'characters' | 'timeline' | 'diff'`.
-- Character Graph consumes `CharacterGraphProjection`; it never mutates YAML.
+- `ViewName = 'graph' | 'characters' | 'timeline' | 'diff'`.
+- Character Graph consumes `CharacterGraphProjection` only and never mutates YAML.
 
-- [ ] **Step 1: Write failing viewer tests**
+- [ ] **Step 1: Write failing Viewer test**
 
 ```tsx
 it('opens Character Graph and shows the protagonist–Yuan relationship', async () => {
@@ -764,19 +919,31 @@ it('opens Character Graph and shows the protagonist–Yuan relationship', async 
 });
 ```
 
-Add a mode-toggle test proving author-only relationships are hidden in Public mode and visible in Author Truth mode.
+- [ ] **Step 2: Write failing visibility-mode test**
 
-- [ ] **Step 2: Verify RED**
+```tsx
+it('reveals author-only relationships only in Author Truth mode', async () => {
+  stubRealStoryFetch();
+  render(<App />);
+  fireEvent.click(await screen.findByRole('button', { name: 'Character Graph' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Public' }));
+  expect(screen.queryByText(/不擅長談姊姊的死亡/)).toBeNull();
+  fireEvent.click(screen.getByRole('button', { name: 'Author Truth' }));
+  expect(await screen.findByText(/不擅長談姊姊的死亡/)).toBeTruthy();
+});
+```
+
+- [ ] **Step 3: Verify RED**
 
 ```bash
 npm test -- App.test.tsx characterGraph.test.ts
 ```
 
-- [ ] **Step 3: Implement minimal author UI**
+- [ ] **Step 4: Implement the minimal author UI**
 
-Use existing `@xyflow/react`. Keep Event Graph untouched. Character Graph must have separate node/edge rendering and a side/detail panel for selected character.
+Use existing `@xyflow/react`; keep Event Graph code path intact. Character Graph has its own nodes/edges and selected-character detail panel.
 
-- [ ] **Step 4: Verify GREEN + build**
+- [ ] **Step 5: Verify GREEN + build**
 
 ```bash
 npm test -- App.test.tsx characterGraph.test.ts
@@ -784,9 +951,7 @@ npm test
 npm run build
 ```
 
-- [ ] **Step 5: Push GREEN commit; verify GitHub Actions**
-
-Commit message:
+- [ ] **Step 6: Push GREEN commit; wait for GitHub Actions**
 
 ```text
 feat: add Character Graph author view
@@ -798,30 +963,62 @@ feat: add Character Graph author view
 
 **Files:**
 - Create: `tools/event-graph-viewer/tests/narrativeFoundationAcceptance.test.ts`
-- Modify docs only if test evidence reveals a spec contradiction.
 
-**Interfaces:**
-- No new production interfaces.
-- This task locks the cross-subsystem behavior before a Player Narrative UI spec begins.
+**Interfaces:** No new production interfaces.
 
-- [ ] **Step 1: Add end-to-end real-data acceptance tests**
-
-Must assert all of the following:
+- [ ] **Step 1: Add concrete real-data acceptance tests**
 
 ```ts
-it('keeps ordinary life before mystery escalation', ...);
-it('introduces Yuan with relationship context before shorthand references', ...);
-it('starts and completes rest_and_read through world minutes', ...);
-it('does not interrupt that activity for hidden reporter movement', ...);
-it('discovers the impossible letter only after returning home', ...);
-it('never exposes author-only relationships in public/player-known character projections', ...);
-it('rejects a scene if its speaker lacks the referenced fact', ...);
-it('keeps WL-00 through WL-07 approved station/reporter outcomes', ...);
-it('keeps 23:59 bells before Day 1 00:00 loop end', ...);
-it('produces deterministic narrative projection for identical input', ...);
+import { expect, it } from 'vitest';
+import { loadRealStory } from './helpers/loadRealStory';
+import { projectCharacterGraph } from '../src/narrative/characterGraph';
+import { projectNarrative } from '../src/narrative/projection';
+import { simulateNamedWorldline } from '../src/simulator/storySimulation';
+
+it('keeps ordinary life before the mystery starts', () => {
+  const story = loadRealStory();
+  const letter = story.narrative.scenes.findIndex(scene => scene.id === 'prologue_letter_discovery');
+  const before = story.narrative.scenes.slice(0, letter).flatMap(scene => scene.blocks.map(block => block.text ?? '')).join('\n');
+  expect(before).toMatch(/灰潮鎮|老家|予安|整理/);
+  expect(before).not.toMatch(/18:31|輪迴|研究所真相/);
+});
+
+it('introduces Yuan as a known person before shorthand narrative uses his given name', () => {
+  const scene = loadRealStory().narrative.scenes.find(item => item.id === 'prologue_yuan_reunion');
+  const text = scene?.blocks.map(block => block.text ?? '').join('\n') ?? '';
+  expect(text).toMatch(/周予安/);
+  expect(text).toMatch(/高中|同學|聯絡/);
+});
+
+it('never exposes author-only relations in public projection', () => {
+  const graph = projectCharacterGraph(loadRealStory(), 'public');
+  expect(graph.edges.some(edge => edge.visibility === 'author')).toBe(false);
+});
+
+it.each(['WL-00','WL-01','WL-02','WL-03','WL-04','WL-05','WL-06','WL-07'])('%s still reaches the invariant bells and loop end', id => {
+  const result = simulateNamedWorldline(loadRealStory(), id);
+  expect(result.fullHistory.find(e => e.eventId === 'evt_2359_midnight_bells')?.absoluteMinute).toBe(1439);
+  expect(result.fullHistory.find(e => e.eventId === 'evt_0000_loop_end')?.absoluteMinute).toBe(1440);
+});
+
+it('produces deterministic narrative projection', () => {
+  const story = loadRealStory();
+  const input = {
+    story,
+    fullHistory: simulateNamedWorldline(story, 'WL-00').fullHistory,
+    context: { protagonistLocation: 'old_house', online: true, channels: ['present', 'phone'], minute: 960 },
+    activeActivity: null,
+    consumedSceneIds: new Set<string>(),
+  };
+  expect(projectNarrative(input)).toEqual(projectNarrative(input));
+});
 ```
 
-- [ ] **Step 2: Run the complete local verification gate**
+- [ ] **Step 2: Add an explicit hidden-interruption regression**
+
+Use `rest_and_read` from Task 4 and a hidden `reporter_enter_old_lab` history row; assert projected beats contain no interrupt sourced from that row and the activity remains `running` until its authored completion minute.
+
+- [ ] **Step 3: Run the complete local verification gate**
 
 ```bash
 cd tools/event-graph-viewer
@@ -830,23 +1027,21 @@ npm test
 npm run build
 ```
 
-Expected: PASS with zero skipped/disabled regression tests introduced by this plan.
+Expected: all pass with no new skipped/disabled regression tests.
 
-- [ ] **Step 3: Inspect changed files for accidental legacy/player UI migration**
+- [ ] **Step 4: Inspect changed files**
 
-Expected: no `player.html`, `src/player/**`, Evidence Board, old `VisibleRecord`, or workflow changes are introduced by Narrative Foundation v0.1.
+Expected: no `player.html`, no `src/player/**`, no Evidence Board migration, no legacy `VisibleRecord`, and no workflow-file change in this implementation.
 
-- [ ] **Step 4: Push the final GREEN acceptance commit**
-
-Commit message:
+- [ ] **Step 5: Push final GREEN acceptance commit**
 
 ```text
 test: lock Narrative Foundation v0.1 acceptance
 ```
 
-- [ ] **Step 5: Verify authoritative GitHub Actions**
+- [ ] **Step 6: Verify authoritative GitHub Actions**
 
-The `verify-viewer` job must complete successfully with:
+`verify-viewer` must finish with:
 
 ```text
 Install dependencies: PASS
@@ -864,14 +1059,14 @@ Do not mark the implementation PR ready for review until this run is green.
 After this plan is approved:
 
 ```text
-feature/story-simulation-v0.2   (known-green base)
+feature/story-simulation-v0.2      known-green simulation base
         ↓
-docs/narrative-foundation-v0.1  (approved spec + plan)
+docs/narrative-foundation-v0.1     approved spec + plan
         ↓
-feature/narrative-foundation-v0.1
+feature/narrative-foundation-v0.1  implementation
 ```
 
-The implementation PR should target `docs/narrative-foundation-v0.1` while the stack is under development. Do not merge or retarget to `main` during implementation.
+Implementation PR targets `docs/narrative-foundation-v0.1` while stacked development is in progress. Do not merge or retarget to `main` during implementation.
 
 ## Final Review Gate
 
@@ -882,12 +1077,12 @@ Character Bible is canonical
 + Relationship Graph is directional
 + Knowledge references validate
 + protagonist activities consume world time
-+ hidden events cannot leak/interrupt
-+ observation projection handles present/phone/offline channels
++ hidden events cannot leak or interrupt
++ observation projection handles present / phone / offline-deferred channels
 + Prologue 14:20–16:10 reads as ordinary life → unease → impossible letter
 + Story Simulation WL-00..WL-07 remains deterministic
-+ Character Graph renders Public / Author Truth / Player Known views
-+ full tests and Vite build are green locally
++ Character Graph renders Public / Author Truth / Player Known
++ full tests and Vite build pass locally
 + latest GitHub Actions verify-viewer run is green
 ```
 
