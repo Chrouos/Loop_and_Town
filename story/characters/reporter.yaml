@@ -1,0 +1,35 @@
+id: reporter
+name: 葉庭安
+age: 30
+identity:
+  occupation: 記者
+  hometown: 灰潮鎮
+background:
+  summary: 自稱回鄉採訪地方新聞的記者；五年前其實曾是舊研究所的研究助理，也認識林知夏。
+  history:
+    - 曾在舊研究所工作。
+    - 五年前和林知夏有工作往來。
+personality:
+  traits:
+    - 反應快
+    - 擅長控制資訊
+    - 面對追問時會迅速改變話題
+  habits:
+    - 說謊時會縮短回答
+  dislikes:
+    - 被迫解釋自己的過去
+speech:
+  tone: composed
+  calls:
+    protagonist: 妳
+    zhixia: 林知夏
+knowledge:
+  initial:
+    - fact_zhixia_dead_five_years
+  hidden:
+    - fact_reporter_knew_zhixia
+    - fact_research_institute_connection
+    - fact_1831_is_special
+secrets:
+  - 對主角隱瞞自己曾在舊研究所工作，也隱瞞與林知夏相識。
+schedule_ref: schedules/reporter.yaml

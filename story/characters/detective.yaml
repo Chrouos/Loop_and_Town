@@ -1,0 +1,33 @@
+id: detective
+name: 周志遠
+age: 36
+identity:
+  occupation: 刑警
+  hometown: 灰潮鎮
+background:
+  summary: 灰潮鎮刑警；五年前是林知夏死亡案件的第一批到場人員之一，至今仍保留部分未公開的案件資訊。
+  history:
+    - 五年前參與林知夏死亡案件處理。
+    - 熟悉鎮內監視器、戶籍、車牌與舊案資料。
+personality:
+  traits:
+    - 審慎
+    - 重視紀錄
+    - 不輕易承諾
+  habits:
+    - 對時間與證物編號記得很清楚
+  dislikes:
+    - 沒有證據的指控
+speech:
+  tone: measured
+  calls:
+    protagonist: 妳
+    zhixia: 林知夏
+knowledge:
+  initial:
+    - fact_zhixia_dead_five_years
+    - fact_detective_first_responder
+  hidden:
+    - fact_missing_evidence_exists
+secrets:
+  - 五年前有一項證物沒有登錄進正式證物清單。
