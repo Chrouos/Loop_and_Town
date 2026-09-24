@@ -46,12 +46,12 @@ it('selects only the authored simulator event variant', () => {
       {
         id: 'wakaharu_result', at: '18:31', kind: 'narration', participants: [],
         blocks: [{ type: 'narration', text: 'w' }],
-        sourceEvent: { eventId: 'evt_1831_station', variantId: 'wakaharu_dies' },
+        sourceEventId: 'evt_1831_station', sourceVariantId: 'wakaharu_dies',
       },
       {
         id: 'doctor_result', at: '18:31', kind: 'narration', participants: [],
         blocks: [{ type: 'narration', text: 'd' }],
-        sourceEvent: { eventId: 'evt_1831_station', variantId: 'doctor_dies' },
+        sourceEventId: 'evt_1831_station', sourceVariantId: 'doctor_dies',
       },
     ],
   };
@@ -64,12 +64,12 @@ it('selects only the authored simulator event variant', () => {
   expect(projectNarrative({ story, fullHistory: history, context }).map((beat) => beat.sourceId)).toEqual(['doctor_result']);
 });
 
-it('defers ordinary prose while its activity is still running', () => {
+it('reveals post-activity prose only after the authored activity completes', () => {
   const story: NarrativeFoundation = {
     ...baseStory,
     scenes: [{
       id: 'after_idle', at: '14:20', kind: 'narration', participants: [],
-      blocks: [{ type: 'narration', text: 'done' }], deferWhileActivity: true,
+      blocks: [{ type: 'narration', text: 'done' }], afterActivityId: 'buy_coffee',
     }],
   };
   const running: ActivityRun = {
@@ -78,6 +78,6 @@ it('defers ordinary prose while its activity is still running', () => {
   };
   const complete: ActivityRun = { ...running, consumedMinutes: 8, remainingMinutes: 0, status: 'complete' };
 
-  expect(projectNarrative({ story, fullHistory: [], context, activeActivity: running })).toEqual([]);
+  expect(projectNarrative({ story, fullHistory: [], context, activeActivity: running }).map((beat) => beat.kind)).toEqual(['activity']);
   expect(projectNarrative({ story, fullHistory: [], context, activeActivity: complete }).map((beat) => beat.sourceId)).toEqual(['after_idle']);
 });
