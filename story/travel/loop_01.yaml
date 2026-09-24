@@ -2,6 +2,10 @@ travel:
   - { from: ash_tide_station, to: old_house, minutes: 20 }
   - { from: old_house, to: old_station, minutes: 22 }
   - { from: old_house, to: cafe, minutes: 12 }
+  - { from: cafe, to: old_house, minutes: 12 }
   - { from: cafe, to: old_station, minutes: 14 }
   - { from: old_house, to: hospital, minutes: 18 }
+  - { from: hospital, to: old_house, minutes: 18 }
+  - { from: cafe, to: hospital, minutes: 10 }
+  - { from: hospital, to: cafe, minutes: 10 }
   - { from: hospital, to: old_station, minutes: 13 }
