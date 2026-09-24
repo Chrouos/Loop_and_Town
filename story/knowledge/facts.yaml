@@ -1,0 +1,23 @@
+facts:
+  - id: fact_zhixia_dead_five_years
+    summary: 林知夏五年前死亡。
+  - id: fact_protagonist_returned_to_sell_house
+    summary: 主角這次回灰潮鎮是為了整理並出售老家。
+  - id: fact_yuan_runs_clock_shop
+    summary: 周予安現在經營老街鐘錶店。
+  - id: fact_wakaharu_close_to_zhixia
+    summary: 許若晴過去和林知夏關係親近。
+  - id: fact_doctor_on_duty_five_years_ago
+    summary: 五年前林知夏死亡當日，陳柏勳正在值班。
+  - id: fact_reporter_knew_zhixia
+    summary: 葉庭安其實認識林知夏。
+  - id: fact_detective_first_responder
+    summary: 周志遠五年前參與林知夏死亡案件的第一批現場處理。
+  - id: fact_1831_is_special
+    summary: 18:31 與灰潮鎮的異常事件存在關聯。
+  - id: fact_research_institute_connection
+    summary: 舊研究所與林知夏死亡前的調查存在關聯。
+  - id: fact_memory_residue_exists
+    summary: 輪迴後可能存在短暫的記憶殘留現象。
+  - id: fact_missing_evidence_exists
+    summary: 五年前案件有一項未登錄進正式證物清單的證物。

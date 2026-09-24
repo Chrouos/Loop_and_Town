@@ -5,7 +5,22 @@ import { fileURLToPath } from 'node:url';
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(here, '../../..');
 const outputRoot = resolve(here, '../public/story');
-const sources = ['events', 'schemas', 'world', 'actions', 'manifests', 'loops', 'schedules', 'worldlines'];
+const sources = [
+  'events',
+  'schemas',
+  'world',
+  'actions',
+  'manifests',
+  'loops',
+  'schedules',
+  'worldlines',
+  'characters',
+  'relationships',
+  'knowledge',
+  'activities',
+  'narrative',
+  'artifacts',
+];
 
 await rm(outputRoot, { recursive: true, force: true });
 await mkdir(outputRoot, { recursive: true });
