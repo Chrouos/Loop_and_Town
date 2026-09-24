@@ -2,116 +2,67 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build a playable Loop 01 vertical slice from Day 0 14:20 through 18:31 where ordinary life choices consume real world-linked time, Ambient Prose reflects the protagonist's current activity, deadlines can be missed without countdown UI, and 18:31 outcomes are resolved only by Story Simulation.
+**Goal:** Build the first playable player-facing slice from Loop 01 Day 0 14:20 through 18:31, with novel-first presentation, real-time-linked Diegetic Idle Activity, ordinary choices with real consequences, missable observation windows, and simulator-resolved 18:31 outcomes.
 
-**Architecture:** Keep Author Viewer and Player Game separate. Add a new `src/playerNarrative/` runtime/UI that consumes Narrative Foundation + Story Simulation. Player save stores time-sync state, choices/actions, read/open state, knowledge, location and active activity, but never canonical victim/death outcomes. The world clock is pause-aware: story time advances 1:1 only while the world is running; foreground Narrative/Decision scenes freeze story time for reading, and that freeze is never persisted across reload/offline time.
+**Architecture:** Author Viewer and Player Game remain separate. A new `src/playerNarrative/` runtime/UI consumes the existing Narrative Foundation + Story Simulation. Player save contains time-sync state, player actions, read/open state, player knowledge, location, inbox, and active activity, but never canonical victim/death outcomes. World time advances 1:1 only while the world is running; foreground Narrative/Decision reading freezes story time in memory, and that freeze is never persisted across reload/offline time.
 
-**Tech Stack:** React 18, TypeScript 5.6, Vite 5, Vitest 2, Testing Library, js-yaml, existing Story Simulation/Narrative Foundation. No Three.js dependency in v0.1.
+**Tech Stack:** React 18, TypeScript 5.6, Vite 5, Vitest 2, Testing Library, js-yaml, existing Story Simulation/Narrative Foundation. No Three.js in v0.1.
 
 **Spec:** `docs/superpowers/specs/2026-09-24-player-narrative-ui-v0.1-design.md`
 
 ## Global Constraints
 
-- Scope is Loop 01 Day 0 14:20 → 18:31.
-- Production mapping is `1 real minute = 1 world minute` while world progression is running.
-- Reading Narrative/Decision scenes does not advance Story Time.
-- Foreground freeze is in-memory only; reload/offline reconciliation resumes the world from the last persisted sync point.
-- Fixed world events such as 18:31 remain fixed.
-- Player-relative life scenes can shift later when earlier activities consume time.
-- The letter exists in world truth independently of when the player discovers it.
-- Ordinary visible choices must change at least one player-observable dimension: time, location, prose, character reaction, knowledge, later scene content, or later availability.
-- Choice UI never reveals author-only impact category or future consequence.
-- Hidden events never enter Player Narrative unless a later observable source legitimately communicates them.
-- Local observations are missable; phone messages persist; calls can become missed calls.
-- Late travel is allowed even if arrival occurs after 18:31.
-- Player UI never hard-codes who dies at 18:31.
-- No stamina, energy, XP, progress bars, countdown timer UI, Three.js, full pathfinding, or AI-generated canonical prose.
-- Do not change `.github/workflows/**` unless a failing verification proves the current workflow cannot validate the new player surface.
+- Scope: Loop 01 Day 0 14:20 → 18:31.
+- Production: `1 real minute = 1 world minute` while world progression is running.
+- Reading Narrative/Decision scenes never consumes Story Time.
+- Foreground freeze is in-memory only; reload/offline reconciliation resumes from the last persisted running sync point.
+- Fixed World Events such as 18:31 never slide because the player bought coffee or read slowly.
+- Player-relative life scenes may slide later when earlier Activities consume time.
+- The letter's existence is World Truth; the player's discovery time is player-relative.
+- Every visible choice changes at least one player-observable dimension: time, location, prose, reaction, knowledge, later content, or later availability.
+- Player UI never labels a choice as Flavor / Knowledge / Schedule / World Intervention.
+- Hidden history never leaks directly into Player Narrative.
+- Local observations can be permanently missed; messages persist; calls can become missed calls.
+- Late travel is legal even when arrival occurs after 18:31.
+- 18:31 victim/outcome is resolved by Story Simulation only.
+- No stamina, energy, XP, progress bars, countdown UI, Three.js, full map pathfinding, or AI-generated canonical prose.
+- Do not change `.github/workflows/**` unless a failing verification proves the current workflow cannot verify the new player surface.
 - Never push intentional RED commits. Before every remote commit: targeted tests → full `npm test` → `npm run build`; then wait for fresh GitHub Actions GREEN before dependent work.
 
 ## Review Focus
 
-1. **Branch integration drift:** `main` and the Narrative Foundation stack are diverged; integration must preserve current `main` build/player entry while retaining validated simulator/foundation behavior.
-2. **Pause-aware clock correctness:** reading can take arbitrarily long without advancing story time, but closing/reloading while paused must not freeze the world forever.
-3. **Relative scenes vs fixed events:** life choices can delay discovery and travel, while 18:31 stays fixed and may occur before the protagonist arrives.
-4. **Observation persistence:** local sightings are permanently missable; phone messages persist; calls become missed calls; hidden events remain hidden.
-5. **Ordinary choices are not fake:** every visible choice has a tested observable consequence even if it does not change the 18:31 outcome.
+1. Diverged branch integration must preserve current `main` player/build wiring and the validated Narrative Foundation/Simulator.
+2. Foreground reading must freeze Story Time without allowing reload to freeze the world forever.
+3. Player-relative scenes can move while fixed 18:31 remains fixed.
+4. Offline observation persistence must distinguish local, message, call, artifact, and hidden events.
+5. Ordinary choices must be testably non-no-op even when they do not affect 18:31.
 
----
+## Command Convention
 
-## Planned File Structure
+Unless a step says otherwise, run npm/test/build commands from:
 
-```text
-story/
-  activities/protagonist.yaml
-  choices/loop_01_player.yaml
-  travel/loop_01.yaml
-  narrative/loop_01_prologue.yaml
-  narrative/loop_01_1610_1831.yaml
-  knowledge/facts.yaml
-  manifests/loop_01.yaml
-
-tools/event-graph-viewer/
-  player.html
-  vite.config.ts
-  scripts/sync-story.mjs
-  src/lib/loadSimulationStory.ts
-  src/narrative/types.ts
-  src/narrative/activity.ts
-  src/narrative/observation.ts
-  src/narrative/projection.ts
-  src/playerNarrative/
-    main.tsx
-    PlayerNarrativeApp.tsx
-    playerNarrative.css
-    model.ts
-    clock.ts
-    storage.ts
-    ambient.ts
-    choices.ts
-    travel.ts
-    inbox.ts
-    queue.ts
-    runtime.ts
-    components/
-      NarrativeSurface.tsx
-      ActivitySurface.tsx
-      ArtifactSurface.tsx
-      ChoiceSurface.tsx
-      InterruptSurface.tsx
-      CharacterDrawer.tsx
-  tests/
-    integrationBaseline.test.ts
-    playerNarrativeClock.test.ts
-    playerNarrativeStorage.test.ts
-    playerNarrativeStoryData.test.ts
-    ambientActivity.test.ts
-    observationPersistence.test.ts
-    choiceDeadline.test.ts
-    travelRuntime.test.ts
-    playerNarrativeQueue.test.ts
-    playerNarrativeRuntime.test.ts
-    playerNarrativeUi.test.tsx
-    playerNarrativeStoryAcceptance.test.ts
-    playerNarrative1831Acceptance.test.ts
+```bash
+cd tools/event-graph-viewer
 ```
 
 ---
 
-### Task 1: Deliberate integration baseline
+### Task 1: Reconcile `main` with Narrative Foundation before feature work
 
 **Files:**
 - Merge: current `main`
 - Merge: `docs/narrative-foundation-v0.1`
 - Verify: `tools/event-graph-viewer/player.html`
 - Verify: `tools/event-graph-viewer/vite.config.ts`
-- Test: `tools/event-graph-viewer/tests/integrationBaseline.test.ts`
+- Create test: `tools/event-graph-viewer/tests/integrationBaseline.test.ts`
 
 **Interfaces:**
-- Consumes: current `main` old Player prototype plus known-green Narrative Foundation stack.
-- Produces: `integration/player-narrative-ui-v0.1`, containing both histories with current workflow files unchanged.
+- Consumes: current `main` old Player prototype + known-green Narrative Foundation stack.
+- Produces: `integration/player-narrative-ui-v0.1`, a tested integration base. No new Player Narrative functionality yet.
 
-- [ ] **Step 1: Create isolated integration branch**
+- [ ] **Step 1: Create the integration branch from fresh main**
+
+From repo root:
 
 ```bash
 git fetch origin
@@ -120,24 +71,31 @@ git pull --ff-only origin main
 git switch -c integration/player-narrative-ui-v0.1
 ```
 
-- [ ] **Step 2: Merge the Narrative Foundation stack**
+- [ ] **Step 2: Merge the validated Narrative Foundation stack**
 
 ```bash
 git merge --no-ff origin/docs/narrative-foundation-v0.1
 ```
 
-Resolve conflicts with these exact rules:
+Conflict rules:
 
 ```text
-story/** and src/narrative/**: Narrative Foundation semantics win.
-player.html and Vite multi-page wiring: preserve current main until Task 9 repoints the player entry.
-old src/player/**: keep temporarily; do not reuse its 18:00 hard-coded story semantics.
-.github/workflows/**: preserve current main unchanged.
+story/** and tools/event-graph-viewer/src/narrative/**:
+  Narrative Foundation semantics win.
+
+player.html / Vite multi-page wiring:
+  keep current main wiring until Task 7 repoints the player entry.
+
+old tools/event-graph-viewer/src/player/**:
+  keep temporarily, but never copy its 18:00 hard-coded story semantics.
+
+.github/workflows/**:
+  keep current main unchanged.
 ```
 
-- [ ] **Step 3: Add baseline test**
+- [ ] **Step 3: Add a baseline test**
 
-Create `tests/integrationBaseline.test.ts`:
+Create `tools/event-graph-viewer/tests/integrationBaseline.test.ts`:
 
 ```ts
 import { existsSync } from 'node:fs';
@@ -146,7 +104,7 @@ import { describe, expect, it } from 'vitest';
 import { loadRealStory } from './helpers/loadRealStory';
 
 describe('player narrative integration baseline', () => {
-  it('keeps player entry and loads Narrative Foundation', () => {
+  it('keeps a player entry and loads Narrative Foundation', () => {
     expect(existsSync(resolve(process.cwd(), 'player.html'))).toBe(true);
     const story = loadRealStory();
     expect(story.narrative.characters.length).toBeGreaterThanOrEqual(7);
@@ -155,7 +113,7 @@ describe('player narrative integration baseline', () => {
 });
 ```
 
-- [ ] **Step 4: Verify full baseline**
+- [ ] **Step 4: Verify the integration base**
 
 ```bash
 npm run sync-story
@@ -164,9 +122,11 @@ npm test
 npm run build
 ```
 
-Expected: all commands exit 0 and Vite builds both viewer and player entries.
+Expected: all commands exit 0; Vite builds viewer and player entries.
 
-- [ ] **Step 5: Commit/push and wait for CI**
+- [ ] **Step 5: Commit, push, and wait for CI**
+
+From repo root:
 
 ```bash
 git add .
@@ -174,29 +134,23 @@ git commit -m "chore: reconcile player narrative integration baseline"
 git push -u origin integration/player-narrative-ui-v0.1
 ```
 
-Do not begin Task 2 until this exact head has fresh GitHub Actions GREEN.
+Do not start Task 2 until this exact head has GitHub Actions GREEN for sync-story, tests, and build.
 
 ---
 
 ### Task 2: Pause-aware Story Clock and PlayerSession v2
 
 **Files:**
-- Create: `src/playerNarrative/model.ts`
-- Create: `src/playerNarrative/clock.ts`
-- Create: `src/playerNarrative/storage.ts`
-- Test: `tests/playerNarrativeClock.test.ts`
-- Test: `tests/playerNarrativeStorage.test.ts`
+- Create: `tools/event-graph-viewer/src/playerNarrative/model.ts`
+- Create: `tools/event-graph-viewer/src/playerNarrative/clock.ts`
+- Create: `tools/event-graph-viewer/src/playerNarrative/storage.ts`
+- Create test: `tools/event-graph-viewer/tests/playerNarrativeClock.test.ts`
+- Create test: `tools/event-graph-viewer/tests/playerNarrativeStorage.test.ts`
 
 **Interfaces:**
-- Produces:
-  - `PlayerSessionV2`
-  - `syncRunningTime(session, nowMs)`
-  - `freezeForeground(session, sceneId, nowMs)`
-  - `resumeWorld(session, nowMs)`
-  - `currentStoryMinute(session, nowMs)`
-  - `readPlayerSession(storage, nowMs)` / `writePlayerSession(storage, session)`
+- Produces `PlayerSessionV2`, `currentStoryMinute`, `syncRunningTime`, `freezeForeground`, `resumeWorld`, `readPlayerSession`, `writePlayerSession`.
 
-- [ ] **Step 1: Write clock tests**
+- [ ] **Step 1: Write the clock tests**
 
 Create `tests/playerNarrativeClock.test.ts`:
 
@@ -206,24 +160,26 @@ import { createInitialPlayerSession } from '../src/playerNarrative/model';
 import { currentStoryMinute, freezeForeground, resumeWorld, syncRunningTime } from '../src/playerNarrative/clock';
 
 describe('pause-aware player clock', () => {
-  it('advances 1 real minute per world minute while running', () => {
+  it('advances 1 world minute per real minute while running', () => {
     const session = createInitialPlayerSession(1_000);
     expect(currentStoryMinute(session, 1_000)).toBe(860);
     expect(currentStoryMinute(session, 1_000 + 17 * 60_000)).toBe(877);
   });
 
-  it('does not advance while a foreground scene is open', () => {
-    const frozen = freezeForeground(createInitialPlayerSession(1_000), 'scene-a', 1_000 + 5 * 60_000);
+  it('freezes while a foreground scene is open', () => {
+    const session = createInitialPlayerSession(1_000);
+    const frozen = freezeForeground(session, 'scene-a', 1_000 + 5 * 60_000);
     expect(currentStoryMinute(frozen, 1_000 + 25 * 60_000)).toBe(865);
   });
 
-  it('resumes from the frozen minute instead of catching up reading time', () => {
-    const frozen = freezeForeground(createInitialPlayerSession(1_000), 'scene-a', 1_000 + 5 * 60_000);
+  it('resumes from the frozen minute without charging reading time', () => {
+    const session = createInitialPlayerSession(1_000);
+    const frozen = freezeForeground(session, 'scene-a', 1_000 + 5 * 60_000);
     const resumed = resumeWorld(frozen, 1_000 + 25 * 60_000);
     expect(currentStoryMinute(resumed, 1_000 + 30 * 60_000)).toBe(870);
   });
 
-  it('syncs elapsed running time into persisted state', () => {
+  it('syncs running time into persistent fields', () => {
     const synced = syncRunningTime(createInitialPlayerSession(1_000), 1_000 + 8 * 60_000);
     expect(synced.storyMinuteAtLastSync).toBe(868);
     expect(synced.lastSyncedRealTimeMs).toBe(1_000 + 8 * 60_000);
@@ -237,9 +193,9 @@ describe('pause-aware player clock', () => {
 npm test -- playerNarrativeClock.test.ts
 ```
 
-Expected RED: `src/playerNarrative/model` / `clock` do not exist.
+Expected RED: missing `src/playerNarrative/model` / `clock`.
 
-- [ ] **Step 3: Implement session model**
+- [ ] **Step 3: Implement the session model**
 
 Create `src/playerNarrative/model.ts`:
 
@@ -283,7 +239,7 @@ export function createInitialPlayerSession(nowMs: number): PlayerSessionV2 {
 }
 ```
 
-- [ ] **Step 4: Implement pause-aware clock**
+- [ ] **Step 4: Implement the clock**
 
 Create `src/playerNarrative/clock.ts`:
 
@@ -320,8 +276,8 @@ Create `tests/playerNarrativeStorage.test.ts`:
 
 ```ts
 import { describe, expect, it } from 'vitest';
-import { createInitialPlayerSession } from '../src/playerNarrative/model';
 import { freezeForeground } from '../src/playerNarrative/clock';
+import { createInitialPlayerSession } from '../src/playerNarrative/model';
 import { readPlayerSession, writePlayerSession } from '../src/playerNarrative/storage';
 
 class MemoryStorage {
@@ -330,8 +286,8 @@ class MemoryStorage {
   setItem(key: string, value: string) { this.data.set(key, value); }
 }
 
-describe('player session persistence', () => {
-  it('stores actions/read state but no canonical victim result', () => {
+describe('player narrative storage', () => {
+  it('stores player actions but not canonical victim results', () => {
     const storage = new MemoryStorage();
     const session = createInitialPlayerSession(1_000);
     session.submittedActionIds.push('send_yuan_to_post_office');
@@ -341,7 +297,7 @@ describe('player session persistence', () => {
     expect(JSON.stringify(loaded)).not.toMatch(/wakaharuDies|doctorDies|victim/);
   });
 
-  it('does not persist foreground freeze', () => {
+  it('never restores foreground freeze after reload', () => {
     const storage = new MemoryStorage();
     const frozen = freezeForeground(createInitialPlayerSession(1_000), 'scene-a', 2_000);
     writePlayerSession(storage, frozen);
@@ -350,18 +306,18 @@ describe('player session persistence', () => {
 });
 ```
 
-- [ ] **Step 6: Implement storage**
+- [ ] **Step 6: Implement versioned storage**
 
 Create `src/playerNarrative/storage.ts`:
 
 ```ts
 import { createInitialPlayerSession, type PlayerSessionV2 } from './model';
 
-export const PLAYER_NARRATIVE_SAVE_KEY = 'ash-town-player-narrative-v2';
+export const SAVE_KEY = 'ash-town-player-narrative-v2';
 
 export function readPlayerSession(storage: Pick<Storage, 'getItem'>, nowMs: number): PlayerSessionV2 {
   try {
-    const raw = storage.getItem(PLAYER_NARRATIVE_SAVE_KEY);
+    const raw = storage.getItem(SAVE_KEY);
     if (!raw) return createInitialPlayerSession(nowMs);
     const parsed = JSON.parse(raw) as PlayerSessionV2;
     if (parsed.version !== 2) return createInitialPlayerSession(nowMs);
@@ -373,7 +329,7 @@ export function readPlayerSession(storage: Pick<Storage, 'getItem'>, nowMs: numb
 
 export function writePlayerSession(storage: Pick<Storage, 'setItem'>, session: PlayerSessionV2): boolean {
   try {
-    storage.setItem(PLAYER_NARRATIVE_SAVE_KEY, JSON.stringify({ ...session, foregroundFreeze: null }));
+    storage.setItem(SAVE_KEY, JSON.stringify({ ...session, foregroundFreeze: null }));
     return true;
   } catch {
     return false;
@@ -387,15 +343,21 @@ export function writePlayerSession(storage: Pick<Storage, 'setItem'>, session: P
 npm test -- playerNarrativeClock.test.ts playerNarrativeStorage.test.ts
 npm test
 npm run build
-git add src/playerNarrative tests/playerNarrativeClock.test.ts tests/playerNarrativeStorage.test.ts
-git commit -m "feat: add pause-aware player story clock"
 ```
 
-Push and wait for fresh CI GREEN.
+From repo root:
+
+```bash
+git add tools/event-graph-viewer/src/playerNarrative tools/event-graph-viewer/tests/playerNarrativeClock.test.ts tools/event-graph-viewer/tests/playerNarrativeStorage.test.ts
+git commit -m "feat: add pause-aware player story clock"
+git push
+```
+
+Wait for CI GREEN.
 
 ---
 
-### Task 3: Player narrative authored-data schema
+### Task 3: Add Player Narrative story schema and authored support data
 
 **Files:**
 - Modify: `story/activities/protagonist.yaml`
@@ -403,14 +365,14 @@ Push and wait for fresh CI GREEN.
 - Create: `story/choices/loop_01_player.yaml`
 - Create: `story/travel/loop_01.yaml`
 - Modify: `story/manifests/loop_01.yaml`
-- Modify: `src/narrative/types.ts`
-- Modify: `src/lib/loadSimulationStory.ts`
-- Modify: `scripts/sync-story.mjs`
-- Modify: `tests/helpers/loadRealStory.ts`
-- Test: `tests/playerNarrativeStoryData.test.ts`
+- Modify: `tools/event-graph-viewer/src/narrative/types.ts`
+- Modify: `tools/event-graph-viewer/src/lib/loadSimulationStory.ts`
+- Modify: `tools/event-graph-viewer/scripts/sync-story.mjs`
+- Modify: `tools/event-graph-viewer/tests/helpers/loadRealStory.ts`
+- Create test: `tools/event-graph-viewer/tests/playerNarrativeStoryData.test.ts`
 
 **Interfaces:**
-- Produces `AmbientBeatDefinition`, `PlayerChoiceDefinition`, `PlayerChoiceEffect`, `TravelEdgeDefinition`, `ObservationPersistence`, plus `StoryBundle.playerChoices` and `StoryBundle.travelEdges`.
+- Produces `AmbientBeatDefinition`, `PlayerChoiceDefinition`, `PlayerChoiceEffect`, `TravelEdgeDefinition`, `ObservationPersistence`, `StoryBundle.playerChoices`, `StoryBundle.travelEdges`.
 
 - [ ] **Step 1: Write schema tests**
 
@@ -426,19 +388,19 @@ describe('player narrative authored data', () => {
     expect(reading?.ambient?.map((beat) => beat.atMinute)).toEqual([5, 11, 17]);
   });
 
-  it('loads player choices without impact metadata', () => {
+  it('loads player choices without author impact metadata', () => {
     const choice = loadRealStory().playerChoices.find((item) => item.id === 'arrival_coffee');
     expect(choice?.label).toBe('先去買杯咖啡');
     expect(choice).not.toHaveProperty('impactType');
   });
 
-  it('loads authored travel duration', () => {
+  it('loads old-house to station travel as 22 minutes', () => {
     expect(loadRealStory().travelEdges).toContainEqual({ from: 'old_house', to: 'old_station', minutes: 22 });
   });
 });
 ```
 
-- [ ] **Step 2: Extend TypeScript types**
+- [ ] **Step 2: Extend story types**
 
 Add to `src/narrative/types.ts`:
 
@@ -478,16 +440,16 @@ ActivityDefinition.ambient?: AmbientBeatDefinition[];
 NarrativeObservationRule.persistence?: ObservationPersistence;
 ```
 
-Extend `StoryBundle` with:
+Extend `StoryBundle`:
 
 ```ts
 playerChoices: PlayerChoiceDefinition[];
 travelEdges: TravelEdgeDefinition[];
 ```
 
-- [ ] **Step 3: Author activity ambient beats and ordinary-life activities**
+- [ ] **Step 3: Author ordinary-life timed activities and Ambient Prose**
 
-Add activities:
+Append to `story/activities/protagonist.yaml`:
 
 ```yaml
   - id: buy_coffee
@@ -497,6 +459,7 @@ Add activities:
       start: 我拖著行李拐進月台外那間新開的咖啡店。
       idle: 正在等咖啡……
       complete: 紙杯摸起來有點燙，我重新往老街走。
+
   - id: visit_convenience_store
     duration_minutes: 6
     interruptible: true
@@ -506,11 +469,24 @@ Add activities:
       complete: 我提著水走出店門。
 ```
 
-Add `rest_and_read` ambient beats exactly at offsets 5/11/17 and context-aware `research_online` ambient prose requiring `fact_zhixia_letter_received`.
+Add to `rest_and_read`:
 
-- [ ] **Step 4: Add knowledge facts used by ordinary choices**
+```yaml
+    ambient:
+      - id: read_motorbike
+        at_minute: 5
+        text: 樓下有人騎機車經過。聲音沿著巷子慢慢遠了。
+      - id: read_tea_cooling
+        at_minute: 11
+        text: 茶已經沒有剛才那麼燙了。
+      - id: read_same_paragraph
+        at_minute: 17
+        text: 我讀了三頁，才發現同一段看了兩次。
+```
 
-Append to `story/knowledge/facts.yaml`:
+- [ ] **Step 4: Add facts used by player-facing routes**
+
+Append under `facts:` in `story/knowledge/facts.yaml`:
 
 ```yaml
   - id: fact_cafe_resident_chatter
@@ -521,7 +497,7 @@ Append to `story/knowledge/facts.yaml`:
     summary: 主角已發現並讀到林知夏署名、郵戳為昨天的信
 ```
 
-- [ ] **Step 5: Author choices and travel**
+- [ ] **Step 5: Author initial choices and travel edges**
 
 Create `story/choices/loop_01_player.yaml`:
 
@@ -577,25 +553,29 @@ travel:
   - { from: hospital, to: old_station, minutes: 13 }
 ```
 
-- [ ] **Step 6: Wire manifest/sync/loader validation**
+- [ ] **Step 6: Wire manifest, sync and loader**
 
-Add manifest keys:
+Add to `story/manifests/loop_01.yaml`:
 
 ```yaml
 player_choices: ../choices/loop_01_player.yaml
 travel: ../travel/loop_01.yaml
 ```
 
-Normalize snake_case fields and reject:
+Update loader normalization for snake_case fields. Validate only references with real Source of Truth:
 
 ```text
-ambient offset < 0 or >= activity duration
-unknown scene/action/activity/fact references
-travel minutes <= 0
-empty/unknown location endpoints
+ambient at_minute is integer, >= 0, and < parent activity duration
+choice start-activity references existing ActivityDefinition
+choice submit-action references existing ActionDefinition
+choice learn-fact / requires-facts references existing KnowledgeFact
+choice scene_id references existing NarrativeSceneDefinition
+travel from/to are non-empty strings and minutes is a positive integer
 ```
 
-Update `loadRealStory.ts` to pass `playerChoices` and `travel` documents to `buildStoryBundleFromDocuments`.
+Do not invent a global location registry in v0.1.
+
+Update `loadRealStory.ts` to parse/pass the two new manifest documents.
 
 - [ ] **Step 7: Verify GREEN and commit**
 
@@ -604,44 +584,74 @@ npm run sync-story
 npm test -- playerNarrativeStoryData.test.ts narrativeLoader.test.ts
 npm test
 npm run build
-git add story src/narrative src/lib/loadSimulationStory.ts scripts/sync-story.mjs tests/helpers/loadRealStory.ts tests/playerNarrativeStoryData.test.ts
-git commit -m "feat: add player narrative authored data"
 ```
 
-Push and wait for CI GREEN.
+From repo root:
+
+```bash
+git add story tools/event-graph-viewer/src/narrative tools/event-graph-viewer/src/lib/loadSimulationStory.ts tools/event-graph-viewer/scripts/sync-story.mjs tools/event-graph-viewer/tests
+git commit -m "feat: add player narrative authored data"
+git push
+```
+
+Wait for CI GREEN.
 
 ---
 
-### Task 4: Ambient activity projection and choice application
+### Task 4: Runtime primitives — Ambient, Choice, Travel, Inbox, Queue
 
 **Files:**
 - Create: `src/playerNarrative/ambient.ts`
 - Create: `src/playerNarrative/choices.ts`
-- Modify: `src/playerNarrative/model.ts`
-- Test: `tests/ambientActivity.test.ts`
-- Test: `tests/choiceDeadline.test.ts`
+- Create: `src/playerNarrative/travel.ts`
+- Create: `src/playerNarrative/inbox.ts`
+- Create: `src/playerNarrative/queue.ts`
+- Modify: `src/narrative/observation.ts`
+- Create tests: `tests/ambientActivity.test.ts`, `tests/choiceDeadline.test.ts`, `tests/travelRuntime.test.ts`, `tests/observationPersistence.test.ts`, `tests/playerNarrativeQueue.test.ts`
 
 **Interfaces:**
-- Produces:
-  - `projectAmbientBeats(run, definition, knownFacts)`
-  - `availableChoicesForScene(choices, sceneId, minute, knownFacts)`
-  - `applyChoiceEffects(session, choice, story)`
-  - `freezeForeground` from Task 2 is reused for decisions.
+- Produces `projectAmbientBeats`, `availableChoicesForScene`, `planTravel`, `reconcilePersistentObservations`, `orderNarrativeQueue`.
 
-- [ ] **Step 1: Write ambient tests**
+- [ ] **Step 1: Write self-contained Ambient Prose tests**
+
+Create `tests/ambientActivity.test.ts`:
 
 ```ts
-it('returns only due ambient beats in authored order', () => {
-  expect(projectAmbientBeats(runAt12Minutes, readingDefinition, []).map((x) => x.id)).toEqual(['read_motorbike', 'read_tea_cooling']);
-});
+import { describe, expect, it } from 'vitest';
+import { projectAmbientBeats } from '../src/playerNarrative/ambient';
+import type { ActivityDefinition } from '../src/narrative/types';
+import type { ActivityRun } from '../src/narrative/activity';
 
-it('requires facts for state-aware prose', () => {
-  expect(projectAmbientBeats(runAt19Minutes, readingDefinition, []).some((x) => x.id === 'after_letter')).toBe(false);
-  expect(projectAmbientBeats(runAt19Minutes, readingDefinition, ['fact_zhixia_letter_received']).some((x) => x.id === 'after_letter')).toBe(true);
+const definition: ActivityDefinition = {
+  id: 'read', durationMinutes: 20, interruptible: true,
+  presentation: { start: 'start', idle: 'idle', complete: 'done' },
+  ambient: [
+    { id: 'a', atMinute: 5, text: 'A' },
+    { id: 'b', atMinute: 11, text: 'B' },
+    { id: 'c', atMinute: 17, text: 'C', requiresFacts: ['letter'] },
+  ],
+};
+
+function run(consumedMinutes: number): ActivityRun {
+  return {
+    activityId: 'read', startedAt: 900, durationMinutes: 20,
+    consumedMinutes, remainingMinutes: 20 - consumedMinutes,
+    interruptible: true, status: consumedMinutes >= 20 ? 'complete' : 'running',
+  };
+}
+
+describe('ambient prose', () => {
+  it('returns only due beats in order', () => {
+    expect(projectAmbientBeats(run(12), definition, []).map((x) => x.id)).toEqual(['a', 'b']);
+  });
+  it('applies fact requirements', () => {
+    expect(projectAmbientBeats(run(18), definition, []).map((x) => x.id)).toEqual(['a', 'b']);
+    expect(projectAmbientBeats(run(18), definition, ['letter']).map((x) => x.id)).toEqual(['a', 'b', 'c']);
+  });
 });
 ```
 
-- [ ] **Step 2: Implement ambient projection**
+Implement:
 
 ```ts
 export function projectAmbientBeats(run: ActivityRun, definition: ActivityDefinition, knownFactIds: Iterable<string>) {
@@ -653,86 +663,83 @@ export function projectAmbientBeats(run: ActivityRun, definition: ActivityDefini
 }
 ```
 
-Filter `session.consumedAmbientBeatIds` at the caller so React re-renders never repeat an already-consumed line.
+The caller removes IDs already in `session.consumedAmbientBeatIds`.
 
-- [ ] **Step 3: Write choice/deadline tests**
+- [ ] **Step 2: Write self-contained Choice deadline tests**
+
+Create `tests/choiceDeadline.test.ts`:
 
 ```ts
-it('drops an unopened expired response choice', () => {
-  expect(availableChoicesForScene(choices, 'wakaharu-message', 1088, []) .map((x) => x.id)).toEqual(['call']);
-});
+import { describe, expect, it } from 'vitest';
+import { availableChoicesForScene } from '../src/playerNarrative/choices';
+import type { PlayerChoiceDefinition } from '../src/narrative/types';
 
-it('keeps frozen choice evaluation stable while the scene is open', () => {
-  const frozen = freezeForeground(createInitialPlayerSession(0), 'wakaharu-message', 0);
-  frozen.foregroundFreeze = { sceneId: 'wakaharu-message', frozenMinute: 1075 };
-  expect(availableChoicesForScene(choices, 'wakaharu-message', frozen.foregroundFreeze.frozenMinute, []).map((x) => x.id)).toEqual(['reply-now', 'call']);
+const choices: PlayerChoiceDefinition[] = [
+  { id: 'reply', sceneId: 'msg', label: '回她', availableUntil: 1080, effects: [] },
+  { id: 'call', sceneId: 'msg', label: '打給她', effects: [] },
+];
+
+describe('choice deadlines', () => {
+  it('removes an expired unopened response', () => {
+    expect(availableChoicesForScene(choices, 'msg', 1075, []).map((x) => x.id)).toEqual(['reply', 'call']);
+    expect(availableChoicesForScene(choices, 'msg', 1088, []).map((x) => x.id)).toEqual(['call']);
+  });
 });
 ```
 
-- [ ] **Step 4: Implement choice availability/application**
+Implement filtering by scene, `availableFrom`, `availableUntil`, and `requiresFacts`.
 
-`availableChoicesForScene` filters by scene ID, `availableFrom`, `availableUntil`, and `requiresFacts`.
+- [ ] **Step 3: Write self-contained travel test and implement `planTravel`**
 
-`applyChoiceEffects` must support exactly:
+Create `tests/travelRuntime.test.ts`:
+
+```ts
+import { describe, expect, it } from 'vitest';
+import { planTravel } from '../src/playerNarrative/travel';
+
+const edges = [{ from: 'old_house', to: 'old_station', minutes: 22 }];
+
+describe('travel runtime', () => {
+  it('allows arrival after 18:31', () => {
+    expect(planTravel(edges, 'old_house', 'old_station', 1092)).toEqual({
+      from: 'old_house', to: 'old_station', departMinute: 1092, arriveMinute: 1114, durationMinutes: 22,
+    });
+  });
+});
+```
+
+Implement:
+
+```ts
+export function planTravel(edges: TravelEdgeDefinition[], from: string, to: string, departMinute: number) {
+  const edge = edges.find((item) => item.from === from && item.to === to);
+  if (!edge) throw new Error(`No authored travel route: ${from} -> ${to}`);
+  return { from, to, departMinute, arriveMinute: departMinute + edge.minutes, durationMinutes: edge.minutes };
+}
+```
+
+- [ ] **Step 4: Write explicit observation persistence tests**
+
+Create `tests/observationPersistence.test.ts` with four complete `WorldlineHistoryEntry` fixtures:
+
+```ts
+const base = { minute: 1075, absoluteMinute: 1075, day: 0, time: '17:55', sequence: 1, title: 'x', effects: [] };
+const localEvent = { ...base, eventId: 'local', visibility: 'observable' as const };
+const messageEvent = { ...base, eventId: 'message', visibility: 'observable' as const };
+const callEvent = { ...base, eventId: 'call', visibility: 'observable' as const };
+const hiddenEvent = { ...base, eventId: 'hidden', visibility: 'hidden' as const };
+```
+
+Rules under test:
 
 ```text
-start-activity -> startActivity(...) at current Story Time
-submit-action  -> append canonical action ID once
-travel         -> create a TravelPlan, stored as active travel activity
-learn-fact     -> append fact ID once
+local + persistence=ephemeral -> [] offline
+message + persistence=message -> InboxItem kind=message
+call + persistence=missed-call -> InboxItem kind=missed-call
+hidden -> [] always
 ```
 
-Do not apply simulator outcome fields here.
-
-- [ ] **Step 5: Verify GREEN and commit**
-
-```bash
-npm test -- ambientActivity.test.ts choiceDeadline.test.ts
-npm test
-npm run build
-git add src/playerNarrative tests/ambientActivity.test.ts tests/choiceDeadline.test.ts
-git commit -m "feat: add ambient prose and player choices"
-```
-
-Push and wait for CI GREEN.
-
----
-
-### Task 5: Observation persistence, inbox, and travel runtime
-
-**Files:**
-- Modify: `src/narrative/observation.ts`
-- Create: `src/playerNarrative/inbox.ts`
-- Create: `src/playerNarrative/travel.ts`
-- Test: `tests/observationPersistence.test.ts`
-- Test: `tests/travelRuntime.test.ts`
-
-**Interfaces:**
-- Produces `InboxItem[]`, `reconcilePersistentObservations(...)`, `planTravel(...)`.
-
-- [ ] **Step 1: Write persistence tests**
-
-```ts
-it('never backfills an offline local sighting', () => {
-  expect(reconcilePersistentObservations([localEvent], rules, offlineContext)).toEqual([]);
-});
-
-it('persists a phone message', () => {
-  expect(reconcilePersistentObservations([messageEvent], rules, offlineContext)[0].kind).toBe('message');
-});
-
-it('turns a phone call into a missed call', () => {
-  expect(reconcilePersistentObservations([callEvent], rules, offlineContext)[0].kind).toBe('missed-call');
-});
-
-it('never persists hidden history', () => {
-  expect(reconcilePersistentObservations([hiddenEvent], rules, offlineContext)).toEqual([]);
-});
-```
-
-Use actual `WorldlineHistoryEntry` fixtures in the test file.
-
-- [ ] **Step 2: Implement inbox semantics**
+Implement:
 
 ```ts
 export type InboxItem = {
@@ -744,147 +751,104 @@ export type InboxItem = {
 };
 ```
 
-Rules:
+Move offline persistence decisions out of generic `projectObservation`; keep online `canObserve` behavior.
 
-```text
-ephemeral -> never offline-backfilled
-message -> persisted message
-missed-call -> persisted missed call
-artifact -> persisted only after legitimate acquisition
-hidden visibility -> always discarded
-```
+- [ ] **Step 5: Write self-contained queue test and implement priority**
 
-- [ ] **Step 3: Write travel tests**
+Create `tests/playerNarrativeQueue.test.ts`:
 
 ```ts
-it('allows a late 18:12 departure that arrives at 18:34', () => {
-  expect(planTravel(edges, 'old_house', 'old_station', 1092)).toEqual({
-    from: 'old_house', to: 'old_station', departMinute: 1092, arriveMinute: 1114, durationMinutes: 22,
+import { describe, expect, it } from 'vitest';
+import { orderNarrativeQueue, type PlayerNarrativeQueueItem } from '../src/playerNarrative/queue';
+
+const items: PlayerNarrativeQueueItem[] = [
+  { id: 'ambient', kind: 'ambient', minute: 100, insertionOrder: 4 },
+  { id: 'scene', kind: 'scene', minute: 100, insertionOrder: 3 },
+  { id: 'complete', kind: 'activity-complete', minute: 100, insertionOrder: 2 },
+  { id: 'phone', kind: 'phone', minute: 100, insertionOrder: 1 },
+  { id: 'interrupt', kind: 'urgent-interrupt', minute: 100, insertionOrder: 0 },
+];
+
+describe('narrative queue', () => {
+  it('uses explicit priority', () => {
+    expect(orderNarrativeQueue(items).map((x) => x.id)).toEqual(['interrupt', 'phone', 'complete', 'scene', 'ambient']);
   });
 });
 ```
 
-- [ ] **Step 4: Implement travel planning**
+Implement fixed priority:
 
 ```ts
-export type TravelPlan = { from: string; to: string; departMinute: number; arriveMinute: number; durationMinutes: number };
-
-export function planTravel(edges: TravelEdgeDefinition[], from: string, to: string, departMinute: number): TravelPlan {
-  const edge = edges.find((item) => item.from === from && item.to === to);
-  if (!edge) throw new Error(`No authored travel route: ${from} -> ${to}`);
-  return { from, to, departMinute, arriveMinute: departMinute + edge.minutes, durationMinutes: edge.minutes };
-}
+urgent-interrupt=0
+phone=1
+activity-complete=2
+scene=3
+ambient=4
 ```
 
-No check forbids arrival after 18:31.
+Tie-break by minute, then insertion order.
 
-- [ ] **Step 5: Verify GREEN and commit**
+- [ ] **Step 6: Verify GREEN and commit**
 
 ```bash
-npm test -- observationPersistence.test.ts travelRuntime.test.ts observationProjection.test.ts
+npm test -- ambientActivity.test.ts choiceDeadline.test.ts travelRuntime.test.ts observationPersistence.test.ts playerNarrativeQueue.test.ts
 npm test
 npm run build
-git add src/narrative/observation.ts src/playerNarrative/inbox.ts src/playerNarrative/travel.ts tests/observationPersistence.test.ts tests/travelRuntime.test.ts
-git commit -m "feat: add observation persistence and travel runtime"
 ```
 
-Push and wait for CI GREEN.
+From repo root:
+
+```bash
+git add tools/event-graph-viewer/src tools/event-graph-viewer/tests
+git commit -m "feat: add player narrative runtime primitives"
+git push
+```
+
+Wait for CI GREEN.
 
 ---
 
-### Task 6: Deterministic Narrative Queue
-
-**Files:**
-- Create: `src/playerNarrative/queue.ts`
-- Modify: `src/narrative/projection.ts`
-- Test: `tests/playerNarrativeQueue.test.ts`
-
-**Interfaces:**
-- Produces ordered `PlayerNarrativeQueueItem[]`.
-
-- [ ] **Step 1: Write ordering tests**
-
-```ts
-it('orders interrupt, phone, completion, scene, ambient', () => {
-  expect(orderNarrativeQueue(items).map((x) => x.id)).toEqual(['interrupt', 'phone', 'complete', 'scene', 'ambient']);
-});
-
-it('uses minute then insertion order inside one priority', () => {
-  expect(orderNarrativeQueue(twoScenes).map((x) => x.id)).toEqual(['earlier', 'later']);
-});
-```
-
-- [ ] **Step 2: Implement fixed priority ordering**
-
-```ts
-export type PlayerQueueKind = 'urgent-interrupt' | 'phone' | 'activity-complete' | 'scene' | 'ambient';
-export type PlayerNarrativeQueueItem = { id: string; kind: PlayerQueueKind; minute: number; insertionOrder: number };
-
-const PRIORITY: Record<PlayerQueueKind, number> = {
-  'urgent-interrupt': 0,
-  phone: 1,
-  'activity-complete': 2,
-  scene: 3,
-  ambient: 4,
-};
-
-export function orderNarrativeQueue<T extends PlayerNarrativeQueueItem>(items: readonly T[]): T[] {
-  return [...items].sort((a, b) => PRIORITY[a.kind] - PRIORITY[b.kind] || a.minute - b.minute || a.insertionOrder - b.insertionOrder);
-}
-```
-
-- [ ] **Step 3: Adapt narrative projection**
-
-Add stable authored insertion order to projected scenes. Do not insert hidden world history into queue candidates.
-
-- [ ] **Step 4: Verify GREEN and commit**
-
-```bash
-npm test -- playerNarrativeQueue.test.ts narrativeProjection.test.ts
-npm test
-npm run build
-git add src/playerNarrative/queue.ts src/narrative/projection.ts tests/playerNarrativeQueue.test.ts
-git commit -m "feat: order player narrative queue"
-```
-
-Push and wait for CI GREEN.
-
----
-
-### Task 7: Deterministic Player Runtime replay/reconciliation
+### Task 5: Deterministic Player Runtime replay/reconciliation
 
 **Files:**
 - Create: `src/playerNarrative/runtime.ts`
 - Modify: `src/playerNarrative/model.ts`
-- Test: `tests/playerNarrativeRuntime.test.ts`
+- Modify: `src/playerNarrative/choices.ts`
+- Create test: `tests/playerNarrativeRuntime.test.ts`
 
 **Interfaces:**
-- Consumes `StoryBundle`, `PlayerSessionV2`, current wall-clock time.
-- Produces `reconcilePlayerRuntime(story, session, nowMs): PlayerRuntimeView`.
+- Consumes `StoryBundle`, `PlayerSessionV2`, wall-clock `nowMs`.
+- Produces `reconcilePlayerRuntime(story, session, nowMs): PlayerRuntimeView` and `applyChoiceEffects(...)`.
 
-- [ ] **Step 1: Write runtime tests with real story data**
+- [ ] **Step 1: Write runtime replay/freeze tests**
+
+Create `tests/playerNarrativeRuntime.test.ts`:
 
 ```ts
-it('replays simulator state from submitted actions', () => {
-  const story = loadRealStory();
-  const session = createInitialPlayerSession(0);
-  session.submittedActionIds = ['protect_wakaharu'];
-  const view = reconcilePlayerRuntime(story, session, (1111 - 860) * 60_000);
-  expect(view.worldHistory.some((entry) => entry.eventId === 'evt_1831_station')).toBe(true);
-  expect(JSON.stringify(session)).not.toMatch(/doctorDies|wakaharuDies|victim/);
-});
+import { describe, expect, it } from 'vitest';
+import { loadRealStory } from './helpers/loadRealStory';
+import { createInitialPlayerSession } from '../src/playerNarrative/model';
+import { reconcilePlayerRuntime } from '../src/playerNarrative/runtime';
 
-it('uses foreground frozen minute while reading', () => {
-  const story = loadRealStory();
-  const session = createInitialPlayerSession(0);
-  session.storyMinuteAtLastSync = 1075;
-  session.lastSyncedRealTimeMs = 0;
-  session.foregroundFreeze = { sceneId: 'scene-message', frozenMinute: 1075 };
-  expect(reconcilePlayerRuntime(story, session, 20 * 60_000).currentStoryMinute).toBe(1075);
+describe('player narrative runtime', () => {
+  it('replays simulator history from submitted action IDs', () => {
+    const story = loadRealStory();
+    const session = createInitialPlayerSession(0);
+    session.submittedActionIds = ['protect_wakaharu'];
+    const view = reconcilePlayerRuntime(story, session, (1111 - 860) * 60_000);
+    expect(view.worldHistory.some((entry) => entry.eventId === 'evt_1831_station')).toBe(true);
+    expect(JSON.stringify(session)).not.toMatch(/doctorDies|wakaharuDies|victim/);
+  });
+
+  it('uses frozen story minute while a foreground scene is open', () => {
+    const story = loadRealStory();
+    const session = createInitialPlayerSession(0);
+    session.storyMinuteAtLastSync = 1075;
+    session.foregroundFreeze = { sceneId: 'msg', frozenMinute: 1075 };
+    expect(reconcilePlayerRuntime(story, session, 30 * 60_000).currentStoryMinute).toBe(1075);
+  });
 });
 ```
-
-Add a reload/offline test: persist the same session with freeze stripped, reconcile later, and assert Story Time advances.
 
 - [ ] **Step 2: Define runtime view**
 
@@ -901,93 +865,137 @@ export type PlayerRuntimeView = {
 };
 ```
 
-- [ ] **Step 3: Implement reconciliation in this order**
+- [ ] **Step 3: Implement `applyChoiceEffects`**
+
+For each effect:
 
 ```text
-1. resolve current minute from foreground freeze or pause-aware wall clock
-2. call simulateStory({ story, actionIds: submittedActionIds, until: story minute })
-3. advance active activity/travel against story minute
-4. update location only when travel completes
-5. project online observations from protagonist context
-6. reconcile persistent inbox for elapsed offline interval
-7. project eligible scenes
-8. project due ambient beats and activity completion
-9. order queue deterministically
-10. evaluate choices at frozen minute or current minute
-11. return simulator state/history, never player-authored outcome flags
+start-activity:
+  find ActivityDefinition; startActivity(activityId, currentStoryMinute, definition)
+
+submit-action:
+  append action ID once; never write outcome flags
+
+travel:
+  planTravel(currentLocation, destination, currentStoryMinute);
+  store an interruptible travel ActivityRun whose completion updates currentLocation
+
+learn-fact:
+  append fact ID once
 ```
 
-Do not implement any `if action X then victim Y` shortcut.
+A choice does not instantly add arbitrary minutes. Time passes because the resulting Activity/travel runs while the world clock runs.
 
-- [ ] **Step 4: Verify GREEN and commit**
+- [ ] **Step 4: Implement `reconcilePlayerRuntime` in this exact order**
+
+```text
+1. derive current Story Time from foreground freeze or pause-aware clock
+2. call simulateStory({ story, actionIds: session.submittedActionIds, until: current Story Time })
+3. advance active Activity/travel to current Story Time
+4. update protagonist location only when travel completes
+5. project online observations from actual location/channel
+6. reconcile persistent inbox for offline elapsed interval
+7. project eligible Narrative Scenes
+8. project due Ambient Prose and Activity completion
+9. remove consumed scene/ambient IDs
+10. order queue deterministically
+11. evaluate choices at frozen minute or current minute
+12. return simulator state/history; do not mutate canonical outcome fields into save
+```
+
+- [ ] **Step 5: Add reload/offline regression test**
+
+In the same test file:
+
+```ts
+it('advances after reload because foreground freeze is not persisted', () => {
+  const story = loadRealStory();
+  const session = createInitialPlayerSession(0);
+  session.storyMinuteAtLastSync = 1075;
+  session.lastSyncedRealTimeMs = 0;
+  session.foregroundFreeze = null;
+  expect(reconcilePlayerRuntime(story, session, 13 * 60_000).currentStoryMinute).toBe(1088);
+});
+```
+
+- [ ] **Step 6: Verify GREEN and commit**
 
 ```bash
 npm test -- playerNarrativeRuntime.test.ts storySimulationAcceptance.test.ts
 npm test
 npm run build
-git add src/playerNarrative/runtime.ts src/playerNarrative/model.ts tests/playerNarrativeRuntime.test.ts
-git commit -m "feat: reconcile player narrative runtime"
 ```
 
-Push and wait for CI GREEN.
+From repo root:
+
+```bash
+git add tools/event-graph-viewer/src/playerNarrative tools/event-graph-viewer/tests/playerNarrativeRuntime.test.ts
+git commit -m "feat: reconcile player narrative runtime"
+git push
+```
+
+Wait for CI GREEN.
 
 ---
 
-### Task 8: Player-facing 14:20–18:31 story content
+### Task 6: Author the playable 14:20–18:31 Player Story
 
 **Files:**
 - Modify: `story/narrative/loop_01_prologue.yaml`
 - Create: `story/narrative/loop_01_1610_1831.yaml`
 - Modify: `story/choices/loop_01_player.yaml`
 - Modify: `story/manifests/loop_01.yaml`
-- Test: `tests/playerNarrativeStoryAcceptance.test.ts`
+- Create test: `tests/playerNarrativeStoryAcceptance.test.ts`
 
 **Interfaces:**
-- Produces player-facing scenes and choices from ordinary return-home life through the 18:31 result.
+- Produces player-relative life flow, post-letter investigation, deadlines/observations, and player-safe 18:31 presentation.
 
 - [ ] **Step 1: Write story acceptance tests**
 
-```ts
-it('has at least three distinct ordinary arrival choices', () => {
-  const story = loadRealStory();
-  const arrival = story.playerChoices.filter((choice) => choice.sceneId === 'scene_prologue_arrival');
-  expect(arrival.length).toBeGreaterThanOrEqual(3);
-  expect(new Set(arrival.map((choice) => JSON.stringify(choice.effects))).size).toBe(arrival.length);
-});
+Create `tests/playerNarrativeStoryAcceptance.test.ts`:
 
-it('contains no author-facing outcome labels in player prose', () => {
-  const text = JSON.stringify(loadRealStory().narrative.scenes);
-  expect(text).not.toMatch(/BAD END|GOOD END|WORLDLINE CHANGED|impactType|Knowledge \+/);
+```ts
+import { describe, expect, it } from 'vitest';
+import { loadRealStory } from './helpers/loadRealStory';
+
+describe('player narrative story slice', () => {
+  it('has at least three distinct ordinary arrival choices', () => {
+    const story = loadRealStory();
+    const choices = story.playerChoices.filter((choice) => choice.sceneId === 'scene_prologue_arrival');
+    expect(choices.length).toBeGreaterThanOrEqual(3);
+    expect(new Set(choices.map((choice) => JSON.stringify(choice.effects))).size).toBe(choices.length);
+  });
+
+  it('contains no player-facing debug/outcome labels', () => {
+    const text = JSON.stringify(loadRealStory().narrative.scenes);
+    expect(text).not.toMatch(/BAD END|GOOD END|WORLDLINE CHANGED|impactType|Knowledge \+/);
+  });
 });
 ```
 
-- [ ] **Step 2: Make Prologue player-relative where appropriate**
+- [ ] **Step 2: Convert Prologue from fixed presentation timing to player-relative life flow**
 
-Use activity completion/current player state for coffee/store/home/cleaning/reading/mail discovery. Do not make `scene_letter_discovery` require exact 16:00. The letter's `ArtifactDefinition.formedAt` remains world truth; discovery is a player-relative narrative scene.
-
-- [ ] **Step 3: Author ordinary-choice consequences**
-
-Add post-activity prose/facts so:
+Requirements:
 
 ```text
-coffee route -> 8 minutes + resident chatter prose/fact
-convenience store -> 6 minutes + shopkeeper mistaken-identity prose/fact
-direct home -> earlier old-house arrival and a different first home beat
+coffee -> 8-minute Activity, then coffee route prose/fact
+convenience store -> 6-minute Activity, then mistaken-identity prose/fact
+direct home -> no detour; earlier home arrival
+letter Artifact already exists in World Truth
+scene_letter_discovery becomes eligible after the player reaches/handles the mail context, not because the clock equals exactly 16:00
 ```
 
-Each visible choice must have at least one tested observable difference.
+- [ ] **Step 3: Author `loop_01_1610_1831.yaml`**
 
-- [ ] **Step 4: Author 16:10–18:31 scenes**
-
-Create scenes for:
+Include player-facing scenes for:
 
 ```text
 post-letter reaction
 Yuan/post-office choice
-optional Wakaharu cafe scene
-research activity
-hospital/doctor observation route
-17:55 Wakaharu message with deadline
+optional Wakaharu cafe conversation
+research Activity
+hospital/doctor route observation
+17:55 Wakaharu phone message with response deadline
 18:05 station local observation
 18:10 Yuan schedule-dependent observation
 18:18 Wakaharu knowledge-dependent line
@@ -995,9 +1003,31 @@ hospital/doctor observation route
 18:31 result presentation variants
 ```
 
-Use existing canonical action IDs: `send_yuan_to_post_office`, `show_letter_to_wakaharu`, `confront_reporter`, `protect_wakaharu`, `stop_doctor`.
+Use canonical action IDs only:
 
-- [ ] **Step 5: Verify knowledge and story consistency**
+```text
+send_yuan_to_post_office
+show_letter_to_wakaharu
+confront_reporter
+protect_wakaharu
+stop_doctor
+```
+
+- [ ] **Step 4: Make every visible choice observably non-no-op**
+
+For each `PlayerChoiceDefinition`, verify at least one of:
+
+```text
+starts timed Activity
+starts travel/location change
+submits canonical simulator action
+learns player fact
+changes later scene availability/prose through a fact/action/location condition
+```
+
+No visible button may have `effects: []` in real story YAML.
+
+- [ ] **Step 5: Verify GREEN and commit**
 
 ```bash
 npm run sync-story
@@ -1006,18 +1036,19 @@ npm test
 npm run build
 ```
 
-- [ ] **Step 6: Commit/push**
+From repo root:
 
 ```bash
-git add story tests/playerNarrativeStoryAcceptance.test.ts
+git add story tools/event-graph-viewer/tests/playerNarrativeStoryAcceptance.test.ts
 git commit -m "feat: author first playable narrative slice"
+git push
 ```
 
-Wait for fresh CI GREEN.
+Wait for CI GREEN.
 
 ---
 
-### Task 9: Novel-first Player UI and Artifact presentation
+### Task 7: Novel-first Player UI + Artifact presentation
 
 **Files:**
 - Create: `src/playerNarrative/main.tsx`
@@ -1031,81 +1062,90 @@ Wait for fresh CI GREEN.
 - Create: `src/playerNarrative/components/CharacterDrawer.tsx`
 - Modify: `player.html`
 - Modify: `vite.config.ts`
-- Test: `tests/playerNarrativeUi.test.tsx`
+- Create test: `tests/playerNarrativeUi.test.tsx`
 
 **Interfaces:**
-- Consumes `PlayerRuntimeView` and player-safe narrative/artifact/character projections.
-- Produces one player surface with Narrative / Activity / Artifact / Choice / Interrupt states.
+- Consumes `PlayerRuntimeView` and player-safe projections.
+- Produces one surface with Narrative / Activity / Artifact / Choice / Interrupt presentation.
 
-- [ ] **Step 1: Write UI tests**
+- [ ] **Step 1: Write self-contained UI tests**
+
+Create `tests/playerNarrativeUi.test.tsx`:
 
 ```tsx
-it('renders prose without debug labels', () => {
-  render(<NarrativeSurface blocks={[{ type: 'narration', text: '火車進站時，我差點沒認出月台。' }]} />);
-  expect(screen.getByText('火車進站時，我差點沒認出月台。')).toBeInTheDocument();
-  expect(screen.queryByText(/WORLDLINE|impactType|Knowledge \+|BAD END/i)).toBeNull();
-});
+import { render, screen } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
+import { NarrativeSurface } from '../src/playerNarrative/components/NarrativeSurface';
+import { ActivitySurface } from '../src/playerNarrative/components/ActivitySurface';
+import { ChoiceSurface } from '../src/playerNarrative/components/ChoiceSurface';
 
-it('renders ambient activity without progress UI', () => {
-  render(<ActivitySurface timeLabel="15:41" title="正在看書" prose="茶已經沒有剛才那麼燙了。" />);
-  expect(screen.getByText('茶已經沒有剛才那麼燙了。')).toBeInTheDocument();
-  expect(screen.queryByText(/%|剩餘|EXP/i)).toBeNull();
-});
+const coffee = { id: 'coffee', label: '先去買杯咖啡' };
+const protect = { id: 'protect', label: '現在去找若晴' };
 
-it('uses identical visual class for ordinary and causal choices', () => {
-  render(<ChoiceSurface choices={[coffeeChoice, protectChoice]} onChoose={() => {}} />);
-  const buttons = screen.getAllByRole('button');
-  expect(buttons[0].className).toBe(buttons[1].className);
+describe('player narrative UI', () => {
+  it('renders prose without author/debug labels', () => {
+    render(<NarrativeSurface blocks={[{ type: 'narration', text: '火車進站時，我差點沒認出月台。' }]} />);
+    expect(screen.getByText('火車進站時，我差點沒認出月台。')).toBeInTheDocument();
+    expect(screen.queryByText(/WORLDLINE|impactType|Knowledge \+|BAD END/i)).toBeNull();
+  });
+
+  it('renders Ambient Prose without progress UI', () => {
+    render(<ActivitySurface timeLabel="15:41" title="正在看書" prose="茶已經沒有剛才那麼燙了。" />);
+    expect(screen.getByText('茶已經沒有剛才那麼燙了。')).toBeInTheDocument();
+    expect(screen.queryByText(/%|剩餘|EXP/i)).toBeNull();
+  });
+
+  it('styles ordinary and causal choices identically', () => {
+    render(<ChoiceSurface choices={[coffee, protect]} onChoose={() => undefined} />);
+    const buttons = screen.getAllByRole('button');
+    expect(buttons[0].className).toBe(buttons[1].className);
+  });
 });
 ```
-
-Add an Artifact test: `拆開信封` reveals full letter content and never renders `Artifact ID` or author metadata.
 
 - [ ] **Step 2: Implement Narrative/Dialogue surface**
 
-Render narration/monologue/dialogue in paragraph beats. `繼續` changes only presentation state; it must not call `resumeWorld` until the current scene is explicitly completed.
+Render narration, monologue and dialogue as paragraph beats. `繼續` advances presentation only. Keep the world frozen until the current scene is completed and `resumeWorld` is called.
 
 - [ ] **Step 3: Implement Activity surface**
 
-Props:
+Exact props:
 
 ```ts
-{ timeLabel: string; title: string; prose?: string }
+export type ActivitySurfaceProps = {
+  timeLabel: string;
+  title: string;
+  prose?: string;
+};
 ```
 
-No countdown, percentage, XP, remaining time, or progress bar.
+Render no countdown, percentage, remaining time, XP or progress bar.
 
 - [ ] **Step 4: Implement Artifact surface**
 
-For letters use DOM/CSS states:
+For letter Artifact use DOM/CSS states:
 
 ```text
 envelope front -> envelope back/postmark -> open -> letter sheet
 ```
 
-Use CSS perspective/transform/shadow/subtle parallax only.
+Use CSS `perspective`, `transform`, `box-shadow`, and subtle parallax. No new graphics engine dependency.
 
-- [ ] **Step 5: Implement Choice/Interrupt/Character surfaces**
+Add a test in `playerNarrativeUi.test.tsx` that clicks `拆開信封`, sees full letter content, and never sees `Artifact ID`.
 
-Choice components receive only `{ id, label }` player-facing data. Character drawer uses player-known projection only. Interrupt UI never displays event IDs or visibility flags.
+- [ ] **Step 5: Implement Choice, Interrupt, Character Drawer**
 
-- [ ] **Step 6: Implement app shell and repoint player entry**
+`ChoiceSurface` receives only `{ id, label }`. `InterruptSurface` receives player prose/presentation only, not event IDs or visibility. `CharacterDrawer` renders player-known Character projection only.
 
-Player shell:
+- [ ] **Step 6: Repoint the existing player entry**
 
-```text
-center: current narrative/activity/artifact/interrupt
-upper-right: story time
-lower-left: character drawer trigger
-```
-
-Change `player.html` to:
+`player.html` must load:
 
 ```html
 <script type="module" src="/src/playerNarrative/main.tsx"></script>
 ```
 
-Keep Vite build inputs named `viewer` and `player`.
+Keep Vite inputs named `viewer` and `player`; do not add a third page.
 
 - [ ] **Step 7: Verify GREEN and commit**
 
@@ -1113,25 +1153,31 @@ Keep Vite build inputs named `viewer` and `player`.
 npm test -- playerNarrativeUi.test.tsx App.test.tsx
 npm test
 npm run build
-git add player.html vite.config.ts src/playerNarrative tests/playerNarrativeUi.test.tsx
-git commit -m "feat: add novel-first player narrative surface"
 ```
 
-Push and wait for CI GREEN.
+From repo root:
+
+```bash
+git add tools/event-graph-viewer/player.html tools/event-graph-viewer/vite.config.ts tools/event-graph-viewer/src/playerNarrative tools/event-graph-viewer/tests/playerNarrativeUi.test.tsx
+git commit -m "feat: add novel-first player narrative surface"
+git push
+```
+
+Wait for CI GREEN.
 
 ---
 
-### Task 10: 18:31 End-to-End acceptance, late travel, offline deadline, cleanup
+### Task 8: End-to-end 18:31 acceptance, late travel, offline deadline, cleanup
 
 **Files:**
 - Create: `tests/playerNarrative1831Acceptance.test.ts`
-- Modify only if a failing acceptance requires it: files owned by Tasks 2–9
-- Remove only if proven unreferenced: obsolete `src/player/**` prototype files
+- Modify only if a failing acceptance requires it: files owned by Tasks 2–7
+- Remove only if proven unused: obsolete `src/player/**` prototype files
 
 **Interfaces:**
-- Produces final proof that Player Narrative UI uses the same Story Simulator for different 18:31 outcomes and never exposes hidden causality.
+- Produces final evidence that Player UI uses the same Story Simulator, deadlines/offline rules work, and hidden causality stays hidden.
 
-- [ ] **Step 1: Add simulator-outcome acceptance**
+- [ ] **Step 1: Add real-story 18:31 simulator acceptance**
 
 Create `tests/playerNarrative1831Acceptance.test.ts`:
 
@@ -1143,8 +1189,8 @@ import { reconcilePlayerRuntime } from '../src/playerNarrative/runtime';
 
 const elapsedTo1831Ms = (1111 - 860) * 60_000;
 
-describe('18:31 player narrative acceptance', () => {
-  it('gets different world states from the same simulator under different submitted actions', () => {
+describe('player narrative 18:31 acceptance', () => {
+  it('gets different simulator world states from different player actions', () => {
     const story = loadRealStory();
     const baseline = createInitialPlayerSession(0);
     const rescue = createInitialPlayerSession(0);
@@ -1158,45 +1204,51 @@ describe('18:31 player narrative acceptance', () => {
     expect(a.worldState).not.toEqual(b.worldState);
   });
 
-  it('never queues hidden source IDs', () => {
+  it('does not queue hidden history source IDs', () => {
     const story = loadRealStory();
     const view = reconcilePlayerRuntime(story, createInitialPlayerSession(0), elapsedTo1831Ms);
-    const hiddenIds = new Set(view.worldHistory.filter((entry) => entry.visibility === 'hidden').map((entry) => entry.eventId ?? entry.sourceId));
-    expect(view.queue.every((item) => !hiddenIds.has(item.id))).toBe(true);
+    const hidden = new Set(
+      view.worldHistory
+        .filter((entry) => entry.visibility === 'hidden')
+        .map((entry) => entry.eventId ?? entry.actionId ?? entry.scheduleEntryId ?? entry.sourceId),
+    );
+    expect(view.queue.every((item) => !hidden.has(item.id))).toBe(true);
   });
 });
 ```
 
-- [ ] **Step 2: Add late-travel acceptance**
+- [ ] **Step 2: Add late-travel acceptance in the same file**
 
-Create a session at old house at 18:12, choose travel to old station, and assert:
-
-```text
-travel depart = 18:12
-18:31 event exists in world history
-travel arrival = 18:34
-player was not locally present for 18:31 station observation
-arrival is allowed and aftermath can be projected after 18:34
-```
-
-- [ ] **Step 3: Add offline-deadline acceptance**
-
-Persist a session after the 17:55 message is available but unopened; reload/reconcile at 18:08 and assert:
+Build a session at `old_house` with Story Time 18:12, apply `travel -> old_station`, reconcile through 18:34, and assert:
 
 ```text
-foregroundFreeze == null
-immediate reply choice absent
-persistent phone message/missed-call item remains according to authored policy
-world time advanced while away
+TravelPlan departMinute = 1092
+TravelPlan arriveMinute = 1114
+worldHistory already contains evt_1831_station before arrival
+18:31 present-channel station observation is absent because protagonist had not arrived
+currentLocation becomes old_station only at/after 1114
 ```
 
-- [ ] **Step 4: Verify old prototype is no longer imported**
+- [ ] **Step 3: Add offline-deadline acceptance in the same file**
+
+Create a session synchronized at 17:55 with no foreground freeze; reconcile at 18:08 and assert:
+
+```text
+currentStoryMinute = 1088
+foregroundFreeze remains null
+choice with availableUntil=1080 is absent
+persistent phone message/missed-call item remains according to authored persistence
+```
+
+- [ ] **Step 4: Prove old prototype imports are dead before removing anything**
+
+From repo root:
 
 ```bash
-rg "src/player/|from './player|from '../player" .
+rg "src/player/|from './player|from '../player" tools/event-graph-viewer
 ```
 
-Delete old prototype files only if they have zero remaining runtime/test imports and no required migration behavior. Do not delete them simply for cleanliness.
+Delete old `src/player/**` files only when they have zero runtime/test imports and no tested migration responsibility. Otherwise leave them for a separate cleanup task.
 
 - [ ] **Step 5: Full final verification**
 
@@ -1204,6 +1256,11 @@ Delete old prototype files only if they have zero remaining runtime/test imports
 npm run sync-story
 npm test
 npm run build
+```
+
+From repo root:
+
+```bash
 git status --short
 git diff --stat origin/main...HEAD
 git diff origin/main...HEAD -- .github/workflows
@@ -1213,13 +1270,13 @@ Expected:
 
 ```text
 all tests pass
-TypeScript/build passes
-viewer + player both build
+TypeScript/Vite build passes
+viewer and player both build
 no unintended workflow changes
 no untracked files
 ```
 
-- [ ] **Step 6: Commit final acceptance/cleanup**
+- [ ] **Step 6: Commit, push, wait for exact-head CI**
 
 ```bash
 git add .
@@ -1227,9 +1284,7 @@ git commit -m "test: verify player narrative vertical slice"
 git push
 ```
 
-- [ ] **Step 7: Require fresh final GitHub Actions evidence**
-
-Do not mark implementation ready for human merge review until the exact final head shows:
+Do not mark the implementation PR ready for human merge review until the exact final head has:
 
 ```text
 Sync story data  PASS
@@ -1243,21 +1298,21 @@ Do not merge to `main` automatically.
 
 ## Completion Checklist
 
-- [ ] Current `main` and Narrative Foundation were deliberately reconciled.
+- [ ] `main` + Narrative Foundation were deliberately reconciled before feature work.
 - [ ] Player starts at 14:20 in novel-first UI.
 - [ ] At least three ordinary opening choices have distinct observable effects.
 - [ ] Reading scenes does not advance Story Time.
-- [ ] World time advances 1:1 while running.
-- [ ] Reload/offline time does not preserve foreground freeze.
+- [ ] Running world time advances 1:1.
+- [ ] Reload/offline does not preserve foreground freeze.
 - [ ] Player-relative life scenes can shift while 18:31 stays fixed.
-- [ ] Activity Ambient Prose is ordered, non-repeating, activity-specific, and fact-aware where authored.
-- [ ] Hidden events do not leak into Player Narrative.
-- [ ] Local observations can be missed permanently.
-- [ ] Phone messages persist and calls can become missed calls.
-- [ ] Late travel is allowed and can arrive after 18:31.
-- [ ] Choice UI does not reveal importance/impact class.
-- [ ] Letter is an in-world Artifact, not an evidence metadata panel.
-- [ ] Player save contains no canonical death/victim outcome field.
+- [ ] Ambient Prose is ordered, non-repeating, activity-specific and fact-aware where authored.
+- [ ] Hidden events do not leak directly into Player Narrative.
+- [ ] Local observation can be permanently missed.
+- [ ] Messages persist and calls can become missed calls.
+- [ ] Late travel is legal and can arrive after 18:31.
+- [ ] Choice UI does not reveal importance/impact type.
+- [ ] Letter is presented as an in-world Artifact, not metadata/evidence snippets.
+- [ ] Player save contains no canonical victim/death field.
 - [ ] Different submitted actions produce different 18:31 simulator states.
-- [ ] Author Viewer still builds and existing tests remain green.
+- [ ] Existing Author Viewer still builds and tests pass.
 - [ ] Final exact head has fresh GitHub Actions GREEN evidence.
