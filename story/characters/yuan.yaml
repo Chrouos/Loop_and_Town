@@ -1,0 +1,36 @@
+id: yuan
+name: 周予安
+age: 27
+identity:
+  occupation: 鐘錶店店主
+  hometown: 灰潮鎮
+background:
+  summary: 主角的高中同學，也是她離開灰潮鎮後少數仍偶爾聯絡的人；家裡一直經營老街鐘錶店。
+  history:
+    - 從小認識林知夏。
+    - 主角離開後仍留在灰潮鎮生活。
+personality:
+  traits:
+    - 實際
+    - 樂於幫忙
+    - 不擅長處理沉重話題
+  habits:
+    - 先動手幫忙，再問原因
+    - 緊張時說話會突然變正式
+  dislikes:
+    - 拐彎抹角
+speech:
+  tone: casual
+  calls:
+    protagonist: 妳
+    zhixia: 知夏姊
+    wakaharu: 若晴
+knowledge:
+  initial:
+    - fact_zhixia_dead_five_years
+    - fact_yuan_runs_clock_shop
+    - fact_protagonist_returned_to_sell_house
+  hidden: []
+secrets:
+  - 對五年前鐘樓附近的一段記憶一直沒有主動提起。
+schedule_ref: schedules/yuan.yaml

@@ -1,0 +1,130 @@
+scenes:
+  - id: prologue_arrival
+    at: { day: 0, time: "14:20" }
+    kind: narration
+    participants: [protagonist]
+    blocks:
+      - type: narration
+        text: 火車停穩時，我才發現灰潮鎮的月台比記憶裡窄了一點。
+      - type: monologue
+        text: 五年沒回來，連風的味道都像變了。
+
+  - id: prologue_station_exit
+    at: { day: 0, time: "14:25" }
+    kind: activity
+    participants: [protagonist]
+    starts_activity: walk_home
+    blocks:
+      - type: narration
+        text: 我拖著行李往出口走，經過以前每天放學都會站的月台柱子。
+      - type: monologue
+        text: 這次只是回來整理房子。把該丟的丟掉，把該簽的簽完，就走。
+
+  - id: prologue_groceries
+    at: { day: 0, time: "14:30" }
+    kind: activity
+    participants: [protagonist]
+    starts_activity: buy_groceries
+    blocks:
+      - type: narration
+        text: 老街口的便利商店還在，只是招牌換了顏色。
+      - type: narration
+        text: 我買了水、雞蛋和一點晚餐材料。店員看了我好幾次，最後什麼也沒問。
+
+  - id: prologue_yuan_reunion
+    at: { day: 0, time: "14:40" }
+    kind: dialogue
+    participants: [protagonist, yuan]
+    blocks:
+      - type: narration
+        text: 走出店門時，有人從對街叫了我的名字。
+      - type: narration
+        text: 周予安。高中同學，也是我離開灰潮鎮後少數還偶爾聯絡的人。
+      - type: dialogue
+        speaker: yuan
+        text: 妳真的回來了。我還以為妳會拖到房仲自己來催。
+        factId: fact_protagonist_returned_to_sell_house
+      - type: monologue
+        text: 他講話還是老樣子，像五年只隔了一個週末。
+      - type: dialogue
+        speaker: yuan
+        text: 店還在老地方。有空就過來，我請妳喝咖啡。
+        factId: fact_yuan_runs_clock_shop
+
+  - id: prologue_old_house
+    at: { day: 0, time: "15:00" }
+    kind: activity
+    participants: [protagonist]
+    starts_activity: clean_old_house
+    blocks:
+      - type: narration
+        text: 老家的門比我記得的更難開。鎖轉了兩次，才發出一聲乾澀的喀噠。
+      - type: narration
+        text: 我先把所有窗戶推開，再把玄關旁的紙箱一個個搬進客廳。
+      - type: narration
+        text: 書架上還有姊姊留下的書。灰很多，但排列方式一點都沒變。
+
+  - id: prologue_rest_and_read
+    at: { day: 0, time: "15:30" }
+    kind: activity
+    participants: [protagonist]
+    starts_activity: rest_and_read
+    blocks:
+      - type: narration
+        text: 整理了一陣子，我的手上全是灰。
+      - type: monologue
+        text: 房仲傍晚才會回電話。現在急也沒有用。
+      - type: narration
+        text: 我泡了杯茶，從書架抽出一本以前沒看完的小說。
+
+  - id: prologue_sort_mail
+    at: { day: 0, time: "15:50" }
+    kind: activity
+    participants: [protagonist]
+    starts_activity: sort_mail
+    blocks:
+      - type: narration
+        text: 茶涼得差不多時，我才想起門口還堆著一疊沒人收的信。
+      - type: narration
+        text: 大部分是廣告、帳單和早就失效的通知。我一封一封分到紙箱裡。
+
+  - id: prologue_letter_discovery
+    at: { day: 0, time: "16:00" }
+    kind: artifact
+    participants: [protagonist]
+    artifact_id: zhixia_letter
+    blocks:
+      - type: narration
+        text: 最下面壓著一封沒有寄件地址的信。
+      - type: narration
+        text: 郵戳是昨天。
+      - type: narration
+        text: 我原本只覺得奇怪，直到看見寄件人那一欄。
+      - type: monologue
+        text: 林知夏。
+      - type: monologue
+        text: ……不可能。姊姊死了五年。
+        factId: fact_zhixia_dead_five_years
+
+  - id: prologue_letter_opened
+    at: { day: 0, time: "16:02" }
+    kind: artifact
+    participants: [protagonist]
+    artifact_id: zhixia_letter
+    blocks:
+      - type: artifact
+        artifactId: zhixia_letter
+      - type: monologue
+        text: 我沒有立刻把信放下。
+      - type: monologue
+        text: 郵戳是昨天。我又看了一遍，還是昨天。
+
+  - id: main_story_handoff
+    at: { day: 0, time: "16:10" }
+    kind: transition
+    participants: [protagonist]
+    blocks:
+      - type: narration
+        text: 我把信放在桌上，打開筆電。這已經不是能當作惡作劇丟掉的東西了。
+      - type: monologue
+        text: 先查清楚這封信到底從哪裡來。

@@ -1,0 +1,18 @@
+id: evt_2114_reporter_status
+title: 21:14 葉庭安失蹤
+at: { day: 0, time: "21:14" }
+visibility: observable
+variants:
+  - id: reporter_missing
+    priority: 100
+    when:
+      all:
+        - { path: flags.reporter_confronted, op: eq, value: true }
+        - { path: characters.reporter.location, op: eq, value: old_lab }
+    effects:
+      - set: { path: characters.reporter.status, value: missing }
+  - id: no_visible_event
+    priority: 0
+    fallback: true
+    visibility: hidden
+    effects: []

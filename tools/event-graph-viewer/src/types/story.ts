@@ -32,7 +32,7 @@ export type EventGraphDocument = {
   notes: string[];
 };
 
-export type GraphNodeRole = 'event' | 'variant' | 'delayed';
+export type GraphNodeRole = 'action' | 'schedule' | 'event' | 'variant' | 'delayed';
 
 export type GraphNode = {
   id: string;
@@ -56,7 +56,9 @@ export type GraphProjection = {
 };
 
 export type WorldlineEntry = {
+  day?: number;
   time: string;
+  absoluteMinute?: number;
   eventId: string;
   variantId?: string;
   title: string;
@@ -69,4 +71,41 @@ export type DiffRow = {
   left?: WorldlineEntry;
   right?: WorldlineEntry;
   status: 'same' | 'changed' | 'left-only' | 'right-only';
+};
+
+export type CharacterGraphMode = 'public' | 'author' | 'player-known';
+
+export type CharacterGraphNode = {
+  id: string;
+  name: string;
+  occupation?: string;
+  hometown?: string;
+};
+
+export type CharacterGraphEdge = {
+  id: string;
+  source: string;
+  target: string;
+  type: string;
+  summary: string;
+  visibility: 'public' | 'author' | 'player-known';
+};
+
+export type CharacterGraphDetail = {
+  characterId: string;
+  name: string;
+  backgroundSummary: string;
+  traits: string[];
+  relationshipEdgeIds: string[];
+  knowledgeIds: string[];
+  secrets: string[];
+  scheduleRef?: string;
+  narrativeAppearanceIds: string[];
+};
+
+export type CharacterGraphProjection = {
+  mode: CharacterGraphMode;
+  nodes: CharacterGraphNode[];
+  edges: CharacterGraphEdge[];
+  details: Record<string, CharacterGraphDetail>;
 };

@@ -1,0 +1,10 @@
+id: evt_2030_old_case_reveal
+title: 五年前的舊案
+at: { day: 0, time: "20:30" }
+visibility: observable
+variants:
+  - id: old_case_matches_1831
+    priority: 0
+    fallback: true
+    effects:
+      - add_flag: flags.old_case_1831_revealed

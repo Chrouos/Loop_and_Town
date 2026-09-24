@@ -1,0 +1,51 @@
+relationships:
+  - from: protagonist
+    to: zhixia
+    type: sister
+    visibility: public
+    summary: 姊妹；知夏的死亡是主角離開灰潮鎮的主要原因。
+  - from: zhixia
+    to: protagonist
+    type: protective_sister
+    visibility: author
+    summary: 知夏習慣保護妹妹，也因此隱瞞部分危險資訊。
+  - from: protagonist
+    to: yuan
+    type: old_friend
+    visibility: public
+    summary: 高中同學，五年來偶爾聯絡。
+  - from: yuan
+    to: protagonist
+    type: concerned_friend
+    visibility: author
+    summary: 仍然在意主角，但不擅長談姊姊的死亡。
+  - from: yuan
+    to: zhixia
+    type: familiar_respect
+    visibility: public
+    summary: 從小認識知夏，對她一直抱有敬意。
+  - from: wakaharu
+    to: zhixia
+    type: attachment
+    visibility: public
+    summary: 把知夏視為姊姊般的重要存在。
+  - from: zhixia
+    to: wakaharu
+    type: protective
+    visibility: author
+    summary: 試圖讓若晴遠離研究所事件。
+  - from: doctor
+    to: zhixia
+    type: medical_connection
+    visibility: author
+    summary: 五年前知夏死亡當日，陳柏勳曾接觸相關醫療紀錄。
+  - from: reporter
+    to: zhixia
+    type: former_colleague
+    visibility: author
+    summary: 曾在舊研究所有工作往來，但庭安對外否認相識。
+  - from: detective
+    to: zhixia
+    type: case_officer
+    visibility: author
+    summary: 五年前參與知夏死亡案件的第一批處理人員。

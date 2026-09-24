@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { sortTimeline } from '../src/lib/timeline';
 import type { WorldlineEntry } from '../src/types/story';
 
-const entry = (time: string, eventId: string): WorldlineEntry => ({
+const entry = (time: string, eventId: string, day = 0): WorldlineEntry & { day: number } => ({
+  day,
   time,
   eventId,
   title: eventId,
@@ -23,5 +24,15 @@ describe('sortTimeline', () => {
   it('preserves input order for equal times', () => {
     const result = sortTimeline([entry('18:31', 'a'), entry('18:31', 'b')]);
     expect(result.map((item) => item.eventId)).toEqual(['a', 'b']);
+  });
+
+  it('keeps Day 1 midnight after Day 0 23:59', () => {
+    const result = sortTimeline([
+      entry('00:00', 'loop_end', 1),
+      entry('23:59', 'midnight_bells', 0),
+      entry('14:20', 'loop_start', 0),
+    ]);
+
+    expect(result.map((item) => item.eventId)).toEqual(['loop_start', 'midnight_bells', 'loop_end']);
   });
 });
