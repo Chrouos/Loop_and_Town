@@ -46,12 +46,16 @@ it('advances rest_and_read in world minutes and ignores hidden movement', () => 
   expect(completed.remainingMinutes).toBe(0);
 });
 
-it('discovers the impossible letter only after returning home', () => {
-  const scenes = loadRealStory().narrative.scenes;
+it('discovers the impossible letter from the mail activity after returning home', () => {
+  const story = loadRealStory();
+  const scenes = story.narrative.scenes;
   const home = scenes.find((scene) => scene.id === 'prologue_old_house')!;
   const letter = scenes.find((scene) => scene.id === 'prologue_letter_discovery')!;
-  expect(toAbsoluteMinute(home.at)).toBeLessThan(toAbsoluteMinute(letter.at));
-  expect(letter.at).toEqual({ day: 0, time: '16:00' });
+  const artifact = story.narrative.artifacts.find((item) => item.id === 'zhixia_letter')!;
+  expect(home.requiresLocation).toBe('old_house');
+  expect(letter.requiresLocation).toBe('old_house');
+  expect(letter.afterActivityId).toBe('sort_mail');
+  expect(toAbsoluteMinute(artifact.formedAt)).toBeLessThan(14 * 60 + 20);
 });
 
 it('keeps author-only relationships out of public and player-known projections', () => {
