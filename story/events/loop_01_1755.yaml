@@ -1,0 +1,14 @@
+id: evt_1755_wakaharu_message
+title: 若晴的訊息
+at: { day: 0, time: "17:55" }
+visibility: observable
+variants:
+  - id: heading_to_station
+    priority: 100
+    when: { path: characters.wakaharu.route, op: eq, value: old_station }
+    effects: []
+  - id: no_message
+    priority: 0
+    fallback: true
+    visibility: hidden
+    effects: []
