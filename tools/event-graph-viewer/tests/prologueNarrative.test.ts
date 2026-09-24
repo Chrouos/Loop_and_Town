@@ -11,8 +11,10 @@ it('starts as ordinary life before the impossible letter', () => {
   const scenes = story.narrative.scenes;
   expect(scenes.find((scene) => scene.id === 'prologue_arrival')?.at).toEqual({ day: 0, time: '14:20' });
   expect(scenes.find((scene) => scene.id === 'prologue_yuan_reunion')?.at).toEqual({ day: 0, time: '14:40' });
-  expect(scenes.find((scene) => scene.id === 'prologue_letter_discovery')?.at).toEqual({ day: 0, time: '16:00' });
-  expect(sceneIndex('prologue_letter_discovery')).toBeGreaterThan(sceneIndex('prologue_rest_and_read'));
+  const letter = scenes.find((scene) => scene.id === 'prologue_letter_discovery');
+  expect(letter?.requiresLocation).toBe('old_house');
+  expect(letter?.afterActivityId).toBe('sort_mail');
+  expect(sceneIndex('prologue_letter_discovery')).toBeGreaterThan(sceneIndex('prologue_old_house'));
 });
 
 it('keeps mystery terminology out of pre-letter scenes', () => {
