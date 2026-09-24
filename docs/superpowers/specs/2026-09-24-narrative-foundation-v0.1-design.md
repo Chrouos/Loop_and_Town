@@ -31,7 +31,7 @@ Character Bible
         ↓
 Story Simulation / World Truth
         ↓
-Observable Narrative Projection
+Observation Projection
         ↓
 Player Narrative Renderer
 ```
@@ -50,6 +50,33 @@ Activity
 ```
 
 Narrative Scene 不是 Event；泡茶、整理房間、做飯、看書也不應被塞進 Event Graph。
+
+### 2.1 建議資料邊界
+
+```text
+story/
+  characters/
+  relationships/
+  knowledge/
+  schedules/
+  activities/
+  narrative/
+  artifacts/
+  events/
+  world/
+  worldlines/
+```
+
+- `characters/`：人物不隨世界線改變的基本設定。
+- `relationships/`：方向性人物關係與可見層級。
+- `knowledge/`：穩定 Knowledge Fact ID 與初始知識。
+- `schedules/`：角色 baseline 行程。
+- `activities/`：主角生活、移動、調查、等待的耗時行為。
+- `narrative/`：小說場景與呈現順序。
+- `artifacts/`：信、訊息、照片、新聞、文件等世界內物件。
+- `events/`：真正影響 World Truth 的事件。
+
+UI component 不得成為以上任何故事設定的唯一 Source of Truth。
 
 ---
 
@@ -161,7 +188,7 @@ Narrative Scene 不是 Event；泡茶、整理房間、做飯、看書也不應�
 - 便利商店老闆一時把主角認成林知夏。
 - 看見以前搭公車的站牌被移走。
 
-這些事件不應自動產生 Evidence Card。
+這些內容不應自動產生 Evidence Card，也不要求每一段都埋伏筆。
 
 ### 14:40｜周予安第一次正式出場
 
@@ -204,7 +231,7 @@ Narrative Scene 不是 Event；泡茶、整理房間、做飯、看書也不應�
 Activity: rest_and_read
 ```
 
-世界時間開始前進，其他 NPC 照自己的 Schedule 行動。
+世界時間開始前進，其他角色照自己的 Schedule 行動。
 
 ### 15:50｜回到生活場景
 
@@ -233,7 +260,7 @@ Artifact 以真正信封／信紙形式呈現，不先顯示「重要句子」�
 
 ### 6.1 Source of Truth
 
-重要人物要有正式 Character Definition，建議資料結構：
+重要人物要有正式 Character Definition：
 
 ```text
 story/characters/
@@ -311,8 +338,8 @@ schedule_ref: schedules/yuan.yaml
 避免過度固定：
 
 - 不預設玩家對每個嫌疑人的最終態度。
-- 不預設政治／道德立場。
 - 不替玩家選擇核心推理結論。
+- 不替玩家建立未被世界證據支持的動機判斷。
 
 ---
 
@@ -330,13 +357,13 @@ A 對 B 的感受 ≠ B 對 A 的感受
 - from: wakaharu
   to: zhixia
   type: attachment
-  public: true
+  visibility: public
   summary: 把知夏視為姊姊般的重要存在
 
 - from: zhixia
   to: wakaharu
   type: protective
-  public: false
+  visibility: author
   summary: 知夏一直試圖讓若晴遠離研究所事件
 ```
 
@@ -376,8 +403,6 @@ Character Graph 不直接修改資料；YAML 仍是 Source of Truth。
 
 避免角色說出自己不可能知道的資訊，也避免小說旁白提前洩漏 Player 尚未取得的 World Truth。
 
-概念：
-
 ```text
 World Truth
         ↓
@@ -394,7 +419,7 @@ Narrative Projection
 
 ### 8.2 Knowledge Fact
 
-建議每個重要知識有穩定 ID：
+每個重要知識有穩定 ID：
 
 ```yaml
 id: fact_zhixia_dead_five_years
@@ -413,19 +438,18 @@ knowledge:
 
 Narrative Scene 若指定某角色直接說出一個 fact，author tooling 應能檢查該角色在該時間點是否具備此 Knowledge。
 
-v0.1 不要求建立完整邏輯證明器，但至少要能做到：
+v0.1 不要求建立完整 epistemic proof engine，但至少做到：
 
 - 未知 fact ID → validation error。
-- 明確標記 dialogue requires fact，但角色無此 fact → author warning/error。
+- dialogue 明確標記 `requires_fact`，但角色無此 fact → author validation failure。
 - Player narrative 不得自動讀取 hidden World Truth。
+- Character Card projection 只能使用 Player 已知 fact。
 
 ---
 
 ## 9. Character Base Schedule
 
 既有 Story Simulation 已有 NPC Base Schedule。Narrative Foundation 擴充原則為：**主角也必須有 Base Schedule**。
-
-概念：
 
 > 如果今天完全沒有神祕事件，主角本來會怎麼過這一天？
 
@@ -450,9 +474,9 @@ entries:
     activity: sort_belongings
 ```
 
-這些是 baseline life，不代表玩家一定照表走。
+這些是 baseline life，不代表玩家一定照表走。玩家介入、調查、外出或事件可以 override 後續 Activity。
 
-玩家介入、調查、外出或 observable event 可以 override 後續 Activity。
+Base Schedule 本身維持 immutable；世界線差異來自 state / override，而不是覆寫原始 YAML。
 
 ---
 
@@ -503,8 +527,6 @@ waiting
 
 ### 10.3 Activity Definition
 
-建議：
-
 ```yaml
 id: research_postmark
 category: investigation
@@ -525,9 +547,7 @@ interruptible: true
 
 ### 10.4 時間語意
 
-Narrative Scene 本身不消耗模擬時間。
-
-Activity 才會推進 World Time。
+Narrative Scene 本身不消耗 canonical World Time；Activity 才會推進 World Time。
 
 ```text
 Narrative Scene
@@ -536,43 +556,118 @@ Activity starts
     ↓
 Simulation advances
     ↓
-Activity completes or is interrupted
+Activity completes / event occurs
     ↓
 Narrative Scene
 ```
 
-不在 UI 顯示「故事暫停／世界暫停」。對玩家而言只是閱讀與行動自然交替。
+UI 不顯示「世界暫停」。對玩家而言只是閱讀與生活自然交替。
 
-### 10.5 Interrupt
+### 10.5 Real-world-linked mapping
 
-Observable Event 可以中斷 Activity：
+專案維持真實世界連動方向：
+
+```text
+1 real minute = 1 world minute
+```
+
+作為 v0.1 Player runtime 的預設 mapping。
+
+但 Story YAML 只記錄 world minutes / StoryTime，不寫真實 timestamp。真實 timestamp、anchor、fake clock 都屬 runtime concern，讓測試可以瞬間模擬數十分鐘或離線數小時。
+
+未來若產品測試發現 1:1 節奏不合適，可以替換 mapping policy，不需要改 Character Bible、Activity duration 或 Event Graph 的世界時間。
+
+### 10.6 Observation 不等於 Visibility
+
+`visibility: observable` 只代表「這個世界事實可以被玩家觀察」，不代表玩家此刻一定看見。
+
+真正投影到 Player Narrative 還要經過 observation condition，例如：
+
+```yaml
+observation:
+  channel: local
+  requires:
+    protagonist.location: old_station
+```
+
+或：
+
+```yaml
+observation:
+  channel: phone
+  requires:
+    phone_available: true
+```
+
+因此：
+
+```text
+World Event
+→ visibility allows observation
+→ observation condition matches protagonist context
+→ Player may receive Narrative Scene
+```
+
+主角在家做飯時，不應因為車站發生一個「理論上 observable」的現場事件就突然知道真相。
+
+### 10.7 Online interrupt
+
+若玩家當下在線，而且 observation condition 成立，重要事件可以中斷 Activity 的呈現：
 
 ```text
 16:20–17:00 查資料
 16:43 手機來電
-→ Activity paused/interrupted
+→ Activity presentation interrupted
 → Narrative Scene
 ```
 
-Hidden Event 不應中斷玩家：
+Activity 是否之後可繼續，由 activity / scene 定義決定。
+
+### 10.8 Offline semantics
+
+玩家離線時，**World Simulation 永遠不因 Narrative Scene 等待玩家而停止**。
+
+例如玩家 16:20 開始查資料後關閉遊戲：
+
+```text
+16:20 activity starts
+16:43 phone call occurs
+17:00 activity nominally completes
+17:30 reporter route changes [hidden]
+18:31 station event occurs
+```
+
+全部依世界時間正常解析。
+
+玩家 19:00 回來時，Narrative Projection 才根據 observation channel / persistence 規則決定看到：
+
+- 未接來電。
+- 留言。
+- 新訊息。
+- 已完成的調查結果。
+- 無法補看的現場事件則可能只留下「錯過」狀態，或完全未知。
+
+不能因為玩家離線而把 16:43 後的整個世界 freeze。
+
+### 10.9 Hidden event
+
+Hidden Event 不中斷玩家，也不產生 Narrative Scene：
 
 ```text
 16:40 reporter leaves hotel [hidden]
 ```
 
-玩家若在做飯，畫面仍只是做飯。
+即使玩家在線，若沒有可觀察來源，畫面仍只顯示主角正在做自己的事。
 
-### 10.6 Activity 的代價
+### 10.10 Activity 的代價
 
-Activity 的主要資源是「時間」。
-
-調查不是免費按鈕：
+Activity 的主要資源是時間。
 
 ```text
 查研究所資料
 → 花費世界時間
-→ NPC schedule 照常前進
-→ 可能錯過其他 observable event
+→ NPC schedules 照常前進
+→ 可能錯過其他 observation opportunity
 ```
 
 前期不必精確告訴玩家「需要 32 分鐘」。可以用小說語言：
@@ -588,8 +683,6 @@ Activity 的主要資源是「時間」。
 ### 11.1 角色
 
 Narrative Scene 負責小說呈現，不負責定義世界真相。
-
-建議資料：
 
 ```yaml
 id: scene_prologue_arrival
@@ -614,7 +707,7 @@ next:
 
 ### 11.2 Scene Block
 
-v0.1 可先支援：
+v0.1 支援：
 
 ```text
 narration
@@ -635,7 +728,22 @@ Choice 表示主角下一個可採取的行動，不直接指定結局：
   action_ref: visit_hospital
 ```
 
-Action 仍只改 state / schedule / activity，Event outcome 由 Simulator condition 決定。
+Action 仍只改 state / schedule / activity；Event outcome 由 Simulator condition 決定。
+
+### 11.4 Narrative Queue
+
+同一時間可能累積多個玩家可知內容。Player runtime 不應把它們全部同時彈出。
+
+Narrative Projection 產生 ordered queue：
+
+```text
+urgent interrupt
+→ direct message / call
+→ activity completion
+→ ambient observation
+```
+
+同優先級保持世界時間與 insertion order，確保 deterministic。
 
 ---
 
@@ -661,9 +769,7 @@ Artifact 是世界裡真的存在、玩家可以閱讀的物件，例如：
 xxx ＋
 ```
 
-不再由系統預先挑好「重要句子」。
-
-玩家首先取得的是完整 Artifact。
+不再由系統預先挑好「重要句子」。玩家首先取得的是完整 Artifact。
 
 未來若要記錄片段，可使用：
 
@@ -790,7 +896,7 @@ Character Graph 主要不是美術功能，而是長篇故事一致性工具。
 
 Narrative Foundation 不取代 simulator，而是建立其上層敘事與人物資料。
 
-需要允許之後調整：
+允許之後調整：
 
 - Loop 01 initial state。
 - 14:20–16:10 事件／schedule。
@@ -802,7 +908,7 @@ Narrative Foundation 不取代 simulator，而是建立其上層敘事與人物�
 
 - named worldline acceptance tests。
 - author Story Graph tests。
-- Player History visibility tests。
+- Player History visibility / observation tests。
 - cross-day / loop-end invariants。
 
 不得只改小說文本，卻讓 simulator 時間線維持另一套真相。
@@ -813,7 +919,7 @@ Narrative Foundation 不取代 simulator，而是建立其上層敘事與人物�
 
 Narrative Foundation 的實作必須避免破壞目前 GitHub Actions。
 
-### Spec 階段
+### 18.1 Spec 階段
 
 只修改：
 
@@ -821,9 +927,9 @@ Narrative Foundation 的實作必須避免破壞目前 GitHub Actions。
 docs/superpowers/specs/**
 ```
 
-目前 `Event Graph Viewer` workflow 的 path filter 不包含 docs，因此不觸發 viewer CI。
+目前 `Event Graph Viewer` workflow 的 path filter 不包含 docs，因此 spec-only branch 不應觸發 viewer CI。
 
-### Implementation 階段
+### 18.2 Implementation 階段
 
 採 stacked branch，基於已驗證綠燈的 Story Simulation v0.2。
 
@@ -837,9 +943,19 @@ RED test
 → 下一個 task
 ```
 
-不得在前一個 commit CI 尚未綠燈時繼續堆下一個 production task。
+不得在前一個 production commit CI 尚未綠燈時繼續堆下一個 production task。
 
 若修改 `.github/workflows/**`，必須作為獨立 task，不能和 Narrative feature 混在一起。
+
+### 18.3 Story data migration
+
+實作過程若刪除舊 prototype 資料：
+
+1. 先新增新版 schema / data 與讀取測試。
+2. 新 runtime 綠燈後才切換 consumer。
+3. consumer 綠燈後才刪除舊資料。
+
+避免「先刪舊 story.ts，再慢慢補新 renderer」造成 main branch 暫時不可用。
 
 ---
 
@@ -853,15 +969,19 @@ Narrative Foundation v0.1 完成時，至少要能回答／驗證：
 4. 初始 Knowledge Matrix 可被 author tooling 讀取。
 5. 主角有 Base Schedule。
 6. Activity 可以推進世界時間。
-7. observable event 可以 interrupt Activity。
-8. hidden event 不會中斷 Player Narrative。
-9. Narrative Scene 與 Event 是不同資料型別。
-10. Artifact 是完整物件，不再依賴預先挑選 excerpt。
-11. Prologue 可以從 14:20 走到約 16:10，前段包含真正的普通生活。
-12. 第七封信是在回到老家之後才被發現。
-13. Character Graph 可以呈現 author relationship data。
-14. Player Character Card 不洩漏 hidden facts。
-15. 所有修改後的 Story Simulation acceptance tests 仍保持綠燈。
+7. 預設 runtime mapping 可用 1 real minute = 1 world minute，且測試可使用 fake clock。
+8. observation condition 成立的在線事件可以 interrupt Activity presentation。
+9. 玩家離線時 World Simulation 仍持續前進。
+10. hidden event 不會中斷 Player Narrative。
+11. 玩家不在場時，local observable event 不會自動洩漏。
+12. Narrative Scene 與 Event 是不同資料型別。
+13. Artifact 是完整物件，不再依賴預先挑選 excerpt。
+14. Prologue 可以從 14:20 走到約 16:10，前段包含真正的普通生活。
+15. 第七封信是在回到老家之後才被發現。
+16. Character Graph 可以呈現 author relationship data。
+17. Player Character Card 不洩漏 hidden facts。
+18. 多個 Narrative Scene 的 projection 順序 deterministic。
+19. 所有修改後的 Story Simulation acceptance tests 仍保持綠燈。
 
 ---
 
@@ -893,9 +1013,9 @@ v0.1 不做：
 1. Character / Relationship / Knowledge schemas
 2. Core Character Bible data
 3. Protagonist Schedule + Activity model
-4. Narrative Scene + Artifact schema
+4. Observation + Narrative Scene + Artifact schemas
 5. Prologue source data
-6. Narrative projection runtime
+6. Narrative projection / offline reconciliation runtime
 7. Character Graph author tooling
 8. Story Simulation realignment
 9. Player Narrative Renderer
