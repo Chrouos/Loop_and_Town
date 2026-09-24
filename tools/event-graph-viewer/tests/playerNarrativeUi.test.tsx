@@ -20,13 +20,13 @@ const letter: ArtifactDefinition = {
 describe('player narrative UI', () => {
   it('renders prose without author/debug labels', () => {
     render(<NarrativeSurface blocks={[{ type: 'narration', text: '火車進站時，我差點沒認出月台。' }]} />);
-    expect(screen.getByText('火車進站時，我差點沒認出月台。')).toBeInTheDocument();
+    expect(screen.getByText('火車進站時，我差點沒認出月台。')).not.toBeNull();
     expect(screen.queryByText(/WORLDLINE|impactType|Knowledge \+|BAD END/i)).toBeNull();
   });
 
   it('renders Ambient Prose without progress UI', () => {
     render(<ActivitySurface timeLabel="15:41" title="正在看書" prose="茶已經沒有剛才那麼燙了。" />);
-    expect(screen.getByText('茶已經沒有剛才那麼燙了。')).toBeInTheDocument();
+    expect(screen.getByText('茶已經沒有剛才那麼燙了。')).not.toBeNull();
     expect(screen.queryByText(/%|剩餘|EXP/i)).toBeNull();
   });
 
@@ -39,10 +39,10 @@ describe('player narrative UI', () => {
   it('opens the physical letter without exposing author metadata', () => {
     render(<ArtifactSurface artifact={letter} />);
     fireEvent.click(screen.getByRole('button', { name: '翻到背面' }));
-    expect(screen.getByText(/灰潮郵局/)).toBeInTheDocument();
+    expect(screen.getByText(/灰潮郵局/)).not.toBeNull();
     fireEvent.click(screen.getByRole('button', { name: '拆開信封' }));
-    expect(screen.getByText('回來一趟。')).toBeInTheDocument();
-    expect(screen.getByText('如果午夜的鐘聲響起，就代表又失敗了。')).toBeInTheDocument();
+    expect(screen.getByText('回來一趟。')).not.toBeNull();
+    expect(screen.getByText('如果午夜的鐘聲響起，就代表又失敗了。')).not.toBeNull();
     expect(screen.queryByText(/Artifact ID/i)).toBeNull();
   });
 });
