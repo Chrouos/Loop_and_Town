@@ -1,0 +1,32 @@
+worldlines:
+  - id: WL-00
+    title: Baseline
+    action_ids: []
+
+  - id: WL-01
+    title: Postal
+    action_ids: [send_yuan_to_post_office]
+
+  - id: WL-02
+    title: Trust
+    action_ids: [show_letter_to_wakaharu]
+
+  - id: WL-03
+    title: Reporter
+    action_ids: [confront_reporter]
+
+  - id: WL-04
+    title: Rescue
+    action_ids: [protect_wakaharu]
+
+  - id: WL-05
+    title: Stop Doctor
+    action_ids: [stop_doctor]
+
+  - id: WL-06
+    title: Both
+    action_ids: [protect_wakaharu, stop_doctor]
+
+  - id: WL-07
+    title: Independence
+    action_ids: [protect_wakaharu, confront_reporter]

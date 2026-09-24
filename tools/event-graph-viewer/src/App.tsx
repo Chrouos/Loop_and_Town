@@ -4,18 +4,15 @@ import { ScenarioSimulator } from './components/ScenarioSimulator';
 import { TimelineView } from './components/TimelineView';
 import { ViewTabs, type ViewName } from './components/ViewTabs';
 import { WorldlineDiffView } from './components/WorldlineDiffView';
-import { loadEventGraph } from './lib/loadStory';
-import { loadSimulationStory } from './lib/loadSimulationStory';
-import { projectTimelineEntries, projectWorldlineEvents } from './simulator/projection';
-import { simulate } from './simulator/simulator';
-import type { SimulationDefinition, WorldState } from './simulator/types';
-import type { EventGraphDocument } from './types/story';
+import { loadSimulationStory, type StoryBundle } from './lib/loadSimulationStory';
+import { projectTimelineEntries } from './simulator/projection';
+import { projectStoryGraph } from './simulator/storyGraph';
+import { simulateStory } from './simulator/storySimulation';
+import { compareWorldlines } from './simulator/worldlineDiff';
 
 export default function App() {
   const [view, setView] = useState<ViewName>('graph');
-  const [document, setDocument] = useState<EventGraphDocument | null>(null);
-  const [definition, setDefinition] = useState<SimulationDefinition | null>(null);
-  const [initialState, setInitialState] = useState<WorldState | null>(null);
+  const [story, setStory] = useState<StoryBundle | null>(null);
   const [leftDraftActionIds, setLeftDraftActionIds] = useState<string[]>([]);
   const [rightDraftActionIds, setRightDraftActionIds] = useState<string[]>([]);
   const [appliedActionIds, setAppliedActionIds] = useState<{ left: string[]; right: string[] }>({
@@ -25,30 +22,24 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    Promise.all([
-      loadEventGraph('/story/events/day_01_1831.yaml'),
-      loadSimulationStory(),
-    ])
-      .then(([graph, simulationStory]) => {
-        setDocument(graph);
-        setDefinition(simulationStory.definition);
-        setInitialState(simulationStory.initialState);
-      })
+    loadSimulationStory('/story/manifests/loop_01.yaml')
+      .then(setStory)
       .catch((reason: unknown) => setError(reason instanceof Error ? reason.message : String(reason)));
   }, []);
 
+  const graphProjection = useMemo(() => story ? projectStoryGraph(story) : null, [story]);
+
   const generated = useMemo(() => {
-    if (!definition || !initialState) return null;
-    const left = simulate({ definition, initialState, actions: appliedActionIds.left, until: '23:59' });
-    const right = simulate({ definition, initialState, actions: appliedActionIds.right, until: '23:59' });
+    if (!story) return null;
+    const left = simulateStory({ story, actionIds: appliedActionIds.left });
+    const right = simulateStory({ story, actionIds: appliedActionIds.right });
     return {
       left,
       right,
-      timeline: projectTimelineEntries(right.history),
-      leftEvents: projectWorldlineEvents(left.history),
-      rightEvents: projectWorldlineEvents(right.history),
+      timeline: projectTimelineEntries(right.fullHistory),
+      diffRows: compareWorldlines(left, right, 'author'),
     };
-  }, [definition, initialState, appliedActionIds]);
+  }, [story, appliedActionIds]);
 
   function simulateDrafts() {
     setAppliedActionIds({
@@ -63,7 +54,11 @@ export default function App() {
         <div>
           <p className="eyebrow">灰潮鎮 · Narrative Debug Tool</p>
           <h1>Event Graph Viewer</h1>
-          {document && <p className="loaded">Loaded: {document.id} / {document.title}</p>}
+          {story && (
+            <p className="loaded">
+              Loaded: {story.loop.id} / {story.definition.events.length} events · {story.definition.actions.length} actions
+            </p>
+          )}
         </div>
         <ViewTabs value={view} onChange={setView} />
       </header>
@@ -73,12 +68,12 @@ export default function App() {
           <h2>無法載入 Event Graph</h2>
           <p>{error}</p>
         </section>
-      ) : !document || !definition || !initialState || !generated ? (
+      ) : !story || !graphProjection || !generated ? (
         <section className="panel loading-state">載入劇情資料中…</section>
       ) : (
         <>
           <ScenarioSimulator
-            actions={definition.actions}
+            actions={story.definition.actions}
             leftActionIds={leftDraftActionIds}
             rightActionIds={rightDraftActionIds}
             onLeftChange={setLeftDraftActionIds}
@@ -87,11 +82,11 @@ export default function App() {
           />
 
           {view === 'graph' ? (
-            <EventGraphView document={document} />
+            <EventGraphView projection={graphProjection} />
           ) : view === 'timeline' ? (
-            <TimelineView entries={generated.timeline} loopLabel="世界線 B" />
+            <TimelineView entries={generated.timeline} loopLabel="世界線 B · Author History" />
           ) : (
-            <WorldlineDiffView left={generated.leftEvents} right={generated.rightEvents} />
+            <WorldlineDiffView rows={generated.diffRows} />
           )}
         </>
       )}

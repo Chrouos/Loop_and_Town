@@ -1,0 +1,37 @@
+actions:
+  - id: send_yuan_to_post_office
+    at: { day: 0, time: "15:00" }
+    label: 請周予安去郵局查寄件紀錄
+    visibility: observable
+    effects:
+      - set: { path: characters.yuan.assignment, value: post_office }
+      - add_flag: flags.yuan_sent_to_post_office
+
+  - id: show_letter_to_wakaharu
+    at: { day: 0, time: "16:10" }
+    label: 把姊姊的信給若晴看
+    visibility: observable
+    effects:
+      - add_flag: flags.wakaharu_saw_letter
+
+  - id: confront_reporter
+    at: { day: 0, time: "16:40" }
+    label: 拆穿葉庭安
+    visibility: observable
+    effects:
+      - add_flag: flags.reporter_confronted
+      - set: { path: characters.reporter.route, value: hotel_then_old_lab }
+
+  - id: protect_wakaharu
+    at: { day: 0, time: "17:30" }
+    label: 阻止若晴前往舊車站
+    visibility: observable
+    effects:
+      - set: { path: characters.wakaharu.route, value: home }
+
+  - id: stop_doctor
+    at: { day: 0, time: "17:30" }
+    label: 阻止陳柏勳前往舊車站
+    visibility: observable
+    effects:
+      - set: { path: characters.doctor.route, value: stay_hospital }

@@ -1,0 +1,9 @@
+id: evt_1610_wakaharu_cafe
+title: 咖啡店裡的若晴
+at: { day: 0, time: "16:10" }
+visibility: observable
+variants:
+  - id: met_wakaharu
+    priority: 0
+    fallback: true
+    effects: []

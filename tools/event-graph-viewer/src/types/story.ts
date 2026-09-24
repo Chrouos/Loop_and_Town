@@ -32,7 +32,7 @@ export type EventGraphDocument = {
   notes: string[];
 };
 
-export type GraphNodeRole = 'event' | 'variant' | 'delayed';
+export type GraphNodeRole = 'action' | 'schedule' | 'event' | 'variant' | 'delayed';
 
 export type GraphNode = {
   id: string;
@@ -56,7 +56,9 @@ export type GraphProjection = {
 };
 
 export type WorldlineEntry = {
+  day?: number;
   time: string;
+  absoluteMinute?: number;
   eventId: string;
   variantId?: string;
   title: string;
