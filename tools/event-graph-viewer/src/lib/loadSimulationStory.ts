@@ -53,8 +53,9 @@ export type StoryBundle = {
 };
 
 async function loadYaml(path: string): Promise<unknown> {
-  const response = await fetch(path);
-  if (!response.ok) throw new Error(`HTTP ${response.status}: ${path}`);
+  const requestPath = path.startsWith('/') ? path.slice(1) : path;
+  const response = await fetch(requestPath);
+  if (!response.ok) throw new Error(`HTTP ${response.status}: ${requestPath}`);
   return yaml.load(await response.text());
 }
 
