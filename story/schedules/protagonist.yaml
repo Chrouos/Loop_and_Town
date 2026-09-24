@@ -1,7 +1,7 @@
 character_id: protagonist
 entries:
   - id: protagonist_arrive
-    at: "14:20"
+    at: "14:25"
     activity_id: walk_home
   - id: protagonist_groceries
     at: "14:30"

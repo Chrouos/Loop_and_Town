@@ -1,6 +1,6 @@
 activities:
   - id: walk_home
-    duration_minutes: 10
+    duration_minutes: 5
     interruptible: true
     presentation:
       start: 我拖著行李離開車站，沿著以前走慣的路往老街走。
