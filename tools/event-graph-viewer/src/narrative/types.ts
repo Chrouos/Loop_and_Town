@@ -111,6 +111,7 @@ export type NarrativeSceneKind = 'narration' | 'dialogue' | 'artifact' | 'activi
 export type NarrativeSceneDefinition = {
   id: string;
   at: StoryTimeInput;
+  availableUntil?: StoryTimeInput;
   kind: NarrativeSceneKind;
   participants: string[];
   blocks: NarrativeBlock[];
