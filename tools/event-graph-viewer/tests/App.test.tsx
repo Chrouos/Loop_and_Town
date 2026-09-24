@@ -10,7 +10,7 @@ const rawStoryFiles = import.meta.glob('../../../story/**/*.yaml', {
 
 function responseFor(input: RequestInfo | URL) {
   const pathname = String(input).replace(/^https?:\/\/[^/]+/, '');
-  const suffix = pathname.startsWith('/story/') ? pathname.slice('/story/'.length) : pathname;
+  const suffix = pathname.replace(/^\/?story\//, '');
   const key = Object.keys(rawStoryFiles).find((candidate) => candidate.endsWith(`/story/${suffix}`));
   if (!key) return { ok: false, status: 404, text: async () => '' };
   return { ok: true, status: 200, text: async () => rawStoryFiles[key] };

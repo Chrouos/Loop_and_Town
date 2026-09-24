@@ -23,7 +23,7 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    loadSimulationStory('/story/manifests/loop_01.yaml')
+    loadSimulationStory('story/manifests/loop_01.yaml')
       .then(setStory)
       .catch((reason: unknown) => setError(reason instanceof Error ? reason.message : String(reason)));
   }, []);

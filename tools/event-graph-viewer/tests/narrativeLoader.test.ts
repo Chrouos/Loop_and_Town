@@ -39,7 +39,7 @@ it('loads narrative documents beside simulation data', () => {
 
 it('fetches each narrative manifest reference exactly once', async () => {
   const files: Record<string, string> = {
-    '/story/manifests/test.yaml': [
+    'story/manifests/test.yaml': [
       'loop: loops/loop_01.yaml',
       'world: world/loop_01_initial.yaml',
       'schedules: []',
@@ -57,11 +57,11 @@ it('fetches each narrative manifest reference exactly once', async () => {
       '  - artifacts/zhixia_letter.yaml',
       '',
     ].join('\n'),
-    '/story/loops/loop_01.yaml': 'id: loop\nrange: { start: "14:20", end: { day: 1, time: "00:00" } }\n',
-    '/story/world/loop_01_initial.yaml': 'clock: { day: 0, time: "14:20" }\nflags: {}\n',
-    '/story/actions/loop_01_actions.yaml': 'actions: []\n',
-    '/story/worldlines/loop_01_worldlines.yaml': 'worldlines: []\n',
-    '/story/characters/protagonist.yaml': [
+    'story/loops/loop_01.yaml': 'id: loop\nrange: { start: "14:20", end: { day: 1, time: "00:00" } }\n',
+    'story/world/loop_01_initial.yaml': 'clock: { day: 0, time: "14:20" }\nflags: {}\n',
+    'story/actions/loop_01_actions.yaml': 'actions: []\n',
+    'story/worldlines/loop_01_worldlines.yaml': 'worldlines: []\n',
+    'story/characters/protagonist.yaml': [
       'id: protagonist',
       'name: 主角',
       'identity: {}',
@@ -72,12 +72,12 @@ it('fetches each narrative manifest reference exactly once', async () => {
       'secrets: []',
       '',
     ].join('\n'),
-    '/story/relationships/loop_01.yaml': 'relationships: []\n',
-    '/story/knowledge/facts.yaml': 'facts: []\n',
-    '/story/activities/protagonist.yaml': 'activities: []\n',
-    '/story/schedules/protagonist.yaml': 'character_id: protagonist\nentries: []\n',
-    '/story/narrative/loop_01_prologue.yaml': 'scenes: []\n',
-    '/story/artifacts/zhixia_letter.yaml': [
+    'story/relationships/loop_01.yaml': 'relationships: []\n',
+    'story/knowledge/facts.yaml': 'facts: []\n',
+    'story/activities/protagonist.yaml': 'activities: []\n',
+    'story/schedules/protagonist.yaml': 'character_id: protagonist\nentries: []\n',
+    'story/narrative/loop_01_prologue.yaml': 'scenes: []\n',
+    'story/artifacts/zhixia_letter.yaml': [
       'id: zhixia_letter',
       'kind: letter',
       'author: zhixia',
@@ -93,7 +93,7 @@ it('fetches each narrative manifest reference exactly once', async () => {
   });
   vi.stubGlobal('fetch', fetchMock);
 
-  const story = await loadSimulationStory('/story/manifests/test.yaml');
+  const story = await loadSimulationStory('story/manifests/test.yaml');
   expect(story.narrative.characters[0].id).toBe('protagonist');
   expect(story.narrative.artifacts[0].id).toBe('zhixia_letter');
 

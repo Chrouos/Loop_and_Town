@@ -53,9 +53,8 @@ export type StoryBundle = {
 };
 
 async function loadYaml(path: string): Promise<unknown> {
-  const requestPath = path.startsWith('/') ? path.slice(1) : path;
-  const response = await fetch(requestPath);
-  if (!response.ok) throw new Error(`HTTP ${response.status}: ${requestPath}`);
+  const response = await fetch(path);
+  if (!response.ok) throw new Error(`HTTP ${response.status}: ${path}`);
   return yaml.load(await response.text());
 }
 
@@ -264,7 +263,7 @@ export function buildStoryBundleFromDocuments(input: {
 
 async function loadManifestStory(manifestPath: string): Promise<StoryBundle> {
   const manifest = asManifest(await loadYaml(manifestPath));
-  const base = '/story/';
+  const base = 'story/';
   const [loop, initialState, actions, worldlines, schedules, events, characters, relationships, knowledge, activities, protagonistSchedule, narrative, artifacts] = await Promise.all([
     loadYaml(base + manifest.loop),
     loadYaml(base + manifest.world),
@@ -299,10 +298,10 @@ async function loadManifestStory(manifestPath: string): Promise<StoryBundle> {
 
 async function loadLegacyStory(): Promise<StoryBundle> {
   const [initialState, actionsDocument, event1831, event2114] = await Promise.all([
-    loadYaml('/story/world/day_01_initial.yaml'),
-    loadYaml('/story/actions/day_01_actions.yaml'),
-    loadYaml('/story/events/day_01_1831.yaml'),
-    loadYaml('/story/events/day_01_2114.yaml'),
+    loadYaml('story/world/day_01_initial.yaml'),
+    loadYaml('story/actions/day_01_actions.yaml'),
+    loadYaml('story/events/day_01_1831.yaml'),
+    loadYaml('story/events/day_01_2114.yaml'),
   ]);
   const actions = (actionsDocument as { actions?: ActionDefinition[] })?.actions;
   if (!initialState || typeof initialState !== 'object' || !Array.isArray(actions)) {
