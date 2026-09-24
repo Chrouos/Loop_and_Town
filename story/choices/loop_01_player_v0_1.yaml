@@ -246,6 +246,7 @@ choices:
   - id: message_call_back
     scene_id: scene_wakaharu_message
     label: 打給她
+    available_until: 1080
     effects:
       - type: start-activity
         activity_id: wait_for_call
