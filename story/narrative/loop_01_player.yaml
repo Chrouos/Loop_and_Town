@@ -35,6 +35,28 @@ scenes:
       - type: monologue
         text: 我只說沒關係。走出店門後，水瓶一直冰著掌心。
 
+  - id: prologue_yuan_reunion
+    at: { day: 0, time: "14:40" }
+    availableUntil: { day: 0, time: "15:30" }
+    kind: dialogue
+    participants: [protagonist, yuan]
+    requiresLocation: old_house
+    blocks:
+      - type: narration
+        text: 我還在跟門鎖較勁時，巷口有人叫了我的名字。
+      - type: narration
+        text: 周予安。高中同學，也是我離開灰潮鎮後少數還偶爾聯絡的人。
+      - type: dialogue
+        speaker: yuan
+        text: 妳真的回來了。我還以為妳會拖到房仲自己來催。
+        factId: fact_protagonist_returned_to_sell_house
+      - type: monologue
+        text: 他講話還是老樣子，像五年只隔了一個週末。
+      - type: dialogue
+        speaker: yuan
+        text: 店還在老地方。有空就過來，我請妳喝咖啡。
+        factId: fact_yuan_runs_clock_shop
+
   - id: prologue_old_house
     at: { day: 0, time: "14:20" }
     kind: narration
