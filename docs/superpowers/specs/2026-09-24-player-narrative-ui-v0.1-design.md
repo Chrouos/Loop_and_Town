@@ -1,7 +1,7 @@
 # Player Narrative UI v0.1 Design
 
 日期：2026-09-24  
-狀態：待審閱  
+狀態：待審閱（self-review complete）  
 基底：`docs/narrative-foundation-v0.1` @ `dd87a225559eb10359781caa6ae47ca7edffa680`  
 範圍：Loop 01，Day 0 14:20 → 18:31 第一個可玩 vertical slice
 
@@ -253,6 +253,68 @@ Production Story semantics 不因測試加速而改變。
 - real-time elapsed while world is running。
 
 推進。
+
+### 4.4 Absolute World Time 與 Player-relative Scene Time
+
+14:20～16:00 的 Prologue 時間是 **baseline / nominal timeline**，不是所有 Scene 都強制固定在該分鐘。
+
+必須分成兩類：
+
+```text
+Fixed World Event
+= 不管玩家做什麼，世界在該 Story Time 解析
+例如：NPC schedule、18:31 station event
+
+Player-relative Scene / Activity
+= 何時發生取決於玩家前面花掉多少時間與所在位置
+例如：買咖啡、整理房間、發現信、去咖啡店
+```
+
+因此：
+
+```text
+Baseline
+14:20 arrive
+14:30 groceries
+14:40 Yuan encounter
+15:00 old house
+16:00 discover letter
+```
+
+不代表玩家買咖啡多花 8 分鐘後，系統仍把她瞬移回 baseline。
+
+普通生活 Choice 的時間成本必須真的累積。
+
+### 4.5 林知夏的信：存在時間與發現時間分離
+
+信件本身在玩家回到老家前就已經存在於世界中。
+
+```text
+Artifact exists at old house
+≠
+Player has discovered artifact
+```
+
+`16:00` 是 baseline route 的預期發現時間，不是固定強制 Event。
+
+玩家若先做更多生活 Activity，可以更晚才整理到那封信；直接回家、優先整理郵件則可以更早發現。
+
+因此「發現信」是 observation / interaction result，而不是 UI 到 16:00 自動送出 Artifact。
+
+### 4.6 周予安第一次出場的時間也允許路徑差異
+
+周予安第一次出場必須在 v0.1 早期自然完成角色介紹，但不必靠固定 14:40 瞬移。
+
+可以依 route 使用：
+
+- 老街相遇。
+- 店門口相遇。
+- 主角回家途中遇到。
+- 其他同等自然的 alternate scene。
+
+其時間與位置可以依玩家前面的生活 Choice 偏移。
+
+Author data 必須確保第一個 vertical slice 至少存在一條合理 fallback，不因玩家買咖啡就永久失去核心人物介紹。
 
 ---
 
@@ -637,7 +699,35 @@ UI 不應因為「時間不足」而阻止玩家出發。
 
 只有玩家正式打開需要決策的 Scene 時，才凍結該決策瞬間。
 
-不是整個世界永久 freeze；提交行動後重新恢復 world progression。
+同一個前景 runtime session 中：
+
+```text
+17:56 打開訊息 Scene
+→ decisionAt = 17:56
+→ 閱讀 / 思考的真實時間不計入 Story Time
+→ 17:56 的有效 Choice 不因玩家讀得慢而消失
+→ 提交後從 17:56 繼續
+```
+
+這個 freeze 是 **foreground interaction lease**，不是可永久保存的世界暫停。
+
+### 9.5 Decision Freeze 不跨離線持久化
+
+若玩家在決策 Scene 開啟後關閉／離開遊戲：
+
+- 不自動替玩家提交 Choice。
+- 不把 freeze token 存成永久 pause。
+- 下次回來先做 offline reconciliation。
+- 再依新的 current Story Time 重新投影 Scene / Choice。
+- 原本 17:56 可用的回覆，在 18:08 可能已經不存在。
+
+因此同時滿足：
+
+```text
+閱讀速度不成為操作能力
++
+玩家離線時世界仍不等待
+```
 
 ---
 
@@ -724,6 +814,8 @@ Player Character Card 是 Character Bible 的 projection，不是 Author Truth�
 
 ## 12. 14:20 → 18:31 First Vertical Slice
 
+本節時間代表 baseline route；除 fixed world events 外，玩家的生活 choice 可以讓 Scene 提前、延後、換地點或錯過。
+
 ### 12.1 14:20–16:00：普通返鄉生活
 
 玩家尚不知道這是一個因果推理遊戲。
@@ -735,11 +827,11 @@ Player Character Card 是 Character Bible 的 projection，不是 Author Truth�
 ├─ 去便利商店
 └─ 直接回家
         ↓
-14:40 左右 周予安
+約 14:40 周予安第一次出場（route-dependent）
         ↓
 普通寒暄
         ↓
-15:00 老家
+約 15:00 老家
 │
 ├─ 整理廚房
 ├─ 整理書房
@@ -750,14 +842,16 @@ Player Character Card 是 Character Bible 的 projection，不是 Author Truth�
         ↓
 看書 / 喝茶 / 整理 / 散步
         ↓
-約 16:00 發現信件
+baseline 約 16:00 發現信件
 ```
 
 這段大量選項主要改生活節奏、背景資訊與時間，不要求每個都是伏筆。
 
-### 12.2 16:00：第一個異常
+### 12.2 發現信：第一個異常
 
 看到林知夏寄來、郵戳為昨天的信。
+
+發現時間依玩家前面 Activity 而變動。
 
 玩家可以：
 
@@ -772,7 +866,7 @@ Player Character Card 是 Character Bible 的 projection，不是 Author Truth�
 
 Ambient prose 可以開始受信件存在影響。
 
-### 12.3 16:10 後：自然調查
+### 12.3 發現信後：自然調查
 
 不顯示「主線任務」。
 
@@ -799,11 +893,11 @@ Ambient prose 可以開始受信件存在影響。
 
 其中請予安去郵局可能改變他 18:10 的位置，因此改變 observation，但玩家第一輪不知道。
 
-### 12.5 16:30 若晴
+### 12.5 約 16:30 若晴
 
 若晴不是強制瞬移出現的 NPC。
 
-玩家有機會去咖啡店，也可以不去。
+玩家有機會去咖啡店，也可以不去；實際抵達時間取決於前面已花掉的時間。
 
 若見到她，可自然選：
 
@@ -845,15 +939,17 @@ Ambient prose 可以開始受信件存在影響。
 
 ### 12.7 17:40 世界自行運作
 
-陳柏勳依 schedule 離院。
+陳柏勳依 fixed NPC schedule 離院。
 
 玩家只有在合理位置／channel 才知道。
 
-### 12.8 17:55 Deadline 第一次明顯出現
+### 12.8 約 17:55 Deadline 第一次明顯出現
 
 若晴可能傳訊息：
 
 > 我準備出門了。
+
+訊息送出的實際條件由 story data / schedule 定義，不要求 UI 強制剛好 17:55 才顯示。
 
 玩家不查看，世界就繼續。
 
@@ -862,6 +958,8 @@ Ambient prose 可以開始受信件存在影響。
 ### 12.9 18:05 Observation Window
 
 醫生抵達車站。
+
+這是 fixed world event / schedule consequence。
 
 只有玩家當下能合理觀察才知道。
 
@@ -899,6 +997,8 @@ Knowledge 差異不等於自動改寫 18:31 結果。
 若從太遠地方太晚出發，可以在 18:31 事件後才抵達。
 
 ### 12.13 18:31 第一個世界線結果
+
+18:31 是 fixed world event。
 
 由 Simulator condition 解析：
 
@@ -1014,6 +1114,23 @@ artifact → 一旦取得可重開
 
 v0.1 不需要完整地圖尋路系統，只需要 authored location-to-location travel durations。
 
+### 15.5 Temporal Ownership Validation
+
+Author tooling / tests 至少要能區分：
+
+- fixed absolute world event。
+- player-relative scene/activity。
+
+並防止同一段 story 同時宣告：
+
+```text
+「選擇會延遲 8 分鐘」
++
+「下一個 player-relative scene 永遠固定在原時間」
+```
+
+這類矛盾。
+
 ---
 
 ## 16. Testing / CI Safety
@@ -1052,12 +1169,16 @@ targeted tests
 - 14:20 → 18:31 deterministic replay。
 - Scene 閱讀不推進 Story Time。
 - Activity 推進 Story Time。
+- 普通 Choice 的 duration 真的會偏移後續 player-relative scene。
+- fixed 18:31 event 不因前面 player-relative scene 偏移而改時刻。
+- 信件存在時間與玩家發現時間分離。
 - Ambient beat ordering / non-repeat。
 - hidden event 不進 Player Narrative。
 - local observation 錯過後不自動補知識。
 - phone message 離線後可持久化。
 - response deadline 改變可用 Choice。
 - 打開 decision scene 後不因真實閱讀時間失效。
+- decision freeze 不跨 reload / offline 持久化。
 - travel 太晚出發仍允許，但可能 18:31 後抵達。
 - Choice UI 不暴露 impact type。
 - 不同 submitted actions 可由同一 Simulator 產生不同 18:31 outcome。
@@ -1129,22 +1250,24 @@ current main
 Player Narrative UI v0.1 完成時，必須能實際做到：
 
 1. 玩家從 14:20 以小說形式開始，而不是案件 Dashboard。
-2. 14:20–16:00 至少有多個普通生活 choice，且不同 choice 留下可觀察差異。
-3. Diegetic Activity 期間 World Time 真正前進，並顯示與活動一致的 Ambient Prose。
-4. Ambient Prose 不變成 random spam，且可依 context 改變。
-5. 16:00 的信以 Artifact 形式實際演出。
-6. 玩家可以暫時忽略信件，世界仍繼續。
-7. 主線後有多個 Knowledge / Schedule / World Intervention 類型的 choice，但玩家 UI 不區分。
-8. 玩家不可能靠「把所有選項都點過」取得最佳結果，因為時間與 observation window 有成本。
-9. phone / local observation / offline reconciliation 依不同 persistence policy 正確處理。
-10. Deadline 不使用遊戲化 countdown UI。
-11. 玩家打開 decision scene 後可以慢慢閱讀，不因閱讀速度損失選項。
-12. 太晚出發仍允許 travel，並可在事件後才抵達。
-13. 18:31 outcome 由 Story Simulator 決定，不由 Player UI hard-code。
-14. 至少可透過不同玩家行動看到不同 18:31 結果。
-15. Player surface 從頭到尾不暴露 hidden truth / author impact classification。
-16. Author Viewer 仍可正常使用。
-17. Full test suite 與 production build 綠燈。
+2. 14:20–16:00 至少有多個普通生活 choice，且不同 choice 留下可觀察差異與實際時間差。
+3. Prologue baseline 時間不會把玩家強制瞬移回固定 Scene；player-relative scenes 會依前面時間成本偏移。
+4. Diegetic Activity 期間 World Time 真正前進，並顯示與活動一致的 Ambient Prose。
+5. Ambient Prose 不變成 random spam，且可依 context 改變。
+6. 林知夏的信「存在」與「被發現」分離，並以 Artifact 形式實際演出。
+7. 玩家可以暫時忽略信件，世界仍繼續。
+8. 主線後有多個 Knowledge / Schedule / World Intervention 類型的 choice，但玩家 UI 不區分。
+9. 玩家不可能靠「把所有選項都點過」取得最佳結果，因為時間與 observation window 有成本。
+10. phone / local observation / offline reconciliation 依不同 persistence policy 正確處理。
+11. Deadline 不使用遊戲化 countdown UI。
+12. 玩家在同一前景 session 打開 decision scene 後可以慢慢閱讀，不因閱讀速度損失選項。
+13. 關閉／離開遊戲後 decision freeze 不持久化；回來時世界依 elapsed time 重新 reconcile。
+14. 太晚出發仍允許 travel，並可在事件後才抵達。
+15. 18:31 outcome 由 Story Simulator 決定，不由 Player UI hard-code。
+16. 至少可透過不同玩家行動看到不同 18:31 結果。
+17. Player surface 從頭到尾不暴露 hidden truth / author impact classification。
+18. Author Viewer 仍可正常使用。
+19. Full test suite 與 production build 綠燈。
 
 ---
 
