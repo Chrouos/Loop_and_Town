@@ -52,18 +52,14 @@ it('does not reveal events that have not happened yet', () => {
   })).toBe(false);
 });
 
-it('projects an offline phone event as deferred narrative without raw changes', () => {
-  const result = projectObservation(stationEntry, { channel: 'phone', offlineMode: 'deferred' }, {
+it('leaves offline phone persistence to the inbox reconciler', () => {
+  const result = projectObservation(stationEntry, { channel: 'phone', persistence: 'message' }, {
     protagonistLocation: 'old_house',
     online: false,
     channels: ['phone'],
     minute: 1120,
   });
-  expect(result).toEqual(expect.objectContaining({
-    channel: 'deferred',
-    sourceId: 'evt_1831_station',
-  }));
-  expect('changes' in (result ?? {})).toBe(false);
+  expect(result).toBeNull();
 });
 
 it('keeps missed in-person events unknown while offline', () => {
