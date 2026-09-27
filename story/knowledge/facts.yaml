@@ -33,3 +33,5 @@ facts:
     summary: 便利商店老闆一度把主角錯認成林知夏。
   - id: fact_zhixia_letter_received
     summary: 主角已發現並讀到林知夏署名、郵戳為昨天的信。
+  - id: fact_zhixia_borrowed_audio_adapter
+    summary: 五年前林知夏在死亡前一天曾向周家鐘錶店借用舊式音訊轉接器，紙本維修簿留有紀錄。
