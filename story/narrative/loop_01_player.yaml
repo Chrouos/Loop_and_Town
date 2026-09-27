@@ -482,7 +482,7 @@ scenes:
 
   - id: scene_2240_watch_warning
     at: { day: 0, time: "22:40" }
-    kind: artifact
+    kind: narration
     participants: [protagonist, yuan]
     sourceEventId: evt_2240_sister_warning
     sourceVariantId: warning_found
@@ -496,7 +496,7 @@ scenes:
         text: 他用細薄的開錶刀沿著缺口一轉。金屬後蓋彈開時，我們兩個都沒有說話。
       - type: narration
         text: 內側有一行幾乎被磨掉的刻字。
-      - type: artifact
+      - type: narration
         text: 如果你第二次看見 18:31，不要先救第一個死者。
       - type: dialogue
         speaker: protagonist
@@ -574,7 +574,7 @@ scenes:
         text: 五年前就拆了。上面現在根本沒有鐘。
       - type: narration
         text: 第二聲響起。我把桌上的信翻到最後一行。
-      - type: artifact
+      - type: narration
         text: 如果午夜鐘聲響起，就代表又失敗了。
       - type: narration
         text: 第十二聲落下時，廚房的燈熄了。
@@ -594,7 +594,7 @@ scenes:
         text: 行李箱好好地躺在頭頂的置物架。手機裡沒有若晴的訊息，沒有警局的通話紀錄，也沒有今天拍下的照片。
       - type: narration
         text: 只有外套口袋裡的信還在。
-      - type: artifact
+      - type: narration
         text: 這是第幾次了？
       - type: narration
         text: 車內廣播在同一秒響起。
