@@ -71,6 +71,9 @@ export default function App() {
       fetchText('story/narrative/loop_05_player.yaml').then(parseNarrativeAddendum),
       fetchText('story/events/loop_05_story_dag.yaml').then(parseStoryDagText),
       fetchText('story/worldlines/loop_05_paths.yaml').then(parseStoryWorldlinePathsText),
+      fetchText('story/narrative/loop_06_player.yaml').then(parseNarrativeAddendum),
+      fetchText('story/events/loop_06_story_dag.yaml').then(parseStoryDagText),
+      fetchText('story/worldlines/loop_06_paths.yaml').then(parseStoryWorldlinePathsText),
     ])
       .then(([
         loadedStory,
@@ -86,14 +89,25 @@ export default function App() {
         loop05Scenes,
         loop05Dag,
         loop05Paths,
+        loop06Scenes,
+        loop06Dag,
+        loop06Paths,
       ]) => {
-        loadedStory.narrative.scenes.push(...loop02Scenes, ...loop03Scenes, ...loop04Scenes, ...loop05Scenes);
+        loadedStory.narrative.scenes.push(
+          ...loop02Scenes,
+          ...loop03Scenes,
+          ...loop04Scenes,
+          ...loop05Scenes,
+          ...loop06Scenes,
+        );
         const dagWithLoop03 = mergeStoryDags(dag, loop03Dag);
         const dagWithLoop04 = mergeStoryDags(dagWithLoop03, loop04Dag);
-        const allDag = mergeStoryDags(dagWithLoop04, loop05Dag);
+        const dagWithLoop05 = mergeStoryDags(dagWithLoop04, loop05Dag);
+        const allDag = mergeStoryDags(dagWithLoop05, loop06Dag);
         const pathsWithLoop03 = mergeStoryPaths(paths, loop03Paths);
         const pathsWithLoop04 = mergeStoryPaths(pathsWithLoop03, loop04Paths);
-        const allPaths = mergeStoryPaths(pathsWithLoop04, loop05Paths);
+        const pathsWithLoop05 = mergeStoryPaths(pathsWithLoop04, loop05Paths);
+        const allPaths = mergeStoryPaths(pathsWithLoop05, loop06Paths);
 
         setStory(loadedStory);
         setStoryDag(allDag);
