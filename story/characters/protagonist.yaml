@@ -1,0 +1,32 @@
+id: protagonist
+name: 主角
+identity:
+  hometown: 灰潮鎮
+background:
+  summary: 五年前因姊姊林知夏死亡離開灰潮鎮；這次回來整理長期空置的老家，準備出售。
+  history:
+    - 在灰潮鎮長大，與周予安是高中同學。
+    - 林知夏死亡後離開故鄉，五年間很少回來。
+personality:
+  traits:
+    - 觀察細節
+    - 對熟悉的人較柔軟
+    - 面對姊姊相關話題時容易迴避
+  habits:
+    - 緊張時會重複確認日期與時間
+    - 習慣先把事情整理好再做判斷
+  dislikes:
+    - 被替自己下結論
+speech:
+  tone: quiet
+  calls:
+    yuan: 予安
+    zhixia: 姊姊
+knowledge:
+  initial:
+    - fact_zhixia_dead_five_years
+    - fact_yuan_runs_clock_shop
+    - fact_protagonist_returned_to_sell_house
+  hidden: []
+secrets: []
+schedule_ref: schedules/protagonist.yaml

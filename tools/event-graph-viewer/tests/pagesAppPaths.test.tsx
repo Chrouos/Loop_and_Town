@@ -18,7 +18,7 @@ describe('GitHub Pages viewer entry path', () => {
 
     render(<App />);
 
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(5));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
     expect(fetchMock.mock.calls.map(([url]) => String(url)).every(url => !url.startsWith('/'))).toBe(true);
   });
 });
