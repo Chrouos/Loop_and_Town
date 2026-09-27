@@ -8,6 +8,18 @@ import type {
 import { parseStoryDagText } from '../src/lib/loadStory';
 import { buildStoryDagProjection, validateStoryDag } from '../src/lib/storyDag';
 
+const rawStoryFiles = import.meta.glob('../../../story/**/*.yaml', {
+  query: '?raw',
+  import: 'default',
+  eager: true,
+}) as Record<string, string>;
+
+function realStoryFile(suffix: string): string {
+  const key = Object.keys(rawStoryFiles).find((candidate) => candidate.endsWith(`/story/${suffix}`));
+  if (!key) throw new Error(`Missing story fixture: ${suffix}`);
+  return rawStoryFiles[key];
+}
+
 const node: StoryDagNode = {
   id: 'N01_wakaharu_photography',
   title: '與若晴聊攝影',
@@ -82,6 +94,39 @@ describe('Story DAG canonical shape', () => {
   it('represents a worldline as a path through the DAG', () => {
     expect(path.nodeIds).toEqual(['N01_wakaharu_photography']);
     expect(path.visibility).toBe('public');
+  });
+
+  it('covers the full first day from arrival through reset with three 18:31 outcomes', () => {
+    const realDag = parseStoryDagText(realStoryFile('events/day_01_story_dag.yaml'));
+    const ids = new Set(realDag.nodes.map((item) => item.id));
+    for (const id of [
+      'N00_arrival_graytide',
+      'N00_letter_discovered',
+      'N00_search_zhixia_room',
+      'N20_convergence_1831',
+      'N21_wakaharu_dies',
+      'N22_doctor_dies',
+      'N23_no_death',
+      'N27_watch_message',
+      'N28_impossible_bell',
+      'N29_midnight_reset',
+    ]) {
+      expect(ids.has(id), `missing ${id}`).toBe(true);
+    }
+
+    const afterConvergence = realDag.edges
+      .filter((item) => item.source === 'N20_convergence_1831')
+      .map((item) => item.target);
+    expect(afterConvergence).toEqual(expect.arrayContaining([
+      'N21_wakaharu_dies',
+      'N22_doctor_dies',
+      'N23_no_death',
+    ]));
+
+    for (const outcome of ['N21_wakaharu_dies', 'N22_doctor_dies', 'N23_no_death']) {
+      expect(realDag.edges.some((edge) => edge.source === outcome && edge.target === 'N24_evening_continues')).toBe(true);
+    }
+    expect(realDag.edges.some((edge) => edge.source === 'N28_impossible_bell' && edge.target === 'N29_midnight_reset')).toBe(true);
   });
 });
 
