@@ -72,7 +72,8 @@ export function NodeDetailPanel({ node, narrativeScenes, downstreamTitles }: Pro
             <strong>{scene.id}</strong>
             {(scene.blocks ?? []).filter((block) => block.text).map((block, index) => (
               <p key={`${scene.id}-${index}`}>
-                {block.speaker ? `${block.speaker}：` : ''}{block.text}
+                {block.speaker && <span className="narrative-speaker">{block.speaker}：</span>}
+                <span>{block.text}</span>
               </p>
             ))}
           </article>
