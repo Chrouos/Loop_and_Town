@@ -1,0 +1,301 @@
+choices:
+  - id: arrival_coffee
+    scene_id: prologue_arrival
+    label: 先去買杯咖啡
+    effects:
+      - type: start-activity
+        activity_id: buy_coffee
+      - type: learn-fact
+        fact_id: fact_cafe_resident_chatter
+
+  - id: arrival_convenience_store
+    scene_id: prologue_arrival
+    label: 去便利商店買水
+    effects:
+      - type: start-activity
+        activity_id: visit_convenience_store
+      - type: learn-fact
+        fact_id: fact_shopkeeper_mistook_protagonist_for_zhixia
+
+  - id: arrival_home_direct
+    scene_id: prologue_arrival
+    label: 直接回家
+    effects:
+      - type: travel
+        to: old_house
+
+  - id: coffee_go_home
+    scene_id: prologue_after_coffee
+    label: 回老家
+    effects:
+      - type: travel
+        to: old_house
+
+  - id: store_go_home
+    scene_id: prologue_after_store
+    label: 回老家
+    effects:
+      - type: travel
+        to: old_house
+
+  - id: house_clean_first
+    scene_id: prologue_old_house
+    label: 先整理一下客廳
+    effects:
+      - type: start-activity
+        activity_id: clean_old_house
+
+  - id: house_read_first
+    scene_id: prologue_old_house
+    label: 先坐一下，看會兒書
+    effects:
+      - type: start-activity
+        activity_id: rest_and_read
+
+  - id: house_mail_first
+    scene_id: prologue_old_house
+    label: 先把門口那疊信整理掉
+    effects:
+      - type: start-activity
+        activity_id: sort_mail
+
+  - id: after_clean_read
+    scene_id: prologue_after_clean
+    label: 看一會兒書
+    effects:
+      - type: start-activity
+        activity_id: rest_and_read
+
+  - id: after_clean_mail
+    scene_id: prologue_after_clean
+    label: 把門口的信整理掉
+    effects:
+      - type: start-activity
+        activity_id: sort_mail
+
+  - id: after_read_clean
+    scene_id: prologue_after_read
+    label: 繼續整理房間
+    effects:
+      - type: start-activity
+        activity_id: clean_old_house
+
+  - id: after_read_mail
+    scene_id: prologue_after_read
+    label: 去整理門口的信
+    effects:
+      - type: start-activity
+        activity_id: sort_mail
+
+  - id: letter_open
+    scene_id: prologue_letter_discovery
+    label: 拆開信封
+    effects:
+      - type: learn-fact
+        fact_id: fact_zhixia_letter_received
+
+  - id: after_letter_yuan
+    scene_id: scene_after_letter
+    label: 請予安幫忙去郵局問
+    available_until: 972
+    effects:
+      - type: submit-action
+        action_id: send_yuan_to_post_office
+      - type: start-activity
+        activity_id: wait_for_call
+
+  - id: after_letter_research
+    scene_id: scene_after_letter
+    label: 打開電腦查一下
+    effects:
+      - type: start-activity
+        activity_id: research_online
+
+  - id: after_letter_cafe
+    scene_id: scene_after_letter
+    label: 去找若晴聊聊
+    effects:
+      - type: travel
+        to: cafe
+
+  - id: after_letter_dinner
+    scene_id: scene_after_letter
+    label: 先把晚餐準備好
+    effects:
+      - type: start-activity
+        activity_id: prepare_dinner
+
+  - id: after_wait_research
+    scene_id: scene_after_waiting_for_yuan
+    label: 不等了，自己查
+    effects:
+      - type: start-activity
+        activity_id: research_online
+
+  - id: after_wait_cafe
+    scene_id: scene_after_waiting_for_yuan
+    label: 去找若晴
+    effects:
+      - type: travel
+        to: cafe
+
+  - id: after_dinner_research
+    scene_id: scene_after_dinner
+    label: 還是查一下那封信
+    effects:
+      - type: start-activity
+        activity_id: research_online
+
+  - id: after_dinner_cafe
+    scene_id: scene_after_dinner
+    label: 出門去找若晴
+    effects:
+      - type: travel
+        to: cafe
+
+  - id: wakaharu_show_letter
+    scene_id: scene_wakaharu_cafe
+    label: 把信給她看
+    available_until: 990
+    effects:
+      - type: submit-action
+        action_id: show_letter_to_wakaharu
+
+  - id: wakaharu_ask_zhixia
+    scene_id: scene_wakaharu_cafe
+    label: 先問她最近有沒有想起姊姊
+    effects:
+      - type: learn-fact
+        fact_id: fact_wakaharu_close_to_zhixia
+
+  - id: wakaharu_stay_coffee
+    scene_id: scene_wakaharu_cafe
+    label: 先把咖啡喝完
+    effects:
+      - type: start-activity
+        activity_id: sit_at_cafe
+
+  - id: reporter_confront
+    scene_id: scene_reporter_cafe
+    label: 直接問她是不是認識姊姊
+    available_until: 1000
+    effects:
+      - type: submit-action
+        action_id: confront_reporter
+
+  - id: reporter_listen
+    scene_id: scene_reporter_cafe
+    label: 先聽她怎麼說
+    effects:
+      - type: learn-fact
+        fact_id: fact_reporter_knew_zhixia
+
+  - id: reporter_go_hospital
+    scene_id: scene_reporter_cafe
+    label: 先離開，去醫院問陳醫生
+    effects:
+      - type: travel
+        to: hospital
+
+  - id: wakaharu_walk_home
+    scene_id: scene_wakaharu_before_leaving
+    label: 陪她回去
+    available_until: 1050
+    effects:
+      - type: submit-action
+        action_id: protect_wakaharu
+      - type: travel
+        to: old_house
+
+  - id: wakaharu_stay_longer
+    scene_id: scene_wakaharu_before_leaving
+    label: 再坐一下
+    effects:
+      - type: start-activity
+        activity_id: sit_at_cafe
+
+  - id: doctor_keep_here
+    scene_id: scene_doctor_before_leaving
+    label: 請他留下來幫我把紀錄找完
+    available_until: 1050
+    effects:
+      - type: submit-action
+        action_id: stop_doctor
+
+  - id: doctor_go_station
+    scene_id: scene_doctor_before_leaving
+    label: 先離開，直接去舊車站
+    effects:
+      - type: travel
+        to: old_station
+
+  - id: doctor_go_cafe
+    scene_id: scene_doctor_before_leaving
+    label: 回去找若晴
+    effects:
+      - type: travel
+        to: cafe
+
+  - id: message_note_1831
+    scene_id: scene_wakaharu_message
+    label: 把 18:31 記下來
+    effects:
+      - type: learn-fact
+        fact_id: fact_1831_is_special
+
+  - id: message_call_back
+    scene_id: scene_wakaharu_message
+    label: 打給她
+    available_until: 1080
+    effects:
+      - type: start-activity
+        activity_id: wait_for_call
+
+  - id: message_finish_research
+    scene_id: scene_wakaharu_message
+    label: 先把手上的資料查完
+    effects:
+      - type: start-activity
+        activity_id: research_online
+
+  - id: late_old_house_station
+    scene_id: scene_1820_old_house
+    label: 現在去舊車站
+    effects:
+      - type: travel
+        to: old_station
+
+  - id: late_old_house_research
+    scene_id: scene_1820_old_house
+    label: 留下來把資料看完
+    effects:
+      - type: start-activity
+        activity_id: research_online
+
+  - id: late_cafe_station
+    scene_id: scene_1820_cafe
+    label: 現在去舊車站
+    effects:
+      - type: travel
+        to: old_station
+
+  - id: late_cafe_wait
+    scene_id: scene_1820_cafe
+    label: 再等一下若晴的消息
+    effects:
+      - type: start-activity
+        activity_id: wait_for_call
+
+  - id: late_hospital_station
+    scene_id: scene_1820_hospital
+    label: 現在去舊車站
+    effects:
+      - type: travel
+        to: old_station
+
+  - id: late_hospital_research
+    scene_id: scene_1820_hospital
+    label: 留在醫院再查一下紀錄
+    effects:
+      - type: start-activity
+        activity_id: research_online

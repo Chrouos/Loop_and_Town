@@ -1,0 +1,9 @@
+id: evt_1500_sister_room
+title: 回到老家
+at: { day: 0, time: "15:00" }
+visibility: observable
+variants:
+  - id: arrived_old_house
+    priority: 0
+    fallback: true
+    effects: []

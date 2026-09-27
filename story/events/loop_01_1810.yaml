@@ -1,0 +1,15 @@
+id: evt_1810_yuan_station_observation
+title: 周予安的目擊
+at: { day: 0, time: "18:10" }
+visibility: observable
+variants:
+  - id: saw_reporter
+    priority: 100
+    when: { path: characters.yuan.location, op: eq, value: station_area }
+    effects:
+      - add_flag: flags.yuan_saw_reporter_at_station
+  - id: yuan_absent
+    priority: 0
+    fallback: true
+    visibility: hidden
+    effects: []

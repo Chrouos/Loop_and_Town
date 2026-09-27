@@ -1,5 +1,15 @@
 import type { ActionDefinition, Effect } from '../simulator/types';
 
+function actionTime(action: ActionDefinition): string {
+  return typeof action.at === 'string' ? action.at : `D${action.at.day} ${action.at.time}`;
+}
+
+function actionMinute(action: ActionDefinition): number {
+  const value = typeof action.at === 'string' ? { day: 0, time: action.at } : action.at;
+  const [hour, minute] = value.time.split(':').map(Number);
+  return value.day * 1440 + hour * 60 + minute;
+}
+
 function effectSummary(effect: Effect): string {
   if ('set' in effect) return `${effect.set.path} → ${String(effect.set.value)}`;
   if ('add_flag' in effect) return `flag + ${effect.add_flag}`;
@@ -36,7 +46,7 @@ function ActionGroup({
             onChange={(event) => toggle(action.id, event.currentTarget.checked)}
           />
           <span className="action-option">
-            <span className="action-time">{action.at}</span>
+            <span className="action-time">{actionTime(action)}</span>
             <span className="action-copy">
               <strong>{action.label}</strong>
               {action.effects.map((effect, index) => (
@@ -65,7 +75,7 @@ export function ScenarioSimulator({
   onRightChange: (ids: string[]) => void;
   onSimulate: () => void;
 }) {
-  const orderedActions = [...actions].sort((left, right) => left.at.localeCompare(right.at));
+  const orderedActions = [...actions].sort((left, right) => actionMinute(left) - actionMinute(right));
 
   return (
     <section className="panel scenario-panel" aria-label="Worldline Scenario">

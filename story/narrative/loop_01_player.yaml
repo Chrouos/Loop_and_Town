@@ -1,0 +1,404 @@
+scenes:
+  - id: prologue_arrival
+    at: { day: 0, time: "14:20" }
+    kind: narration
+    participants: [protagonist]
+    blocks:
+      - type: narration
+        text: 火車停穩時，我才發現灰潮鎮的月台比記憶裡窄了一點。
+      - type: monologue
+        text: 五年沒回來，連風的味道都像變了。
+      - type: monologue
+        text: 這次只是回來整理房子。把該丟的丟掉，把該簽的簽完，就走。
+
+  - id: prologue_after_coffee
+    at: { day: 0, time: "14:28" }
+    kind: narration
+    participants: [protagonist]
+    requiresFacts: [fact_cafe_resident_chatter]
+    blocks:
+      - type: narration
+        text: 等咖啡的時候，隔壁桌一直在聊鎮上這幾年的變化。幾個地名還熟，說的人卻全換了。
+      - type: monologue
+        text: 我沒有插話。紙杯拿到手之後，才重新把行李拉桿拉起來。
+
+  - id: prologue_after_store
+    at: { day: 0, time: "14:26" }
+    kind: narration
+    participants: [protagonist]
+    requiresFacts: [fact_shopkeeper_mistook_protagonist_for_zhixia]
+    blocks:
+      - type: narration
+        text: 老闆找零時盯著我看了很久，忽然叫了一聲「知夏」。
+      - type: narration
+        text: 他很快就道歉，低頭把零錢塞進我手裡。
+      - type: monologue
+        text: 我只說沒關係。走出店門後，水瓶一直冰著掌心。
+
+  - id: prologue_yuan_reunion
+    at: { day: 0, time: "14:40" }
+    availableUntil: { day: 0, time: "15:30" }
+    kind: dialogue
+    participants: [protagonist, yuan]
+    requiresLocation: old_house
+    blocks:
+      - type: narration
+        text: 我還在跟門鎖較勁時，巷口有人叫了我的名字。
+      - type: narration
+        text: 周予安。高中同學，也是我離開灰潮鎮後少數還偶爾聯絡的人。
+      - type: dialogue
+        speaker: yuan
+        text: 妳真的回來了。我還以為妳會拖到房仲自己來催。
+        factId: fact_protagonist_returned_to_sell_house
+      - type: monologue
+        text: 他講話還是老樣子，像五年只隔了一個週末。
+      - type: dialogue
+        speaker: yuan
+        text: 店還在老地方。有空就過來，我請妳喝咖啡。
+        factId: fact_yuan_runs_clock_shop
+
+  - id: prologue_old_house
+    at: { day: 0, time: "14:20" }
+    kind: narration
+    participants: [protagonist]
+    requiresLocation: old_house
+    blocks:
+      - type: narration
+        text: 老家的門比我記得的更難開。鎖轉了兩次，才發出一聲乾澀的喀噠。
+      - type: narration
+        text: 我把行李靠在玄關，先把所有窗戶推開。灰塵被風吹起來，在午後的光裡慢慢打轉。
+      - type: narration
+        text: 書架上還有姊姊留下的書。灰很多，但排列方式一點都沒變。
+
+  - id: prologue_after_clean
+    at: { day: 0, time: "14:20" }
+    kind: narration
+    participants: [protagonist]
+    requiresLocation: old_house
+    afterActivityId: clean_old_house
+    blocks:
+      - type: narration
+        text: 第一批紙箱總算清完。我站直腰，才發現手上全是灰。
+      - type: monologue
+        text: 房仲傍晚才會回電話。現在急也沒有用。
+
+  - id: prologue_after_read
+    at: { day: 0, time: "14:20" }
+    kind: narration
+    participants: [protagonist]
+    requiresLocation: old_house
+    afterActivityId: rest_and_read
+    blocks:
+      - type: narration
+        text: 我把書闔上。茶已經涼了，窗外的光也換了角度。
+      - type: monologue
+        text: 還是做點事吧。
+
+  - id: prologue_letter_discovery
+    at: { day: 0, time: "14:20" }
+    kind: artifact
+    participants: [protagonist]
+    requiresLocation: old_house
+    afterActivityId: sort_mail
+    artifact_id: zhixia_letter
+    blocks:
+      - type: narration
+        text: 最下面壓著一封沒有寄件地址的信。
+      - type: narration
+        text: 郵戳是昨天。
+      - type: narration
+        text: 我原本只覺得奇怪，直到看見寄件人那一欄。
+      - type: monologue
+        text: 林知夏。
+      - type: monologue
+        text: ……不可能。姊姊死了五年。
+        factId: fact_zhixia_dead_five_years
+
+  - id: prologue_letter_opened
+    at: { day: 0, time: "14:20" }
+    kind: artifact
+    participants: [protagonist]
+    requiresLocation: old_house
+    requiresFacts: [fact_zhixia_letter_received]
+    artifact_id: zhixia_letter
+    blocks:
+      - type: artifact
+        artifactId: zhixia_letter
+      - type: monologue
+        text: 我沒有立刻把信放下。
+      - type: monologue
+        text: 郵戳是昨天。我又看了一遍，還是昨天。
+
+  - id: scene_after_letter
+    at: { day: 0, time: "14:20" }
+    kind: transition
+    participants: [protagonist]
+    requiresLocation: old_house
+    requiresFacts: [fact_zhixia_letter_received]
+    blocks:
+      - type: narration
+        text: 我把信放在桌上。這已經不是能當作惡作劇丟掉的東西了。
+      - type: monologue
+        text: 如果不是有人在拿姊姊開玩笑，就一定有哪裡留下了紀錄。
+
+  - id: scene_after_waiting_for_yuan
+    at: { day: 0, time: "14:20" }
+    kind: narration
+    participants: [protagonist]
+    requiresLocation: old_house
+    afterActivityId: wait_for_call
+    blocks:
+      - type: narration
+        text: 手機還是沒有亮。我把它翻過來，又放回桌上。
+      - type: monologue
+        text: 光等也沒有用。
+
+  - id: scene_after_research
+    at: { day: 0, time: "14:20" }
+    kind: narration
+    participants: [protagonist]
+    afterActivityId: research_online
+    blocks:
+      - type: narration
+        text: 幾篇舊報導都提到同一個已經停用的研究設施，名字被不同新聞用不同方式寫過。
+      - type: monologue
+        text: 我把那個名字抄了下來。至少現在有地方能繼續問。
+
+  - id: scene_after_dinner
+    at: { day: 0, time: "14:20" }
+    kind: narration
+    participants: [protagonist]
+    requiresLocation: old_house
+    afterActivityId: prepare_dinner
+    blocks:
+      - type: narration
+        text: 我把火關小，廚房裡終於有了一點有人住的味道。
+      - type: monologue
+        text: 信還放在桌上。吃不吃得下是另一回事。
+
+  - id: scene_wakaharu_cafe
+    at: { day: 0, time: "16:30" }
+    availableUntil: { day: 0, time: "17:44" }
+    kind: dialogue
+    participants: [protagonist, wakaharu]
+    requiresLocation: cafe
+    sourceEventId: evt_1610_wakaharu_cafe
+    sourceVariantId: met_wakaharu
+    blocks:
+      - type: narration
+        text: 若晴還在靠窗的位置工作。她認出我時，先是愣了一下，才把手上的杯子放下。
+      - type: dialogue
+        speaker: wakaharu
+        text: 妳真的回來了。知夏姊以前一直說，妳遲早會嫌這裡太小。
+      - type: monologue
+        text: 她說姊姊名字的方式太自然，我反而一時接不上話。
+
+  - id: scene_reporter_cafe
+    at: { day: 0, time: "16:40" }
+    availableUntil: { day: 0, time: "17:10" }
+    kind: dialogue
+    participants: [protagonist, reporter]
+    requiresLocation: cafe
+    sourceEventId: evt_1640_reporter_encounter
+    sourceVariantId: reporter_encounter
+    blocks:
+      - type: narration
+        text: 門上的鈴鐺響了一聲。進來的女人先看若晴，再看我桌上的信封。
+      - type: dialogue
+        speaker: reporter
+        text: 抱歉，我是不是在哪裡見過妳？
+      - type: monologue
+        text: 她問得太慢，像是在挑一個比較安全的說法。
+
+  - id: scene_wakaharu_before_leaving
+    at: { day: 0, time: "17:20" }
+    availableUntil: { day: 0, time: "17:30" }
+    kind: dialogue
+    participants: [protagonist, wakaharu]
+    requiresLocation: cafe
+    blocks:
+      - type: dialogue
+        speaker: wakaharu
+        text: 我晚點還要去一趟舊車站。很快就回來。
+      - type: narration
+        text: 她說得很隨便，手指卻一直捏著紙杯的邊緣。
+
+  - id: scene_doctor_before_leaving
+    at: { day: 0, time: "17:20" }
+    availableUntil: { day: 0, time: "17:30" }
+    kind: dialogue
+    participants: [protagonist, doctor]
+    requiresLocation: hospital
+    blocks:
+      - type: narration
+        text: 陳醫生回答到一半，視線往牆上的鐘偏了一下。
+      - type: dialogue
+        speaker: doctor
+        text: 剩下的紀錄我晚點再找。我等一下得出去。
+      - type: monologue
+        text: 他已經把抽屜關上了。
+
+  - id: scene_wakaharu_message
+    at: { day: 0, time: "17:55" }
+    kind: dialogue
+    participants: [protagonist, wakaharu]
+    sourceEventId: evt_1755_wakaharu_message
+    sourceVariantId: heading_to_station
+    observation:
+      channel: phone
+      persistence: message
+    blocks:
+      - type: narration
+        text: 手機震了一下。
+      - type: dialogue
+        speaker: wakaharu
+        text: 我準備出門了。晚點再跟妳說。
+      - type: monologue
+        text: 訊息只有一行。我看了一眼右上角的時間。
+
+  - id: scene_1805_station_handoff
+    at: { day: 0, time: "18:05" }
+    availableUntil: { day: 0, time: "18:17" }
+    kind: narration
+    participants: [protagonist, wakaharu, doctor]
+    requiresLocation: old_station
+    sourceEventId: evt_1805_envelope_handoff
+    sourceVariantId: envelope_handoff
+    blocks:
+      - type: narration
+        text: 月台另一端，陳醫生把一只薄信封交給若晴。
+      - type: narration
+        text: 若晴接過去後沒有拆，只很快地塞進外套口袋。
+      - type: monologue
+        text: 他們兩個都沒有注意到我。
+
+  - id: scene_1810_yuan_observation
+    at: { day: 0, time: "18:10" }
+    availableUntil: { day: 0, time: "18:17" }
+    kind: narration
+    participants: [protagonist, yuan, reporter]
+    requiresLocation: old_station
+    sourceEventId: evt_1810_yuan_station_observation
+    sourceVariantId: saw_reporter
+    blocks:
+      - type: narration
+        text: 予安站在站外的路口。他沒有先看我，視線追著一個正往另一側離開的人。
+      - type: dialogue
+        speaker: yuan
+        text: 葉庭安。她剛剛從車站裡出來。
+
+  - id: scene_1818_warning
+    at: { day: 0, time: "18:18" }
+    availableUntil: { day: 0, time: "18:30" }
+    kind: dialogue
+    participants: [protagonist, wakaharu]
+    requiresLocation: old_station
+    sourceEventId: evt_1818_wakaharu_last_conversation
+    sourceVariantId: warning_revealed
+    blocks:
+      - type: dialogue
+        speaker: wakaharu
+        text: 18:31……那不是死亡時間。
+      - type: narration
+        text: 她說完就看向月台上方的鐘，像是在等它證明什麼。
+
+  - id: scene_1818_guarded
+    at: { day: 0, time: "18:18" }
+    availableUntil: { day: 0, time: "18:30" }
+    kind: dialogue
+    participants: [protagonist, wakaharu]
+    requiresLocation: old_station
+    sourceEventId: evt_1818_wakaharu_last_conversation
+    sourceVariantId: guarded
+    blocks:
+      - type: dialogue
+        speaker: wakaharu
+        text: 如果等一下真的有奇怪的事，先不要靠近鐘。
+      - type: monologue
+        text: 我問她為什麼。她沒有回答。
+
+  - id: scene_1820_old_house
+    at: { day: 0, time: "18:20" }
+    availableUntil: { day: 0, time: "18:30" }
+    kind: transition
+    participants: [protagonist]
+    requiresLocation: old_house
+    blocks:
+      - type: narration
+        text: 天已經暗了。我看著桌上的資料，又看了一眼手機。
+      - type: monologue
+        text: 現在去車站，大概也趕不上什麼。但不去，好像更糟。
+
+  - id: scene_1820_cafe
+    at: { day: 0, time: "18:20" }
+    availableUntil: { day: 0, time: "18:30" }
+    kind: transition
+    participants: [protagonist]
+    requiresLocation: cafe
+    blocks:
+      - type: narration
+        text: 店裡開始收晚班的杯子。我把外套拿起來，窗外已經看不見夕陽。
+      - type: monologue
+        text: 從這裡到舊車站不遠。只是現在才走，還是太晚了一點。
+
+  - id: scene_1820_hospital
+    at: { day: 0, time: "18:20" }
+    availableUntil: { day: 0, time: "18:30" }
+    kind: transition
+    participants: [protagonist]
+    requiresLocation: hospital
+    blocks:
+      - type: narration
+        text: 醫院走廊的燈全部亮了。我站在出口，手機上的時間剛跳過 18:20。
+      - type: monologue
+        text: 舊車站就在另一頭。現在過去，未必來得及。
+
+  - id: scene_1831_wakaharu
+    at: { day: 0, time: "18:31" }
+    availableUntil: { day: 0, time: "18:31" }
+    kind: narration
+    participants: [protagonist, wakaharu]
+    requiresLocation: old_station
+    sourceEventId: evt_1831_station
+    sourceVariantId: wakaharu_dies
+    blocks:
+      - type: narration
+        text: 鐘面上的分針跳到 31。
+      - type: narration
+        text: 若晴像是忽然失去力氣，整個人往前倒下。
+      - type: monologue
+        text: 我衝過去時，第一聲鐘響才剛落下。
+
+  - id: scene_1831_doctor
+    at: { day: 0, time: "18:31" }
+    availableUntil: { day: 0, time: "18:31" }
+    kind: narration
+    participants: [protagonist, doctor]
+    requiresLocation: old_station
+    sourceEventId: evt_1831_station
+    sourceVariantId: doctor_dies
+    blocks:
+      - type: narration
+        text: 18:31。
+      - type: narration
+        text: 倒下的人不是若晴。
+      - type: monologue
+        text: 陳醫生就在月台邊。上一秒他還站著。
+
+  - id: scene_1831_no_death
+    at: { day: 0, time: "18:31" }
+    availableUntil: { day: 0, time: "18:31" }
+    kind: narration
+    participants: [protagonist]
+    requiresLocation: old_station
+    sourceEventId: evt_1831_station
+    sourceVariantId: no_death
+    blocks:
+      - type: narration
+        text: 18:31。
+      - type: narration
+        text: 沒有人倒下。
+      - type: narration
+        text: 可是鐘還是響了。
+      - type: monologue
+        text: 那一刻我才知道，我改掉的可能只是結果。

@@ -2,6 +2,10 @@ import { sortTimeline } from '../lib/timeline';
 import { diffWorldlines } from '../lib/worldlineDiff';
 import type { WorldlineEntry } from '../types/story';
 
+function displayTime(entry: WorldlineEntry): string {
+  return entry.day && entry.day > 0 ? `D${entry.day} ${entry.time}` : entry.time;
+}
+
 function label(entry?: WorldlineEntry) {
   return entry ? entry.title : '未發生';
 }
@@ -13,16 +17,27 @@ function sourceLabel(entry?: WorldlineEntry) {
   return entry.variantId ?? entry.eventId;
 }
 
-export function TimelineView({ leftEntries, rightEntries }: { leftEntries: WorldlineEntry[]; rightEntries: WorldlineEntry[] }) {
+function timelineKey(entry: WorldlineEntry): string {
+  return `${entry.absoluteMinute ?? `${entry.day ?? 0}:${entry.time}`}:${entry.eventId}`;
+}
+
+export function TimelineView({
+  leftEntries,
+  rightEntries,
+}: {
+  leftEntries: WorldlineEntry[];
+  rightEntries: WorldlineEntry[];
+}) {
   const rows = diffWorldlines(leftEntries, rightEntries);
+  const leftKeys = new Set(leftEntries.map(timelineKey));
   const timeline = sortTimeline([
     ...leftEntries,
-    ...rightEntries.filter((right) => !leftEntries.some((left) => left.eventId === right.eventId)),
+    ...rightEntries.filter((right) => !leftKeys.has(timelineKey(right))),
   ]);
-  const milestones = [...new Set(timeline.map((entry) => entry.time))].map((time) => ({
-    time,
-    title: timeline.find((entry) => entry.time === time)?.title ?? '',
-  }));
+  const milestones = [...new Map(timeline.map((entry) => [
+    entry.absoluteMinute ?? `${entry.day ?? 0}:${entry.time}`,
+    { time: displayTime(entry), title: entry.title },
+  ])).values()];
 
   return (
     <section className="panel">

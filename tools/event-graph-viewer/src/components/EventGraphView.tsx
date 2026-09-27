@@ -1,14 +1,20 @@
 import { Background, Controls, ReactFlow, type Edge, type Node } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { buildEventGraph } from '../lib/eventGraph';
-import type { EventGraphDocument, GraphNode } from '../types/story';
+import type { EventGraphDocument, GraphNode, GraphProjection } from '../types/story';
+
+const ROLE_X: Record<GraphNode['role'], number> = {
+  action: 20,
+  schedule: 300,
+  event: 580,
+  variant: 860,
+  delayed: 1140,
+};
 
 function toFlowNode(node: GraphNode, roleIndex: number): Node {
-  const x = node.role === 'event' ? 20 : node.role === 'variant' ? 360 : 720;
-  const y = node.role === 'event' ? 220 : 60 + roleIndex * 180;
   return {
     id: node.id,
-    position: { x, y },
+    position: { x: ROLE_X[node.role], y: 60 + roleIndex * 180 },
     draggable: false,
     selectable: true,
     data: {
@@ -28,10 +34,14 @@ function toFlowNode(node: GraphNode, roleIndex: number): Node {
   };
 }
 
-export function EventGraphView({ document }: { document: EventGraphDocument }) {
-  const projection = buildEventGraph(document);
-  const counters = { event: 0, variant: 0, delayed: 0 };
-  const nodes = projection.nodes.map((node) => toFlowNode(node, counters[node.role]++));
+type Props =
+  | { projection: GraphProjection; document?: never }
+  | { projection?: never; document: EventGraphDocument };
+
+export function EventGraphView(props: Props) {
+  const projection = props.projection ?? buildEventGraph(props.document);
+  const counters: Record<GraphNode['role'], number> = { action: 0, schedule: 0, event: 0, variant: 0, delayed: 0 };
+  const nodes = projection.nodes.map((graphNode) => toFlowNode(graphNode, counters[graphNode.role]++));
   const edges: Edge[] = projection.edges.map((edge) => ({
     ...edge,
     animated: edge.label?.startsWith('+') ?? false,
@@ -45,7 +55,7 @@ export function EventGraphView({ document }: { document: EventGraphDocument }) {
           <p className="eyebrow">事件因果圖</p>
           <h2>Event Graph</h2>
         </div>
-        <p>Event → Variant → Delayed Effect</p>
+        <p>Action / Schedule / Event / Variant / Delayed Effect</p>
       </div>
       <div className="graph-canvas" aria-label="Event Graph canvas">
         <ReactFlow nodes={nodes} edges={edges} fitView nodesDraggable={false} nodesConnectable={false}>
