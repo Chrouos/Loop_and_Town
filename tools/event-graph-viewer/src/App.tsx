@@ -28,6 +28,19 @@ function parseNarrativeAddendum(text: string): NarrativeSceneDefinition[] {
   return raw.scenes;
 }
 
+function mergeStoryDags(base: StoryDagDocument, addendum: StoryDagDocument): StoryDagDocument {
+  return {
+    ...base,
+    nodes: [...base.nodes, ...addendum.nodes],
+    edges: [...base.edges, ...addendum.edges],
+  };
+}
+
+function mergeStoryPaths(base: StoryWorldlinePath[], addendum: StoryWorldlinePath[]): StoryWorldlinePath[] {
+  const replacementIds = new Set(addendum.map((path) => path.id));
+  return [...base.filter((path) => !replacementIds.has(path.id)), ...addendum];
+}
+
 export default function App() {
   const [view, setView] = useState<ViewName>('graph');
   const [story, setStory] = useState<StoryBundle | null>(null);
@@ -50,12 +63,14 @@ export default function App() {
       fetchText('story/worldlines/day_01_paths.yaml').then(parseStoryWorldlinePathsText),
       fetchText('story/narrative/loop_02_player.yaml').then(parseNarrativeAddendum),
       fetchText('story/narrative/loop_03_player.yaml').then(parseNarrativeAddendum),
+      fetchText('story/events/loop_03_story_dag.yaml').then(parseStoryDagText),
+      fetchText('story/worldlines/loop_03_paths.yaml').then(parseStoryWorldlinePathsText),
     ])
-      .then(([loadedStory, dag, paths, loop02Scenes, loop03Scenes]) => {
+      .then(([loadedStory, dag, paths, loop02Scenes, loop03Scenes, loop03Dag, loop03Paths]) => {
         loadedStory.narrative.scenes.push(...loop02Scenes, ...loop03Scenes);
         setStory(loadedStory);
-        setStoryDag(dag);
-        setStoryPaths(paths);
+        setStoryDag(mergeStoryDags(dag, loop03Dag));
+        setStoryPaths(mergeStoryPaths(paths, loop03Paths));
       })
       .catch((reason: unknown) => setError(reason instanceof Error ? reason.message : String(reason)));
   }, []);
