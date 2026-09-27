@@ -57,6 +57,9 @@ export function loadRealStory() {
     travel: manifest.travel ? parse('/' + manifest.travel) : undefined,
   });
 
-  story.narrative.scenes.push(...parseScenes('/narrative/loop_02_player.yaml'));
+  story.narrative.scenes.push(
+    ...parseScenes('/narrative/loop_02_player.yaml'),
+    ...parseScenes('/narrative/loop_03_player.yaml'),
+  );
   return story;
 }
