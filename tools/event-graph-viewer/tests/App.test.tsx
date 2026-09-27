@@ -23,12 +23,15 @@ function stubRealStoryFetch() {
 afterEach(() => vi.restoreAllMocks());
 
 describe('App', () => {
-  it('loads the complete Loop 01 author graph from the manifest', async () => {
+  it('loads the Day 01 causal DAG reader and node inspector', async () => {
     stubRealStoryFetch();
     render(<App />);
 
-    expect(await screen.findByText('reporter_enter_old_lab')).toBeTruthy();
-    expect(screen.getByText('21:14 葉庭安失蹤')).toBeTruthy();
+    expect(await screen.findByText('[N01_wakaharu_photography 與若晴聊攝影]')).toBeTruthy();
+    expect(screen.getByLabelText('Worldline Path')).toBeTruthy();
+    fireEvent.click(screen.getByText('[N03_station_plan_known 玩家知道若晴要去舊車站]'));
+    expect(await screen.findByText('若晴信任足夠，主動透露行程。')).toBeTruthy();
+    expect(screen.getByText('我晚點還要去一趟舊車站。很快就回來。')).toBeTruthy();
   });
 
   it('opens Character Graph and exposes visibility modes without leaking author relationships by default', async () => {
