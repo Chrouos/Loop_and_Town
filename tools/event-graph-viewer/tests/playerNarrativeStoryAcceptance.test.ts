@@ -66,8 +66,8 @@ describe('player narrative story slice', () => {
     expect(bellText).toContain('拆');
 
     const reset = byId.get('scene_0000_reset');
-    expect(reset?.at.day).toBe(1);
-    expect(reset?.at.time).toBe('00:00');
+    if (!reset) throw new Error('missing scene_0000_reset');
+    expect(toAbsoluteMinute(reset.at)).toBe(24 * 60);
     expect(JSON.stringify(reset)).toContain('下一站，灰潮鎮');
   });
 
