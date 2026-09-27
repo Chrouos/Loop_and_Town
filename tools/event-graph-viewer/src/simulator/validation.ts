@@ -1,4 +1,4 @@
-import { hasPath } from './state';
+import { getPath, hasPath } from './state';
 import { parseTime, toAbsoluteMinute } from './time';
 import type { Condition, Effect, SimulationDefinition, StoryTimeInput, WorldState } from './types';
 
@@ -16,12 +16,21 @@ function validateCondition(condition: Condition, state: WorldState): void {
   if ('not' in condition) return validateCondition(condition.not, state);
 
   const operator = (condition as { op?: unknown }).op;
-  if (!['eq', 'neq', 'exists', 'not_exists'].includes(String(operator))) {
+  const supported = ['eq', 'neq', 'exists', 'not_exists', 'gt', 'gte', 'lt', 'lte'];
+  if (!supported.includes(String(operator))) {
     throw new Error(`Unknown condition operator: ${String(operator)}`);
   }
 
-  if ((operator === 'eq' || operator === 'neq') && !hasPath(state, condition.path)) {
+  const needsPath = operator !== 'exists' && operator !== 'not_exists';
+  if (needsPath && !hasPath(state, condition.path)) {
     throw new Error(`Unknown state path: ${condition.path}`);
+  }
+
+  if (['gt', 'gte', 'lt', 'lte'].includes(String(operator))) {
+    const actual = getPath(state, condition.path);
+    if (typeof actual !== 'number' || typeof condition.value !== 'number') {
+      throw new Error(`Numeric condition requires numbers: ${condition.path}`);
+    }
   }
 }
 
@@ -29,6 +38,14 @@ function validateEffects(effects: Effect[], state: WorldState, eventIds: Set<str
   for (const effect of effects) {
     if ('set' in effect) {
       if (!hasPath(state, effect.set.path)) throw new Error(`Unknown state path: ${effect.set.path}`);
+      continue;
+    }
+
+    if ('adjust' in effect) {
+      if (!hasPath(state, effect.adjust.path)) throw new Error(`Unknown state path: ${effect.adjust.path}`);
+      if (typeof getPath(state, effect.adjust.path) !== 'number' || typeof effect.adjust.by !== 'number') {
+        throw new Error(`Adjust effect requires numeric state: ${effect.adjust.path}`);
+      }
       continue;
     }
 
