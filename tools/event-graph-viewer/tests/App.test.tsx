@@ -34,6 +34,17 @@ describe('App', () => {
     expect(screen.getByText('我晚點還要去一趟舊車站。很快就回來。')).toBeTruthy();
   });
 
+  it('loads Loop 03 as a merged DAG path with readable novel scenes', async () => {
+    stubRealStoryFetch();
+    render(<App />);
+
+    const selector = await screen.findByLabelText('Worldline Path');
+    fireEvent.change(selector, { target: { value: 'loop_03_no_death' } });
+    expect(await screen.findByText('[L3_N05_no_death_1831 18:31 沒有人死亡]')).toBeTruthy();
+    fireEvent.click(screen.getByText('[L3_N03_doctor_asks_iteration 柏勳問「這是第幾次？」]'));
+    expect(await screen.findByText('……這是第幾次？')).toBeTruthy();
+  });
+
   it('opens Character Graph and exposes visibility modes without leaking author relationships by default', async () => {
     stubRealStoryFetch();
     render(<App />);
