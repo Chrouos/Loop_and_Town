@@ -32,17 +32,17 @@ nodes:
       narrative_refs: [loop03_1540_wakaharu_foreknowledge]
 
   - id: L3_N02_yuan_notices_pattern
-    title: 予安察覺主角知道未來
+    title: 予安察覺主角知道得不合理地多
     time: "16:30"
     actor_ids: [protagonist, yuan]
     visibility: public
     detail:
       before: [予安只覺得主角回鄉後過度緊張。]
       after: [他開始注意主角能預判商店關門、車輛與小事故。]
-      reason: 主角已經不自覺按照記憶中的時間表行動。
+      reason: 主角已經不自覺按照自己的跨 Loop 記憶行動。
       affected_characters: [yuan, protagonist]
-      delayed_effects: [予安之後會更敏感於 Déjà vu 與主角的異常預判。]
-      knowledge_changes: [予安懷疑主角已經歷過今天。]
+      delayed_effects: [予安之後會更注意主角對今天與自己生活知道得太多，但不會因此想起其他 Loop。]
+      knowledge_changes: [予安懷疑主角掌握某種未公開資訊。]
       relationship_changes: [yuan.suspicion +1]
       narrative_refs: [loop03_1630_yuan_notices]
 
@@ -53,11 +53,11 @@ nodes:
     visibility: public
     detail:
       before: [柏勳原本會帶資料前往舊車站。]
-      after: [柏勳答應今天不去車站，卻意外說出像是知道輪迴的話。]
-      reason: 主角直接說「上一個拿到資料的人死了」。
+      after: [柏勳答應今天不去車站，並從主角的說法察覺她可能和五年前知夏一樣正在經歷多個結果。]
+      reason: 主角直接說「上一個拿到資料的人死了」，而柏勳五年前曾記錄知夏描述不同結果的病歷。
       affected_characters: [doctor, protagonist]
-      delayed_effects: [主角開始懷疑柏勳早就知道記憶殘留。]
-      knowledge_changes: [doctor_may_know_about_repetition]
+      delayed_effects: [主角開始懷疑柏勳知道「記憶持有者」現象，而不是柏勳自己記得上一輪。]
+      knowledge_changes: [doctor_recognizes_memory_holder_pattern]
       relationship_changes: [doctor.caution +1]
       narrative_refs: [loop03_1720_doctor_intercept]
 
