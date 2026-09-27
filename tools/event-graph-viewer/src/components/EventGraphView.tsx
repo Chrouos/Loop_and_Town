@@ -93,10 +93,19 @@ type DagProps = {
 type Props = LegacyProps | DagProps;
 
 export function EventGraphView(props: Props) {
-  const isDag = 'dagDocument' in props && Boolean(props.dagDocument);
-  const projection = isDag
-    ? buildStoryDagProjection(props.dagDocument, 'author')
-    : ('projection' in props && props.projection ? props.projection : buildEventGraph(props.document));
+  let isDag = false;
+  let projection: GraphProjection;
+
+  if ('dagDocument' in props && props.dagDocument) {
+    isDag = true;
+    projection = buildStoryDagProjection(props.dagDocument, 'author');
+  } else if ('projection' in props && props.projection) {
+    projection = props.projection;
+  } else if ('document' in props && props.document) {
+    projection = buildEventGraph(props.document);
+  } else {
+    throw new Error('EventGraphView requires projection, document, or dagDocument');
+  }
 
   const dagLayout = isDag ? buildDagLayout(projection) : null;
   const counters: Record<GraphNode['role'], number> = { action: 0, schedule: 0, event: 0, variant: 0, delayed: 0 };
