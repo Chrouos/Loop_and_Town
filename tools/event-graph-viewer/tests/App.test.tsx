@@ -69,6 +69,19 @@ describe('App', () => {
     expect(screen.getByText('Loop 05｜只有我記得')).toBeTruthy();
   });
 
+  it('loads Loop 06 and exposes the seventh-letter handoff in the reader', async () => {
+    stubRealStoryFetch();
+    render(<App />);
+
+    const selector = await screen.findByLabelText('Worldline Path');
+    fireEvent.change(selector, { target: { value: 'loop_06_six_letters' } });
+    expect(await screen.findByText('[L6_N11_seventh_message 第七封新增「是讓妳收到」]')).toBeTruthy();
+    fireEvent.click(screen.getByText('[L6_N11_seventh_message 第七封新增「是讓妳收到」]'));
+    expect(await screen.findByText('第七個不是讓我記得。')).toBeTruthy();
+    expect(screen.getByText('是讓妳收到。')).toBeTruthy();
+    expect(screen.getByText('Loop 06｜前六封信・資訊交接')).toBeTruthy();
+  });
+
   it('opens Character Graph and exposes visibility modes without leaking author relationships by default', async () => {
     stubRealStoryFetch();
     render(<App />);
