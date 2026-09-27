@@ -128,6 +128,26 @@ describe('Story DAG canonical shape', () => {
     }
     expect(realDag.edges.some((edge) => edge.source === 'N28_impossible_bell' && edge.target === 'N29_midnight_reset')).toBe(true);
   });
+
+  it('links late Day 01 causal nodes to their readable novel scenes', () => {
+    const realDag = parseStoryDagText(realStoryFile('events/day_01_story_dag.yaml'));
+    const refsByNode = new Map(realDag.nodes.map((item) => [item.id, item.detail.narrativeRefs]));
+    const expected: Record<string, string> = {
+      N12_yuan_misses_realtor: 'scene_2000_yuan_realtor',
+      N21_wakaharu_dies: 'scene_1831_wakaharu',
+      N22_doctor_dies: 'scene_1831_doctor',
+      N23_no_death: 'scene_1831_no_death',
+      N24_evening_continues: 'scene_1842_station_aftermath',
+      N26_case_summary_1831: 'scene_2030_detective_old_case',
+      N27_watch_message: 'scene_2240_watch_warning',
+      N28_impossible_bell: 'scene_2359_impossible_bell',
+      N29_midnight_reset: 'scene_0000_reset',
+    };
+
+    for (const [nodeId, sceneId] of Object.entries(expected)) {
+      expect(refsByNode.get(nodeId), `${nodeId} should link ${sceneId}`).toContain(sceneId);
+    }
+  });
 });
 
 describe('Story DAG parser and validation', () => {
