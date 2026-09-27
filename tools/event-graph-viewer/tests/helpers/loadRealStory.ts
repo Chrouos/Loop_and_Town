@@ -61,6 +61,7 @@ export function loadRealStory() {
     ...parseScenes('/narrative/loop_02_player.yaml'),
     ...parseScenes('/narrative/loop_03_player.yaml'),
     ...parseScenes('/narrative/loop_04_player.yaml'),
+    ...parseScenes('/narrative/loop_05_player.yaml'),
   );
   return story;
 }
