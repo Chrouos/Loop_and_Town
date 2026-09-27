@@ -1,0 +1,196 @@
+id: loop_04_story_dag
+title: Loop 04｜五年前
+nodes:
+  - id: L4_N00_hard_reset_0612
+    title: 06:12 成為正式重置起點
+    time: "06:12"
+    actor_ids: [protagonist]
+    visibility: public
+    detail:
+      before: [主角前三輪都在下午才真正開始行動，因此誤以為 14:20 是循環起點。]
+      after: [主角確認世界其實在清晨 06:12 就已回到 10 月 3 日。]
+      reason: 第三輪午夜重置後，她第一次在列車尚未進鎮時就保持完整意識。
+      affected_characters: [protagonist]
+      delayed_effects: [上午調查時間被打開，主角可以直接追查五年前的舊案。]
+      knowledge_changes: [hard_reset_checkpoint_0612]
+      relationship_changes: []
+      narrative_refs: [loop04_0612_hard_reset]
+
+  - id: L4_N01_detective_confrontation
+    title: 志遠看到多世界線 18:31 時間表
+    time: "09:10"
+    actor_ids: [protagonist, detective]
+    visibility: public
+    detail:
+      before: [志遠仍把知夏案維持在已結案狀態。]
+      after: [他沒有質疑主角，而是先關上警局內門。]
+      reason: 主角同時列出知夏、若晴、柏勳與無人死亡三種 18:31 結果。
+      affected_characters: [detective, protagonist]
+      delayed_effects: [志遠決定揭露一件五年前未登錄的證物。]
+      knowledge_changes: [detective_knows_1831_is_abnormal]
+      relationship_changes: [detective.trust_protagonist +1]
+      narrative_refs: [loop04_0910_detective_confrontation]
+
+  - id: L4_N02_hidden_recorder
+    title: 志遠交出未登錄錄音器
+    time: "09:30"
+    actor_ids: [protagonist, detective, zhixia, reporter]
+    visibility: public
+    detail:
+      before: [官方證物清單無法解釋五年前 18:31 的異常。]
+      after: [主角第一次聽見知夏與庭安談論「這次不是若晴」。]
+      reason: 錄音器內容違反正常時間順序，志遠當年選擇私藏而沒有入證物。
+      affected_characters: [protagonist, detective, reporter, wakaharu]
+      delayed_effects: [主角開始懷疑知夏五年前已看過若晴死亡的其他結果。]
+      knowledge_changes: [zhixia_saw_multiple_outcomes, recorder_not_in_evidence_log]
+      relationship_changes: []
+      narrative_refs: [loop04_0930_hidden_recorder]
+
+  - id: L4_N03_future_voice
+    title: 錄音出現尚未到場的志遠聲音
+    time: "10:20"
+    actor_ids: [protagonist, detective]
+    visibility: public
+    detail:
+      before: [錄音器看起來只是未登錄的五年前現場紀錄。]
+      after: [主角確認 18:28 錄音中存在志遠聲音，但正式紀錄顯示他 18:42 才到場。]
+      reason: 某些資訊能在它真正發生之前被殘留到另一條世界線。
+      affected_characters: [protagonist, detective]
+      delayed_effects: [「世界線殘留」不再只是人的記憶，也可能存在於聲音與媒介。]
+      knowledge_changes: [future_information_can_appear_early]
+      relationship_changes: []
+      narrative_refs: [loop04_1020_future_voice]
+
+  - id: L4_N04_seven_records
+    title: 柏勳交出七份林知夏病歷
+    time: "11:40"
+    actor_ids: [protagonist, doctor, zhixia]
+    visibility: public
+    detail:
+      before: [主角仍可能把知夏的異常理解成單次事故或錄音器問題。]
+      after: [她看到知夏在三個月內反覆記錄不存在的對話、未發生事故與同一天不同結果。]
+      reason: 柏勳曾親眼驗證知夏對 16:12 白色貨車事故的預言。
+      affected_characters: [protagonist, doctor, zhixia]
+      delayed_effects: [知夏從「死者」變成曾經長期承受世界線殘留的人。]
+      knowledge_changes: [zhixia_had_worldline_residue_before_death]
+      relationship_changes: [doctor.trust_protagonist +1]
+      narrative_refs: [loop04_1140_seven_records]
+
+  - id: L4_N05_reporter_confession
+    title: 庭安承認研究所身分與合作關係
+    time: "13:10"
+    actor_ids: [protagonist, reporter, zhixia]
+    visibility: public
+    detail:
+      before: [庭安一直只承認自己在調查知夏的舊案。]
+      after: [她承認五年前是研究中心助理，且與知夏共同驗證未發生事件。]
+      reason: 主角同時拿出錄音器與病歷，已經跨過庭安原本能維持的說謊空間。
+      affected_characters: [protagonist, reporter, zhixia]
+      delayed_effects: [主角得到第一批能描述「改變未來後發生什麼」的完整見證。]
+      knowledge_changes: [reporter_was_research_assistant, reporter_worked_with_zhixia]
+      relationship_changes: [reporter.trust_protagonist +1]
+      narrative_refs: [loop04_1310_reporter_confession]
+
+  - id: L4_N06_first_correction
+    title: 第一次救人後出現「修正」
+    time: "14:00"
+    actor_ids: [protagonist, reporter, zhixia]
+    visibility: public
+    detail:
+      before: [知夏與庭安相信預知的價值是把本來會發生的悲劇直接阻止。]
+      after: [她們救下河岸落水孩童，卻在同日晚間看見另一處原本不存在的火災死亡。]
+      reason: 大幅改變既有因果後，其他位置開始更容易出現異常與替代結果。
+      affected_characters: [zhixia, reporter]
+      delayed_effects: [第二次、第三次改寫逐步形成可比較的 Worldline 紀錄。]
+      knowledge_changes: [correction_is_not_fixed_death_requirement]
+      relationship_changes: [zhixia.reporter_shared_belief begins_to_split]
+      narrative_refs: [loop04_1400_first_correction]
+
+  - id: L4_N07_ethical_break
+    title: 知夏從救人走向比較損失
+    time: "15:30"
+    actor_ids: [protagonist, reporter, zhixia]
+    visibility: public
+    detail:
+      before: [知夏仍把反覆改寫理解成一次次嘗試救更多人。]
+      after: [她開始記錄人名、路線與傷亡數，並接受某些人受傷來避免更大損失。]
+      reason: 多次修正讓「全部存活」越來越難維持，知夏開始相信不選擇也是選擇。
+      affected_characters: [zhixia, reporter, protagonist]
+      delayed_effects: [庭安與知夏正式決裂；主角也開始看見自己與知夏的鏡像。]
+      knowledge_changes: [zhixia_began_optimizing_casualties]
+      relationship_changes: [reporter.zhixia_conflict +1]
+      narrative_refs: [loop04_1530_ethical_break]
+
+  - id: L4_N08_final_call_log
+    title: 重建知夏死亡當天通聯時間表
+    time: "17:41"
+    actor_ids: [protagonist, reporter, doctor, yuan]
+    visibility: public
+    detail:
+      before: [五年前死亡當天的最後一小時仍是一堆分散的人際線索。]
+      after: [17:41 庭安、17:52 柏勳、17:58 予安未接、18:03 未知號碼、18:31 死亡被排成同一條鏈。]
+      reason: 主角已取得足夠證詞與紀錄，能把最後一小時重新排序。
+      affected_characters: [protagonist, reporter, doctor, yuan, zhixia]
+      delayed_effects: [18:03 成為唯一無法由現存角色解釋的通話。]
+      knowledge_changes: [zhixia_final_hour_call_sequence]
+      relationship_changes: []
+      narrative_refs: [loop04_1741_final_call_log]
+
+  - id: L4_N08a_yuan_missed_call
+    title: 17:58 只是予安沒有接到的一通電話
+    time: "17:58"
+    actor_ids: [protagonist, yuan]
+    visibility: public
+    detail:
+      before: [主角可能把每一個五年前缺口都理解成有人刻意隱瞞。]
+      after: [予安承認當時只是在和父親吵架，看到知夏來電卻決定晚點再回。]
+      reason: 人在事件發生前不會知道哪一通電話會成為最後一次。
+      affected_characters: [yuan, protagonist]
+      delayed_effects: [予安五年的內疚來自普通選擇，而不是陰謀。]
+      knowledge_changes: [yuan_missed_zhixia_call_for_ordinary_reason]
+      relationship_changes: [protagonist.empathy_yuan +1]
+      narrative_refs: [loop04_1758_yuan_missed_call]
+
+  - id: L4_N09_unknown_call_1803
+    title: 18:03 通話方向互相矛盾
+    time: "18:03"
+    actor_ids: [protagonist, zhixia]
+    visibility: public
+    detail:
+      before: [系統通聯紀錄把 18:03 標為知夏撥出，但沒有正常號碼或基地台資料。]
+      after: [主角發現知夏手寫筆記卻把同一分鐘記成「收到」。]
+      reason: 通話紀錄可能同樣受到世界線殘留污染，讓資訊方向本身失真。
+      affected_characters: [protagonist, zhixia]
+      delayed_effects: [18:03 將在後續與 17:58 未來來電、第七封信共同指向雙向跨線資訊。]
+      knowledge_changes: [unknown_call_direction_is_contaminated]
+      relationship_changes: []
+      narrative_refs: [loop04_1803_unknown_call]
+
+  - id: L4_N10_mirror_warning
+    title: 主角看見自己正在重走知夏的路
+    time: "22:40"
+    actor_ids: [protagonist, zhixia]
+    visibility: public
+    detail:
+      before: [主角仍把自己視為追查姊姊真相的人。]
+      after: [她承認自己已開始做與知夏相同的事：記錄、預測、安排別人的位置。]
+      reason: Loop 03 的「清空所有人」與知夏後期的 casualty optimization 結構幾乎相同。
+      affected_characters: [protagonist]
+      delayed_effects: [後續主線不再只問怎麼救人，而開始處理誰有權替別人選擇。]
+      knowledge_changes: [protagonist_mirrors_zhixia]
+      relationship_changes: []
+      narrative_refs: [loop04_2240_mirror_warning]
+
+edges:
+  - { id: L4_E00, source: L4_N00_hard_reset_0612, target: L4_N01_detective_confrontation, label: "use the morning", visibility: public }
+  - { id: L4_E01, source: L4_N01_detective_confrontation, target: L4_N02_hidden_recorder, label: "detective reveals hidden evidence", visibility: public }
+  - { id: L4_E02, source: L4_N02_hidden_recorder, target: L4_N03_future_voice, label: "play past 18:28", visibility: public }
+  - { id: L4_E03, source: L4_N03_future_voice, target: L4_N04_seven_records, label: "ask doctor what else survived", visibility: public }
+  - { id: L4_E04, source: L4_N04_seven_records, target: L4_N05_reporter_confession, label: "confront reporter with evidence", visibility: public }
+  - { id: L4_E05, source: L4_N05_reporter_confession, target: L4_N06_first_correction, label: "reconstruct first intervention", visibility: public }
+  - { id: L4_E06, source: L4_N06_first_correction, target: L4_N07_ethical_break, label: "repeat corrections", visibility: public }
+  - { id: L4_E07, source: L4_N07_ethical_break, target: L4_N08_final_call_log, label: "return to death-day timeline", visibility: public }
+  - { id: L4_E08a, source: L4_N08_final_call_log, target: L4_N08a_yuan_missed_call, label: "explain 17:58", visibility: public }
+  - { id: L4_E08b, source: L4_N08_final_call_log, target: L4_N09_unknown_call_1803, label: "18:03 remains unexplained", visibility: public }
+  - { id: L4_E09a, source: L4_N08a_yuan_missed_call, target: L4_N10_mirror_warning, label: "ordinary regret", visibility: public }
+  - { id: L4_E09b, source: L4_N09_unknown_call_1803, target: L4_N10_mirror_warning, label: "future information residue", visibility: public }
