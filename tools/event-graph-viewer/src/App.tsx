@@ -49,9 +49,10 @@ export default function App() {
       fetchText('story/events/day_01_story_dag.yaml').then(parseStoryDagText),
       fetchText('story/worldlines/day_01_paths.yaml').then(parseStoryWorldlinePathsText),
       fetchText('story/narrative/loop_02_player.yaml').then(parseNarrativeAddendum),
+      fetchText('story/narrative/loop_03_player.yaml').then(parseNarrativeAddendum),
     ])
-      .then(([loadedStory, dag, paths, loop02Scenes]) => {
-        loadedStory.narrative.scenes.push(...loop02Scenes);
+      .then(([loadedStory, dag, paths, loop02Scenes, loop03Scenes]) => {
+        loadedStory.narrative.scenes.push(...loop02Scenes, ...loop03Scenes);
         setStory(loadedStory);
         setStoryDag(dag);
         setStoryPaths(paths);
