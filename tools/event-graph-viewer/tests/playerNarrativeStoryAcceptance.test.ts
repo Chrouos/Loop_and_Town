@@ -35,6 +35,42 @@ describe('player narrative story slice', () => {
     ]));
   });
 
+  it('carries Day 01 through the human aftermath, the old case, the impossible bell, and reset', () => {
+    const scenes = loadRealStory().narrative.scenes;
+    const byId = new Map(scenes.map((scene) => [scene.id, scene]));
+    const required = [
+      'scene_1842_station_aftermath',
+      'scene_2000_yuan_realtor',
+      'scene_2030_detective_old_case',
+      'scene_2240_watch_warning',
+      'scene_2320_kitchen_quiet',
+      'scene_2359_impossible_bell',
+      'scene_0000_reset',
+    ];
+
+    for (const id of required) {
+      const scene = byId.get(id);
+      expect(scene, `missing ${id}`).toBeDefined();
+      expect(scene?.blocks.length ?? 0, `${id} should be a real scene, not a marker`).toBeGreaterThanOrEqual(2);
+    }
+
+    const oldCaseText = JSON.stringify(byId.get('scene_2030_detective_old_case'));
+    expect(oldCaseText).toContain('18:31');
+    expect(oldCaseText).toContain('林知夏');
+
+    const quietText = JSON.stringify(byId.get('scene_2320_kitchen_quiet'));
+    expect(quietText).toContain('但我會去接妳');
+
+    const bellText = JSON.stringify(byId.get('scene_2359_impossible_bell'));
+    expect(bellText).toContain('鐘');
+    expect(bellText).toContain('拆');
+
+    const reset = byId.get('scene_0000_reset');
+    expect(reset?.at.day).toBe(1);
+    expect(reset?.at.time).toBe('00:00');
+    expect(JSON.stringify(reset)).toContain('下一站，灰潮鎮');
+  });
+
   it('contains no player-facing debug or outcome labels', () => {
     const story = loadRealStory();
     const text = JSON.stringify({ scenes: story.narrative.scenes, choices: story.playerChoices });
