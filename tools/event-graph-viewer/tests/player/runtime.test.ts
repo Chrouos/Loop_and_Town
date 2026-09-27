@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import yaml from 'js-yaml';
 import { normalizeSave } from '../../src/player/model';
-import { confirmAction, replayLoop } from '../../src/player/runtime';
+import { confirmAction, replayLoop, activeLoop, createNextLoop } from '../../src/player/runtime';
+import { LOOP_START_MINUTE, MINUTE } from '../../src/player/clock';
 import { createSimulation } from '../../src/simulator/simulator';
 import type { ActionDefinition, EventDefinition, WorldState } from '../../src/simulator/types';
 import initialYaml from '../../../../story/world/day_01_initial.yaml?raw';
@@ -16,6 +17,28 @@ const definition = {
 };
 
 describe('the player adapter shares canonical story rules', () => {
+  it('uses currentLoopId instead of elapsed wall-clock days', () => {
+    const save = normalizeSave(null, 0);
+    save.lastConfirmedMs = 3 * 86_400_000;
+    expect(activeLoop(save)).toBe(save.loops[1]);
+  });
+
+  it('creates exactly one explicitly chosen next loop and locks its mode', () => {
+    const save = normalizeSave(null, 0);
+    save.loops[1].clock.pendingCriticalBoundary = 'reset';
+    const anchorBefore = save.loops[1].clock.anchor;
+    const next = createNextLoop(save, 'ACCELERATED', 10_000);
+    expect(next.currentLoopId).toBe(2);
+    expect(next.loops[1].sealed).toBe(true);
+    expect(next.loops[2].clock.mode).toBe('ACCELERATED');
+    expect(next.loops[1].clock.anchor).toEqual(anchorBefore);
+  });
+
+  it('keeps the first loop anchored at 06:12 while real time advances', () => {
+    const save = normalizeSave(null, 0);
+    expect(activeLoop(save).clock.entryMinute).toBe(LOOP_START_MINUTE);
+  });
+
   it.each([
     [[], 'wakaharu_dies', true],
     [['protect_wakaharu'], 'doctor_dies', false],
@@ -32,9 +55,9 @@ describe('the player adapter shares canonical story rules', () => {
 
   it('refuses retroactive and duplicate choices', () => {
     const save = normalizeSave(null, 0);
-    expect(confirmAction(save, 'protect_wakaharu', 19 * 60_000).loops[1].actionIds).toEqual(['protect_wakaharu']);
-    expect(() => confirmAction(save, 'protect_wakaharu', 20 * 60_000)).toThrow(/截止/);
-    expect(() => confirmAction(save, 'protect_wakaharu', 19 * 60_000)).toThrow(/已經/);
+    expect(confirmAction(save, 'protect_wakaharu', 60 * MINUTE).loops[1].actionIds).toEqual(['protect_wakaharu']);
+    expect(() => confirmAction(save, 'protect_wakaharu', 61 * MINUTE)).toThrow(/截止/);
+    expect(() => confirmAction(save, 'protect_wakaharu', 60 * MINUTE)).toThrow(/已經/);
     expect(createSimulation(definition, initial)).toBeDefined();
   });
 });

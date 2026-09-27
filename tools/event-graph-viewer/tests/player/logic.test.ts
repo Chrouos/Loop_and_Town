@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { normalizeSave } from '../../src/player/model';
+import { emptyLoop, normalizeSave } from '../../src/player/model';
 import { claimsFor, judgeLink, knownDiff, pinExcerpt } from '../../src/player/logic';
 
 it('requires a sourced excerpt, limits the table, and rejects an overclaim', () => {
@@ -17,7 +17,7 @@ it('requires a sourced excerpt, limits the table, and rejects an overclaim', () 
 it('does not leak unknown outcomes across loops', () => {
   const save = normalizeSave(null, 0);
   save.loops[1].revealedIds = ['1:station-bulletin-wakaharu'];
-  save.loops[2] = { actionIds: [], revealedIds: [], sealed: true };
+  save.loops[2] = { ...emptyLoop(save.loops[1].clock), sealed: true };
   expect(knownDiff(save, 1, 2).right).toBe('尚未查到');
   save.loops[2].revealedIds.push('2:station-bulletin-doctor');
   expect(knownDiff(save, 1, 2).candidateInvariant).toContain('18:31');
