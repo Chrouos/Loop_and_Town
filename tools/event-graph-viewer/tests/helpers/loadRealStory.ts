@@ -1,5 +1,6 @@
 import yaml from 'js-yaml';
 import { buildStoryBundleFromDocuments } from '../../src/lib/loadSimulationStory';
+import type { NarrativeSceneDefinition } from '../../src/narrative/types';
 
 const rawFiles = import.meta.glob('../../../../story/**/*.yaml', {
   query: '?raw',
@@ -11,6 +12,12 @@ function parse(suffix: string): unknown {
   const key = Object.keys(rawFiles).find((candidate) => candidate.endsWith(suffix));
   if (!key) throw new Error(`Missing real story file: ${suffix}`);
   return yaml.load(rawFiles[key]);
+}
+
+function parseScenes(suffix: string): NarrativeSceneDefinition[] {
+  const document = parse(suffix) as { scenes?: NarrativeSceneDefinition[] };
+  if (!Array.isArray(document.scenes)) throw new Error(`Invalid narrative addendum: ${suffix}`);
+  return document.scenes;
 }
 
 export function loadRealStory() {
@@ -32,7 +39,7 @@ export function loadRealStory() {
     travel?: string;
   };
 
-  return buildStoryBundleFromDocuments({
+  const story = buildStoryBundleFromDocuments({
     loop: parse('/' + manifest.loop),
     initialState: parse('/' + manifest.world),
     schedules: manifest.schedules.map((path) => parse('/' + path)),
@@ -49,4 +56,7 @@ export function loadRealStory() {
     playerChoices: manifest.player_choices ? parse('/' + manifest.player_choices) : undefined,
     travel: manifest.travel ? parse('/' + manifest.travel) : undefined,
   });
+
+  story.narrative.scenes.push(...parseScenes('/narrative/loop_02_player.yaml'));
+  return story;
 }
