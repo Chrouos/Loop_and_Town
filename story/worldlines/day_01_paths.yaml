@@ -1,0 +1,74 @@
+paths:
+  - id: loop_01_baseline
+    label: Loop 01｜第一個今天
+    visibility: public
+    node_ids:
+      - N01_wakaharu_photography
+      - N02_wakaharu_opens_up
+      - N03_station_plan_known
+      - N16_baseline_handoff
+      - N17_wakaharu_warning
+      - N20_convergence_1831
+    edge_ids:
+      - E01_trust
+      - E02_reveal_station
+      - E09_baseline_handoff
+      - E10_warning
+      - E20_baseline_to_convergence
+
+  - id: loop_02_wakaharu_saved_doctor_dies
+    label: Loop 02｜若晴存活・柏勳死亡
+    visibility: public
+    node_ids:
+      - N01_wakaharu_photography
+      - N02_wakaharu_opens_up
+      - N03_station_plan_known
+      - N04_stop_wakaharu
+      - N05_doctor_keeps_documents
+      - N20_convergence_1831
+    edge_ids:
+      - E01_trust
+      - E02_reveal_station
+      - E03_stop_wakaharu
+      - E04_no_recipient
+      - E18_documents_to_convergence
+
+  - id: loop_03_no_death
+    label: Loop 03｜無人死亡
+    visibility: public
+    node_ids:
+      - N01_wakaharu_photography
+      - N02_wakaharu_opens_up
+      - N03_station_plan_known
+      - N04_stop_wakaharu
+      - N10_ask_yuan_to_join
+      - N11_yuan_at_station
+      - N20_convergence_1831
+    edge_ids:
+      - E01_trust
+      - E02_reveal_station
+      - E03_stop_wakaharu
+      - E11_yuan_join
+      - E12_yuan_station
+      - E21_yuan_to_convergence
+
+  - id: loop_author_reporter_intervention
+    label: Author｜庭安介入交付
+    visibility: author
+    node_ids:
+      - N01_wakaharu_photography
+      - N02_wakaharu_opens_up
+      - N03_station_plan_known
+      - N06_tell_reporter
+      - N07_reporter_arrives_station
+      - N08_reporter_confronts_doctor
+      - N09_handoff_delayed
+      - N20_convergence_1831
+    edge_ids:
+      - E01_trust
+      - E02_reveal_station
+      - E05_tell_reporter
+      - E06_reporter_route
+      - E07_confront
+      - E08_delay_handoff
+      - E19_delayed_to_convergence
