@@ -5,6 +5,8 @@ import type {
   StoryDagEdge,
   StoryWorldlinePath,
 } from '../src/types/story';
+import { parseStoryDagText } from '../src/lib/loadStory';
+import { buildStoryDagProjection, validateStoryDag } from '../src/lib/storyDag';
 
 const node: StoryDagNode = {
   id: 'N01_wakaharu_photography',
@@ -47,6 +49,29 @@ const path: StoryWorldlinePath = {
   visibility: 'public',
 };
 
+const minimalYaml = `
+id: test_dag
+title: 測試 DAG
+nodes:
+  - id: N01
+    title: 起點
+    actor_ids: [protagonist]
+    visibility: public
+    detail:
+      before: [原本狀態]
+      after: [改變後狀態]
+      affected_characters: [protagonist]
+  - id: N20
+    title: 18:31 Convergence
+    visibility: public
+edges:
+  - id: E01
+    source: N01
+    target: N20
+    label: trust +1
+    visibility: public
+`;
+
 describe('Story DAG canonical shape', () => {
   it('keeps causal labels and node detail as first-class data', () => {
     expect(document.nodes[0].detail.before).toEqual(['若晴對主角保持戒心']);
@@ -57,5 +82,58 @@ describe('Story DAG canonical shape', () => {
   it('represents a worldline as a path through the DAG', () => {
     expect(path.nodeIds).toEqual(['N01_wakaharu_photography']);
     expect(path.visibility).toBe('public');
+  });
+});
+
+describe('Story DAG parser and validation', () => {
+  it('normalizes optional node detail arrays', () => {
+    const parsed = parseStoryDagText(minimalYaml);
+    expect(parsed.nodes[0].actorIds).toEqual(['protagonist']);
+    expect(parsed.nodes[1].actorIds).toEqual([]);
+    expect(parsed.nodes[1].detail.before).toEqual([]);
+    expect(parsed.nodes[1].detail.narrativeRefs).toEqual([]);
+    expect(parsed.nodes[1].detail.reason).toBeUndefined();
+  });
+
+  it('rejects edges that reference missing nodes', () => {
+    const parsed = parseStoryDagText(minimalYaml);
+    parsed.edges.push({
+      id: 'E_bad',
+      source: 'N01',
+      target: 'N_missing',
+      label: 'broken',
+      visibility: 'public',
+    });
+    expect(validateStoryDag(parsed)).toContain('Edge E_bad target references unknown node N_missing');
+  });
+
+  it('allows multiple branches to converge on one node without duplicating it', () => {
+    const parsed = parseStoryDagText(`${minimalYaml}\n`);
+    parsed.nodes.push({
+      id: 'N02',
+      title: '另一條路',
+      actorIds: [],
+      visibility: 'public',
+      detail: {
+        before: [], after: [], affectedCharacters: [], delayedEffects: [],
+        knowledgeChanges: [], relationshipChanges: [], narrativeRefs: [],
+      },
+    });
+    parsed.edges.push({ id: 'E02', source: 'N02', target: 'N20', label: 'converge', visibility: 'public' });
+    expect(validateStoryDag(parsed)).toEqual([]);
+    const projection = buildStoryDagProjection(parsed, 'author');
+    expect(projection.nodes.filter((item) => item.id === 'N20')).toHaveLength(1);
+    expect(projection.edges.filter((item) => item.target === 'N20')).toHaveLength(2);
+  });
+
+  it('filters author-only nodes and edges outside author mode', () => {
+    const parsed = parseStoryDagText(minimalYaml);
+    parsed.nodes.push({
+      id: 'N_secret', title: '作者秘密', actorIds: [], visibility: 'author',
+      detail: { before: [], after: [], affectedCharacters: [], delayedEffects: [], knowledgeChanges: [], relationshipChanges: [], narrativeRefs: [] },
+    });
+    parsed.edges.push({ id: 'E_secret', source: 'N01', target: 'N_secret', label: 'secret', visibility: 'author' });
+    expect(buildStoryDagProjection(parsed, 'public').nodes.some((item) => item.id === 'N_secret')).toBe(false);
+    expect(buildStoryDagProjection(parsed, 'author').nodes.some((item) => item.id === 'N_secret')).toBe(true);
   });
 });
