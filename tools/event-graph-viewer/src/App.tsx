@@ -77,6 +77,9 @@ export default function App() {
       fetchText('story/narrative/loop_07_player.yaml').then(parseNarrativeAddendum),
       fetchText('story/events/loop_07_story_dag.yaml').then(parseStoryDagText),
       fetchText('story/worldlines/loop_07_paths.yaml').then(parseStoryWorldlinePathsText),
+      fetchText('story/narrative/final_player.yaml').then(parseNarrativeAddendum),
+      fetchText('story/events/final_story_dag.yaml').then(parseStoryDagText),
+      fetchText('story/worldlines/final_paths.yaml').then(parseStoryWorldlinePathsText),
     ])
       .then(([
         loadedStory,
@@ -98,6 +101,9 @@ export default function App() {
         loop07Scenes,
         loop07Dag,
         loop07Paths,
+        finalScenes,
+        finalDag,
+        finalPaths,
       ]) => {
         loadedStory.narrative.scenes.push(
           ...loop02Scenes,
@@ -106,17 +112,20 @@ export default function App() {
           ...loop05Scenes,
           ...loop06Scenes,
           ...loop07Scenes,
+          ...finalScenes,
         );
         const dagWithLoop03 = mergeStoryDags(dag, loop03Dag);
         const dagWithLoop04 = mergeStoryDags(dagWithLoop03, loop04Dag);
         const dagWithLoop05 = mergeStoryDags(dagWithLoop04, loop05Dag);
         const dagWithLoop06 = mergeStoryDags(dagWithLoop05, loop06Dag);
-        const allDag = mergeStoryDags(dagWithLoop06, loop07Dag);
+        const dagWithLoop07 = mergeStoryDags(dagWithLoop06, loop07Dag);
+        const allDag = mergeStoryDags(dagWithLoop07, finalDag);
         const pathsWithLoop03 = mergeStoryPaths(paths, loop03Paths);
         const pathsWithLoop04 = mergeStoryPaths(pathsWithLoop03, loop04Paths);
         const pathsWithLoop05 = mergeStoryPaths(pathsWithLoop04, loop05Paths);
         const pathsWithLoop06 = mergeStoryPaths(pathsWithLoop05, loop06Paths);
-        const allPaths = mergeStoryPaths(pathsWithLoop06, loop07Paths);
+        const pathsWithLoop07 = mergeStoryPaths(pathsWithLoop06, loop07Paths);
+        const allPaths = mergeStoryPaths(pathsWithLoop07, finalPaths);
 
         setStory(loadedStory);
         setStoryDag(allDag);
