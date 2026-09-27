@@ -1,4 +1,10 @@
 actions:
+  - id: make_coffee
+    at: "18:20"
+    duration_minutes: 5
+    label: 泡咖啡
+    effects: []
+
   - id: protect_wakaharu
     at: "18:20"
     label: 阻止若晴前往舊車站

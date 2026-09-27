@@ -37,4 +37,18 @@ describe('canonical story worldlines', () => {
     expect(((result.state.characters as Record<string, any>).reporter).status).toBe(reporter);
     expect(events.some((entry) => entry.eventId === 'evt_2114_reporter_missing')).toBe(reporterEvent);
   });
+
+  it('records make_coffee as a five-minute no-op player action', () => {
+    const { initialState, definition } = loadCanonicalStory();
+    const result = simulate({ definition, initialState, actions: ['make_coffee'], until: '18:25' });
+
+    expect(result.history).toContainEqual(expect.objectContaining({
+      kind: 'player-action',
+      actionId: 'make_coffee',
+      title: '泡咖啡',
+      time: '18:20',
+      endTime: '18:25',
+      changes: [],
+    }));
+  });
 });
