@@ -19,7 +19,7 @@ export type Visibility = 'observable' | 'hidden' | 'debug';
 
 export type LeafCondition = {
   path: string;
-  op: 'eq' | 'neq' | 'exists' | 'not_exists' | 'gt' | 'gte' | 'lt' | 'lte';
+  op: 'eq' | 'neq' | 'exists' | 'not_exists' | 'gte' | 'lt' | 'lte';
   value?: unknown;
 };
 
@@ -62,6 +62,7 @@ export type EventDefinition = {
 export type ActionDefinition = {
   id: string;
   at: StoryTimeInput;
+  duration_minutes?: number;
   label: string;
   visibility?: Visibility;
   effects: Effect[];
@@ -140,6 +141,8 @@ export type WorldlineHistoryEntry = {
   characterId?: string;
   title: string;
   sourceId?: string;
+  durationMinutes?: number;
+  endTime?: string;
   changes?: StateChange[];
 };
 
