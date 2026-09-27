@@ -1,0 +1,35 @@
+id: doctor
+name: 陳柏勳
+age: 41
+identity:
+  occupation: 醫師
+  hometown: 灰潮鎮
+background:
+  summary: 灰潮鎮醫師；五年前林知夏死亡當日也在值班，現在仍知道部分與記憶殘留有關的異常。
+  history:
+    - 長期在鎮內醫院工作。
+    - 五年前曾接觸林知夏死亡當日的醫療紀錄。
+personality:
+  traits:
+    - 克制
+    - 重視程序
+    - 習慣隱瞞不確定的資訊
+  habits:
+    - 回答敏感問題前會先確認對方知道多少
+  dislikes:
+    - 未經證實的診斷
+speech:
+  tone: formal
+  calls:
+    protagonist: 妳
+    zhixia: 林知夏
+knowledge:
+  initial:
+    - fact_zhixia_dead_five_years
+    - fact_doctor_on_duty_five_years_ago
+  hidden:
+    - fact_1831_is_special
+    - fact_memory_residue_exists
+secrets:
+  - 知道部分輪迴後記憶殘留現象，但從未公開說明。
+schedule_ref: schedules/doctor.yaml

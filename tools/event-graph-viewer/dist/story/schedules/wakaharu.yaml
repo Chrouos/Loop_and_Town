@@ -1,0 +1,20 @@
+character_id: wakaharu
+entries:
+  - id: wakaharu_leave_cafe
+    at: { day: 0, time: "17:45" }
+    visibility: hidden
+    when: { path: characters.wakaharu.route, op: eq, value: old_station }
+    effects:
+      - set: { path: characters.wakaharu.location, value: road_to_old_station }
+  - id: wakaharu_go_home
+    at: { day: 0, time: "17:45" }
+    visibility: hidden
+    when: { path: characters.wakaharu.route, op: eq, value: home }
+    effects:
+      - set: { path: characters.wakaharu.location, value: home }
+  - id: wakaharu_arrive_station
+    at: { day: 0, time: "18:05" }
+    visibility: hidden
+    when: { path: characters.wakaharu.route, op: eq, value: old_station }
+    effects:
+      - set: { path: characters.wakaharu.location, value: old_station }

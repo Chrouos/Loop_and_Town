@@ -1,0 +1,10 @@
+id: evt_2359_midnight_bells
+title: 午夜前的鐘聲
+at: { day: 0, time: "23:59" }
+visibility: observable
+variants:
+  - id: bells_ring
+    priority: 0
+    fallback: true
+    effects:
+      - add_flag: flags.midnight_bells_heard

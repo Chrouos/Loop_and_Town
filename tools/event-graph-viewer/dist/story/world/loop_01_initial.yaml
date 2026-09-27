@@ -1,0 +1,34 @@
+clock:
+  day: 0
+  time: "14:20"
+
+characters:
+  wakaharu:
+    location: cafe
+    status: alive
+    route: old_station
+  doctor:
+    location: hospital
+    status: alive
+    route: old_station
+  reporter:
+    location: town
+    status: available
+    route: normal
+  yuan:
+    location: with_player
+    assignment: normal
+
+world:
+  anomaly_1831_observed: false
+
+flags:
+  yuan_sent_to_post_office: false
+  yuan_saw_reporter_at_station: false
+  postal_record_anomaly_found: false
+  wakaharu_saw_letter: false
+  reporter_confronted: false
+  old_case_1831_revealed: false
+  sister_warning_found: false
+  midnight_bells_heard: false
+  loop_ended: false

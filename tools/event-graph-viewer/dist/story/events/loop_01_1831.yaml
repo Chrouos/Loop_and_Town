@@ -1,0 +1,22 @@
+id: evt_1831_station
+title: 18:31 車站異常
+at: { day: 0, time: "18:31" }
+visibility: observable
+variants:
+  - id: wakaharu_dies
+    priority: 100
+    when: { path: characters.wakaharu.location, op: eq, value: old_station }
+    effects:
+      - set: { path: characters.wakaharu.status, value: dead }
+      - add_flag: world.anomaly_1831_observed
+  - id: doctor_dies
+    priority: 90
+    when: { path: characters.doctor.location, op: eq, value: old_station }
+    effects:
+      - set: { path: characters.doctor.status, value: dead }
+      - add_flag: world.anomaly_1831_observed
+  - id: no_death
+    priority: 0
+    fallback: true
+    effects:
+      - add_flag: world.anomaly_1831_observed
