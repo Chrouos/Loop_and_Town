@@ -359,7 +359,7 @@ nodes:
       delayed_effects: [予安繼續留在鐘錶店的時間變長。]
       knowledge_changes: []
       relationship_changes: []
-      narrative_refs: []
+      narrative_refs: [scene_2000_yuan_realtor]
 
   - id: N13_show_letter_to_reporter
     title: 玩家向庭安出示第七封信
@@ -464,7 +464,7 @@ nodes:
       delayed_effects: [警方重啟五年前相同時間與地點的比較。]
       knowledge_changes: [主角形成柏勳可能害死若晴的錯誤因果假設。]
       relationship_changes: []
-      narrative_refs: []
+      narrative_refs: [scene_1831_wakaharu, scene_1842_station_aftermath]
 
   - id: N22_doctor_dies
     title: 柏勳在 18:31 死亡
@@ -479,7 +479,7 @@ nodes:
       delayed_effects: [主角確認死者可變，但 18:31 不變。]
       knowledge_changes: [死者不是固定條件。]
       relationship_changes: []
-      narrative_refs: []
+      narrative_refs: [scene_1831_doctor]
 
   - id: N23_no_death
     title: 18:31 無人死亡
@@ -494,7 +494,7 @@ nodes:
       delayed_effects: [23:59 鐘聲與 00:00 Reset 仍會發生。]
       knowledge_changes: [死亡不是輪迴原因。]
       relationship_changes: []
-      narrative_refs: []
+      narrative_refs: [scene_1831_no_death]
 
   - id: N24_evening_continues
     title: 18:31 之後的夜晚仍繼續
@@ -539,7 +539,7 @@ nodes:
       delayed_effects: [主角會回家重新檢查停在 18:31 的手錶。]
       knowledge_changes: [fact_detective_first_responder, fact_1831_is_special]
       relationship_changes: []
-      narrative_refs: []
+      narrative_refs: [scene_2030_detective_old_case]
 
   - id: N27_watch_message
     title: 手錶後蓋出現知夏警告
@@ -554,7 +554,7 @@ nodes:
       delayed_effects: [下一輪主角會主動改變第一個死者的行程。]
       knowledge_changes: [不要先救第一個死者。]
       relationship_changes: []
-      narrative_refs: []
+      narrative_refs: [scene_2240_watch_warning]
 
   - id: N28_impossible_bell
     title: 沒有鐘的鐘樓響起
@@ -569,7 +569,7 @@ nodes:
       delayed_effects: [一分鐘後世界重置。]
       knowledge_changes: [異常不只存在於舊車站。]
       relationship_changes: []
-      narrative_refs: []
+      narrative_refs: [scene_2359_impossible_bell]
 
   - id: N29_midnight_reset
     title: 00:00 世界重置
@@ -584,7 +584,7 @@ nodes:
       delayed_effects: [Loop 02 開始。]
       knowledge_changes: [主角確認自己被困在同一天。]
       relationship_changes: []
-      narrative_refs: []
+      narrative_refs: [scene_0000_reset]
 
 edges:
   - { id: E00_01, source: N00_arrival_graytide, target: N00_shopkeeper_mistake, label: "return to town", visibility: public }
