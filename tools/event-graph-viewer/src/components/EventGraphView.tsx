@@ -127,6 +127,18 @@ export function EventGraphView(props: Props) {
         </div>
         <p>{isDag ? '[Node] — effect → [Node] · 分支可再次合流' : 'Action / Schedule / Event / Variant / Delayed Effect'}</p>
       </div>
+      {isDag && (
+        <div className="story-dag-edge-labels" aria-label="因果關係標籤">
+          {projection.edges.map((edge) => (
+            <span
+              key={edge.id}
+              className={props.activeEdgeIds && !props.activeEdgeIds.has(edge.id) ? 'story-dag-edge-chip is-dimmed' : 'story-dag-edge-chip'}
+            >
+              {edge.label}
+            </span>
+          ))}
+        </div>
+      )}
       <div className="graph-canvas" aria-label={isDag ? 'Story DAG canvas' : 'Event Graph canvas'}>
         <ReactFlow nodes={nodes} edges={edges} fitView nodesDraggable={false} nodesConnectable={false}>
           <Background gap={18} size={1} />
