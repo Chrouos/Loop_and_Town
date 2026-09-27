@@ -82,6 +82,27 @@ describe('App', () => {
     expect(screen.getByText('Loop 06｜前六封信・資訊交接')).toBeTruthy();
   });
 
+  it('loads both Loop 07 Yuan-agency branches and reconverges on collective burden', async () => {
+    stubRealStoryFetch();
+    render(<App />);
+
+    const selector = await screen.findByLabelText('Worldline Path');
+    fireEvent.change(selector, { target: { value: 'loop_07_yuan_answers' } });
+    expect(await screen.findByText('[L7_N02_worldline_31 Worldline 31：留下來的主角在 18:31 死亡]')).toBeTruthy();
+    fireEvent.click(screen.getByText('[L7_N02_worldline_31 Worldline 31：留下來的主角在 18:31 死亡]'));
+    expect(await screen.findByText(/五年前的那一輪，姊第一次真正把我留在灰潮鎮/)).toBeTruthy();
+    expect(screen.getByText('Loop 07｜林知夏・予安接電話')).toBeTruthy();
+
+    fireEvent.change(selector, { target: { value: 'loop_07_yuan_declines' } });
+    fireEvent.click(await screen.findByText('[L7_N11_yuan_declines 予安自己拒接 17:58 的電話]'));
+    expect(await screen.findByText(/今天不接，是我知道它可能改變很多事/)).toBeTruthy();
+    expect(screen.getByText('Loop 07｜林知夏・予安不接電話')).toBeTruthy();
+
+    fireEvent.click(screen.getByText('[L7_N13_collective_burden 第七封要求共同承擔，而不是選誰活]'));
+    expect(await screen.findByText('這次不要選誰活。')).toBeTruthy();
+    expect(screen.getByText('選你們願意一起承擔什麼。')).toBeTruthy();
+  });
+
   it('opens Character Graph and exposes visibility modes without leaking author relationships by default', async () => {
     stubRealStoryFetch();
     render(<App />);
