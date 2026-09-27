@@ -42,6 +42,7 @@ export type EventDefinition = {
 export type ActionDefinition = {
   id: string;
   at: string;
+  duration_minutes?: number;
   label: string;
   effects: Effect[];
 };
@@ -91,6 +92,8 @@ export type WorldlineHistoryEntry = {
   actionId?: string;
   title: string;
   sourceId?: string;
+  durationMinutes?: number;
+  endTime?: string;
   changes?: StateChange[];
 };
 

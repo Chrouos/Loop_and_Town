@@ -25,4 +25,18 @@ describe('diffWorldlines', () => {
     const rows = diffWorldlines([item('18:31', 'station', 'same')], [item('18:31', 'station', 'same')]);
     expect(rows[0].status).toBe('same');
   });
+
+  it('keeps an action and event with the same id as separate rows', () => {
+    const action: WorldlineEntry = {
+      time: '18:20',
+      eventId: 'shared',
+      title: '玩家行動',
+      source: 'player',
+      durationMinutes: 0,
+      endTime: '18:20',
+    };
+    const event = item('18:31', 'shared', 'same');
+
+    expect(diffWorldlines([action, event], [action, event])).toHaveLength(2);
+  });
 });

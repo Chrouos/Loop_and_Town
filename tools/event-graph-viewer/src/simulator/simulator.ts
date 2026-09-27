@@ -11,7 +11,7 @@ import type {
   WorldState,
   WorldlineHistoryEntry,
 } from './types';
-import { validateDefinition } from './validation';
+import { validateActionDefinition, validateDefinition } from './validation';
 
 const MAX_PROCESSED_ITEMS = 1000;
 
@@ -35,6 +35,7 @@ export function createSimulation(definition: SimulationDefinition, initialState:
   const state = cloneValue(initialState);
   const queue = new SimulationQueue();
   const events = new Map<string, EventDefinition>(definition.events.map((event) => [event.id, event]));
+  const eventIds = new Set(events.keys());
   const actions = new Map<string, ActionDefinition>(definition.actions.map((action) => [action.id, action]));
   const history: WorldlineHistoryEntry[] = [];
   let currentMinute = initialMinute(state);
@@ -49,30 +50,9 @@ export function createSimulation(definition: SimulationDefinition, initialState:
     history.push({ ...entry, sequence: sequence++, minute, time: formatTime(minute) });
   }
 
-  function applyAction(actionOrId: ActionDefinition | string): void {
-    const action = typeof actionOrId === 'string' ? actions.get(actionOrId) : actionOrId;
-    if (!action) throw new Error(`Unknown action: ${String(actionOrId)}`);
-    const actionMinute = parseTime(action.at);
-    if (actionMinute < currentMinute) {
-      throw new Error(`Cannot apply action backwards: ${formatTime(currentMinute)} -> ${action.at}`);
-    }
-    const next = queue.peek();
-    if (next && next.executeAt < actionMinute) {
-      throw new Error(`Action ${action.id} occurs after pending event at ${formatTime(next.executeAt)}`);
-    }
-    currentMinute = actionMinute;
-    const changes = executeEffects({ state, queue, events, currentMinute }, action.effects);
-    record({ kind: 'player-action', actionId: action.id, title: action.label, changes });
-  }
-
-  function runUntil(time: string): void {
-    const target = parseTime(time);
-    if (target < currentMinute) {
-      throw new Error(`Cannot run simulation backwards: ${formatTime(currentMinute)} -> ${time}`);
-    }
-
+  function processQueue(target: number, includeTarget: boolean): void {
     let processed = 0;
-    while (queue.peek() && queue.peek()!.executeAt <= target) {
+    while (queue.peek() && (includeTarget ? queue.peek()!.executeAt <= target : queue.peek()!.executeAt < target)) {
       processed += 1;
       if (processed > MAX_PROCESSED_ITEMS) throw new Error(`Processed event limit exceeded: ${MAX_PROCESSED_ITEMS}`);
 
@@ -112,7 +92,39 @@ export function createSimulation(definition: SimulationDefinition, initialState:
         });
       }
     }
+  }
 
+  function applyAction(actionOrId: ActionDefinition | string): void {
+    const action = typeof actionOrId === 'string' ? actions.get(actionOrId) : actionOrId;
+    if (!action) throw new Error(`Unknown action: ${String(actionOrId)}`);
+    const { actionMinute, durationMinutes } = validateActionDefinition(action, state, eventIds);
+    if (actionMinute < currentMinute) {
+      throw new Error(`Action ${action.id} cannot start at ${action.at} before current time ${formatTime(currentMinute)}`);
+    }
+
+    processQueue(actionMinute, false);
+    currentMinute = actionMinute;
+    const changes = executeEffects({ state, queue, events, currentMinute }, action.effects);
+    const endMinute = actionMinute + durationMinutes;
+    record({
+      kind: 'player-action',
+      actionId: action.id,
+      title: action.label,
+      durationMinutes,
+      endTime: formatTime(endMinute),
+      changes,
+    });
+    processQueue(endMinute, false);
+    currentMinute = endMinute;
+  }
+
+  function runUntil(time: string): void {
+    const target = parseTime(time);
+    if (target < currentMinute) {
+      throw new Error(`Cannot run simulation backwards: ${formatTime(currentMinute)} -> ${time}`);
+    }
+
+    processQueue(target, true);
     currentMinute = target;
     const clock = state.clock;
     if (clock && typeof clock === 'object' && 'time' in clock) {

@@ -2,14 +2,24 @@ import { sortTimeline } from './timeline';
 import type { DiffRow, WorldlineEntry } from '../types/story';
 
 export function diffWorldlines(left: WorldlineEntry[], right: WorldlineEntry[]): DiffRow[] {
-  const leftByEvent = new Map(left.map((entry) => [entry.eventId, entry]));
-  const rightByEvent = new Map(right.map((entry) => [entry.eventId, entry]));
+  function indexEntries(entries: WorldlineEntry[]) {
+    const occurrences = new Map<string, number>();
+    return new Map(entries.map((entry) => {
+      const baseKey = `${entry.source}:${entry.eventId}`;
+      const occurrence = occurrences.get(baseKey) ?? 0;
+      occurrences.set(baseKey, occurrence + 1);
+      return [`${baseKey}:${occurrence}`, entry] as const;
+    }));
+  }
+
+  const leftByEvent = indexEntries(left);
+  const rightByEvent = indexEntries(right);
   const ids = new Set([...leftByEvent.keys(), ...rightByEvent.keys()]);
 
   const rows: DiffRow[] = [];
-  for (const eventId of ids) {
-    const leftEntry = leftByEvent.get(eventId);
-    const rightEntry = rightByEvent.get(eventId);
+  for (const key of ids) {
+    const leftEntry = leftByEvent.get(key);
+    const rightEntry = rightByEvent.get(key);
     const time = leftEntry?.time ?? rightEntry?.time ?? '00:00';
 
     let status: DiffRow['status'];
@@ -19,7 +29,7 @@ export function diffWorldlines(left: WorldlineEntry[], right: WorldlineEntry[]):
     else status = 'changed';
 
     rows.push({
-      key: `${time}:${eventId}`,
+      key: `${time}:${key}`,
       time,
       left: leftEntry,
       right: rightEntry,
