@@ -103,6 +103,28 @@ describe('App', () => {
     expect(screen.getByText('選你們願意一起承擔什麼。')).toBeTruthy();
   });
 
+  it('loads all three Final paths after NPC-owned decisions reconverge', async () => {
+    stubRealStoryFetch();
+    render(<App />);
+
+    const selector = await screen.findByLabelText('Worldline Path');
+    fireEvent.change(selector, { target: { value: 'ending_a_tomorrow' } });
+    expect(await screen.findByText('[F_N07_collective_1831 18:31 各自選擇在同一個 Convergence 合流]')).toBeTruthy();
+    fireEvent.click(screen.getByText('[F_N06b_handoff_open 18:03 第七封交接通道再次開啟]'));
+    expect(await screen.findByText('我不能再替他們選。我只能決定，我自己願意承擔什麼。')).toBeTruthy();
+    expect(screen.getByText('Ending A｜明天')).toBeTruthy();
+
+    fireEvent.change(selector, { target: { value: 'ending_b_once_more' } });
+    expect(await screen.findByText('[F_N10_ending_b Ending B｜再一次]')).toBeTruthy();
+    expect(screen.getByText('Ending B｜再一次')).toBeTruthy();
+
+    fireEvent.change(selector, { target: { value: 'ending_c_forget_me' } });
+    fireEvent.click(await screen.findByText('[F_N11_ending_c Ending C｜忘記我]'));
+    expect(await screen.findByText('……原本哪個？')).toBeTruthy();
+    expect(screen.getByText('沒事。我重新問一次。妳喝什麼？')).toBeTruthy();
+    expect(screen.getByText('Ending C｜忘記我')).toBeTruthy();
+  });
+
   it('opens Character Graph and exposes visibility modes without leaking author relationships by default', async () => {
     stubRealStoryFetch();
     render(<App />);
