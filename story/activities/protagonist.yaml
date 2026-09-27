@@ -1,0 +1,57 @@
+activities:
+  - id: walk_home
+    duration_minutes: 5
+    interruptible: true
+    presentation:
+      start: 我拖著行李離開車站，沿著以前走慣的路往老街走。
+      idle: 正在往老街走……
+      complete: 前面的街景終於和記憶裡重疊起來。
+  - id: buy_groceries
+    duration_minutes: 10
+    interruptible: true
+    presentation:
+      start: 冰箱大概什麼都沒有。我先繞去買點水和晚餐材料。
+      idle: 正在買東西……
+      complete: 我提著一小袋東西重新往老家走。
+  - id: clean_old_house
+    duration_minutes: 30
+    interruptible: true
+    presentation:
+      start: 我把窗戶全部推開。五年沒人長住，空氣裡全是灰和受潮木頭的味道。
+      idle: 正在整理老家……
+      complete: 第一批紙箱總算清出一塊能走路的地方。
+  - id: rest_and_read
+    duration_minutes: 20
+    interruptible: true
+    presentation:
+      start: 整理了一陣子，我泡了杯茶，從書架抽出一本以前沒看完的小說。
+      idle: 正在看書……
+      complete: 我把書闔上，茶也差不多涼了。
+  - id: sort_mail
+    duration_minutes: 10
+    interruptible: true
+    presentation:
+      start: 門口還堆著一些廣告和沒人收的信。我乾脆一起整理掉。
+      idle: 正在整理郵件……
+      complete: 最後只剩幾封看起來不像廣告的信。
+  - id: prepare_dinner
+    duration_minutes: 30
+    interruptible: true
+    presentation:
+      start: 該做的事情差不多了。我把買來的東西放上流理台，準備晚餐。
+      idle: 正在準備晚餐……
+      complete: 廚房裡總算有了一點有人住的味道。
+  - id: research_online
+    duration_minutes: 35
+    interruptible: true
+    presentation:
+      start: 我把筆電搬到桌上。這件事得花點時間查清楚。
+      idle: 正在查資料……
+      complete: 搜尋結果裡終於出現幾筆值得再看的資料。
+  - id: wait_for_call
+    duration_minutes: 20
+    interruptible: true
+    presentation:
+      start: 現在能做的都做完了。我把手機放在手邊，先等消息。
+      idle: 正在等消息……
+      complete: 手機仍然安靜地躺在桌上。

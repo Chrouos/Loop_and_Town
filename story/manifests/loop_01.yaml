@@ -22,3 +22,18 @@ events:
   - events/loop_01_2359.yaml
   - events/loop_01_end.yaml
 worldlines: worldlines/loop_01_worldlines.yaml
+characters:
+  - characters/protagonist.yaml
+  - characters/zhixia.yaml
+  - characters/yuan.yaml
+  - characters/wakaharu.yaml
+  - characters/doctor.yaml
+  - characters/reporter.yaml
+  - characters/detective.yaml
+relationships: relationships/loop_01.yaml
+knowledge: knowledge/facts.yaml
+activities: activities/protagonist.yaml
+protagonist_schedule: schedules/protagonist.yaml
+narrative: narrative/loop_01_prologue.yaml
+artifacts:
+  - artifacts/zhixia_letter.yaml

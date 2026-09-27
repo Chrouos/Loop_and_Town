@@ -72,3 +72,40 @@ export type DiffRow = {
   right?: WorldlineEntry;
   status: 'same' | 'changed' | 'left-only' | 'right-only';
 };
+
+export type CharacterGraphMode = 'public' | 'author' | 'player-known';
+
+export type CharacterGraphNode = {
+  id: string;
+  name: string;
+  occupation?: string;
+  hometown?: string;
+};
+
+export type CharacterGraphEdge = {
+  id: string;
+  source: string;
+  target: string;
+  type: string;
+  summary: string;
+  visibility: 'public' | 'author' | 'player-known';
+};
+
+export type CharacterGraphDetail = {
+  characterId: string;
+  name: string;
+  backgroundSummary: string;
+  traits: string[];
+  relationshipEdgeIds: string[];
+  knowledgeIds: string[];
+  secrets: string[];
+  scheduleRef?: string;
+  narrativeAppearanceIds: string[];
+};
+
+export type CharacterGraphProjection = {
+  mode: CharacterGraphMode;
+  nodes: CharacterGraphNode[];
+  edges: CharacterGraphEdge[];
+  details: Record<string, CharacterGraphDetail>;
+};

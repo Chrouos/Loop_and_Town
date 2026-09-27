@@ -47,9 +47,9 @@ it('author-only rescue actions only change routes', () => {
   ]);
 });
 
-it('places story interventions at their narrative moments and rescue probes before schedules diverge', () => {
-  expect(byId('send_yuan_to_post_office').at).toEqual({ day: 0, time: '15:00' });
-  expect(byId('show_letter_to_wakaharu').at).toEqual({ day: 0, time: '16:10' });
+it('places letter-related interventions after the letter is discovered', () => {
+  expect(byId('send_yuan_to_post_office').at).toEqual({ day: 0, time: '16:12' });
+  expect(byId('show_letter_to_wakaharu').at).toEqual({ day: 0, time: '16:30' });
   expect(byId('confront_reporter').at).toEqual({ day: 0, time: '16:40' });
   expect(byId('protect_wakaharu').at).toEqual({ day: 0, time: '17:30' });
   expect(byId('stop_doctor').at).toEqual({ day: 0, time: '17:30' });
