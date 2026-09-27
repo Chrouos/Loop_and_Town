@@ -55,62 +55,14 @@ export type GraphProjection = {
   edges: GraphEdge[];
 };
 
-export type StoryVisibility = 'public' | 'author' | 'player-known';
-
-export type StoryDagNodeDetail = {
-  before: string[];
-  after: string[];
-  reason?: string;
-  affectedCharacters: string[];
-  delayedEffects: string[];
-  knowledgeChanges: string[];
-  relationshipChanges: string[];
-  narrativeRefs: string[];
-};
-
-export type StoryDagNode = {
-  id: string;
-  title: string;
-  time?: string;
-  actorIds: string[];
-  visibility: StoryVisibility;
-  detail: StoryDagNodeDetail;
-};
-
-export type StoryDagEdge = {
-  id: string;
-  source: string;
-  target: string;
-  label: string;
-  visibility: StoryVisibility;
-};
-
-export type StoryDagDocument = {
-  id: string;
-  title: string;
-  nodes: StoryDagNode[];
-  edges: StoryDagEdge[];
-};
-
-export type StoryWorldlinePath = {
-  id: string;
-  label: string;
-  nodeIds: string[];
-  edgeIds: string[];
-  visibility: StoryVisibility;
-};
-
 export type WorldlineEntry = {
   day?: number;
   time: string;
   absoluteMinute?: number;
-  durationMinutes?: number;
-  endTime?: string;
   eventId: string;
   variantId?: string;
   title: string;
   source: 'event' | 'delayed' | 'player';
-  hasImmediateStateChange?: boolean;
 };
 
 export type DiffRow = {
@@ -157,3 +109,12 @@ export type CharacterGraphProjection = {
   edges: CharacterGraphEdge[];
   details: Record<string, CharacterGraphDetail>;
 };
+
+export type {
+  StoryDagDocument,
+  StoryDagEdge,
+  StoryDagNode,
+  StoryDagNodeDetail,
+  StoryVisibility,
+  StoryWorldlinePath,
+} from './storyDag';
