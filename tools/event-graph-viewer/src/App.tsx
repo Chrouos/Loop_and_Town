@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import yaml from 'js-yaml';
 import { CharacterGraphView } from './components/CharacterGraphView';
 import { EventGraphView } from './components/EventGraphView';
 import { NodeDetailPanel } from './components/NodeDetailPanel';
@@ -9,6 +10,7 @@ import { WorldlineDiffView } from './components/WorldlineDiffView';
 import { WorldlinePathSelector } from './components/WorldlinePathSelector';
 import { parseStoryDagText, parseStoryWorldlinePathsText } from './lib/loadStory';
 import { loadSimulationStory, type StoryBundle } from './lib/loadSimulationStory';
+import type { NarrativeSceneDefinition } from './narrative/types';
 import { projectTimelineEntries } from './simulator/projection';
 import { simulateStory } from './simulator/storySimulation';
 import { compareWorldlines } from './simulator/worldlineDiff';
@@ -18,6 +20,12 @@ async function fetchText(path: string): Promise<string> {
   const response = await fetch(path);
   if (!response.ok) throw new Error(`HTTP ${response.status}: ${path}`);
   return response.text();
+}
+
+function parseNarrativeAddendum(text: string): NarrativeSceneDefinition[] {
+  const raw = yaml.load(text) as { scenes?: NarrativeSceneDefinition[] } | undefined;
+  if (!raw || !Array.isArray(raw.scenes)) throw new Error('Invalid narrative addendum');
+  return raw.scenes;
 }
 
 export default function App() {
@@ -40,8 +48,10 @@ export default function App() {
       loadSimulationStory('story/manifests/loop_01.yaml'),
       fetchText('story/events/day_01_story_dag.yaml').then(parseStoryDagText),
       fetchText('story/worldlines/day_01_paths.yaml').then(parseStoryWorldlinePathsText),
+      fetchText('story/narrative/loop_02_player.yaml').then(parseNarrativeAddendum),
     ])
-      .then(([loadedStory, dag, paths]) => {
+      .then(([loadedStory, dag, paths, loop02Scenes]) => {
+        loadedStory.narrative.scenes.push(...loop02Scenes);
         setStory(loadedStory);
         setStoryDag(dag);
         setStoryPaths(paths);
