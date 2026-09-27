@@ -60,6 +60,7 @@ export function loadRealStory() {
   story.narrative.scenes.push(
     ...parseScenes('/narrative/loop_02_player.yaml'),
     ...parseScenes('/narrative/loop_03_player.yaml'),
+    ...parseScenes('/narrative/loop_04_player.yaml'),
   );
   return story;
 }
