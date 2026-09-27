@@ -8,6 +8,7 @@ import type {
   StoryDagNodeDetail,
   StoryEffect,
   StoryVisibility,
+  StoryWorldlinePath,
 } from '../types/story';
 
 type RawObject = Record<string, unknown>;
@@ -158,6 +159,22 @@ export function parseStoryDagText(text: string): StoryDagDocument {
         })
       : [],
   };
+}
+
+export function parseStoryWorldlinePathsText(text: string): StoryWorldlinePath[] {
+  const raw = asObject(yaml.load(text));
+  if (!Array.isArray(raw.paths)) throw new Error('Story worldline paths 缺少 paths');
+  return raw.paths.map((value) => {
+    const path = asObject(value);
+    if (!path.id || !path.label) throw new Error('Story worldline path 缺少 id 或 label');
+    return {
+      id: String(path.id),
+      label: String(path.label),
+      nodeIds: asStringArray(path.node_ids),
+      edgeIds: asStringArray(path.edge_ids),
+      visibility: asVisibility(path.visibility),
+    };
+  });
 }
 
 export async function loadEventGraph(path: string): Promise<EventGraphDocument> {
