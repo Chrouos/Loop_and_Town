@@ -19,7 +19,7 @@ export type Visibility = 'observable' | 'hidden' | 'debug';
 
 export type LeafCondition = {
   path: string;
-  op: 'eq' | 'neq' | 'exists' | 'not_exists' | 'gte' | 'lt' | 'lte';
+  op: 'eq' | 'neq' | 'exists' | 'not_exists';
   value?: unknown;
 };
 
@@ -30,10 +30,9 @@ export type Condition =
   | { not: Condition };
 
 export type SetEffect = { set: { path: string; value: unknown } };
-export type AdjustEffect = { adjust: { path: string; by: number } };
 export type AddFlagEffect = { add_flag: string };
 export type EmitEventEffect = { emit_event: { event_id: string; at?: StoryTimeInput } };
-export type Effect = SetEffect | AdjustEffect | AddFlagEffect | EmitEventEffect;
+export type Effect = SetEffect | AddFlagEffect | EmitEventEffect;
 
 export type DelayedEffectDefinition = {
   id: string;
