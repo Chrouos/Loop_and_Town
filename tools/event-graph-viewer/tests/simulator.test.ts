@@ -103,8 +103,8 @@ describe('worldline simulator acceptance', () => {
 describe('story definition validation', () => {
   it('rejects an unknown condition operator before simulation starts', () => {
     const invalid = structuredClone(definition) as any;
-    invalid.events[0].variants[0].when.op = 'gt';
-    expect(() => createSimulation(invalid, initialState)).toThrow('Unknown condition operator: gt');
+    invalid.events[0].variants[0].when.op = 'approx';
+    expect(() => createSimulation(invalid, initialState)).toThrow('Unknown condition operator: approx');
   });
 
   it('rejects an unknown effect operation before simulation starts', () => {
