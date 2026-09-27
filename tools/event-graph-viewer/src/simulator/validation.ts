@@ -1,6 +1,6 @@
-import { getPath, hasPath } from './state';
+import { hasPath } from './state';
 import { parseTime, toAbsoluteMinute } from './time';
-import type { ActionDefinition, Condition, SimulationDefinition, StoryTimeInput, WorldState } from './types';
+import type { ActionDefinition, Condition, Effect, SimulationDefinition, StoryTimeInput, WorldState } from './types';
 
 const LAST_MINUTE_OF_DAY = 24 * 60 - 1;
 
@@ -26,21 +26,12 @@ function validateCondition(condition: Condition, state: WorldState): void {
   if ('not' in condition) return validateCondition(condition.not, state);
 
   const operator = (condition as { op?: unknown }).op;
-  const supported = ['eq', 'neq', 'exists', 'not_exists', 'gte', 'lt', 'lte'];
-  if (!supported.includes(String(operator))) {
+  if (!['eq', 'neq', 'exists', 'not_exists'].includes(String(operator))) {
     throw new Error(`Unknown condition operator: ${String(operator)}`);
   }
 
-  const needsPath = operator !== 'exists' && operator !== 'not_exists';
-  if (needsPath && !hasPath(state, condition.path)) {
+  if ((operator === 'eq' || operator === 'neq') && !hasPath(state, condition.path)) {
     throw new Error(`Unknown state path: ${condition.path}`);
-  }
-
-  if (['gte', 'lt', 'lte'].includes(String(operator))) {
-    const actual = getPath(state, condition.path);
-    if (typeof actual !== 'number' || typeof condition.value !== 'number') {
-      throw new Error(`Numeric condition requires numbers: ${condition.path}`);
-    }
   }
 }
 
@@ -59,18 +50,6 @@ function validateEffects(effects: unknown, state: WorldState, eventIds: Set<stri
         throw new Error(`Malformed set effect for ${owner}`);
       }
       if (!hasPath(state, set.path)) throw new Error(`Unknown state path: ${set.path}`);
-      continue;
-    }
-
-    if (operation === 'adjust') {
-      const adjust = effect.adjust;
-      if (!isRecord(adjust) || !hasOnlyKeys(adjust, ['path', 'by']) || typeof adjust.path !== 'string' || typeof adjust.by !== 'number' || !Number.isFinite(adjust.by)) {
-        throw new Error(`Malformed adjust effect for ${owner}`);
-      }
-      if (!hasPath(state, adjust.path)) throw new Error(`Unknown state path: ${adjust.path}`);
-      if (typeof getPath(state, adjust.path) !== 'number') {
-        throw new Error(`Adjust effect requires numeric state: ${adjust.path}`);
-      }
       continue;
     }
 
