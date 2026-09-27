@@ -1,4 +1,4 @@
-import { setPath } from './state';
+import { getPath, setPath } from './state';
 import { toAbsoluteMinute } from './time';
 import type { Effect, ResolverContext, StateChange } from './types';
 
@@ -8,6 +8,15 @@ export function executeEffects(context: ResolverContext, effects: Effect[]): Sta
   for (const effect of effects) {
     if ('set' in effect) {
       changes.push(setPath(context.state, effect.set.path, effect.set.value));
+      continue;
+    }
+
+    if ('adjust' in effect) {
+      const current = getPath(context.state, effect.adjust.path);
+      if (typeof current !== 'number') {
+        throw new Error(`Adjust effect requires numeric state: ${effect.adjust.path}`);
+      }
+      changes.push(setPath(context.state, effect.adjust.path, current + effect.adjust.by));
       continue;
     }
 
