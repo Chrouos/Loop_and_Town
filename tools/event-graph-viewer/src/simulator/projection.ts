@@ -12,7 +12,9 @@ export function projectTimelineEntries(history: WorldlineHistoryEntry[]): Worldl
       day: entry.day,
       time: entry.time,
       absoluteMinute: entry.absoluteMinute,
-      eventId: entry.eventId ?? entry.actionId ?? `history-${entry.sequence}`,
+      eventId: entry.kind === 'delayed-effect'
+        ? `delayed:${entry.title}`
+        : entry.eventId ?? entry.actionId ?? `history-${entry.sequence}`,
       variantId: entry.variantId,
       title: entry.title,
       source: entry.kind === 'player-action' ? 'player' : entry.kind === 'delayed-effect' ? 'delayed' : 'event',

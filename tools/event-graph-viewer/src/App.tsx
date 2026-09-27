@@ -37,7 +37,8 @@ export default function App() {
     return {
       left,
       right,
-      timeline: projectTimelineEntries(right.fullHistory),
+      leftTimeline: projectTimelineEntries(left.fullHistory),
+      rightTimeline: projectTimelineEntries(right.fullHistory),
       diffRows: compareWorldlines(left, right, 'author'),
     };
   }, [story, appliedActionIds]);
@@ -89,7 +90,7 @@ export default function App() {
           ) : view === 'characters' ? (
             <CharacterGraphView story={story.narrative} />
           ) : view === 'timeline' ? (
-            <TimelineView entries={generated.timeline} loopLabel="世界線 B · Author History" />
+            <TimelineView leftEntries={generated.leftTimeline} rightEntries={generated.rightTimeline} />
           ) : (
             <WorldlineDiffView rows={generated.diffRows} />
           )}
