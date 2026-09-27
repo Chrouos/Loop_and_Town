@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { toAbsoluteMinute } from '../src/simulator/time';
 import { loadRealStory } from './helpers/loadRealStory';
 
 function sceneText(scene: ReturnType<typeof loadRealStory>['narrative']['scenes'][number] | undefined) {
@@ -41,7 +42,7 @@ describe('Loop 04 five-years-ago narrative', () => {
     const opening = byId.get('loop04_0612_hard_reset');
 
     expect(opening).toBeDefined();
-    expect(opening?.at.time).toBe('06:12');
+    expect(opening ? toAbsoluteMinute(opening.at) : undefined).toBe(372);
     expect(sceneText(opening)).toContain('10 月 3 日');
     expect(sceneText(opening)).toContain('06:12');
   });
