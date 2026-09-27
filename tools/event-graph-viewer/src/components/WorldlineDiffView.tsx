@@ -1,33 +1,31 @@
-import { diffWorldlines } from '../lib/worldlineDiff';
-import type { WorldlineEntry } from '../types/story';
+import type { StoryDiffRow } from '../simulator/worldlineDiff';
+import type { WorldlineHistoryEntry } from '../simulator/types';
 
-function label(entry?: WorldlineEntry) {
+function label(entry?: WorldlineHistoryEntry) {
   if (!entry) return '未發生';
-  const variants: Record<string, string> = {
-    wakaharu_dies: '若晴死亡',
-    doctor_dies: '醫生死亡',
-    no_death: '沒有人死亡',
-    reporter_missing: '記者失蹤',
-  };
-  const time = entry.source === 'player' && entry.durationMinutes === 0
-    ? `${entry.time} 立即`
-    : entry.source === 'player' && entry.endTime
-      ? `${entry.time}–${entry.endTime}`
-      : entry.time;
-  const title = entry.source === 'event' ? variants[entry.variantId ?? ''] ?? entry.title : entry.title;
-  return `${time} ${title}`;
+  const dayPrefix = entry.day && entry.day > 0 ? `D${entry.day} ` : '';
+  const variant = entry.variantId ? ` · ${entry.variantId}` : '';
+  const duration = entry.endTime && entry.endTime !== entry.time ? `–${entry.endTime}` : '';
+  return `${dayPrefix}${entry.time}${duration} ${entry.title}${variant}`;
 }
 
-export function WorldlineDiffView({ left, right }: { left: WorldlineEntry[]; right: WorldlineEntry[] }) {
-  const rows = diffWorldlines(left, right);
+function sourceLabel(entry?: WorldlineHistoryEntry) {
+  if (!entry) return '';
+  if (entry.kind === 'player-action') return '玩家介入';
+  if (entry.kind === 'delayed-effect') return '延遲後果';
+  if (entry.kind === 'schedule') return '角色行程';
+  return entry.variantId ?? entry.eventId ?? entry.title;
+}
+
+export function WorldlineDiffView({ rows }: { rows: StoryDiffRow[] }) {
   return (
     <section className="panel">
       <div className="panel-heading">
         <div>
           <p className="eyebrow">世界線比較</p>
-          <h2 aria-label="Worldline Diff">世界線比較</h2>
+          <h2>Worldline Diff</h2>
         </div>
-        <p>同一 Event 的 Variant 改變會保留在同一列</p>
+        <p>玩家介入、事件與延遲後果都會依時間對齊</p>
       </div>
       <div className="diff-table" role="table" aria-label="Worldline comparison">
         <div className="diff-header" role="row">
@@ -35,9 +33,18 @@ export function WorldlineDiffView({ left, right }: { left: WorldlineEntry[]; rig
         </div>
         {rows.map((row) => (
           <div className={`diff-row ${row.status}`} role="row" key={row.key}>
-            <div>{label(row.left)}</div>
-            <div className="diff-status">{row.status === 'same' ? '相同' : '變更'}</div>
-            <div>{label(row.right)}</div>
+            <div>
+              <strong>{label(row.left)}</strong>
+              {row.left && <small>{sourceLabel(row.left)}</small>}
+            </div>
+            <div className="diff-status">
+              <time>{row.time}</time>
+              <span>{row.status === 'same' ? '相同' : row.status === 'changed' ? '改變' : row.status === 'left-only' ? '只在 A' : '只在 B'}</span>
+            </div>
+            <div>
+              <strong>{label(row.right)}</strong>
+              {row.right && <small>{sourceLabel(row.right)}</small>}
+            </div>
           </div>
         ))}
       </div>

@@ -122,6 +122,27 @@ describe('worldline simulator acceptance', () => {
     history.length = 0;
     expect(simulation.getHistory().length).toBeGreaterThan(0);
   });
+
+  it('records action duration and advances the cursor before later work', () => {
+    const laterAction = { id: 'drink_coffee', at: '18:25', label: '喝咖啡', effects: [] };
+    const result = simulate({
+      definition: actionDefinition([makeCoffee, laterAction], [emptyEvent('evt_1822', '18:22')]),
+      initialState,
+      actions: ['make_coffee', 'drink_coffee'],
+      until: '18:25',
+    });
+
+    expect(result.history.map((entry) => `${entry.kind}:${entry.actionId ?? entry.eventId}`)).toEqual([
+      'player-action:make_coffee',
+      'event:evt_1822',
+      'player-action:drink_coffee',
+    ]);
+    expect(result.history[0]).toEqual(expect.objectContaining({
+      time: '18:20',
+      endTime: '18:25',
+      durationMinutes: 5,
+    }));
+  });
 });
 
 describe('action duration', () => {

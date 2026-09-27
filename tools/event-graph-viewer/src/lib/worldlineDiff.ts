@@ -5,10 +5,10 @@ export function diffWorldlines(left: WorldlineEntry[], right: WorldlineEntry[]):
   function indexEntries(entries: WorldlineEntry[]) {
     const occurrences = new Map<string, number>();
     return new Map(entries.map((entry) => {
-      const baseKey = `${entry.source}:${entry.eventId}`;
+      const baseKey = entry.source === 'event' ? entry.eventId : `${entry.source}:${entry.eventId}`;
       const occurrence = occurrences.get(baseKey) ?? 0;
       occurrences.set(baseKey, occurrence + 1);
-      return [`${baseKey}:${occurrence}`, entry] as const;
+      return [`${baseKey}${occurrence === 0 ? '' : `:${occurrence}`}`, entry] as const;
     }));
   }
 

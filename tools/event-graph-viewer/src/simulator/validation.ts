@@ -1,8 +1,8 @@
 import { hasPath } from './state';
-import { parseTime } from './time';
-import type { ActionDefinition, Condition, SimulationDefinition, WorldState } from './types';
+import { parseTime, toAbsoluteMinute } from './time';
+import type { ActionDefinition, Condition, Effect, SimulationDefinition, StoryTimeInput, WorldState } from './types';
 
-const LAST_MINUTE_OF_DAY = parseTime('23:59');
+const LAST_MINUTE_OF_DAY = 24 * 60 - 1;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
@@ -39,48 +39,31 @@ function validateEffects(effects: unknown, state: WorldState, eventIds: Set<stri
   if (!Array.isArray(effects)) throw new Error(`Effects must be an array for ${owner}`);
 
   for (const effect of effects) {
-    if (!isRecord(effect)) {
-      throw new Error(`Malformed effect for ${owner}`);
-    }
-
+    if (!isRecord(effect)) throw new Error(`Malformed effect for ${owner}`);
     const operations = Object.keys(effect);
-    if (operations.length !== 1) {
-      throw new Error(`Effect must contain exactly one operation for ${owner}`);
-    }
+    if (operations.length !== 1) throw new Error(`Effect must contain exactly one operation for ${owner}`);
 
     const operation = operations[0];
     if (operation === 'set') {
       const set = effect.set;
-      if (
-        !isRecord(set)
-        || !hasOnlyKeys(set, ['path', 'value'])
-        || typeof set.path !== 'string'
-        || !Object.hasOwn(set, 'value')
-      ) {
+      if (!isRecord(set) || !hasOnlyKeys(set, ['path', 'value']) || typeof set.path !== 'string' || !Object.hasOwn(set, 'value')) {
         throw new Error(`Malformed set effect for ${owner}`);
       }
-      if (!hasPath(state, set.path)) {
-        throw new Error(`Unknown state path: ${set.path}`);
-      }
+      if (!hasPath(state, set.path)) throw new Error(`Unknown state path: ${set.path}`);
       continue;
     }
 
     if (operation === 'add_flag') {
-      const path = effect.add_flag;
-      if (typeof path !== 'string') throw new Error(`Malformed add_flag effect for ${owner}`);
-      if (!hasPath(state, path)) {
-        throw new Error(`Unknown state path: ${path}`);
+      if (typeof effect.add_flag !== 'string' || !hasOnlyKeys(effect, ['add_flag'])) {
+        throw new Error(`Malformed add_flag effect for ${owner}`);
       }
+      if (!hasPath(state, effect.add_flag)) throw new Error(`Unknown state path: ${effect.add_flag}`);
       continue;
     }
 
     if (operation === 'emit_event') {
       const emitted = effect.emit_event;
-      if (
-        !isRecord(emitted)
-        || !hasOnlyKeys(emitted, ['event_id', 'at'])
-        || typeof emitted.event_id !== 'string'
-      ) {
+      if (!isRecord(emitted) || !hasOnlyKeys(emitted, ['event_id', 'at']) || typeof emitted.event_id !== 'string') {
         throw new Error(`Malformed emit_event effect for ${owner}`);
       }
       if (!eventIds.has(emitted.event_id)) {
@@ -89,7 +72,7 @@ function validateEffects(effects: unknown, state: WorldState, eventIds: Set<stri
       if (Object.hasOwn(emitted, 'at') && typeof emitted.at !== 'string') {
         throw new Error(`Malformed emit_event effect for ${owner}`);
       }
-      if (typeof emitted.at === 'string') parseTime(emitted.at);
+      if (typeof emitted.at === 'string') toAbsoluteMinute(emitted.at);
       continue;
     }
 
@@ -97,39 +80,100 @@ function validateEffects(effects: unknown, state: WorldState, eventIds: Set<stri
   }
 }
 
+function displayMinute(minute: number): string {
+  const value = minute % (24 * 60);
+  const hour = Math.floor(value / 60);
+  const minuteOfHour = value % 60;
+  return `${String(hour).padStart(2, '0')}:${String(minuteOfHour).padStart(2, '0')}`;
+}
+
 export function validateActionDefinition(
+  definition: SimulationDefinition,
   action: ActionDefinition,
   state: WorldState,
   eventIds: Set<string>,
 ): { actionMinute: number; durationMinutes: number } {
-  const actionMinute = parseTime(action.at);
+  const actionMinute = toAbsoluteMinute(action.at);
   const rawDuration = (action as { duration_minutes?: unknown }).duration_minutes;
   const durationMinutes = rawDuration === undefined ? 0 : rawDuration;
   if (typeof durationMinutes !== 'number' || !Number.isInteger(durationMinutes) || durationMinutes < 0) {
     throw new Error(`Invalid duration for action ${action.id}`);
   }
-  if (actionMinute + durationMinutes > LAST_MINUTE_OF_DAY) {
-    throw new Error(`Action ${action.id} ends after 23:59`);
+
+  const dayEnd = Math.floor(actionMinute / (24 * 60)) * 24 * 60 + LAST_MINUTE_OF_DAY;
+  const loopEnd = definition.loop ? toAbsoluteMinute(definition.loop.range.end) : dayEnd;
+  if (actionMinute + durationMinutes > loopEnd) {
+    throw new Error(`Action ${action.id} ends after ${displayMinute(loopEnd)}`);
   }
+
   validateEffects((action as { effects?: unknown }).effects, state, eventIds, `action ${action.id}`);
   return { actionMinute, durationMinutes };
+}
+
+function initialMinute(definition: SimulationDefinition, initialState: WorldState): number {
+  const clock = initialState.clock;
+  if (!clock || typeof clock !== 'object' || !('time' in clock)) return 0;
+  const record = clock as Record<string, unknown>;
+  const time = String(record.time);
+  if (!definition.loop) return parseTime(time);
+  const day = typeof record.day === 'number' ? record.day : 0;
+  return toAbsoluteMinute({ day, time });
+}
+
+function assertInLoopRange(
+  definition: SimulationDefinition,
+  at: StoryTimeInput,
+  kind: 'event' | 'action' | 'schedule',
+  id: string,
+): void {
+  if (!definition.loop) return;
+  const start = toAbsoluteMinute(definition.loop.range.start);
+  const end = toAbsoluteMinute(definition.loop.range.end);
+  const value = toAbsoluteMinute(at);
+  if (value < start || value > end) {
+    const label = kind === 'event' ? 'Scheduled event' : kind === 'schedule' ? 'Schedule entry' : 'Action';
+    throw new Error(`${label} outside loop range: ${id}`);
+  }
 }
 
 export function validateDefinition(definition: SimulationDefinition, initialState: WorldState): void {
   assertUnique(definition.events.map((event) => event.id), 'Event ID');
   assertUnique(definition.actions.map((action) => action.id), 'Action ID');
+  const schedules = definition.schedules ?? [];
+  assertUnique(schedules.map((schedule) => schedule.characterId), 'Schedule character ID');
+  assertUnique(schedules.flatMap((schedule) => schedule.entries.map((entry) => entry.id)), 'Schedule entry ID');
   const eventIds = new Set(definition.events.map((event) => event.id));
-  const initialTime = typeof initialState.clock === 'object' && initialState.clock && 'time' in initialState.clock
-    ? parseTime(String((initialState.clock as Record<string, unknown>).time))
-    : 0;
+
+  if (definition.loop) {
+    const start = toAbsoluteMinute(definition.loop.range.start);
+    const end = toAbsoluteMinute(definition.loop.range.end);
+    if (start > end) throw new Error(`Invalid loop range: ${definition.loop.id}`);
+  }
+
+  const initialTime = initialMinute(definition, initialState);
 
   for (const action of definition.actions) {
-    validateActionDefinition(action, initialState, eventIds);
+    const actionTime = toAbsoluteMinute(action.at);
+    assertInLoopRange(definition, action.at, 'action', action.id);
+    if (actionTime < initialTime) throw new Error(`Action before initial clock: ${action.id}`);
+    validateActionDefinition(definition, action, initialState, eventIds);
+  }
+
+  for (const schedule of schedules) {
+    for (const entry of schedule.entries) {
+      const entryTime = toAbsoluteMinute(entry.at);
+      assertInLoopRange(definition, entry.at, 'schedule', entry.id);
+      if (entryTime < initialTime) throw new Error(`Schedule entry before initial clock: ${entry.id}`);
+      if (entry.when) validateCondition(entry.when, initialState);
+      validateEffects(entry.effects, initialState, eventIds, `schedule ${entry.id}`);
+    }
   }
 
   for (const event of definition.events) {
-    if (event.at && parseTime(event.at) < initialTime) {
-      throw new Error(`Scheduled event before initial clock: ${event.id}`);
+    if (event.at) {
+      const eventTime = toAbsoluteMinute(event.at);
+      assertInLoopRange(definition, event.at, 'event', event.id);
+      if (eventTime < initialTime) throw new Error(`Scheduled event before initial clock: ${event.id}`);
     }
     assertUnique(event.variants.map((variant) => variant.id), `Variant ID in ${event.id}`);
     const fallbacks = event.variants.filter((variant) => variant.fallback);

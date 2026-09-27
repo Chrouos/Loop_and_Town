@@ -26,17 +26,19 @@ describe('diffWorldlines', () => {
     expect(rows[0].status).toBe('same');
   });
 
-  it('keeps an action and event with the same id as separate rows', () => {
-    const action: WorldlineEntry = {
-      time: '18:20',
-      eventId: 'shared',
-      title: '玩家行動',
-      source: 'player',
-      durationMinutes: 0,
-      endTime: '18:20',
-    };
-    const event = item('18:31', 'shared', 'same');
+  it('aligns player actions and delayed effects alongside story events', () => {
+    const rows = diffWorldlines(
+      [item('18:20', 'protect_wakaharu'), item('18:31', 'station', 'doctor_dies')],
+      [item('18:20', 'stop_doctor'), item('18:31', 'station', 'wakaharu_dies'), item('21:14', 'delayed:reporter_missing')],
+    );
 
-    expect(diffWorldlines([action, event], [action, event])).toHaveLength(2);
+    expect(rows.map((row) => row.key)).toEqual([
+      '18:20:protect_wakaharu',
+      '18:20:stop_doctor',
+      '18:31:station',
+      '21:14:delayed:reporter_missing',
+    ]);
+    expect(rows.find((row) => row.key === '18:20:protect_wakaharu')?.status).toBe('left-only');
+    expect(rows.find((row) => row.key === '21:14:delayed:reporter_missing')?.status).toBe('right-only');
   });
 });
