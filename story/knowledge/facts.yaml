@@ -5,6 +5,8 @@ facts:
     summary: 主角這次回灰潮鎮是為了整理並出售老家。
   - id: fact_yuan_runs_clock_shop
     summary: 周予安現在經營老街鐘錶店。
+  - id: fact_zhixia_called_yuan_1758
+    summary: 五年前林知夏在 17:58 曾打電話給周予安，但他當時沒有接起。
   - id: fact_wakaharu_close_to_zhixia
     summary: 許若晴過去和林知夏關係親近。
   - id: fact_doctor_on_duty_five_years_ago
