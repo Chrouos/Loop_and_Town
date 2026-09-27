@@ -45,6 +45,18 @@ describe('App', () => {
     expect(await screen.findByText('……這是第幾次？')).toBeTruthy();
   });
 
+  it('loads Loop 04 as a merged investigation DAG with readable five-year-old evidence', async () => {
+    stubRealStoryFetch();
+    render(<App />);
+
+    const selector = await screen.findByLabelText('Worldline Path');
+    fireEvent.change(selector, { target: { value: 'loop_04_five_years_ago' } });
+    expect(await screen.findByText('[L4_N02_hidden_recorder 志遠交出未登錄錄音器]')).toBeTruthy();
+    fireEvent.click(screen.getByText('[L4_N02_hidden_recorder 志遠交出未登錄錄音器]'));
+    expect(await screen.findByText('庭安，這次不是若晴。')).toBeTruthy();
+    expect(screen.getByText('Loop 04｜五年前・重建知夏的世界線')).toBeTruthy();
+  });
+
   it('opens Character Graph and exposes visibility modes without leaking author relationships by default', async () => {
     stubRealStoryFetch();
     render(<App />);
