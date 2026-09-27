@@ -16,6 +16,21 @@ nodes:
       relationship_changes: []
       narrative_refs: [prologue_arrival]
 
+  - id: N00_loop02_reset_awareness
+    title: 第二次在返鄉列車上醒來
+    time: "14:20"
+    actor_ids: [protagonist]
+    visibility: public
+    detail:
+      before: [主角記得若晴在上一輪 18:31 死亡，也記得午夜世界重置。]
+      after: [主角第一次帶著完整未來資訊重新進入同一天。]
+      reason: 午夜 Reset 只重置小鎮狀態，沒有清除主角記憶。
+      affected_characters: [protagonist, wakaharu, doctor]
+      delayed_effects: [主角會優先嘗試改變若晴 17:20 之後的行程。]
+      knowledge_changes: [若晴會在基準世界線 18:31 死亡。]
+      relationship_changes: []
+      narrative_refs: [loop02_1420_reset_awareness]
+
   - id: N00_shopkeeper_mistake
     title: 店家把主角錯認成知夏
     time: "14:26"
@@ -194,7 +209,7 @@ nodes:
       delayed_effects: []
       knowledge_changes: []
       relationship_changes: [wakaharu.trust_protagonist +1]
-      narrative_refs: [scene_wakaharu_cafe]
+      narrative_refs: [scene_wakaharu_cafe, loop02_1610_wakaharu_alive]
 
   - id: N02_wakaharu_opens_up
     title: 若晴放下戒心
@@ -224,7 +239,7 @@ nodes:
       delayed_effects: []
       knowledge_changes: ["reveal: station_plan"]
       relationship_changes: []
-      narrative_refs: [scene_wakaharu_before_leaving]
+      narrative_refs: [scene_wakaharu_before_leaving, loop02_1645_wrong_warning]
 
   - id: N04_stop_wakaharu
     title: 若晴沒有去舊車站
@@ -234,27 +249,72 @@ nodes:
     detail:
       before: [若晴會在 17:45 左右離開咖啡店前往車站。]
       after: [若晴留在咖啡店或回家，錯過 18:05 的交付。]
-      reason: 主角說服若晴延後或取消行程。
+      reason: 主角不是用「妳會死」逼她服從，而是理解她真正想離開灰潮鎮的生活目標，說服她先完成自己的作品集。
       affected_characters: [wakaharu, doctor]
       delayed_effects: [柏勳抵達車站後找不到原本的收件人。]
       knowledge_changes: []
       relationship_changes: [wakaharu.trust_protagonist 依說服方式改變]
-      narrative_refs: []
+      narrative_refs: [loop02_1718_wakaharu_persuaded]
+
+  - id: N05_doctor_no_recipient
+    title: 柏勳抵達車站但若晴沒來
+    time: "18:05"
+    actor_ids: [doctor, wakaharu]
+    visibility: public
+    detail:
+      before: [柏勳依照五年前留下的約定，把封存資料帶到舊車站。]
+      after: [原定收件人缺席，柏勳必須自行決定資料去向。]
+      reason: 若晴被主角說服留在咖啡店處理自己的事情。
+      affected_characters: [doctor, wakaharu]
+      delayed_effects: [柏勳在車站停留時間超過原本的五分鐘。]
+      knowledge_changes: []
+      relationship_changes: []
+      narrative_refs: [loop02_1805_doctor_no_recipient]
+
+  - id: N05_doctor_calls_wakaharu
+    title: 柏勳兩次聯絡若晴未果
+    time: "18:07"
+    actor_ids: [doctor, wakaharu]
+    visibility: public
+    detail:
+      before: [柏勳可以選擇把資料留下或直接帶走。]
+      after: [沒有取得若晴即時同意，柏勳拒絕把知夏資料留在無人車站。]
+      reason: 第一通電話沒接，第二通進入語音信箱。
+      affected_characters: [doctor]
+      delayed_effects: [資料繼續留在柏勳身上。]
+      knowledge_changes: []
+      relationship_changes: []
+      narrative_refs: [loop02_1805_doctor_no_recipient]
 
   - id: N05_doctor_keeps_documents
-    title: 柏勳自行帶著資料
-    time: "18:08"
+    title: 柏勳決定自行帶回資料
+    time: "18:12"
     actor_ids: [doctor]
     visibility: public
     detail:
       before: [柏勳預計把封存資料交給若晴後離開。]
-      after: [柏勳沒有收件人，只能自己保管資料並改變返程。]
-      reason: 若晴沒有出現在原定交付地點。
+      after: [柏勳沒有收件人，自己保管資料並開始返回醫院。]
+      reason: 他不願把林知夏的醫療資料留在無人看管的舊車站。
       affected_characters: [doctor]
-      delayed_effects: [柏勳可能改走維修通道返回。]
+      delayed_effects: [返程與基準世界線不同。]
       knowledge_changes: []
       relationship_changes: []
-      narrative_refs: []
+      narrative_refs: [loop02_1812_doctor_decides_return]
+
+  - id: N05_doctor_enters_maintenance
+    title: 柏勳改走舊維修通道
+    time: "18:24"
+    actor_ids: [doctor]
+    visibility: public
+    detail:
+      before: [柏勳可繞回商店街返回醫院。]
+      after: [他為節省時間走進五年前也使用過的舊站維修通道。]
+      reason: 正門外道路施工，而維修通道能少繞十多分鐘。
+      affected_characters: [doctor]
+      delayed_effects: [18:31 時柏勳仍位於舊站異常設備影響範圍。]
+      knowledge_changes: []
+      relationship_changes: []
+      narrative_refs: [loop02_1824_maintenance_passage]
 
   - id: N06_tell_reporter
     title: 玩家把若晴行程告訴庭安
@@ -479,7 +539,7 @@ nodes:
       delayed_effects: [主角確認死者可變，但 18:31 不變。]
       knowledge_changes: [死者不是固定條件。]
       relationship_changes: []
-      narrative_refs: [scene_1831_doctor]
+      narrative_refs: [scene_1831_doctor, loop02_1831_doctor_death]
 
   - id: N23_no_death
     title: 18:31 無人死亡
@@ -510,6 +570,66 @@ nodes:
       knowledge_changes: []
       relationship_changes: []
       narrative_refs: []
+
+  - id: N22_detective_shift
+    title: 志遠開始懷疑不是單純謀殺
+    time: "19:10"
+    actor_ids: [detective, protagonist]
+    visibility: public
+    detail:
+      before: [志遠仍傾向把今日死亡視為獨立案件。]
+      after: [他第一次主動把今日電力異常與五年前知夏死亡現場連在一起。]
+      reason: 死者改變後仍重現 18:31、局部停電與舊站設備異常。
+      affected_characters: [detective, protagonist]
+      delayed_effects: [志遠開始重新檢視五年前沒有公開的證物。]
+      knowledge_changes: [五年前也曾有類似電力異常。]
+      relationship_changes: []
+      narrative_refs: [loop02_1910_detective_shift]
+
+  - id: N22_reporter_replans
+    title: 柏勳死亡使庭安取消研究所行程
+    time: "19:50"
+    actor_ids: [reporter]
+    visibility: public
+    detail:
+      before: [庭安原本計畫 19:50 獨自進舊研究所。]
+      after: [她先去確認柏勳攜帶的醫療資料是否被警方扣走。]
+      reason: 柏勳的死亡讓五年前被分散保管的資料重新暴露。
+      affected_characters: [reporter, detective]
+      delayed_effects: [舊研究所調查被推遲。]
+      knowledge_changes: []
+      relationship_changes: []
+      narrative_refs: [loop02_1950_reporter_replans]
+
+  - id: N22_wakaharu_resigns
+    title: 若晴存活後仍然辭職
+    time: "20:30"
+    actor_ids: [wakaharu, protagonist]
+    visibility: public
+    detail:
+      before: [玩家可能把「若晴活著」誤認成這條世界線已成功。]
+      after: [若晴照原計畫辭職、投稿，繼續準備離開灰潮鎮。]
+      reason: 辭職與攝影計畫本來就是若晴自己的人生，不是死亡事件的附屬支線。
+      affected_characters: [wakaharu, protagonist]
+      delayed_effects: [玩家第一次理解被救的人仍有不圍繞玩家的未來。]
+      knowledge_changes: []
+      relationship_changes: []
+      narrative_refs: [loop02_2030_wakaharu_resignation]
+
+  - id: N22_worldline_compare
+    title: 主角比較前兩條世界線
+    time: "22:10"
+    actor_ids: [protagonist]
+    visibility: public
+    detail:
+      before: [Loop 01 若晴死亡；Loop 02 若晴存活但柏勳死亡。]
+      after: [主角確認死者會變，但 18:31 與車站異常不變。]
+      reason: 只有跨世界線比較才能分開 Variable 與 Invariant。
+      affected_characters: [protagonist]
+      delayed_effects: [下一輪實驗目標改成讓 18:31 沒有人死亡。]
+      knowledge_changes: [18:31 比死者身分更接近核心。]
+      relationship_changes: []
+      narrative_refs: [loop02_2210_worldline_compare]
 
   - id: N25_postoffice_no_record
     title: 郵局沒有第七封信的寄件紀錄
@@ -569,7 +689,7 @@ nodes:
       delayed_effects: [一分鐘後世界重置。]
       knowledge_changes: [異常不只存在於舊車站。]
       relationship_changes: []
-      narrative_refs: [scene_2359_impossible_bell]
+      narrative_refs: [scene_2359_impossible_bell, loop02_2359_bell_again]
 
   - id: N29_midnight_reset
     title: 00:00 世界重置
@@ -581,13 +701,14 @@ nodes:
       after: [日期重新回到 10 月 3 日，人物行程回復，但主角記憶與部分證據狀態保留。]
       reason: 午夜是因果修正完成點。
       affected_characters: [protagonist, wakaharu, doctor, reporter, yuan, detective]
-      delayed_effects: [Loop 02 開始。]
+      delayed_effects: [下一輪開始。]
       knowledge_changes: [主角確認自己被困在同一天。]
       relationship_changes: []
-      narrative_refs: [scene_0000_reset]
+      narrative_refs: [scene_0000_reset, loop02_0000_reset_again]
 
 edges:
   - { id: E00_01, source: N00_arrival_graytide, target: N00_shopkeeper_mistake, label: "return to town", visibility: public }
+  - { id: E00_loop02_resume, source: N00_loop02_reset_awareness, target: N00_yuan_reunion, label: "remember previous loop", visibility: public }
   - { id: E00_02a, source: N00_shopkeeper_mistake, target: N00_correct_shopkeeper, label: "correct identity", visibility: public }
   - { id: E00_02b, source: N00_shopkeeper_mistake, target: N00_leave_mistake, label: "let mistake stand", visibility: public }
   - { id: E00_03a, source: N00_correct_shopkeeper, target: N00_yuan_reunion, label: "continue home", visibility: public }
@@ -605,8 +726,11 @@ edges:
 
   - { id: E01_trust, source: N01_wakaharu_photography, target: N02_wakaharu_opens_up, label: "trust +1", visibility: public }
   - { id: E02_reveal_station, source: N02_wakaharu_opens_up, target: N03_station_plan_known, label: "reveal: station_plan", visibility: public }
-  - { id: E03_stop_wakaharu, source: N03_station_plan_known, target: N04_stop_wakaharu, label: "stop wakaharu", visibility: public }
-  - { id: E04_no_recipient, source: N04_stop_wakaharu, target: N05_doctor_keeps_documents, label: "no recipient", visibility: public }
+  - { id: E03_stop_wakaharu, source: N03_station_plan_known, target: N04_stop_wakaharu, label: "understand her own goal", visibility: public }
+  - { id: E04_no_recipient, source: N04_stop_wakaharu, target: N05_doctor_no_recipient, label: "wakaharu absent", visibility: public }
+  - { id: E04b_call_wakaharu, source: N05_doctor_no_recipient, target: N05_doctor_calls_wakaharu, label: "call twice", visibility: public }
+  - { id: E04c_keep_documents, source: N05_doctor_calls_wakaharu, target: N05_doctor_keeps_documents, label: "keep documents", visibility: public }
+  - { id: E04d_maintenance_route, source: N05_doctor_keeps_documents, target: N05_doctor_enters_maintenance, label: "shorter return route", visibility: public }
   - { id: E05_tell_reporter, source: N03_station_plan_known, target: N06_tell_reporter, label: "tell reporter", visibility: public }
   - { id: E06_reporter_route, source: N06_tell_reporter, target: N07_reporter_arrives_station, label: "arrive station", visibility: public }
   - { id: E07_confront, source: N07_reporter_arrives_station, target: N08_reporter_confronts_doctor, label: "confront doctor", visibility: public }
@@ -619,8 +743,8 @@ edges:
   - { id: E14_show_letter, source: N13_show_letter_to_reporter, target: N06_tell_reporter, label: "reporter alarmed", visibility: public }
   - { id: E15_doctor_caution, source: N14_question_doctor_early, target: N15_doctor_changes_route, label: "caution +1", visibility: public }
   - { id: E16_route_to_convergence, source: N15_doctor_changes_route, target: N20_convergence_1831, label: "altered arrival", visibility: public }
-  - { id: E17_saved_to_convergence, source: N04_stop_wakaharu, target: N20_convergence_1831, label: "wakaharu absent", visibility: public }
-  - { id: E18_documents_to_convergence, source: N05_doctor_keeps_documents, target: N20_convergence_1831, label: "doctor carries documents", visibility: public }
+  - { id: E17_saved_to_convergence, source: N04_stop_wakaharu, target: N20_convergence_1831, label: "wakaharu absent", visibility: author }
+  - { id: E18_documents_to_convergence, source: N05_doctor_enters_maintenance, target: N20_convergence_1831, label: "doctor remains in anomaly area", visibility: public }
   - { id: E19_delayed_to_convergence, source: N09_handoff_delayed, target: N20_convergence_1831, label: "doctor still nearby", visibility: public }
   - { id: E20_baseline_to_convergence, source: N17_wakaharu_warning, target: N20_convergence_1831, label: "baseline arrival", visibility: public }
   - { id: E21_yuan_to_convergence, source: N11_yuan_at_station, target: N20_convergence_1831, label: "yuan exposed", visibility: public }
@@ -637,3 +761,11 @@ edges:
   - { id: E31_case_to_watch, source: N26_case_summary_1831, target: N27_watch_message, label: "recheck 18:31 watch", visibility: public }
   - { id: E32_watch_to_bell, source: N27_watch_message, target: N28_impossible_bell, label: "approach midnight", visibility: public }
   - { id: E33_bell_to_reset, source: N28_impossible_bell, target: N29_midnight_reset, label: "00:00", visibility: public }
+
+  - { id: E34_loop02_detective, source: N24_evening_continues, target: N22_detective_shift, label: "same anomaly, different victim", visibility: public }
+  - { id: E35_loop02_reporter, source: N24_evening_continues, target: N22_reporter_replans, label: "doctor death changes plan", visibility: public }
+  - { id: E36_loop02_wakaharu, source: N24_evening_continues, target: N22_wakaharu_resigns, label: "survivor continues own life", visibility: public }
+  - { id: E37_detective_compare, source: N22_detective_shift, target: N22_worldline_compare, label: "five-year anomaly", visibility: public }
+  - { id: E38_reporter_compare, source: N22_reporter_replans, target: N22_worldline_compare, label: "downstream route changed", visibility: public }
+  - { id: E39_wakaharu_compare, source: N22_wakaharu_resigns, target: N22_worldline_compare, label: "life continues", visibility: public }
+  - { id: E40_loop02_bell, source: N22_worldline_compare, target: N28_impossible_bell, label: "wait for invariant", visibility: public }
