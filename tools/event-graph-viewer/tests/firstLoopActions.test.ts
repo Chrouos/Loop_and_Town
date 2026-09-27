@@ -41,6 +41,7 @@ it('confront_reporter changes her hidden route but not her final status', () => 
 it('author-only rescue actions only change routes', () => {
   expect(byId('protect_wakaharu').effects).toEqual([
     { set: { path: 'characters.wakaharu.route', value: 'home' } },
+    { set: { path: 'relationships.protagonist_wakaharu.trust', value: 2 } },
   ]);
   expect(byId('stop_doctor').effects).toEqual([
     { set: { path: 'characters.doctor.route', value: 'stay_hospital' } },
