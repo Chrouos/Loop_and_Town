@@ -41,7 +41,7 @@ describe('Loop 04 five-years-ago narrative', () => {
     const opening = byId.get('loop04_0612_hard_reset');
 
     expect(opening).toBeDefined();
-    expect(opening?.time).toBe('06:12');
+    expect(opening?.at.time).toBe('06:12');
     expect(sceneText(opening)).toContain('10 月 3 日');
     expect(sceneText(opening)).toContain('06:12');
   });
