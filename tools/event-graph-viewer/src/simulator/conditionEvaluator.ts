@@ -21,7 +21,6 @@ export function evaluateCondition(condition: Condition, state: WorldState): bool
   if (condition.op === 'neq') return !Object.is(actual, condition.value);
 
   const [left, right] = numericOperands(actual, condition.value, condition.path);
-  if (condition.op === 'gt') return left > right;
   if (condition.op === 'gte') return left >= right;
   if (condition.op === 'lt') return left < right;
   if (condition.op === 'lte') return left <= right;
