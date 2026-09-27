@@ -55,7 +55,7 @@ paths:
     label: Loop 02｜若晴存活・柏勳死亡
     visibility: public
     node_ids:
-      - N00_arrival_graytide
+      - N00_loop02_reset_awareness
       - N00_yuan_reunion
       - N00_old_house
       - N00_letter_discovered
@@ -65,15 +65,21 @@ paths:
       - N02_wakaharu_opens_up
       - N03_station_plan_known
       - N04_stop_wakaharu
+      - N05_doctor_no_recipient
+      - N05_doctor_calls_wakaharu
       - N05_doctor_keeps_documents
+      - N05_doctor_enters_maintenance
       - N20_convergence_1831
       - N22_doctor_dies
       - N24_evening_continues
-      - N26_case_summary_1831
-      - N27_watch_message
+      - N22_detective_shift
+      - N22_reporter_replans
+      - N22_wakaharu_resigns
+      - N22_worldline_compare
       - N28_impossible_bell
       - N29_midnight_reset
     edge_ids:
+      - E00_loop02_resume
       - E00_04
       - E00_05
       - E00_06
@@ -83,12 +89,19 @@ paths:
       - E02_reveal_station
       - E03_stop_wakaharu
       - E04_no_recipient
+      - E04b_call_wakaharu
+      - E04c_keep_documents
+      - E04d_maintenance_route
       - E18_documents_to_convergence
       - E23_doctor_outcome
       - E26_after_doctor
-      - E29_evening_case
-      - E31_case_to_watch
-      - E32_watch_to_bell
+      - E34_loop02_detective
+      - E35_loop02_reporter
+      - E36_loop02_wakaharu
+      - E37_detective_compare
+      - E38_reporter_compare
+      - E39_wakaharu_compare
+      - E40_loop02_bell
       - E33_bell_to_reset
 
   - id: loop_03_no_death
