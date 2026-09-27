@@ -20,6 +20,19 @@ button { font: inherit; }
 .panel-heading { display: flex; justify-content: space-between; align-items: end; gap: 16px; margin-bottom: 16px; }
 .panel-heading h2 { margin: 3px 0 0; font-size: 24px; }
 .panel-heading > p { color: #71808e; margin: 0; }
+.scenario-panel { margin-bottom: 20px; }
+.scenario-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.scenario-worldline { min-width: 0; margin: 0; padding: 15px; border: 1px solid #d5dde3; border-radius: 14px; background: #f7f9fa; }
+.scenario-worldline legend { padding: 0 6px; font-weight: 800; color: #344554; }
+.scenario-worldline label { display: flex; gap: 10px; align-items: flex-start; padding: 11px 0; border-top: 1px solid #e2e7eb; cursor: pointer; }
+.scenario-worldline label:first-of-type { border-top: 0; }
+.scenario-worldline input { margin-top: 3px; accent-color: #344554; }
+.action-option { display: flex; gap: 10px; min-width: 0; }
+.action-time { flex: 0 0 auto; color: #526576; font: 800 13px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; }
+.action-copy { display: grid; gap: 4px; min-width: 0; }
+.action-copy strong { font-size: 14px; }
+.action-copy small { color: #697985; font-size: 12px; overflow-wrap: anywhere; }
+.simulate-button { margin-top: 16px; border: 0; border-radius: 10px; padding: 11px 16px; background: #202b35; color: #fff; cursor: pointer; font-weight: 800; }
 .graph-canvas { height: 650px; border-radius: 14px; overflow: hidden; background: #f6f8fa; }
 .graph-card { background: #fff; border: 1px solid #ccd5dc; border-radius: 12px; padding: 13px; box-shadow: 0 8px 18px rgba(30,43,54,.08); text-align: left; }
 .graph-card.event { border-width: 2px; }
@@ -27,6 +40,11 @@ button { font: inherit; }
 .graph-card strong, .graph-card span { display: block; }
 .graph-card span { color: #6b7986; font-size: 12px; margin-top: 3px; }
 .graph-card ul { margin: 8px 0 0; padding-left: 18px; font-size: 11px; color: #53616d; }
+.story-rail { display: flex; align-items: stretch; gap: 10px; overflow-x: auto; margin: 0 0 22px; padding: 4px 2px 10px; }
+.story-step { position: relative; display: grid; gap: 4px; min-width: 170px; padding: 12px 14px; border-left: 3px solid #344554; background: #f7f9fa; border-radius: 0 10px 10px 0; }
+.story-step time { font: 800 13px ui-monospace, SFMono-Regular, Menlo, monospace; }
+.story-step strong { font-size: 13px; }
+.story-arrow { position: absolute; left: -18px; top: 19px; color: #71808e; font-size: 18px; }
 .timeline { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
 .timeline-item { border-top: 3px solid #344554; padding: 12px 10px; background: #f7f9fa; border-radius: 0 0 10px 10px; }
 .timeline-item time { font-variant-numeric: tabular-nums; font-weight: 800; }
@@ -38,13 +56,24 @@ button { font: inherit; }
 .diff-header { color: #62717e; padding: 0 12px 4px; }
 .diff-row { background: #f7f9fa; border: 1px solid #dce2e7; border-radius: 12px; padding: 12px; }
 .diff-row.changed, .diff-row.left-only, .diff-row.right-only { border-style: dashed; }
-.diff-status { text-align: center; font-size: 12px; font-weight: 800; text-transform: uppercase; }
+.diff-row > div { min-width: 0; }
+.diff-row strong, .diff-row small { display: block; }
+.diff-row small { margin-top: 5px; color: #6b7986; font-size: 11px; overflow-wrap: anywhere; }
+.diff-status { display: grid; gap: 4px; justify-items: center; text-align: center; font-size: 12px; font-weight: 800; }
+.diff-status time { color: #526576; font: 800 12px ui-monospace, SFMono-Regular, Menlo, monospace; }
+.diff-status span { color: #62717e; }
+.timeline-diff .diff-row { border-left: 4px solid #c7d0d8; }
+.timeline-diff .diff-row.changed { border-left-color: #bd7b4a; }
+.timeline-diff .diff-row.left-only { border-left-color: #6d8cac; }
+.timeline-diff .diff-row.right-only { border-left-color: #9a7187; }
 .error-state { border-color: #b66; }
 .loading-state { color: #647480; }
 
 @media (max-width: 760px) {
   .app-shell { padding: 16px; }
   .app-header, .panel-heading { align-items: flex-start; flex-direction: column; }
+  .scenario-actions { grid-template-columns: 1fr; }
   .diff-header, .diff-row { grid-template-columns: 1fr; }
-  .diff-status { text-align: left; }
+  .diff-status { justify-items: start; text-align: left; }
+  .story-step { min-width: 145px; }
 }

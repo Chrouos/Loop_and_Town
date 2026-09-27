@@ -25,4 +25,20 @@ describe('diffWorldlines', () => {
     const rows = diffWorldlines([item('18:31', 'station', 'same')], [item('18:31', 'station', 'same')]);
     expect(rows[0].status).toBe('same');
   });
+
+  it('aligns player actions and delayed effects alongside story events', () => {
+    const rows = diffWorldlines(
+      [item('18:20', 'protect_wakaharu'), item('18:31', 'station', 'doctor_dies')],
+      [item('18:20', 'stop_doctor'), item('18:31', 'station', 'wakaharu_dies'), item('21:14', 'delayed:reporter_missing')],
+    );
+
+    expect(rows.map((row) => row.key)).toEqual([
+      '18:20:protect_wakaharu',
+      '18:20:stop_doctor',
+      '18:31:station',
+      '21:14:delayed:reporter_missing',
+    ]);
+    expect(rows.find((row) => row.key === '18:20:protect_wakaharu')?.status).toBe('left-only');
+    expect(rows.find((row) => row.key === '21:14:delayed:reporter_missing')?.status).toBe('right-only');
+  });
 });

@@ -53,8 +53,8 @@ describe('App', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Worldline Diff' }));
     expect(screen.getByRole('heading', { name: 'Worldline Diff' })).toBeTruthy();
-    expect(screen.getByText(/21:14 記者失蹤/)).toBeTruthy();
-    expect(screen.getByText('未發生')).toBeTruthy();
+    expect(screen.getByText(/記者失蹤/)).toBeTruthy();
+    expect(screen.getAllByText('未發生').length).toBeGreaterThan(0);
   });
 
   it('shows a readable load error', async () => {

@@ -6,7 +6,7 @@ import { ViewTabs, type ViewName } from './components/ViewTabs';
 import { WorldlineDiffView } from './components/WorldlineDiffView';
 import { loadEventGraph } from './lib/loadStory';
 import { loadSimulationStory } from './lib/loadSimulationStory';
-import { projectTimelineEntries, projectWorldlineEvents } from './simulator/projection';
+import { projectTimelineEntries } from './simulator/projection';
 import { simulate } from './simulator/simulator';
 import type { SimulationDefinition, WorldState } from './simulator/types';
 import type { EventGraphDocument } from './types/story';
@@ -44,9 +44,8 @@ export default function App() {
     return {
       left,
       right,
-      timeline: projectTimelineEntries(right.history),
-      leftEvents: projectWorldlineEvents(left.history),
-      rightEvents: projectWorldlineEvents(right.history),
+      leftTimeline: projectTimelineEntries(left.history),
+      rightTimeline: projectTimelineEntries(right.history),
     };
   }, [definition, initialState, appliedActionIds]);
 
@@ -89,9 +88,9 @@ export default function App() {
           {view === 'graph' ? (
             <EventGraphView document={document} />
           ) : view === 'timeline' ? (
-            <TimelineView entries={generated.timeline} loopLabel="世界線 B" />
+            <TimelineView leftEntries={generated.leftTimeline} rightEntries={generated.rightTimeline} />
           ) : (
-            <WorldlineDiffView left={generated.leftEvents} right={generated.rightEvents} />
+            <WorldlineDiffView left={generated.leftTimeline} right={generated.rightTimeline} />
           )}
         </>
       )}

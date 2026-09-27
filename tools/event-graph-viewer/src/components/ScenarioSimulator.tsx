@@ -1,4 +1,11 @@
-import type { ActionDefinition } from '../simulator/types';
+import type { ActionDefinition, Effect } from '../simulator/types';
+
+function effectSummary(effect: Effect): string {
+  if ('set' in effect) return `${effect.set.path} → ${String(effect.set.value)}`;
+  if ('add_flag' in effect) return `flag + ${effect.add_flag}`;
+  if ('emit_event' in effect) return `觸發 ${effect.emit_event.event_id}`;
+  return '狀態變化';
+}
 
 function ActionGroup({
   label,
@@ -24,10 +31,19 @@ function ActionGroup({
         <label key={action.id}>
           <input
             type="checkbox"
+            aria-label={action.label}
             checked={selectedActionIds.includes(action.id)}
             onChange={(event) => toggle(action.id, event.currentTarget.checked)}
           />
-          <span>{action.label}</span>
+          <span className="action-option">
+            <span className="action-time">{action.at}</span>
+            <span className="action-copy">
+              <strong>{action.label}</strong>
+              {action.effects.map((effect, index) => (
+                <small key={`${action.id}-effect-${index}`}>{effectSummary(effect)}</small>
+              ))}
+            </span>
+          </span>
         </label>
       ))}
     </fieldset>
@@ -49,6 +65,8 @@ export function ScenarioSimulator({
   onRightChange: (ids: string[]) => void;
   onSimulate: () => void;
 }) {
+  const orderedActions = [...actions].sort((left, right) => left.at.localeCompare(right.at));
+
   return (
     <section className="panel scenario-panel" aria-label="Worldline Scenario">
       <div className="panel-heading">
@@ -56,19 +74,19 @@ export function ScenarioSimulator({
           <p className="eyebrow">Scenario · 18:31 車站事件</p>
           <h2>改變條件，重算世界線</h2>
         </div>
-        <p>分別設定兩條世界線，再執行一次 deterministic simulation</p>
+        <p>先看介入時間與效果，再比較兩條世界線的結果</p>
       </div>
 
       <div className="scenario-actions">
         <ActionGroup
           label="世界線 A"
-          actions={actions}
+          actions={orderedActions}
           selectedActionIds={leftActionIds}
           onChange={onLeftChange}
         />
         <ActionGroup
           label="世界線 B"
-          actions={actions}
+          actions={orderedActions}
           selectedActionIds={rightActionIds}
           onChange={onRightChange}
         />
