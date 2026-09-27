@@ -402,3 +402,203 @@ scenes:
         text: 可是鐘還是響了。
       - type: monologue
         text: 那一刻我才知道，我改掉的可能只是結果。
+
+  - id: scene_1842_station_aftermath
+    at: { day: 0, time: "18:42" }
+    kind: narration
+    participants: [protagonist, wakaharu, doctor, detective]
+    requiresLocation: old_station
+    sourceEventId: evt_1831_station
+    sourceVariantId: wakaharu_dies
+    blocks:
+      - type: narration
+        text: 救護人員把若晴抬上擔架時，月台上的燈已經重新亮了。只有最裡面的舊電箱還飄著一股焦味。
+      - type: narration
+        text: 我低頭才發現自己的手一直在抖。那只薄信封落在黃線旁，裡面的紙散了一地。
+      - type: dialogue
+        speaker: detective
+        text: 妳剛才一直都在這裡？
+      - type: monologue
+        text: 我抬起頭。周志遠站在封鎖線外，胸前的證件和五年前照片裡一模一樣，只是人老了很多。
+      - type: dialogue
+        speaker: detective
+        text: 先別碰那些紙。從現在開始，妳看到的每一樣東西都可能是證物。
+      - type: monologue
+        text: 我差點告訴他，若晴在倒下以前說過「18:31 不是死亡時間」。最後我什麼都沒說。
+
+  - id: scene_2000_yuan_realtor
+    at: { day: 0, time: "20:00" }
+    kind: dialogue
+    participants: [protagonist, yuan]
+    blocks:
+      - type: narration
+        text: 予安的手機在桌面震了第三次。他看了一眼螢幕，沒有接。
+      - type: monologue
+        text: 螢幕上只有兩個字：房仲。
+      - type: dialogue
+        speaker: protagonist
+        text: 你今天本來有事？
+      - type: dialogue
+        speaker: yuan
+        text: 八點看店面。沒什麼，改天也可以。
+      - type: dialogue
+        speaker: protagonist
+        text: 你真的要賣？
+      - type: dialogue
+        speaker: yuan
+        text: 我爸走了以後，每個人都叫我先不要動。先不要賣，先不要換招牌，先不要把他的工具收起來。
+      - type: narration
+        text: 他把來電按掉，過了幾秒才補上一句。
+      - type: dialogue
+        speaker: yuan
+        text: 可是「先不要」講久了，也會變成五年。
+
+  - id: scene_2030_detective_old_case
+    at: { day: 0, time: "20:30" }
+    kind: dialogue
+    participants: [protagonist, detective]
+    sourceEventId: evt_2030_old_case_reveal
+    sourceVariantId: old_case_matches_1831
+    blocks:
+      - type: narration
+        text: 志遠沒有把我帶進偵訊室，只在警局走廊盡頭給了我一張五年前的案件摘要影本。
+      - type: dialogue
+        speaker: detective
+        text: 我只能給妳看已經結案、也沒有爭議的部分。
+      - type: narration
+        text: 第一行是死者姓名：林知夏。再往下，死亡時間寫得異常精確。
+      - type: monologue
+        text: 18:31。
+      - type: dialogue
+        speaker: protagonist
+        text: 為什麼連分鐘都能確定？
+      - type: dialogue
+        speaker: detective
+        text: 現場有三個不同的時間來源，都停在差不多的位置。
+      - type: narration
+        text: 他說到這裡就把影本翻回正面，手指壓住了下面一行。
+      - type: monologue
+        text: 五年前，林知夏死在 18:31。今天，若晴也死在 18:31。
+
+  - id: scene_2240_watch_warning
+    at: { day: 0, time: "22:40" }
+    kind: artifact
+    participants: [protagonist, yuan]
+    sourceEventId: evt_2240_sister_warning
+    sourceVariantId: warning_found
+    blocks:
+      - type: narration
+        text: 回到老家後，我把那只停在 18:31 的手錶重新放到燈下。白天我只把它當成壞掉的遺物，現在已經沒辦法這樣想。
+      - type: dialogue
+        speaker: yuan
+        text: 給我一下。後蓋以前被拆過，不是原廠的壓痕。
+      - type: narration
+        text: 他用細薄的開錶刀沿著缺口一轉。金屬後蓋彈開時，我們兩個都沒有說話。
+      - type: narration
+        text: 內側有一行幾乎被磨掉的刻字。
+      - type: artifact
+        text: 如果你第二次看見 18:31，不要先救第一個死者。
+      - type: dialogue
+        speaker: protagonist
+        text: 第二次？
+      - type: dialogue
+        speaker: yuan
+        text: 妳姊以前有把這支錶拆開過嗎？
+      - type: monologue
+        text: 我不知道。真正讓我害怕的，是這句話不像留給五年前的我。
+
+  - id: scene_2320_kitchen_quiet
+    at: { day: 0, time: "23:20" }
+    kind: dialogue
+    participants: [protagonist, yuan]
+    requiresLocation: old_house
+    blocks:
+      - type: narration
+        text: 廚房只開了流理台上方那盞燈。兩盒便利商店便當放在桌上，誰都沒吃幾口。
+      - type: dialogue
+        speaker: yuan
+        text: 妳真的只是回來賣房子？
+      - type: narration
+        text: 我把第七封信推到他面前。予安讀完第一行後就沒有再動筷子。
+      - type: dialogue
+        speaker: yuan
+        text: 妳一個人拿著這個坐車回來？
+      - type: dialogue
+        speaker: protagonist
+        text: 不然呢？
+      - type: dialogue
+        speaker: yuan
+        text: 至少可以先跟我說。
+      - type: dialogue
+        speaker: protagonist
+        text: 說什麼？我收到死人寄來的信？
+      - type: dialogue
+        speaker: yuan
+        text: 嗯。
+      - type: dialogue
+        speaker: protagonist
+        text: 你會信？
+      - type: dialogue
+        speaker: yuan
+        text: 不會。
+      - type: narration
+        text: 他把信放回桌上，推回我這邊。
+      - type: dialogue
+        speaker: yuan
+        text: 但我會去接妳。
+      - type: monologue
+        text: 我低頭看著已經冷掉的飯，第一次不知道該怎麼把話題拉回案件。
+
+  - id: scene_2359_impossible_bell
+    at: { day: 0, time: "23:59" }
+    kind: narration
+    participants: [protagonist, yuan]
+    sourceEventId: evt_2359_midnight_bells
+    sourceVariantId: bells_ring
+    blocks:
+      - type: narration
+        text: 23:59，鎮中心傳來第一聲鐘響。
+      - type: narration
+        text: 聲音很低，隔著幾條街和關緊的窗戶，還是像直接敲在胸口。
+      - type: dialogue
+        speaker: protagonist
+        text: 你有聽到嗎？
+      - type: dialogue
+        speaker: yuan
+        text: ……鐘聲？
+      - type: dialogue
+        speaker: protagonist
+        text: 你下午不是說鐘拆了？
+      - type: dialogue
+        speaker: yuan
+        text: 五年前就拆了。上面現在根本沒有鐘。
+      - type: narration
+        text: 第二聲響起。我把桌上的信翻到最後一行。
+      - type: artifact
+        text: 如果午夜鐘聲響起，就代表又失敗了。
+      - type: narration
+        text: 第十二聲落下時，廚房的燈熄了。
+
+  - id: scene_0000_reset
+    at: { day: 1, time: "00:00" }
+    kind: transition
+    participants: [protagonist]
+    sourceEventId: evt_0000_loop_end
+    sourceVariantId: loop_end
+    blocks:
+      - type: narration
+        text: 黑暗沒有持續很久。
+      - type: narration
+        text: 車輪壓過鐵軌接縫的震動先回來，接著是午後斜進車廂的光。
+      - type: narration
+        text: 行李箱好好地躺在頭頂的置物架。手機裡沒有若晴的訊息，沒有警局的通話紀錄，也沒有今天拍下的照片。
+      - type: narration
+        text: 只有外套口袋裡的信還在。
+      - type: artifact
+        text: 這是第幾次了？
+      - type: narration
+        text: 車內廣播在同一秒響起。
+      - type: narration
+        text: 下一站，灰潮鎮。
+      - type: monologue
+        text: 窗外，沒有鐘的鐘樓正慢慢從樹後移進視野。
