@@ -33,8 +33,11 @@ Hard Reset 完成
 - 18:31 不是 Reset 時間，也不是固定死亡時間。
 - 18:31 是世界線開始進入高強度因果收束／修正的時間點。
 - 00:00 是該輪修正完成並重置世界狀態的時間。
-- 主角保留跨輪記憶；多數人物不保留，但可能產生 Memory Residue。
+- **只有主角保留跨 Loop 記憶。其他角色不保留上一輪記憶，也不會因反覆 Reset 逐漸想起其他 Loop。**
+- 其他角色的人格、喜好、價值觀與穩定習慣會保持一致，因此主角可以跨 Loop 累積 Character Insight。
 - 第七封信與部分跨線資訊不完全服從一般 Reset。
+
+記憶與 Character Insight 的詳細規則見 `docs/story-canon-memory.md`。
 
 ---
 
@@ -65,6 +68,8 @@ Soft Rewrite / Worldline Residue
 
 她把這些不同結果整理成 Worldline，但不代表她五年前每天都經歷一次完整午夜 Reset。
 
+這裡的 Worldline Residue 指**知夏作為當時記憶持有者以及媒介中的資訊殘留**，不是一般 NPC 會逐步恢復其他世界線記憶。
+
 ---
 
 ## 18:31 的 Canon 定義
@@ -82,7 +87,7 @@ Soft Rewrite / Worldline Residue
 - 電力／設備異常
 - 路線與位置偏移
 - 事故
-- 記憶矛盾
+- 資訊與紀錄矛盾
 - 資訊時間錯位
 - 嚴重時出現傷亡
 
