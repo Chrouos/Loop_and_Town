@@ -57,6 +57,18 @@ describe('App', () => {
     expect(screen.getByText('Loop 04｜五年前・重建知夏的世界線')).toBeTruthy();
   });
 
+  it('loads Loop 05 without giving Yuan cross-loop memory', async () => {
+    stubRealStoryFetch();
+    render(<App />);
+
+    const selector = await screen.findByLabelText('Worldline Path');
+    fireEvent.change(selector, { target: { value: 'loop_05_only_i_remember' } });
+    expect(await screen.findByText('[L5_N01_yuan_stranger_again 予安再次只是五年沒見的舊友]')).toBeTruthy();
+    fireEvent.click(screen.getByText('[L5_N02_key_from_lost_day 主角使用不存在昨日的備用鑰匙情報]'));
+    expect(await screen.findByText('……妳怎麼知道備用鑰匙在那？')).toBeTruthy();
+    expect(screen.getByText('Loop 05｜只有我記得')).toBeTruthy();
+  });
+
   it('opens Character Graph and exposes visibility modes without leaking author relationships by default', async () => {
     stubRealStoryFetch();
     render(<App />);
