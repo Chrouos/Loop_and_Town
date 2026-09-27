@@ -9,8 +9,12 @@ facts:
     summary: 五年前林知夏在 17:58 曾打電話給周予安，但他當時沒有接起。
   - id: fact_wakaharu_close_to_zhixia
     summary: 許若晴過去和林知夏關係親近。
+  - id: fact_wakaharu_plans_to_leave_town
+    summary: 許若晴已決定辭去咖啡店工作，重新申請外地學校並準備離開灰潮鎮。
   - id: fact_doctor_on_duty_five_years_ago
     summary: 五年前林知夏死亡當日，陳柏勳正在值班。
+  - id: fact_doctor_has_zhixia_medical_record
+    summary: 陳柏勳仍保留林知夏生前與異常記憶相關的封存醫療資料。
   - id: fact_reporter_knew_zhixia
     summary: 葉庭安其實認識林知夏。
   - id: fact_detective_first_responder
