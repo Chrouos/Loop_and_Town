@@ -7,16 +7,13 @@ nodes:
     actor_ids: [protagonist, wakaharu]
     visibility: public
     detail:
-      before:
-        - 若晴把主角視為回來追查知夏的人，保持距離。
-      after:
-        - 若晴願意談自己的攝影作品與離開灰潮鎮的打算。
+      before: [若晴把主角視為回來追查知夏的人，保持距離。]
+      after: [若晴願意談自己的攝影作品與離開灰潮鎮的打算。]
       reason: 主角先關心若晴自己的生活，而不是直接追問知夏。
       affected_characters: [wakaharu]
       delayed_effects: []
       knowledge_changes: []
-      relationship_changes:
-        - wakaharu.trust_protagonist +1
+      relationship_changes: [wakaharu.trust_protagonist +1]
       narrative_refs: [scene_wakaharu_cafe]
 
   - id: N02_wakaharu_opens_up
@@ -25,15 +22,12 @@ nodes:
     actor_ids: [wakaharu]
     visibility: public
     detail:
-      before:
-        - 若晴不打算主動告知晚上的行程。
-      after:
-        - 若晴願意透露今天還有一件與知夏有關的事要處理。
+      before: [若晴不打算主動告知晚上的行程。]
+      after: [若晴願意透露今天還有一件與知夏有關的事要處理。]
       reason: 她認為主角至少願意把她當成一個有自己人生的人。
       affected_characters: [wakaharu, protagonist]
       delayed_effects: []
-      knowledge_changes:
-        - 主角知道若晴晚上另有安排。
+      knowledge_changes: [主角知道若晴晚上另有安排。]
       relationship_changes: []
       narrative_refs: [scene_wakaharu_cafe]
 
@@ -43,15 +37,12 @@ nodes:
     actor_ids: [protagonist, wakaharu]
     visibility: public
     detail:
-      before:
-        - 若晴預計獨自前往舊車站。
-      after:
-        - 主角知道她的目的地，可以選擇介入、尾隨或轉告他人。
+      before: [若晴預計獨自前往舊車站。]
+      after: [主角知道她的目的地，可以選擇介入、尾隨或轉告他人。]
       reason: 若晴信任足夠，主動透露行程。
       affected_characters: [protagonist, wakaharu, reporter, yuan]
       delayed_effects: []
-      knowledge_changes:
-        - reveal: station_plan
+      knowledge_changes: ["reveal: station_plan"]
       relationship_changes: []
       narrative_refs: [scene_wakaharu_before_leaving]
 
@@ -61,17 +52,13 @@ nodes:
     actor_ids: [protagonist, wakaharu]
     visibility: public
     detail:
-      before:
-        - 若晴會在 17:45 左右離開咖啡店前往車站。
-      after:
-        - 若晴留在咖啡店或回家，錯過 18:05 的交付。
+      before: [若晴會在 17:45 左右離開咖啡店前往車站。]
+      after: [若晴留在咖啡店或回家，錯過 18:05 的交付。]
       reason: 主角說服若晴延後或取消行程。
       affected_characters: [wakaharu, doctor]
-      delayed_effects:
-        - 柏勳抵達車站後找不到原本的收件人。
+      delayed_effects: [柏勳抵達車站後找不到原本的收件人。]
       knowledge_changes: []
-      relationship_changes:
-        - wakaharu.trust_protagonist 依說服方式改變
+      relationship_changes: [wakaharu.trust_protagonist 依說服方式改變]
       narrative_refs: []
 
   - id: N05_doctor_keeps_documents
@@ -80,14 +67,11 @@ nodes:
     actor_ids: [doctor]
     visibility: public
     detail:
-      before:
-        - 柏勳預計把封存資料交給若晴後離開。
-      after:
-        - 柏勳沒有收件人，只能自己保管資料並改變返程。
+      before: [柏勳預計把封存資料交給若晴後離開。]
+      after: [柏勳沒有收件人，只能自己保管資料並改變返程。]
       reason: 若晴沒有出現在原定交付地點。
       affected_characters: [doctor]
-      delayed_effects:
-        - 柏勳可能改走維修通道返回。
+      delayed_effects: [柏勳可能改走維修通道返回。]
       knowledge_changes: []
       relationship_changes: []
       narrative_refs: []
@@ -98,14 +82,11 @@ nodes:
     actor_ids: [protagonist, reporter]
     visibility: public
     detail:
-      before:
-        - 庭安原本 17:30 回旅館，19:50 再去舊研究所。
-      after:
-        - 庭安取消原路線，提前前往舊車站。
+      before: [庭安原本 17:30 回旅館，19:50 再去舊研究所。]
+      after: [庭安取消原路線，提前前往舊車站。]
       reason: 庭安知道知夏不希望若晴直接取得那份資料。
       affected_characters: [reporter, wakaharu, doctor]
-      delayed_effects:
-        - 庭安的研究所行程被推遲。
+      delayed_effects: [庭安的研究所行程被推遲。]
       knowledge_changes: []
       relationship_changes: []
       narrative_refs: []
@@ -116,15 +97,12 @@ nodes:
     actor_ids: [reporter]
     visibility: public
     detail:
-      before:
-        - 庭安不會在 18:00 前出現在車站。
-      after:
-        - 庭安能直接看到柏勳與若晴的交付。
+      before: [庭安不會在 18:00 前出現在車站。]
+      after: [庭安能直接看到柏勳與若晴的交付。]
       reason: 玩家提前透露若晴行程。
       affected_characters: [reporter, doctor, wakaharu]
       delayed_effects: []
-      knowledge_changes:
-        - 庭安確認柏勳仍保留知夏的資料。
+      knowledge_changes: [庭安確認柏勳仍保留知夏的資料。]
       relationship_changes: []
       narrative_refs: [scene_1810_yuan_observation]
 
@@ -134,16 +112,13 @@ nodes:
     actor_ids: [reporter, doctor]
     visibility: public
     detail:
-      before:
-        - 柏勳會在 18:05 快速完成交付。
-      after:
-        - 柏勳被迫停下與庭安爭執，交付延後。
+      before: [柏勳會在 18:05 快速完成交付。]
+      after: [柏勳被迫停下與庭安爭執，交付延後。]
       reason: 庭安認為把資料交給若晴會重演五年前的錯誤。
       affected_characters: [doctor, reporter, wakaharu]
       delayed_effects: []
       knowledge_changes: []
-      relationship_changes:
-        - reporter.doctor_conflict +1
+      relationship_changes: [reporter.doctor_conflict +1]
       narrative_refs: []
 
   - id: N09_handoff_delayed
@@ -152,14 +127,11 @@ nodes:
     actor_ids: [doctor, wakaharu, reporter]
     visibility: public
     detail:
-      before:
-        - 柏勳原定 18:10 前離開車站。
-      after:
-        - 柏勳仍停留在車站異常區附近。
+      before: [柏勳原定 18:10 前離開車站。]
+      after: [柏勳仍停留在車站異常區附近。]
       reason: 庭安介入交付。
       affected_characters: [doctor, wakaharu, reporter]
-      delayed_effects:
-        - 18:31 時柏勳仍可能處於高風險區域。
+      delayed_effects: [18:31 時柏勳仍可能處於高風險區域。]
       knowledge_changes: []
       relationship_changes: []
       narrative_refs: []
@@ -170,18 +142,13 @@ nodes:
     actor_ids: [protagonist, yuan]
     visibility: public
     detail:
-      before:
-        - 予安 17:50 會回鐘錶店，20:00 與房仲見面。
-      after:
-        - 予安改往舊車站，晚間私人行程被壓縮。
+      before: [予安 17:50 會回鐘錶店，20:00 與房仲見面。]
+      after: [予安改往舊車站，晚間私人行程被壓縮。]
       reason: 主角需要一個可信任的人陪同。
       affected_characters: [yuan, protagonist]
-      delayed_effects:
-        - 20:00 房仲約可能取消。
-        - 18:31 異常可能在予安身上留下記憶殘留。
+      delayed_effects: [20:00 房仲約可能取消。, 18:31 異常可能在予安身上留下記憶殘留。]
       knowledge_changes: []
-      relationship_changes:
-        - yuan.trust_protagonist +1
+      relationship_changes: [yuan.trust_protagonist +1]
       narrative_refs: []
 
   - id: N11_yuan_at_station
@@ -190,14 +157,11 @@ nodes:
     actor_ids: [yuan]
     visibility: public
     detail:
-      before:
-        - 予安原本不會在收束點附近。
-      after:
-        - 予安暴露於車站異常與停電。
+      before: [予安原本不會在收束點附近。]
+      after: [予安暴露於車站異常與停電。]
       reason: 玩家把他帶進事件中心。
       affected_characters: [yuan]
-      delayed_effects:
-        - 下一輪開始出現 Déjà vu。
+      delayed_effects: [下一輪開始出現 Déjà vu。]
       knowledge_changes: []
       relationship_changes: []
       narrative_refs: [scene_1810_yuan_observation]
@@ -208,14 +172,11 @@ nodes:
     actor_ids: [yuan]
     visibility: public
     detail:
-      before:
-        - 予安原本會和房仲談出售鐘錶店。
-      after:
-        - 看店安排取消，出售決定延後。
+      before: [予安原本會和房仲談出售鐘錶店。]
+      after: [看店安排取消，出售決定延後。]
       reason: 玩家持續佔用予安的晚間時間。
       affected_characters: [yuan]
-      delayed_effects:
-        - 予安繼續留在鐘錶店的時間變長。
+      delayed_effects: [予安繼續留在鐘錶店的時間變長。]
       knowledge_changes: []
       relationship_changes: []
       narrative_refs: []
@@ -226,16 +187,12 @@ nodes:
     actor_ids: [protagonist, reporter]
     visibility: public
     detail:
-      before:
-        - 庭安只打算試探主角知道多少。
-      after:
-        - 庭安確認跨世界線訊息再次出現，立即改變行程。
+      before: [庭安只打算試探主角知道多少。]
+      after: [庭安確認跨世界線訊息再次出現，立即改變行程。]
       reason: 她認得這類訊息曾在知夏身邊出現。
       affected_characters: [reporter]
-      delayed_effects:
-        - 庭安可能取消 19:50 的研究所原定路線。
-      knowledge_changes:
-        - 庭安知道第七封信已抵達主角手上。
+      delayed_effects: [庭安可能取消 19:50 的研究所原定路線。]
+      knowledge_changes: [庭安知道第七封信已抵達主角手上。]
       relationship_changes: []
       narrative_refs: [scene_reporter_cafe]
 
@@ -245,16 +202,13 @@ nodes:
     actor_ids: [protagonist, doctor]
     visibility: public
     detail:
-      before:
-        - 柏勳按原計畫 17:40 離院。
-      after:
-        - 柏勳知道主角已開始追查知夏與若晴，重新評估交付方式。
+      before: [柏勳按原計畫 17:40 離院。]
+      after: [柏勳知道主角已開始追查知夏與若晴，重新評估交付方式。]
       reason: 主角在醫院直接提到知夏或若晴。
       affected_characters: [doctor, wakaharu, protagonist]
       delayed_effects: []
       knowledge_changes: []
-      relationship_changes:
-        - doctor.caution +1
+      relationship_changes: [doctor.caution +1]
       narrative_refs: [scene_doctor_before_leaving]
 
   - id: N15_doctor_changes_route
@@ -263,14 +217,11 @@ nodes:
     actor_ids: [doctor]
     visibility: public
     detail:
-      before:
-        - 柏勳預計直接前往舊車站。
-      after:
-        - 柏勳可能提早聯絡若晴、改由側路前往或暫緩交付。
+      before: [柏勳預計直接前往舊車站。]
+      after: [柏勳可能提早聯絡若晴、改由側路前往或暫緩交付。]
       reason: 主角提前讓他意識到交付已被注意。
       affected_characters: [doctor, wakaharu]
-      delayed_effects:
-        - 18:05 的人物碰面組合改變。
+      delayed_effects: [18:05 的人物碰面組合改變。]
       knowledge_changes: []
       relationship_changes: []
       narrative_refs: []
@@ -281,10 +232,8 @@ nodes:
     actor_ids: [doctor, wakaharu]
     visibility: public
     detail:
-      before:
-        - 若晴與柏勳依約抵達。
-      after:
-        - 若晴取得封存資料，柏勳準備離開。
+      before: [若晴與柏勳依約抵達。]
+      after: [若晴取得封存資料，柏勳準備離開。]
       reason: 沒有前序介入破壞原定交付。
       affected_characters: [doctor, wakaharu]
       delayed_effects: []
@@ -298,15 +247,12 @@ nodes:
     actor_ids: [wakaharu, protagonist]
     visibility: public
     detail:
-      before:
-        - 主角把 18:31 當成單純死亡時間線索。
-      after:
-        - 主角首次知道這個時間本身比死者更重要。
+      before: [主角把 18:31 當成單純死亡時間線索。]
+      after: [主角首次知道這個時間本身比死者更重要。]
       reason: 若晴讀到知夏留下的內容，且仍願意信任主角。
       affected_characters: [protagonist, wakaharu]
       delayed_effects: []
-      knowledge_changes:
-        - fact_1831_is_special
+      knowledge_changes: [fact_1831_is_special]
       relationship_changes: []
       narrative_refs: [scene_1818_warning]
 
@@ -316,122 +262,34 @@ nodes:
     actor_ids: []
     visibility: public
     detail:
-      before:
-        - 白天累積的所有路線、位置、信任與資訊差異在此匯合。
-      after:
-        - 車站區域發生停電、鐘聲與異常；具體受害者依世界線不同。
+      before: [白天累積的所有路線、位置、信任與資訊差異在此匯合。]
+      after: [車站區域發生停電、鐘聲與異常；具體受害者依世界線不同。]
       reason: 18:31 是灰潮鎮的因果收束點。
       affected_characters: [wakaharu, doctor, reporter, yuan, protagonist]
-      delayed_effects:
-        - 23:59 鐘聲。
-        - 00:00 世界線重置。
+      delayed_effects: [23:59 鐘聲。, 00:00 世界線重置。]
       knowledge_changes: []
       relationship_changes: []
       narrative_refs: []
 
 edges:
-  - id: E01_trust
-    source: N01_wakaharu_photography
-    target: N02_wakaharu_opens_up
-    label: trust +1
-    visibility: public
-  - id: E02_reveal_station
-    source: N02_wakaharu_opens_up
-    target: N03_station_plan_known
-    label: "reveal: station_plan"
-    visibility: public
-  - id: E03_stop_wakaharu
-    source: N03_station_plan_known
-    target: N04_stop_wakaharu
-    label: stop wakaharu
-    visibility: public
-  - id: E04_no_recipient
-    source: N04_stop_wakaharu
-    target: N05_doctor_keeps_documents
-    label: no recipient
-    visibility: public
-  - id: E05_tell_reporter
-    source: N03_station_plan_known
-    target: N06_tell_reporter
-    label: tell reporter
-    visibility: public
-  - id: E06_reporter_route
-    source: N06_tell_reporter
-    target: N07_reporter_arrives_station
-    label: arrive station
-    visibility: public
-  - id: E07_confront
-    source: N07_reporter_arrives_station
-    target: N08_reporter_confronts_doctor
-    label: confront doctor
-    visibility: public
-  - id: E08_delay_handoff
-    source: N08_reporter_confronts_doctor
-    target: N09_handoff_delayed
-    label: delay handoff
-    visibility: public
-  - id: E09_baseline_handoff
-    source: N03_station_plan_known
-    target: N16_baseline_handoff
-    label: no intervention
-    visibility: public
-  - id: E10_warning
-    source: N16_baseline_handoff
-    target: N17_wakaharu_warning
-    label: trust + document
-    visibility: public
-  - id: E11_yuan_join
-    source: N03_station_plan_known
-    target: N10_ask_yuan_to_join
-    label: ask yuan
-    visibility: public
-  - id: E12_yuan_station
-    source: N10_ask_yuan_to_join
-    target: N11_yuan_at_station
-    label: route change
-    visibility: public
-  - id: E13_yuan_realtor
-    source: N11_yuan_at_station
-    target: N12_yuan_misses_realtor
-    label: delayed: miss 20:00 appointment
-    visibility: public
-  - id: E14_show_letter
-    source: N13_show_letter_to_reporter
-    target: N06_tell_reporter
-    label: reporter alarmed
-    visibility: public
-  - id: E15_doctor_caution
-    source: N14_question_doctor_early
-    target: N15_doctor_changes_route
-    label: caution +1
-    visibility: public
-  - id: E16_route_to_convergence
-    source: N15_doctor_changes_route
-    target: N20_convergence_1831
-    label: altered arrival
-    visibility: public
-  - id: E17_saved_to_convergence
-    source: N04_stop_wakaharu
-    target: N20_convergence_1831
-    label: wakaharu absent
-    visibility: public
-  - id: E18_documents_to_convergence
-    source: N05_doctor_keeps_documents
-    target: N20_convergence_1831
-    label: doctor carries documents
-    visibility: public
-  - id: E19_delayed_to_convergence
-    source: N09_handoff_delayed
-    target: N20_convergence_1831
-    label: doctor still nearby
-    visibility: public
-  - id: E20_baseline_to_convergence
-    source: N17_wakaharu_warning
-    target: N20_convergence_1831
-    label: baseline arrival
-    visibility: public
-  - id: E21_yuan_to_convergence
-    source: N11_yuan_at_station
-    target: N20_convergence_1831
-    label: yuan exposed
-    visibility: public
+  - { id: E01_trust, source: N01_wakaharu_photography, target: N02_wakaharu_opens_up, label: "trust +1", visibility: public }
+  - { id: E02_reveal_station, source: N02_wakaharu_opens_up, target: N03_station_plan_known, label: "reveal: station_plan", visibility: public }
+  - { id: E03_stop_wakaharu, source: N03_station_plan_known, target: N04_stop_wakaharu, label: "stop wakaharu", visibility: public }
+  - { id: E04_no_recipient, source: N04_stop_wakaharu, target: N05_doctor_keeps_documents, label: "no recipient", visibility: public }
+  - { id: E05_tell_reporter, source: N03_station_plan_known, target: N06_tell_reporter, label: "tell reporter", visibility: public }
+  - { id: E06_reporter_route, source: N06_tell_reporter, target: N07_reporter_arrives_station, label: "arrive station", visibility: public }
+  - { id: E07_confront, source: N07_reporter_arrives_station, target: N08_reporter_confronts_doctor, label: "confront doctor", visibility: public }
+  - { id: E08_delay_handoff, source: N08_reporter_confronts_doctor, target: N09_handoff_delayed, label: "delay handoff", visibility: public }
+  - { id: E09_baseline_handoff, source: N03_station_plan_known, target: N16_baseline_handoff, label: "no intervention", visibility: public }
+  - { id: E10_warning, source: N16_baseline_handoff, target: N17_wakaharu_warning, label: "trust + document", visibility: public }
+  - { id: E11_yuan_join, source: N03_station_plan_known, target: N10_ask_yuan_to_join, label: "ask yuan", visibility: public }
+  - { id: E12_yuan_station, source: N10_ask_yuan_to_join, target: N11_yuan_at_station, label: "route change", visibility: public }
+  - { id: E13_yuan_realtor, source: N11_yuan_at_station, target: N12_yuan_misses_realtor, label: "delayed: miss 20:00 appointment", visibility: public }
+  - { id: E14_show_letter, source: N13_show_letter_to_reporter, target: N06_tell_reporter, label: "reporter alarmed", visibility: public }
+  - { id: E15_doctor_caution, source: N14_question_doctor_early, target: N15_doctor_changes_route, label: "caution +1", visibility: public }
+  - { id: E16_route_to_convergence, source: N15_doctor_changes_route, target: N20_convergence_1831, label: "altered arrival", visibility: public }
+  - { id: E17_saved_to_convergence, source: N04_stop_wakaharu, target: N20_convergence_1831, label: "wakaharu absent", visibility: public }
+  - { id: E18_documents_to_convergence, source: N05_doctor_keeps_documents, target: N20_convergence_1831, label: "doctor carries documents", visibility: public }
+  - { id: E19_delayed_to_convergence, source: N09_handoff_delayed, target: N20_convergence_1831, label: "doctor still nearby", visibility: public }
+  - { id: E20_baseline_to_convergence, source: N17_wakaharu_warning, target: N20_convergence_1831, label: "baseline arrival", visibility: public }
+  - { id: E21_yuan_to_convergence, source: N11_yuan_at_station, target: N20_convergence_1831, label: "yuan exposed", visibility: public }
