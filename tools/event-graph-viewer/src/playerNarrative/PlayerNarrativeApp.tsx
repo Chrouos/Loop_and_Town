@@ -13,6 +13,7 @@ import { CharacterDrawer } from './components/CharacterDrawer';
 import { ChoiceSurface } from './components/ChoiceSurface';
 import { NarrativeSurface, type PlaybackPhase } from './components/NarrativeSurface';
 import { SceneTransition } from './components/SceneTransition';
+import { IdleSurface } from './components/IdleSurface';
 import { projectCharacterMemory } from '../narrative/characterMemory';
 
 export type PlayerNarrativeAppProps = { story: StoryBundle };
@@ -255,9 +256,7 @@ export function PlayerNarrativeApp({ story }: PlayerNarrativeAppProps) {
             prose={ambientText}
           />
         ) : (
-          <section className="quiet-surface">
-            <p>{ambientText ?? '世界沒有停下來。'}</p>
-          </section>
+          <IdleSurface prose={ambientText} upcomingEvent={view.upcomingWorldEvent} />
         )}
       </div>
 

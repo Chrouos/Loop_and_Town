@@ -12,6 +12,7 @@ import { currentStoryMinute, formatStoryMinute } from './clock';
 import { reconcilePersistentObservations, type InboxItem, type PersistentObservationInput } from './inbox';
 import type { PlayerSessionV3 } from './model';
 import { orderNarrativeQueue, type PlayerNarrativeQueueItem } from './queue';
+import { projectUpcomingWorldEvent, type UpcomingWorldEvent } from './upcomingEvent';
 
 export type PlayerRuntimeView = {
   currentStoryMinute: number;
@@ -21,6 +22,7 @@ export type PlayerRuntimeView = {
   queue: PlayerNarrativeQueueItem[];
   activeActivity: ActivityRun | null;
   activityPresentation: ActivityPresentationView | null;
+  upcomingWorldEvent: UpcomingWorldEvent | null;
   availableChoices: PlayerChoiceDefinition[];
   inbox: InboxItem[];
 };
@@ -158,6 +160,7 @@ export function reconcilePlayerRuntime(
     queue: orderedQueue,
     activeActivity: advancedActivity,
     activityPresentation,
+    upcomingWorldEvent: projectUpcomingWorldEvent(story.definition.events, storyMinute),
     availableChoices,
     inbox,
   };

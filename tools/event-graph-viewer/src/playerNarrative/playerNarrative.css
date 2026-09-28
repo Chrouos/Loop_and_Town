@@ -109,6 +109,11 @@ button { font: inherit; }
 .letter-sheet p, .artifact-sheet p { margin: 0 0 20px; font-size: 18px; line-height: 1.8; }
 
 .quiet-surface { min-height: 45vh; display: grid; place-items: center; color: rgba(236, 233, 224, .58); }
+.quiet-center { max-width: 520px; text-align: center; }
+.quiet-center > p { margin: 0; font-size: 20px; line-height: 1.8; }
+.quiet-next-event { display: grid; gap: 8px; margin-top: 34px; font-family: system-ui, sans-serif; font-size: 12px; letter-spacing: .08em; color: rgba(236, 233, 224, .45); }
+.quiet-next-event strong { font-family: inherit; font-size: 14px; font-weight: 500; color: rgba(236, 233, 224, .7); }
+.quiet-next-event time { color: rgba(236, 233, 224, .55); }
 .player-tools { display: flex; padding: 20px 30px 28px; }
 .player-tools button { font-family: system-ui, sans-serif; color: rgba(236, 233, 224, .46); font-size: 13px; }
 

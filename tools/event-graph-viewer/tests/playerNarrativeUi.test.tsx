@@ -4,6 +4,7 @@ import { NarrativeSurface } from '../src/playerNarrative/components/NarrativeSur
 import { ActivitySurface } from '../src/playerNarrative/components/ActivitySurface';
 import { ArtifactSurface } from '../src/playerNarrative/components/ArtifactSurface';
 import { ChoiceSurface } from '../src/playerNarrative/components/ChoiceSurface';
+import { IdleSurface } from '../src/playerNarrative/components/IdleSurface';
 import type { ArtifactDefinition } from '../src/narrative/types';
 
 const coffee = { id: 'coffee', label: '先去買杯咖啡' };
@@ -60,5 +61,18 @@ describe('player narrative UI', () => {
     expect(screen.getByText('回來一趟。')).not.toBeNull();
     expect(screen.getByText('如果午夜的鐘聲響起，就代表又失敗了。')).not.toBeNull();
     expect(screen.queryByText(/Artifact ID/i)).toBeNull();
+  });
+
+  it('shows remaining time for the next world event while idle', () => {
+    render(
+      <IdleSurface
+        upcomingEvent={{ title: '回到老家', minute: 15 * 60, remainingMinutes: 107 }}
+      />,
+    );
+
+    expect(screen.getByText('世界沒有停下來。')).not.toBeNull();
+    expect(screen.getByText('回到老家')).not.toBeNull();
+    expect(screen.getByText(/還有 1 小時 47 分鐘/)).not.toBeNull();
+    expect(screen.getByText(/15:00/)).not.toBeNull();
   });
 });
