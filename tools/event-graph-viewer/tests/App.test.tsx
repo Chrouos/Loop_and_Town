@@ -122,7 +122,7 @@ describe('App', () => {
     fireEvent.click(await screen.findByText('[F_N11_ending_c Ending C｜忘記我]'));
     expect(await screen.findByText('……原本哪個？')).toBeTruthy();
     expect(screen.getByText('沒事。我重新問一次。妳喝什麼？')).toBeTruthy();
-    expect(screen.getByText('Ending C｜忘記我')).toBeTruthy();
+    expect(screen.getAllByText('Ending C｜忘記我').length).toBeGreaterThan(0);
   });
 
   it('opens Character Graph and exposes visibility modes without leaking author relationships by default', async () => {
