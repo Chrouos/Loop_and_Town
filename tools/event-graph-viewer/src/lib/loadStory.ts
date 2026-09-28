@@ -3,7 +3,12 @@ import type {
   DelayedEffect,
   EventGraphDocument,
   EventVariant,
+  StoryDagDocument,
+  StoryDagNode,
+  StoryDagNodeDetail,
   StoryEffect,
+  StoryVisibility,
+  StoryWorldlinePath,
 } from '../types/story';
 
 type RawObject = Record<string, unknown>;
@@ -16,6 +21,10 @@ function asObject(value: unknown): RawObject {
 
 function asStringArray(value: unknown): string[] {
   return Array.isArray(value) ? value.map(String) : [];
+}
+
+function asVisibility(value: unknown): StoryVisibility {
+  return value === 'author' || value === 'player-known' ? value : 'public';
 }
 
 function conditionToStrings(value: unknown): string[] {
@@ -84,6 +93,32 @@ function normalizeVariant(value: unknown): EventVariant {
   };
 }
 
+function normalizeDagDetail(value: unknown): StoryDagNodeDetail {
+  const detail = asObject(value);
+  return {
+    before: asStringArray(detail.before),
+    after: asStringArray(detail.after),
+    reason: typeof detail.reason === 'string' ? detail.reason : undefined,
+    affectedCharacters: asStringArray(detail.affected_characters),
+    delayedEffects: asStringArray(detail.delayed_effects),
+    knowledgeChanges: asStringArray(detail.knowledge_changes),
+    relationshipChanges: asStringArray(detail.relationship_changes),
+    narrativeRefs: asStringArray(detail.narrative_refs),
+  };
+}
+
+function normalizeDagNode(value: unknown): StoryDagNode {
+  const node = asObject(value);
+  return {
+    id: String(node.id ?? 'node'),
+    title: String(node.title ?? node.id ?? 'Node'),
+    time: typeof node.time === 'string' ? node.time : undefined,
+    actorIds: asStringArray(node.actor_ids),
+    visibility: asVisibility(node.visibility),
+    detail: normalizeDagDetail(node.detail),
+  };
+}
+
 export function parseEventGraphText(text: string): EventGraphDocument {
   const raw = asObject(yaml.load(text));
   const time = raw.time ?? raw.at;
@@ -101,6 +136,45 @@ export function parseEventGraphText(text: string): EventGraphDocument {
     variants: Array.isArray(raw.variants) ? raw.variants.map(normalizeVariant) : [],
     notes: asStringArray(raw.notes),
   };
+}
+
+export function parseStoryDagText(text: string): StoryDagDocument {
+  const raw = asObject(yaml.load(text));
+  if (!raw.id || !raw.title) throw new Error('Story DAG 缺少 id 或 title');
+
+  return {
+    id: String(raw.id),
+    title: String(raw.title),
+    nodes: Array.isArray(raw.nodes) ? raw.nodes.map(normalizeDagNode) : [],
+    edges: Array.isArray(raw.edges)
+      ? raw.edges.map((value) => {
+          const edge = asObject(value);
+          return {
+            id: String(edge.id ?? 'edge'),
+            source: String(edge.source ?? ''),
+            target: String(edge.target ?? ''),
+            label: String(edge.label ?? ''),
+            visibility: asVisibility(edge.visibility),
+          };
+        })
+      : [],
+  };
+}
+
+export function parseStoryWorldlinePathsText(text: string): StoryWorldlinePath[] {
+  const raw = asObject(yaml.load(text));
+  if (!Array.isArray(raw.paths)) throw new Error('Story worldline paths 缺少 paths');
+  return raw.paths.map((value) => {
+    const path = asObject(value);
+    if (!path.id || !path.label) throw new Error('Story worldline path 缺少 id 或 label');
+    return {
+      id: String(path.id),
+      label: String(path.label),
+      nodeIds: asStringArray(path.node_ids),
+      edgeIds: asStringArray(path.edge_ids),
+      visibility: asVisibility(path.visibility),
+    };
+  });
 }
 
 export async function loadEventGraph(path: string): Promise<EventGraphDocument> {

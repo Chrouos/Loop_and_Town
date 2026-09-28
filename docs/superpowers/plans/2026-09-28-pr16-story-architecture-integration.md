@@ -60,7 +60,7 @@
 
 **Files:**
 - Create: `tools/event-graph-viewer/src/types/storyDag.ts`, `tools/event-graph-viewer/src/lib/storyDag.ts`, `tools/event-graph-viewer/src/relationship/relationshipState.ts`
-- Modify: `tools/event-graph-viewer/src/types/story.ts`, `tools/event-graph-viewer/src/simulator/types.ts`, `tools/event-graph-viewer/src/simulator/validation.ts`
+- Modify: `tools/event-graph-viewer/src/types/story.ts`, `tools/event-graph-viewer/src/lib/loadStory.ts`, `tools/event-graph-viewer/src/simulator/types.ts`, `tools/event-graph-viewer/src/simulator/validation.ts`
 - Test: `tools/event-graph-viewer/tests/storyDag.test.ts`, `tools/event-graph-viewer/tests/relationshipStateEngine.test.ts`, `tools/event-graph-viewer/tests/finalRelationshipAcceptance.test.ts`
 
 **Interfaces:**
