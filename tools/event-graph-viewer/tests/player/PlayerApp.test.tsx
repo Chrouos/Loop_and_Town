@@ -189,6 +189,7 @@ it('renders Loop 2 survivor scenes without exposing author or relationship metad
   expect(await screen.findByText(/不是夢/)).toBeDefined();
   await user.click(screen.getByRole('button', { name: /閱讀新消息：若晴還活著/ }));
   expect(screen.getAllByText(/她活著/).length).toBeGreaterThan(0);
+  expect(readSave(storage, now()).loops[2].seenSceneIds).toContain('loop02_1610_wakaharu_alive');
   expect(screen.queryByText(/remember|trust|closeness|respect|pressure|DAG|storyDag/i)).toBeNull();
   await user.click(screen.getByRole('button', { name: /閱讀新消息：18:31 的另一個死者/ }));
   expect(screen.getByText(/找到陳柏勳/)).toBeDefined();

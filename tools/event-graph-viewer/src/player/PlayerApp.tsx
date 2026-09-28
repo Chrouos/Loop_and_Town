@@ -10,7 +10,7 @@ import { activeLoop, confirmAction, continuePendingBoundary, createNextLoop, rep
 import { LEGACY_KEY, exportSave, importLegacy, readSave, writeSave } from './storage';
 import { EvidenceBoard } from './EvidenceBoard';
 import { WorldlineNotebook } from './WorldlineNotebook';
-import { projectPlayerNarrativeRecords } from './narrativeRecords';
+import { markPlayerNarrativeSeen, projectPlayerNarrativeRecords } from './narrativeRecords';
 import type { PlayerStoryBundle } from '../types/playerStory';
 
 type LegacyStory = { definition: SimulationDefinition; initialState: WorldState };
@@ -85,7 +85,7 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
     : undefined;
   const records = visibleRecords(save, loopId, loopId === 1 ? undefined : playerRecords);
   const opened = loopId !== 1 || save.knowledge.opened.includes(`${loopId}:letter`) || save.knowledge.opened.includes('letter');
-  const record = records.find(x => x.id === selected) ?? records[0];
+  const record = records.find(x => x.id === selected) ?? playerRecords?.find(x => x.id === selected) ?? records[0];
   const incoming = records.filter(item => item.revealMinute > 0 && !save.knowledge.opened.includes(`${loopId}:${item.id}`));
   const hasAction = (id: ActionId) => loop.actionIds.includes(id);
   const canAct = clock.minute < 1100;
@@ -114,6 +114,9 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
     const nextSave = normalizeSave(save, now());
     const readKey = `${loopId}:${id}`;
     if (!nextSave.knowledge.opened.includes(readKey)) nextSave.knowledge.opened.push(readKey);
+    if (loopId !== 1 && records.some((item) => item.id === id && item.sceneId === id)) {
+      markPlayerNarrativeSeen(nextSave, loopId, id);
+    }
     commit(nextSave); setSelected(id); setDrawer(null);
   }
   function pin(ref: string) {
