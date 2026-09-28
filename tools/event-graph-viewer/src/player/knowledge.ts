@@ -3,14 +3,22 @@ import { clockMinuteAt, LOOP_START_MINUTE, realTimestampForSimulationMinute } fr
 import { advanceLoop } from './eventScheduler';
 import { emptyLoop, type LoopHistoryEntry, type PlayerSave } from './model';
 import { activeLoop, replayLoop } from './runtime';
-import { STORY_RECORDS, type VisibleRecord } from './story';
+import { projectPlayerNarrativeRecords } from './narrativeRecords';
+import { STORY_RECORDS, type PlayerNarrativeRecord, type VisibleRecord } from './story';
+import type { PlayerStoryBundle } from '../types/playerStory';
 
-export function visibleRecords(save: PlayerSave, loop: number): VisibleRecord[] {
-  const ids = new Set(save.loops[loop]?.revealedIds ?? []);
-  return STORY_RECORDS.filter(record => ids.has(`${loop}:${record.id}`));
+function staticRecords(loop: number): PlayerNarrativeRecord[] {
+  return STORY_RECORDS.map((record) => ({ ...record, sceneId: record.id, loopId: loop }));
 }
 
-function reveal(save: PlayerSave, loop: number, minute: number, definition: SimulationDefinition, initial: WorldState) {
+export function visibleRecords(save: PlayerSave, loop: number, records?: PlayerNarrativeRecord[]): PlayerNarrativeRecord[] {
+  const ids = new Set(save.loops[loop]?.revealedIds ?? []);
+  const seen = new Set(save.loops[loop]?.seenSceneIds ?? []);
+  const source = records ?? staticRecords(loop);
+  return source.filter(record => ids.has(`${loop}:${record.id}`) && !seen.has(record.sceneId));
+}
+
+function revealStatic(save: PlayerSave, loop: number, minute: number, definition: SimulationDefinition, initial: WorldState) {
   const entry = save.loops[loop] ?? (save.loops[loop] = emptyLoop());
   const history = replayLoop(definition, initial, save, loop, minute).history;
   for (const record of STORY_RECORDS) {
@@ -21,7 +29,28 @@ function reveal(save: PlayerSave, loop: number, minute: number, definition: Simu
   }
 }
 
-export function reconcilePlayer(save: PlayerSave, nowMs: number, definition: SimulationDefinition, initial: WorldState): PlayerSave {
+function revealNarrative(
+  save: PlayerSave,
+  loop: number,
+  minute: number,
+  history: ReturnType<typeof replayLoop>['history'],
+  story: PlayerStoryBundle,
+): void {
+  const entry = save.loops[loop] ?? (save.loops[loop] = emptyLoop());
+  const records = projectPlayerNarrativeRecords(story, loop, history, minute);
+  for (const record of records) {
+    const id = `${loop}:${record.id}`;
+    if (record.revealMinute <= minute && record.matches(history) && !entry.revealedIds.includes(id)) entry.revealedIds.push(id);
+  }
+}
+
+export function reconcilePlayer(
+  save: PlayerSave,
+  nowMs: number,
+  definition: SimulationDefinition,
+  initial: WorldState,
+  story?: PlayerStoryBundle,
+): PlayerSave {
   const safeNow = Math.max(nowMs, save.lastConfirmedMs);
   const loopId = save.currentLoopId;
   const loop = activeLoop(save);
@@ -60,7 +89,8 @@ export function reconcilePlayer(save: PlayerSave, nowMs: number, definition: Sim
   }
   loop.clock.lastProcessedMinute = result.reachedMinute;
   loop.clock.pendingCriticalBoundary = result.pendingBoundary ?? existingPending;
-  reveal(save, loopId, result.reachedMinute, definition, initial);
+  if (story) revealNarrative(save, loopId, result.reachedMinute, result.simulation.history, story);
+  if (!story || loopId === 1) revealStatic(save, loopId, result.reachedMinute, definition, initial);
   save.lastConfirmedMs = safeNow;
   return save;
 }

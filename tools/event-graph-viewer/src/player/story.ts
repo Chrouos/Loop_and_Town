@@ -13,6 +13,11 @@ export type VisibleRecord = {
   matches: (history: WorldlineHistoryEntry[]) => boolean;
 };
 
+export type PlayerNarrativeRecord = VisibleRecord & {
+  sceneId: string;
+  loopId: number | 'final';
+};
+
 export type RecordAcquisition = 'persistent' | 'message' | 'presence';
 
 const always = () => true;

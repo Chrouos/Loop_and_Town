@@ -16,4 +16,9 @@ describe('player narrative authored data', () => {
   it('loads old-house to station travel as 22 minutes', () => {
     expect(loadRealStory().travelEdges).toContainEqual({ from: 'old_house', to: 'old_station', minutes: 22 });
   });
+
+  it('ties the Loop 2 Doctor scene to the authored 18:31 variant', () => {
+    const scene = loadRealStory().narrative.scenes.find((item) => item.id === 'loop02_1831_doctor_death');
+    expect(scene).toMatchObject({ sourceEventId: 'evt_1831_station', sourceVariantId: 'doctor_dies' });
+  });
 });
