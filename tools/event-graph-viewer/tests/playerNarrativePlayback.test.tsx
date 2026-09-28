@@ -92,4 +92,19 @@ describe('player narrative playback', () => {
     expect(screen.getByText('前一段內容')).not.toBeNull();
     expect(screen.getByText('目前內容', { selector: 'p' })).not.toBeNull();
   });
+
+  it('uses a blinking typing cursor instead of literal dots when waiting', () => {
+    render(
+      <NarrativeSurface
+        block={{ type: 'narration', text: '等待下一步' }}
+        phase="waiting"
+        revealedCharacters={5}
+        onReveal={() => undefined}
+        onAdvance={() => undefined}
+      />,
+    );
+
+    expect(screen.getByLabelText('推進故事').querySelector('.typing-cursor')).not.toBeNull();
+    expect(screen.queryByText('..... |')).toBeNull();
+  });
 });

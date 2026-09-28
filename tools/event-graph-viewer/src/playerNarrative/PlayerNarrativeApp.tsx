@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import type { MouseEvent } from 'react';
 import type { StoryBundle } from '../lib/loadSimulationStory';
 import type { NarrativeBlock, NarrativeSceneDefinition } from '../narrative/types';
 import { applyChoiceEffects } from './choices';
@@ -12,6 +13,7 @@ import { CharacterDrawer } from './components/CharacterDrawer';
 import { ChoiceSurface } from './components/ChoiceSurface';
 import { NarrativeSurface, type PlaybackPhase } from './components/NarrativeSurface';
 import { SceneTransition } from './components/SceneTransition';
+import { projectCharacterMemory } from '../narrative/characterMemory';
 
 export type PlayerNarrativeAppProps = { story: StoryBundle };
 
@@ -56,6 +58,10 @@ export function PlayerNarrativeApp({ story }: PlayerNarrativeAppProps) {
   const speakerNames = useMemo(
     () => Object.fromEntries(story.narrative.characters.map((character) => [character.id, character.name])),
     [story],
+  );
+  const characterMemory = useMemo(
+    () => projectCharacterMemory(story.narrative, session.knownFactIds, session.knownInsightIds),
+    [story, session.knownFactIds, session.knownInsightIds],
   );
 
   useEffect(() => {
@@ -183,6 +189,13 @@ export function PlayerNarrativeApp({ story }: PlayerNarrativeAppProps) {
     if (!artifact && view.availableChoices.length === 0) finishScene(scene);
   }
 
+  function handleStageClick(event: MouseEvent<HTMLElement>) {
+    const target = event.target;
+    if (target instanceof Element && target.closest('button, a, input, textarea, select')) return;
+    if (target instanceof Element && target.closest('.narrative-surface')) return;
+    advanceNarrative();
+  }
+
   return (
     <main className="player-narrative-shell">
       <header className="player-hud">
@@ -190,7 +203,7 @@ export function PlayerNarrativeApp({ story }: PlayerNarrativeAppProps) {
         <time>{formatStoryMinute(view.currentStoryMinute)}</time>
       </header>
 
-      <div className="player-stage">
+      <div className="player-stage" onClick={handleStageClick}>
         {scene ? (
           <SceneTransition
             sceneKey={scene.id}
@@ -253,8 +266,7 @@ export function PlayerNarrativeApp({ story }: PlayerNarrativeAppProps) {
       </nav>
 
       <CharacterDrawer
-        story={story.narrative}
-        knownFactIds={session.knownFactIds}
+        memory={characterMemory}
         open={charactersOpen}
         onClose={() => setCharactersOpen(false)}
       />

@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import type { KeyboardEvent } from 'react';
+import type { KeyboardEvent, MouseEvent } from 'react';
 import type { NarrativeBlock } from '../../narrative/types';
 import { isTypewriterComplete, nextRevealDelay } from '../typewriter';
 
@@ -75,13 +75,18 @@ export function NarrativeSurface({
     onAdvance();
   }
 
+  function handleClick(event: MouseEvent<HTMLElement>) {
+    event.stopPropagation();
+    onAdvance();
+  }
+
   return (
     <section
       className="narrative-surface"
       aria-label="故事"
       aria-describedby="narrative-full-text"
       tabIndex={0}
-      onClick={onAdvance}
+      onClick={handleClick}
       onKeyDown={handleKeyDown}
     >
       <div className="narrative-copy">
@@ -91,7 +96,11 @@ export function NarrativeSurface({
         {renderBlock(block, speakerNames, visibleText, 'narrative-active', blockKey(block, 2))}
         <span id="narrative-full-text" className="sr-only">{text}</span>
       </div>
-      {phase === 'waiting' && showAdvanceHint && <span className="advance-hint" aria-label="推進故事">..... |</span>}
+      {phase === 'waiting' && showAdvanceHint && (
+        <span className="advance-hint" aria-label="推進故事">
+          <span className="typing-cursor" aria-hidden="true" />
+        </span>
+      )}
     </section>
   );
 }
