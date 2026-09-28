@@ -25,6 +25,11 @@ describe('the player adapter shares canonical story rules', () => {
 
   it('creates exactly one explicitly chosen next loop and locks its mode', () => {
     const save = normalizeSave(null, 0);
+    save.knowledge.characterInsights = [{ id: 'wakaharu-alive', characterId: 'wakaharu', sourceLoop: 1, text: '若春仍活著。' }];
+    save.knowledge.discoveredEvidence = ['doctor-route'];
+    save.loops[1].actionIds = ['protect_wakaharu'];
+    save.loops[1].revealedIds = ['1:old-record'];
+    save.loops[1].seenSceneIds = ['loop01_scene'];
     save.loops[1].clock.pendingCriticalBoundary = 'reset';
     const anchorBefore = save.loops[1].clock.anchor;
     const next = createNextLoop(save, 'ACCELERATED', 10_000);
@@ -32,6 +37,13 @@ describe('the player adapter shares canonical story rules', () => {
     expect(next.loops[1].sealed).toBe(true);
     expect(next.loops[2].clock.mode).toBe('ACCELERATED');
     expect(next.loops[1].clock.anchor).toEqual(anchorBefore);
+    expect(next.knowledge.characterInsights).toEqual([{ id: 'wakaharu-alive', characterId: 'wakaharu', sourceLoop: 1, text: '若春仍活著。' }]);
+    expect(next.knowledge.discoveredEvidence).toEqual(['doctor-route']);
+    expect(next.loops[2].actionIds).toEqual([]);
+    expect(next.loops[2].revealedIds).toEqual([]);
+    expect(next.loops[2].seenSceneIds).toEqual([]);
+    expect(next.loops[2].clock.pendingCriticalBoundary).toBeUndefined();
+    expect(next.loops[2].sealed).toBe(false);
   });
 
   it('keeps the first loop anchored at 06:12 while real time advances', () => {

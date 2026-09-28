@@ -38,6 +38,48 @@ it('reads v2 before v1 storage and normalizes malformed v2 clock state', () => {
   expect(save.loops[1].clock.anchor.realStartedAtMs).toBe(2_000);
 });
 
+it('defaults missing player memory fields and rejects malformed entries', () => {
+  const save = normalizeSave({
+    version: 2,
+    currentLoopId: 1,
+    loops: { 1: { actionIds: [], revealedIds: [], sealed: false } },
+    knowledge: {
+      characterInsights: [
+        { id: 'insight-1', characterId: 'wakaharu', sourceLoop: 1, text: '他獨自活著。' },
+        { id: 42, characterId: 'doctor', sourceLoop: 1, text: '不應被接受' },
+        { id: 'missing-text', characterId: 'doctor', sourceLoop: 1 },
+      ],
+      discoveredEvidence: ['evidence-letter', 42, null],
+    },
+  }, 1_000);
+
+  expect(save.loops[1].seenSceneIds).toEqual([]);
+  expect(save.knowledge.characterInsights).toEqual([
+    { id: 'insight-1', characterId: 'wakaharu', sourceLoop: 1, text: '他獨自活著。' },
+  ]);
+  expect(save.knowledge.discoveredEvidence).toEqual(['evidence-letter']);
+});
+
+it('caps player memory collections at 250 entries', () => {
+  const save = normalizeSave({
+    version: 2,
+    currentLoopId: 1,
+    loops: { 1: { actionIds: [], revealedIds: [], sealed: false } },
+    knowledge: {
+      characterInsights: Array.from({ length: 251 }, (_, index) => ({
+        id: `insight-${index}`,
+        characterId: 'wakaharu',
+        sourceLoop: 1,
+        text: '記憶',
+      })),
+      discoveredEvidence: Array.from({ length: 251 }, (_, index) => `evidence-${index}`),
+    },
+  }, 1_000);
+
+  expect(save.knowledge.characterInsights).toHaveLength(250);
+  expect(save.knowledge.discoveredEvidence).toHaveLength(250);
+});
+
 it('imports only known legacy knowledge, never old world results as actions', () => {
   const fresh = normalizeSave(null, 0);
   const imported = importLegacy(JSON.stringify({ memory: { letter: 2, sister: 2, death: 3 }, pins: ['letter:postmark', 'sister:death'], lines: ['letter|sister'], world: { dead: true }, tasks: [{ type: 'hold' }] }), fresh);

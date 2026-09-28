@@ -12,13 +12,21 @@ export type LoopHistoryEntry = {
   visibility: string;
   playerPresent?: boolean;
 };
-export type LoopSave = { actionIds: ActionId[]; revealedIds: string[]; sealed: boolean; clock: LoopClockState; history: LoopHistoryEntry[] };
+export type CharacterInsight = {
+  id: string;
+  characterId: string;
+  sourceLoop: number;
+  text: string;
+};
+export type LoopSave = { actionIds: ActionId[]; revealedIds: string[]; seenSceneIds: string[]; sealed: boolean; clock: LoopClockState; history: LoopHistoryEntry[] };
 export type KnowledgeSave = {
   opened: string[];
   pins: string[];
   positions: Record<string, { x: number; y: number }>;
   connections: string[];
   notes: Array<{ source: 'legacy' | 'player'; text: string }>;
+  characterInsights: CharacterInsight[];
+  discoveredEvidence: string[];
 };
 export type PlayerSave = {
   version: 2;
@@ -50,6 +58,7 @@ const emptyHistory = (value: unknown): LoopHistoryEntry[] => Array.isArray(value
 export const emptyLoop = (clock: LoopClockState = createLoopClock('ACCELERATED', 0)): LoopSave => ({
   actionIds: [],
   revealedIds: [],
+  seenSceneIds: [],
   sealed: false,
   clock,
   history: [],
@@ -92,6 +101,7 @@ function normalizeLoop(value: unknown, nowMs: number, fallbackClock?: LoopClockS
   return {
     actionIds: [...new Set(strings(src.actionIds).filter(action))],
     revealedIds: [...new Set(strings(src.revealedIds))],
+    seenSceneIds: [...new Set(strings(src.seenSceneIds))],
     sealed: src.sealed === true,
     clock: normalizeClock(src.clock, nowMs) ?? fallbackClock ?? createLoopClock('ACCELERATED', nowMs),
     history: emptyHistory(src.history),
@@ -120,9 +130,7 @@ export function normalizeSave(raw: unknown, nowMs: number): PlayerSave {
     if (record(value) && typeof value.x === 'number' && typeof value.y === 'number' && Number.isFinite(value.x) && Number.isFinite(value.y)) positions[key] = { x: value.x, y: value.y };
   }
   return { version: 2, currentLoopId, lastConfirmedMs, loops, importedLegacy: src.importedLegacy === true,
-    knowledge: { opened: strings(old.opened), pins: strings(old.pins).slice(0, 6), connections: strings(old.connections), positions,
-      notes: Array.isArray(old.notes) ? old.notes.filter((n): n is { source: 'legacy' | 'player'; text: string } => record(n) && (n.source === 'legacy' || n.source === 'player') && typeof n.text === 'string').slice(0, 40) : [],
-    },
+    knowledge: normalizeKnowledge(old),
   };
 }
 
@@ -161,5 +169,18 @@ function normalizeKnowledge(old: Record<string, unknown>): KnowledgeSave {
     connections: strings(old.connections),
     positions,
     notes: Array.isArray(old.notes) ? old.notes.filter((n): n is { source: 'legacy' | 'player'; text: string } => record(n) && (n.source === 'legacy' || n.source === 'player') && typeof n.text === 'string').slice(0, 40) : [],
+    characterInsights: Array.isArray(old.characterInsights)
+      ? old.characterInsights.filter(record).map((item): CharacterInsight | undefined => {
+        if (
+          typeof item.id !== 'string'
+          || typeof item.characterId !== 'string'
+          || !Number.isSafeInteger(item.sourceLoop)
+          || (item.sourceLoop as number) < 1
+          || typeof item.text !== 'string'
+        ) return undefined;
+        return { id: item.id, characterId: item.characterId, sourceLoop: item.sourceLoop as number, text: item.text };
+      }).filter((item): item is CharacterInsight => item !== undefined).slice(0, 250)
+      : [],
+    discoveredEvidence: strings(old.discoveredEvidence),
   };
 }
