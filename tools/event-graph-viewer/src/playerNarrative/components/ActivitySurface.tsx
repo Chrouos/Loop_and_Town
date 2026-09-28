@@ -15,7 +15,7 @@ export function ActivitySurface({ timeLabel, presentation, prose }: ActivitySurf
         {prose && <p className="ambient-prose">{prose}</p>}
         {presentation.remainingLabel && <p className="activity-remaining">{presentation.remainingLabel}</p>}
         {presentation.etaLabel && <p className="activity-eta">{presentation.etaLabel}</p>}
-        <span className="activity-waiting-cursor" aria-hidden="true">.....</span>
+        <span className="activity-waiting-cursor" aria-hidden="true"><span className="typing-cursor" /></span>
       </div>
     </section>
   );

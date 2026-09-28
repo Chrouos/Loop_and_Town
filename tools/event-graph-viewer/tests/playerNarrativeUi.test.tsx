@@ -42,6 +42,8 @@ describe('player narrative UI', () => {
     );
     expect(screen.getByText('茶已經沒有剛才那麼燙了。')).not.toBeNull();
     expect(screen.queryByText(/%|剩餘|EXP/i)).toBeNull();
+    expect(screen.getByLabelText('目前活動').querySelector('.typing-cursor')).not.toBeNull();
+    expect(screen.queryByText('.....')).toBeNull();
   });
 
   it('styles ordinary and causal choices identically', () => {
