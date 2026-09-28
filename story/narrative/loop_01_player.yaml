@@ -1,6 +1,6 @@
 scenes:
   - id: prologue_arrival
-    at: { day: 0, time: "14:20" }
+    at: { day: 0, time: "06:12" }
     kind: narration
     participants: [protagonist]
     blocks:
@@ -12,7 +12,7 @@ scenes:
         text: 這次只是回來整理房子。把該丟的丟掉，把該簽的簽完，就走。
 
   - id: prologue_after_coffee
-    at: { day: 0, time: "14:28" }
+    at: { day: 0, time: "07:28" }
     kind: narration
     participants: [protagonist]
     requiresFacts: [fact_cafe_resident_chatter]
@@ -23,7 +23,7 @@ scenes:
         text: 我沒有插話。紙杯拿到手之後，才重新把行李拉桿拉起來。
 
   - id: prologue_after_store
-    at: { day: 0, time: "14:26" }
+    at: { day: 0, time: "07:26" }
     kind: narration
     participants: [protagonist]
     requiresFacts: [fact_shopkeeper_mistook_protagonist_for_zhixia]
@@ -36,8 +36,8 @@ scenes:
         text: 我只說沒關係。走出店門後，水瓶一直冰著掌心。
 
   - id: prologue_yuan_reunion
-    at: { day: 0, time: "14:40" }
-    availableUntil: { day: 0, time: "15:30" }
+    at: { day: 0, time: "07:40" }
+    availableUntil: { day: 0, time: "08:30" }
     kind: dialogue
     participants: [protagonist, yuan]
     requiresLocation: old_house
@@ -58,7 +58,7 @@ scenes:
         factId: fact_yuan_runs_clock_shop
 
   - id: prologue_old_house
-    at: { day: 0, time: "14:20" }
+    at: { day: 0, time: "08:00" }
     kind: narration
     participants: [protagonist]
     requiresLocation: old_house
@@ -71,7 +71,7 @@ scenes:
         text: 書架上還有姊姊留下的書。灰很多，但排列方式一點都沒變。
 
   - id: prologue_after_clean
-    at: { day: 0, time: "14:20" }
+    at: { day: 0, time: "08:30" }
     kind: narration
     participants: [protagonist]
     requiresLocation: old_house
@@ -83,7 +83,7 @@ scenes:
         text: 房仲傍晚才會回電話。現在急也沒有用。
 
   - id: prologue_after_read
-    at: { day: 0, time: "14:20" }
+    at: { day: 0, time: "08:50" }
     kind: narration
     participants: [protagonist]
     requiresLocation: old_house
@@ -95,7 +95,7 @@ scenes:
         text: 還是做點事吧。
 
   - id: prologue_letter_discovery
-    at: { day: 0, time: "14:20" }
+    at: { day: 0, time: "09:00" }
     kind: artifact
     participants: [protagonist]
     requiresLocation: old_house
@@ -115,7 +115,7 @@ scenes:
         factId: fact_zhixia_dead_five_years
 
   - id: prologue_letter_opened
-    at: { day: 0, time: "14:20" }
+    at: { day: 0, time: "09:02" }
     kind: artifact
     participants: [protagonist]
     requiresLocation: old_house
@@ -130,7 +130,7 @@ scenes:
         text: 郵戳是昨天。我又看了一遍，還是昨天。
 
   - id: scene_after_letter
-    at: { day: 0, time: "14:20" }
+    at: { day: 0, time: "09:10" }
     kind: transition
     participants: [protagonist]
     requiresLocation: old_house
@@ -142,7 +142,7 @@ scenes:
         text: 如果不是有人在拿姊姊開玩笑，就一定有哪裡留下了紀錄。
 
   - id: scene_after_waiting_for_yuan
-    at: { day: 0, time: "14:20" }
+    at: { day: 0, time: "10:00" }
     kind: narration
     participants: [protagonist]
     requiresLocation: old_house
@@ -154,7 +154,7 @@ scenes:
         text: 光等也沒有用。
 
   - id: scene_after_research
-    at: { day: 0, time: "14:20" }
+    at: { day: 0, time: "11:30" }
     kind: narration
     participants: [protagonist]
     afterActivityId: research_online
@@ -165,7 +165,7 @@ scenes:
         text: 我把那個名字抄了下來。至少現在有地方能繼續問。
 
   - id: scene_after_dinner
-    at: { day: 0, time: "14:20" }
+    at: { day: 0, time: "18:00" }
     kind: narration
     participants: [protagonist]
     requiresLocation: old_house

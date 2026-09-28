@@ -105,24 +105,21 @@ Loop 03 → 無人死亡
 
 ## 舊時間資料 Migration
 
-目前早期可玩資料仍有部分以 `14:20` 作為返鄉／敘事開場，例如 Loop 01～03 的既有 scene、schedule、event。
+早期可玩資料曾以 `14:20` 作為返鄉／敘事開場；Loop 01～03 的 scene、schedule、event 已完成第一階段 canonical migration。
 
-這些時間屬於早期 Story Prototype 的 legacy timestamp。
+`14:20` 只保留在歷史設計文件與測試 fixture 中，不再是 production story source 的 runtime timestamp。
 
 ### 規則
 
 - 從 Arc 4 開始，Canon 一律以 **06:12 Hard Reset** 為準。
-- 不在寫新章節時零碎搬動舊事件，避免產生半套時間軸。
-- Loop 01～03 將以獨立 migration 統一：
+- Loop 01～03 的 migration 已統一為：
   1. 06:12 列車醒來
   2. 07:20～08:00 抵達
   3. 保留原事件相對順序與因果距離
   4. 重新對齊角色既有 08:00、11:30、14:00 等私人行程
   5. 固定 18:31、23:59、00:00 不變
 
-在 migration 完成前：
-
-> **Story Canon 時鐘以本文件為準；舊 YAML 的 14:20 開場只代表尚未遷移的 legacy implementation。**
+> **Story Canon 時鐘以本文件為準；production story YAML 已以 06:12 作為返鄉／重置入口。**
 
 ---
 

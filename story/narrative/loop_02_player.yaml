@@ -1,6 +1,6 @@
 scenes:
   - id: loop02_1420_reset_awareness
-    at: { day: 0, time: "14:20" }
+    at: { day: 0, time: "06:12" }
     kind: narration
     participants: [protagonist]
     blocks:
@@ -14,7 +14,7 @@ scenes:
         text: 這一次，若晴不能去舊車站。
 
   - id: loop02_1610_wakaharu_alive
-    at: { day: 0, time: "16:10" }
+    at: { day: 0, time: "08:02" }
     kind: dialogue
     participants: [protagonist, wakaharu]
     blocks:
@@ -29,7 +29,7 @@ scenes:
         text: 我差點說「因為妳昨天死了」。最後只指了指她桌邊的攝影作品集。
 
   - id: loop02_1645_wrong_warning
-    at: { day: 0, time: "16:45" }
+    at: { day: 0, time: "08:37" }
     kind: dialogue
     participants: [protagonist, wakaharu]
     blocks:
@@ -46,7 +46,7 @@ scenes:
         text: 如果妳又是因為知夏姊才來替我決定事情，那妳可以不用管。
 
   - id: loop02_1718_wakaharu_persuaded
-    at: { day: 0, time: "17:18" }
+    at: { day: 0, time: "09:10" }
     kind: dialogue
     participants: [protagonist, wakaharu]
     blocks:
@@ -65,7 +65,7 @@ scenes:
         text: 好。我先把攝影那邊處理完。陳醫生那邊我再跟他說。
 
   - id: loop02_1742_doctor_departure
-    at: { day: 0, time: "17:42" }
+    at: { day: 0, time: "09:34" }
     kind: narration
     participants: [doctor]
     blocks:
@@ -77,7 +77,7 @@ scenes:
         text: 對他而言，今天仍只是把拖了五年的東西交還出去。
 
   - id: loop02_1805_doctor_no_recipient
-    at: { day: 0, time: "18:05" }
+    at: { day: 0, time: "09:57" }
     kind: narration
     participants: [doctor]
     blocks:
@@ -91,7 +91,7 @@ scenes:
         text: 他沒有把資料留在無人的置物櫃，而是重新收回公事包。
 
   - id: loop02_1812_doctor_decides_return
-    at: { day: 0, time: "18:12" }
+    at: { day: 0, time: "10:04" }
     kind: dialogue
     participants: [doctor]
     blocks:
@@ -103,7 +103,7 @@ scenes:
         text: 那是他五年前就走過的路。比繞回商店街快十幾分鐘。
 
   - id: loop02_1824_maintenance_passage
-    at: { day: 0, time: "18:24" }
+    at: { day: 0, time: "10:16" }
     kind: narration
     participants: [doctor]
     blocks:

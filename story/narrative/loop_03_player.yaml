@@ -1,6 +1,6 @@
 scenes:
   - id: loop03_1420_third_awake
-    at: { day: 0, time: "14:20" }
+    at: { day: 0, time: "06:12" }
     kind: narration
     participants: [protagonist]
     blocks:
@@ -14,7 +14,7 @@ scenes:
         text: 如果問題出在 18:31，那就把所有人都移開。
 
   - id: loop03_1540_wakaharu_foreknowledge
-    at: { day: 0, time: "15:40" }
+    at: { day: 0, time: "07:32" }
     kind: dialogue
     participants: [protagonist, wakaharu]
     blocks:
@@ -32,7 +32,7 @@ scenes:
         text: 對我來說只是已知資訊。對她來說，卻像我一直在看著她。
 
   - id: loop03_1630_yuan_notices
-    at: { day: 0, time: "16:30" }
+    at: { day: 0, time: "08:22" }
     kind: dialogue
     participants: [protagonist, yuan]
     blocks:
@@ -51,7 +51,7 @@ scenes:
         text: 我沒有回答。他也沒有追問，只是之後一路都在看我。
 
   - id: loop03_1720_doctor_intercept
-    at: { day: 0, time: "17:20" }
+    at: { day: 0, time: "09:12" }
     kind: dialogue
     participants: [protagonist, doctor]
     blocks:
@@ -76,7 +76,7 @@ scenes:
         text: 沒事。我今天不去車站。
 
   - id: loop03_1800_clear_station
-    at: { day: 0, time: "18:00" }
+    at: { day: 0, time: "09:52" }
     kind: narration
     participants: [protagonist, wakaharu, doctor, reporter, detective, yuan]
     blocks:
