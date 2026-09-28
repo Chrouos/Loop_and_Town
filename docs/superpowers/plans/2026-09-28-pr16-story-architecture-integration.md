@@ -36,7 +36,7 @@
 **Files:**
 - Create: `docs/main-story.md`, `docs/character-bible.md`, `docs/relationship-map.md`, `docs/story-canon-memory.md`, `docs/story-canon-time.md`
 - Create: `docs/chapter-02-living-survivor.md` through `docs/chapter-07-lin-zhixia.md`, `docs/final-1831.md`
-- Modify: `docs/first-loop-story.md`
+- Modify: `docs/first-loop-story.md`, `story/narrative/loop_01_player.yaml`
 - Create: `docs/superpowers/specs/2026-09-27-main-story-character-bible-design.md`, `docs/superpowers/specs/2026-09-27-dag-story-viewer-design.md`
 - Create: `docs/superpowers/plans/2026-09-27-main-story-runtime-breakdown.md`, `docs/superpowers/plans/2026-09-27-dag-story-viewer-implementation.md`, `docs/superpowers/plans/2026-09-28-complete-project-roadmap.md`
 - Modify/Create: `story/characters/detective.yaml`, `story/characters/doctor.yaml`, `story/characters/protagonist.yaml`, `story/characters/reporter.yaml`, `story/characters/wakaharu.yaml`, `story/characters/yuan.yaml`, `story/characters/zhixia.yaml`, `story/knowledge/facts.yaml`, `story/knowledge/character_insights.yaml`, `story/relationships/relationship_state.yaml`, `story/relationships/final_decisions.yaml`, `story/relationships/loop_01.yaml`

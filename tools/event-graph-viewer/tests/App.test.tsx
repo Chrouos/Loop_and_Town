@@ -23,12 +23,106 @@ function stubRealStoryFetch() {
 afterEach(() => vi.restoreAllMocks());
 
 describe('App', () => {
-  it('loads the complete Loop 01 author graph from the manifest', async () => {
+  it('loads the Day 01 causal DAG reader and node inspector', async () => {
     stubRealStoryFetch();
     render(<App />);
 
-    expect(await screen.findByText('reporter_enter_old_lab')).toBeTruthy();
-    expect(screen.getByText('21:14 葉庭安失蹤')).toBeTruthy();
+    expect(await screen.findByText('[N01_wakaharu_photography 與若晴聊攝影]')).toBeTruthy();
+    expect(screen.getByLabelText('Worldline Path')).toBeTruthy();
+    fireEvent.click(screen.getByText('[N03_station_plan_known 玩家知道若晴要去舊車站]'));
+    expect(await screen.findByText('若晴信任足夠，主動透露行程。')).toBeTruthy();
+    expect(screen.getByText('我晚點還要去一趟舊車站。很快就回來。')).toBeTruthy();
+  });
+
+  it('loads Loop 03 as a merged DAG path with readable novel scenes', async () => {
+    stubRealStoryFetch();
+    render(<App />);
+
+    const selector = await screen.findByLabelText('Worldline Path');
+    fireEvent.change(selector, { target: { value: 'loop_03_no_death' } });
+    expect(await screen.findByText('[L3_N05_no_death_1831 18:31 沒有人死亡]')).toBeTruthy();
+    fireEvent.click(screen.getByText('[L3_N03_doctor_asks_iteration 柏勳問「這是第幾次？」]'));
+    expect(await screen.findByText('……這是第幾次？')).toBeTruthy();
+  });
+
+  it('loads Loop 04 as a merged investigation DAG with readable five-year-old evidence', async () => {
+    stubRealStoryFetch();
+    render(<App />);
+
+    const selector = await screen.findByLabelText('Worldline Path');
+    fireEvent.change(selector, { target: { value: 'loop_04_five_years_ago' } });
+    expect(await screen.findByText('[L4_N02_hidden_recorder 志遠交出未登錄錄音器]')).toBeTruthy();
+    fireEvent.click(screen.getByText('[L4_N02_hidden_recorder 志遠交出未登錄錄音器]'));
+    expect(await screen.findByText('庭安，這次不是若晴。')).toBeTruthy();
+    expect(screen.getByText('Loop 04｜五年前・重建知夏的世界線')).toBeTruthy();
+  });
+
+  it('loads Loop 05 without giving Yuan cross-loop memory', async () => {
+    stubRealStoryFetch();
+    render(<App />);
+
+    const selector = await screen.findByLabelText('Worldline Path');
+    fireEvent.change(selector, { target: { value: 'loop_05_only_i_remember' } });
+    expect(await screen.findByText('[L5_N01_yuan_stranger_again 予安再次只是五年沒見的舊友]')).toBeTruthy();
+    fireEvent.click(screen.getByText('[L5_N02_key_from_lost_day 主角使用不存在昨日的備用鑰匙情報]'));
+    expect(await screen.findByText('……妳怎麼知道備用鑰匙在那？')).toBeTruthy();
+    expect(screen.getByText('Loop 05｜只有我記得')).toBeTruthy();
+  });
+
+  it('loads Loop 06 and exposes the seventh-letter handoff in the reader', async () => {
+    stubRealStoryFetch();
+    render(<App />);
+
+    const selector = await screen.findByLabelText('Worldline Path');
+    fireEvent.change(selector, { target: { value: 'loop_06_six_letters' } });
+    expect(await screen.findByText('[L6_N11_seventh_message 第七封新增「是讓妳收到」]')).toBeTruthy();
+    fireEvent.click(screen.getByText('[L6_N11_seventh_message 第七封新增「是讓妳收到」]'));
+    expect(await screen.findByText('第七個不是讓我記得。')).toBeTruthy();
+    expect(screen.getByText('是讓妳收到。')).toBeTruthy();
+    expect(screen.getByText('Loop 06｜前六封信・資訊交接')).toBeTruthy();
+  });
+
+  it('loads both Loop 07 Yuan-agency branches and reconverges on collective burden', async () => {
+    stubRealStoryFetch();
+    render(<App />);
+
+    const selector = await screen.findByLabelText('Worldline Path');
+    fireEvent.change(selector, { target: { value: 'loop_07_yuan_answers' } });
+    expect(await screen.findByText('[L7_N02_worldline_31 Worldline 31：留下來的主角在 18:31 死亡]')).toBeTruthy();
+    fireEvent.click(screen.getByText('[L7_N02_worldline_31 Worldline 31：留下來的主角在 18:31 死亡]'));
+    expect(await screen.findByText(/五年前的那一輪，姊第一次真正把我留在灰潮鎮/)).toBeTruthy();
+    expect(screen.getByText('Loop 07｜林知夏・予安接電話')).toBeTruthy();
+
+    fireEvent.change(selector, { target: { value: 'loop_07_yuan_declines' } });
+    fireEvent.click(await screen.findByText('[L7_N11_yuan_declines 予安自己拒接 17:58 的電話]'));
+    expect(await screen.findByText(/今天不接，是我知道它可能改變很多事/)).toBeTruthy();
+    expect(screen.getByText('Loop 07｜林知夏・予安不接電話')).toBeTruthy();
+
+    fireEvent.click(screen.getByText('[L7_N13_collective_burden 第七封要求共同承擔，而不是選誰活]'));
+    expect(await screen.findByText('這次不要選誰活。')).toBeTruthy();
+    expect(screen.getByText('選你們願意一起承擔什麼。')).toBeTruthy();
+  });
+
+  it('loads all three Final paths after NPC-owned decisions reconverge', async () => {
+    stubRealStoryFetch();
+    render(<App />);
+
+    const selector = await screen.findByLabelText('Worldline Path');
+    fireEvent.change(selector, { target: { value: 'ending_a_tomorrow' } });
+    expect(await screen.findByText('[F_N07_collective_1831 18:31 各自選擇在同一個 Convergence 合流]')).toBeTruthy();
+    fireEvent.click(screen.getByText('[F_N06b_handoff_open 18:03 第七封交接通道再次開啟]'));
+    expect(await screen.findByText('我不能再替他們選。我只能決定，我自己願意承擔什麼。')).toBeTruthy();
+    expect(screen.getByText('Ending A｜明天')).toBeTruthy();
+
+    fireEvent.change(selector, { target: { value: 'ending_b_once_more' } });
+    expect(await screen.findByText('[F_N10_ending_b Ending B｜再一次]')).toBeTruthy();
+    expect(screen.getByText('Ending B｜再一次')).toBeTruthy();
+
+    fireEvent.change(selector, { target: { value: 'ending_c_forget_me' } });
+    fireEvent.click(await screen.findByText('[F_N11_ending_c Ending C｜忘記我]'));
+    expect(await screen.findByText('……原本哪個？')).toBeTruthy();
+    expect(screen.getByText('沒事。我重新問一次。妳喝什麼？')).toBeTruthy();
+    expect(screen.getByText('Ending C｜忘記我')).toBeTruthy();
   });
 
   it('opens Character Graph and exposes visibility modes without leaking author relationships by default', async () => {
