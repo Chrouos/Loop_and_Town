@@ -15,9 +15,9 @@ type Props = {
   node: StoryDagNode;
   narrativeScenes: NarrativeScenePreview[];
   upstreamTitles?: string[];
-  downstreamTitles: string[];
-  incomingLabels: string[];
-  outgoingLabels: string[];
+  downstreamTitles?: string[];
+  incomingLabels?: string[];
+  outgoingLabels?: string[];
 };
 
 function DetailList({ title, items }: { title: string; items: string[] }) {
@@ -34,9 +34,9 @@ export function NodeDetailPanel({
   node,
   narrativeScenes,
   upstreamTitles = [],
-  downstreamTitles,
-  incomingLabels,
-  outgoingLabels,
+  downstreamTitles = [],
+  incomingLabels = [],
+  outgoingLabels = [],
 }: Props) {
   const sceneById = new Map(narrativeScenes.map((scene) => [scene.id, scene]));
   const linkedScenes = node.detail.narrativeRefs
