@@ -33,7 +33,13 @@ describe('player narrative UI', () => {
   });
 
   it('renders Ambient Prose without progress UI', () => {
-    render(<ActivitySurface timeLabel="15:41" title="正在看書" prose="茶已經沒有剛才那麼燙了。" />);
+    render(
+      <ActivitySurface
+        timeLabel="15:41"
+        presentation={{ title: '正在看書', etaMode: 'hidden' }}
+        prose="茶已經沒有剛才那麼燙了。"
+      />,
+    );
     expect(screen.getByText('茶已經沒有剛才那麼燙了。')).not.toBeNull();
     expect(screen.queryByText(/%|剩餘|EXP/i)).toBeNull();
   });

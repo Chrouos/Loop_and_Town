@@ -2,6 +2,11 @@ import type { PlayerSessionV2 } from './model';
 
 const REAL_MINUTE_MS = 60_000;
 
+export function formatStoryMinute(value: number): string {
+  const minute = ((value % 1440) + 1440) % 1440;
+  return `${String(Math.floor(minute / 60)).padStart(2, '0')}:${String(minute % 60).padStart(2, '0')}`;
+}
+
 export function currentStoryMinute(session: PlayerSessionV2, nowMs: number): number {
   if (session.foregroundFreeze) return session.foregroundFreeze.frozenMinute;
   const elapsed = Math.max(0, nowMs - session.lastSyncedRealTimeMs);

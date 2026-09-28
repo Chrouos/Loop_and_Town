@@ -55,6 +55,7 @@ export type ActivityPresentation = {
   start: string | string[];
   idle: string;
   complete: string | string[];
+  eta?: 'exact' | 'approximate' | 'hidden';
 };
 
 export type ActivityDefinition = {

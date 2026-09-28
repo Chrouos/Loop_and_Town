@@ -6,8 +6,9 @@ import { simulateStory } from '../simulator/storySimulation';
 import { fromAbsoluteMinute } from '../simulator/time';
 import type { WorldState, WorldlineHistoryEntry } from '../simulator/types';
 import { projectAmbientBeats } from './ambient';
+import { projectActivityPresentation, type ActivityPresentationView } from './activityPresentation';
 import { availableChoicesForScene } from './choices';
-import { currentStoryMinute } from './clock';
+import { currentStoryMinute, formatStoryMinute } from './clock';
 import { reconcilePersistentObservations, type InboxItem, type PersistentObservationInput } from './inbox';
 import type { PlayerSessionV2 } from './model';
 import { orderNarrativeQueue, type PlayerNarrativeQueueItem } from './queue';
@@ -19,6 +20,7 @@ export type PlayerRuntimeView = {
   worldHistory: WorldlineHistoryEntry[];
   queue: PlayerNarrativeQueueItem[];
   activeActivity: ActivityRun | null;
+  activityPresentation: ActivityPresentationView | null;
   availableChoices: PlayerChoiceDefinition[];
   inbox: InboxItem[];
 };
@@ -65,6 +67,15 @@ export function reconcilePlayerRuntime(
 
   const advancedActivity = session.activeActivity
     ? advanceActivity(session.activeActivity, storyMinute, [])
+    : null;
+  const activityDefinition = advancedActivity
+    ? story.narrative.activities.find((item) => item.id === advancedActivity.activityId)
+    : undefined;
+  const activityPresentation = advancedActivity && activityDefinition
+    ? projectActivityPresentation(advancedActivity, activityDefinition, {
+      formatStoryMinute,
+      estimatedCompletionMinute: (run) => run.startedAt + run.remainingMinutes,
+    })
     : null;
 
   const travelCompleted = Boolean(
@@ -146,6 +157,7 @@ export function reconcilePlayerRuntime(
     worldHistory: simulation.fullHistory,
     queue: orderedQueue,
     activeActivity: advancedActivity,
+    activityPresentation,
     availableChoices,
     inbox,
   };

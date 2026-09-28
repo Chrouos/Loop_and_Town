@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { StoryBundle } from '../lib/loadSimulationStory';
 import type { NarrativeBlock, NarrativeSceneDefinition } from '../narrative/types';
 import { applyChoiceEffects } from './choices';
-import { freezeForeground, resumeWorld } from './clock';
+import { formatStoryMinute, freezeForeground, resumeWorld } from './clock';
 import { reconcilePlayerRuntime, type PlayerRuntimeView } from './runtime';
 import { readPlayerSession, writePlayerSession } from './storage';
 import type { PlayerSessionV2 } from './model';
@@ -14,11 +14,6 @@ import { NarrativeSurface, type PlaybackPhase } from './components/NarrativeSurf
 import { SceneTransition } from './components/SceneTransition';
 
 export type PlayerNarrativeAppProps = { story: StoryBundle };
-
-function formatMinute(value: number): string {
-  const minute = ((value % 1440) + 1440) % 1440;
-  return `${String(Math.floor(minute / 60)).padStart(2, '0')}:${String(minute % 60).padStart(2, '0')}`;
-}
 
 function settleCompletedActivity(session: PlayerSessionV2, view: PlayerRuntimeView): PlayerSessionV2 {
   if (!view.activeActivity || view.activeActivity.status !== 'complete') return session;
@@ -192,7 +187,7 @@ export function PlayerNarrativeApp({ story }: PlayerNarrativeAppProps) {
     <main className="player-narrative-shell">
       <header className="player-hud">
         <span className="place-label">灰潮鎮</span>
-        <time>{formatMinute(view.currentStoryMinute)}</time>
+        <time>{formatStoryMinute(view.currentStoryMinute)}</time>
       </header>
 
       <div className="player-stage">
@@ -239,8 +234,11 @@ export function PlayerNarrativeApp({ story }: PlayerNarrativeAppProps) {
           </SceneTransition>
         ) : view.activeActivity && view.activeActivity.status === 'running' ? (
           <ActivitySurface
-            timeLabel={formatMinute(view.currentStoryMinute)}
-            title={activityDefinition?.presentation.idle ?? '正在路上……'}
+            timeLabel={formatStoryMinute(view.currentStoryMinute)}
+            presentation={view.activityPresentation ?? {
+              title: activityDefinition?.presentation.idle ?? '正在路上……',
+              etaMode: 'hidden',
+            }}
             prose={ambientText}
           />
         ) : (

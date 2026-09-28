@@ -187,12 +187,18 @@ function normalizeActivities(value: unknown): ActivityDefinition[] {
   return entries.map((item) => {
     const record = item as Record<string, unknown>;
     const durationMinutes = record.durationMinutes ?? record.duration_minutes;
+    const presentation = record.presentation as Record<string, unknown> | undefined;
+    const eta = presentation?.eta;
     if (typeof record.id !== 'string' || typeof durationMinutes !== 'number' || typeof record.interruptible !== 'boolean') {
       throw new Error('Invalid activity definition');
     }
     return {
       ...(record as unknown as ActivityDefinition),
       durationMinutes,
+      presentation: {
+        ...(presentation as ActivityDefinition['presentation']),
+        eta: eta === 'exact' || eta === 'approximate' || eta === 'hidden' ? eta : 'hidden',
+      },
       ambient: normalizeAmbient(record.ambient, durationMinutes),
     };
   });
