@@ -17,3 +17,4 @@
 .ambient-prompt--action:hover,.ambient-prompt--action:focus-visible{color:#f0e8d5}
 .ambient-prompt__mark{color:var(--scene-warm);font-size:20px;line-height:1}
 @media(prefers-reduced-motion:reduce){.scene-frame__grain{display:none}}
+.typewriter-text{white-space:pre-wrap}.typewriter-cursor{display:inline-block;margin-left:.12em;color:var(--scene-warm,#c5b08a);animation:cursor-blink .7s steps(1,end) infinite}@keyframes cursor-blink{50%{opacity:0}}
