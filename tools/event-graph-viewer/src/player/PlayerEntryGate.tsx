@@ -18,7 +18,7 @@ export function PlayerEntryGate({ onEnter, reducedMotion = false }: Props) {
   }, [onEnter, phase, reducedMotion]);
 
   return <main className="player-entry-shell">
-    <SceneFrame className={`player-entry-scene player-entry-scene--${phase}`}>
+    <SceneFrame className={`scene-frame--flat player-entry-scene player-entry-scene--${phase}`}>
       {phase === 'invitation' ? <div className="player-entry-copy">
         <p className="player-entry-kicker">進入世界……</p>
         <p>一個人正在過她的今天。</p>

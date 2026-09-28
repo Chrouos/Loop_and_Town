@@ -9,6 +9,7 @@ describe('PlayerEntryGate', () => {
 
     render(<PlayerEntryGate reducedMotion onEnter={onEnter} />);
 
+    expect(screen.getByTestId('scene-frame').className).toContain('scene-frame--flat');
     expect(screen.getByText('進入世界……')).toBeDefined();
     expect(screen.getByText(/尚未知道你會出現的人生/)).toBeDefined();
     expect(screen.queryByText('載入存檔……')).toBeNull();

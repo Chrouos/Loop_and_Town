@@ -84,6 +84,7 @@ describe('Player immersive UI acceptance flow', () => {
     await screen.findByRole('button', { name: /拆開信封/ });
 
     expect(screen.getByRole('main').className).toContain('player-stage--reading');
+    expect(screen.getByTestId('scene-frame').className).toContain('scene-frame--flat');
     expect(screen.queryByRole('button', { name: /推理桌|世界線|存檔/ })).toBeNull();
     expect(screen.getByRole('button', { name: '開啟工具' })).toBeDefined();
     expect(screen.queryByRole('contentinfo')).toBeNull();
