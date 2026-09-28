@@ -83,6 +83,7 @@ describe('Player immersive UI acceptance flow', () => {
     render(<PlayerApp now={() => 1000} storage={window.localStorage} loadStory={async () => ({ definition, initialState: initial })} />);
     await screen.findByRole('button', { name: /拆開信封/ });
 
+    expect(screen.getByRole('main').className).toContain('player-stage--reading');
     expect(screen.queryByRole('button', { name: /推理桌|世界線|存檔/ })).toBeNull();
     expect(screen.getByRole('button', { name: '開啟工具' })).toBeDefined();
     expect(screen.queryByRole('contentinfo')).toBeNull();
