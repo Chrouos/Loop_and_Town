@@ -207,6 +207,13 @@ choices:
       - type: travel
         to: old_house
 
+  - id: wakaharu_send_portfolio
+    scene_id: scene_2030_wakaharu_life
+    label: 幫她把作品集寄出去
+    effects:
+      - type: start-activity
+        activity_id: send_wakaharu_portfolio
+
   - id: wakaharu_stay_longer
     scene_id: scene_wakaharu_before_leaving
     label: 再坐一下

@@ -18,3 +18,13 @@ entries:
     when: { path: characters.wakaharu.route, op: eq, value: old_station }
     effects:
       - set: { path: characters.wakaharu.location, value: old_station }
+  - id: wakaharu_submit_resignation
+    at: { day: 0, time: "20:30" }
+    visibility: hidden
+    when:
+      all:
+        - { path: characters.wakaharu.status, op: eq, value: alive }
+        - { path: characters.wakaharu.location, op: eq, value: home }
+        - { path: relationships.protagonist_wakaharu.trust, op: eq, value: 2 }
+    effects:
+      - set: { path: characters.wakaharu.life_status, value: resignation_submitted }

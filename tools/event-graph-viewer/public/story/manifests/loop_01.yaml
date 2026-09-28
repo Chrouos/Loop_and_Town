@@ -18,6 +18,7 @@ events:
   - events/loop_01_1831.yaml
   - events/loop_01_1910.yaml
   - events/loop_01_2030.yaml
+  - events/loop_01_2030_wakaharu.yaml
   - events/loop_01_2114.yaml
   - events/loop_01_2240.yaml
   - events/loop_01_2359.yaml

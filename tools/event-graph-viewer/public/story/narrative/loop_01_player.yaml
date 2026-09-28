@@ -385,6 +385,56 @@ scenes:
       - type: monologue
         text: 陳醫生就在月台邊。上一秒他還站著。
 
+  - id: scene_1831_doctor_report
+    at: { day: 0, time: "18:31" }
+    kind: narration
+    participants: [protagonist, wakaharu]
+    requiresLocation: old_house
+    sourceEventId: evt_1831_station
+    sourceVariantId: doctor_dies
+    observation:
+      channel: phone
+      persistence: message
+    blocks:
+      - type: narration
+        text: 回到家後，若晴的手機先響了。她接起來，只聽了幾秒，就把聲音關掉。
+      - type: dialogue
+        speaker: wakaharu
+        text: 陳醫生死了。可是他明明沒有做錯任何事。
+      - type: monologue
+        text: 若晴還活著。這句話本來應該讓我鬆一口氣，卻沒有。
+
+  - id: scene_2030_wakaharu_life
+    at: { day: 0, time: "20:30" }
+    kind: dialogue
+    participants: [protagonist, wakaharu]
+    requiresLocation: old_house
+    sourceEventId: evt_2030_wakaharu_life
+    sourceVariantId: wakaharu_life_continues
+    blocks:
+      - type: narration
+        text: 若晴把那只信封和一疊照片放在桌上，像是終於願意讓今晚不只剩下車站的事。
+      - type: dialogue
+        speaker: wakaharu
+        text: 我本來想明天把作品集寄出去。現在看起來，還是今天做完比較好。
+      - type: monologue
+        text: 她說得很慢，但沒有把照片收回去。
+
+  - id: scene_2038_wakaharu_portfolio_sent
+    at: { day: 0, time: "20:38" }
+    kind: narration
+    participants: [protagonist, wakaharu]
+    requiresLocation: old_house
+    afterActivityId: send_wakaharu_portfolio
+    blocks:
+      - type: narration
+        text: 寄件成功的提示停在螢幕上。若晴把手放在觸控板旁邊，沒有立刻移開。
+      - type: dialogue
+        speaker: wakaharu
+        text: 如果我真的離開這裡，妳覺得會不會太晚？
+      - type: monologue
+        text: 我看著她身後那扇五年沒換過的窗，第一次覺得活下來不是回到原來的位置。
+
   - id: scene_1831_no_death
     at: { day: 0, time: "18:31" }
     availableUntil: { day: 0, time: "18:31" }

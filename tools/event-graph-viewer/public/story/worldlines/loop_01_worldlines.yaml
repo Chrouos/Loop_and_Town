@@ -16,7 +16,7 @@ worldlines:
     action_ids: [confront_reporter]
 
   - id: WL-04
-    title: Rescue
+    title: Chapter 2 Rescue
     action_ids: [protect_wakaharu]
 
   - id: WL-05

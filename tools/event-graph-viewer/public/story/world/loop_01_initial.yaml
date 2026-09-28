@@ -7,6 +7,7 @@ characters:
     location: cafe
     status: alive
     route: old_station
+    life_status: preparing_portfolio
   doctor:
     location: hospital
     status: alive
@@ -18,6 +19,10 @@ characters:
   yuan:
     location: with_player
     assignment: normal
+
+relationships:
+  protagonist_wakaharu:
+    trust: 1
 
 world:
   anomaly_1831_observed: false
@@ -32,3 +37,4 @@ flags:
   sister_warning_found: false
   midnight_bells_heard: false
   loop_ended: false
+  wakaharu_life_continues: false

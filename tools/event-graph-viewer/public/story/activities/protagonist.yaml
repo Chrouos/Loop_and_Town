@@ -75,6 +75,13 @@ activities:
       start: 現在能做的都做完了。我把手機放在手邊，先等消息。
       idle: 正在等消息……
       complete: 手機仍然安靜地躺在桌上。
+  - id: send_wakaharu_portfolio
+    duration_minutes: 8
+    interruptible: true
+    presentation:
+      start: 若晴把最後一張照片拖進作品集。我替她檢查檔名和寄件地址。
+      idle: 正在替若晴整理作品集……
+      complete: 寄件成功的提示停在螢幕上。若晴看了很久，才把筆電闔上。
   - id: buy_coffee
     duration_minutes: 8
     interruptible: true
