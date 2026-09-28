@@ -33,6 +33,7 @@ characters:
   - characters/detective.yaml
 relationships: relationships/loop_01.yaml
 knowledge: knowledge/facts.yaml
+character_insights: knowledge/character_insights.yaml
 activities: activities/protagonist.yaml
 protagonist_schedule: schedules/protagonist.yaml
 narrative: narrative/loop_01_player.yaml

@@ -5,7 +5,7 @@ import { applyChoiceEffects } from './choices';
 import { formatStoryMinute, freezeForeground, resumeWorld } from './clock';
 import { reconcilePlayerRuntime, type PlayerRuntimeView } from './runtime';
 import { readPlayerSession, writePlayerSession } from './storage';
-import type { PlayerSessionV2 } from './model';
+import type { PlayerSessionV3 } from './model';
 import { ActivitySurface } from './components/ActivitySurface';
 import { ArtifactSurface } from './components/ArtifactSurface';
 import { CharacterDrawer } from './components/CharacterDrawer';
@@ -15,7 +15,7 @@ import { SceneTransition } from './components/SceneTransition';
 
 export type PlayerNarrativeAppProps = { story: StoryBundle };
 
-function settleCompletedActivity(session: PlayerSessionV2, view: PlayerRuntimeView): PlayerSessionV2 {
+function settleCompletedActivity(session: PlayerSessionV3, view: PlayerRuntimeView): PlayerSessionV3 {
   if (!view.activeActivity || view.activeActivity.status !== 'complete') return session;
   return {
     ...session,
@@ -38,7 +38,7 @@ function blockText(block: NarrativeBlock): string {
 
 export function PlayerNarrativeApp({ story }: PlayerNarrativeAppProps) {
   const [nowMs, setNowMs] = useState(() => Date.now());
-  const [session, setSession] = useState<PlayerSessionV2>(() => readPlayerSession(window.localStorage, Date.now()));
+  const [session, setSession] = useState<PlayerSessionV3>(() => readPlayerSession(window.localStorage, Date.now()));
   const [playback, setPlayback] = useState<PlaybackState | null>(null);
   const [previousBlocks, setPreviousBlocks] = useState<NarrativeBlock[]>([]);
   const [sceneKey, setSceneKey] = useState<string | null>(null);
@@ -100,7 +100,7 @@ export function PlayerNarrativeApp({ story }: PlayerNarrativeAppProps) {
     writePlayerSession(window.localStorage, next);
   }, [scene, view.activeActivity, view.currentLocation, session]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  function persist(next: PlayerSessionV2) {
+  function persist(next: PlayerSessionV3) {
     setSession(next);
     writePlayerSession(window.localStorage, next);
   }

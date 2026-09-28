@@ -15,6 +15,8 @@ import {
   type AmbientBeatDefinition,
   type ArtifactDefinition,
   type CharacterDefinition,
+  type CharacterInsightDefinition,
+  type CharacterQuestionDefinition,
   type KnowledgeFact,
   type NarrativeFoundation,
   type NarrativeSceneDefinition,
@@ -42,6 +44,7 @@ export type StoryManifest = {
   story_dags?: string[];
   worldline_paths?: string[];
   artifacts?: string[];
+  character_insights?: string;
   player_choices?: string;
   travel?: string;
 };
@@ -98,6 +101,7 @@ function asManifest(value: unknown): StoryManifest {
   if (record.worldline_paths !== undefined && !Array.isArray(record.worldline_paths)) throw new Error('Invalid story manifest worldline_paths');
   if (record.worldline_paths !== undefined && record.worldline_paths.some((path) => typeof path !== 'string')) throw new Error('Invalid story manifest worldline_paths');
   if (record.artifacts !== undefined && !Array.isArray(record.artifacts)) throw new Error('Invalid story manifest artifacts');
+  if (record.character_insights !== undefined && typeof record.character_insights !== 'string') throw new Error('Invalid story manifest character insights');
   if (record.player_choices !== undefined && typeof record.player_choices !== 'string') throw new Error('Invalid story manifest player_choices');
   if (record.travel !== undefined && typeof record.travel !== 'string') throw new Error('Invalid story manifest travel');
 
@@ -154,6 +158,63 @@ function normalizeKnowledge(value: unknown): KnowledgeFact[] {
   const facts = (value as { facts?: unknown })?.facts;
   if (!Array.isArray(facts)) throw new Error('Invalid knowledge document');
   return facts as KnowledgeFact[];
+}
+
+function normalizeCharacterMemory(value: unknown): {
+  insights: CharacterInsightDefinition[];
+  questions: CharacterQuestionDefinition[];
+} {
+  if (value === undefined || value === null) return { insights: [], questions: [] };
+  const record = value as { insights?: unknown; questions?: unknown };
+  if (!Array.isArray(record.insights)) throw new Error('Invalid character insights document');
+  if (record.questions !== undefined && !Array.isArray(record.questions)) throw new Error('Invalid character questions document');
+
+  const insights = record.insights.map((item) => {
+    const entry = item as Record<string, unknown>;
+    const characterId = entry.characterId ?? entry.character_id;
+    const retainedBy = entry.retainedBy ?? entry.retained_by;
+    if (
+      typeof entry.id !== 'string'
+      || typeof characterId !== 'string'
+      || typeof entry.title !== 'string'
+      || typeof entry.presentation !== 'string'
+      || typeof retainedBy !== 'string'
+    ) throw new Error('Invalid character insight');
+    const requiresFacts = entry.requiresFacts ?? entry.requires_facts;
+    if (requiresFacts !== undefined && !Array.isArray(requiresFacts)) throw new Error(`Invalid character insight facts: ${entry.id}`);
+    return {
+      id: entry.id,
+      characterId,
+      title: entry.title,
+      presentation: entry.presentation,
+      retainedBy,
+      sourceLoop: typeof entry.sourceLoop === 'string' ? entry.sourceLoop : typeof entry.source_loop === 'string' ? entry.source_loop : undefined,
+      requiresFacts: Array.isArray(requiresFacts) ? requiresFacts.map(String) : undefined,
+      learnedFrom: typeof entry.learnedFrom === 'string' ? entry.learnedFrom : typeof entry.learned_from === 'string' ? entry.learned_from : undefined,
+      resetRule: typeof entry.resetRule === 'string' ? entry.resetRule : typeof entry.reset_rule === 'string' ? entry.reset_rule : undefined,
+      clueUse: typeof entry.clueUse === 'string' ? entry.clueUse : typeof entry.clue_use === 'string' ? entry.clue_use : undefined,
+    };
+  });
+
+  const questions = (record.questions ?? []).map((item) => {
+    const entry = item as Record<string, unknown>;
+    const characterId = entry.characterId ?? entry.character_id;
+    const requiresFacts = entry.requiresFacts ?? entry.requires_facts;
+    const resolvedByInsightId = entry.resolvedByInsightId ?? entry.resolved_by_insight_id;
+    if (typeof entry.id !== 'string' || typeof characterId !== 'string' || typeof entry.text !== 'string') {
+      throw new Error('Invalid character question');
+    }
+    if (requiresFacts !== undefined && !Array.isArray(requiresFacts)) throw new Error(`Invalid character question facts: ${entry.id}`);
+    return {
+      id: entry.id,
+      characterId,
+      text: entry.text,
+      requiresFacts: Array.isArray(requiresFacts) ? requiresFacts.map(String) : undefined,
+      resolvedByInsightId: typeof resolvedByInsightId === 'string' ? resolvedByInsightId : undefined,
+    };
+  });
+
+  return { insights, questions };
 }
 
 function normalizeAmbient(value: unknown, durationMinutes: number): AmbientBeatDefinition[] | undefined {
@@ -293,6 +354,11 @@ function normalizeChoiceEffect(value: unknown): PlayerChoiceEffect {
     if (typeof factId !== 'string') throw new Error('Invalid learn-fact choice effect');
     return { type: 'learn-fact', factId };
   }
+  if (record.type === 'learn-insight') {
+    const insightId = record.insightId ?? record.insight_id;
+    if (typeof insightId !== 'string') throw new Error('Invalid learn-insight choice effect');
+    return { type: 'learn-insight', insightId };
+  }
   throw new Error('Invalid player choice effect');
 }
 
@@ -347,6 +413,7 @@ function normalizeTravelEdges(value: unknown): TravelEdgeDefinition[] {
 
 function buildNarrativeFoundation(input: {
   characters?: unknown[];
+  characterInsights?: unknown;
   relationships?: unknown;
   knowledge?: unknown;
   activities?: unknown;
@@ -354,6 +421,7 @@ function buildNarrativeFoundation(input: {
   narrative?: unknown;
   artifacts?: unknown[];
 }): NarrativeFoundation {
+  const characterMemory = normalizeCharacterMemory(input.characterInsights);
   return {
     characters: (input.characters ?? []).map(normalizeCharacter),
     relationships: normalizeRelationships(input.relationships),
@@ -362,6 +430,8 @@ function buildNarrativeFoundation(input: {
     protagonistSchedule: normalizeProtagonistSchedule(input.protagonistSchedule),
     scenes: normalizeScenes(input.narrative),
     artifacts: (input.artifacts ?? []).map(normalizeArtifact),
+    characterInsights: characterMemory.insights,
+    characterQuestions: characterMemory.questions,
   };
 }
 
@@ -374,12 +444,31 @@ function validatePlayerNarrativeReferences(
   const actionIds = new Set(actions.map((item) => item.id));
   const factIds = new Set(narrative.knowledgeFacts.map((item) => item.id));
   const sceneIds = new Set(narrative.scenes.map((item) => item.id));
+  const characters = new Map(narrative.characters.map((item) => [item.id, item]));
+  const insightIds = new Set(narrative.characterInsights?.map((item) => item.id) ?? []);
 
   for (const activity of narrative.activities) {
     for (const beat of activity.ambient ?? []) {
       for (const factId of beat.requiresFacts ?? []) {
         if (!factIds.has(factId)) throw new Error(`Unknown ambient fact: ${factId}`);
       }
+    }
+  }
+
+  for (const insight of narrative.characterInsights ?? []) {
+    if (!characters.has(insight.characterId)) throw new Error(`Character insight ${insight.id}: unknown character ${insight.characterId}`);
+    for (const factId of insight.requiresFacts ?? []) {
+      if (!factIds.has(factId)) throw new Error(`Character insight ${insight.id}: unknown fact ${factId}`);
+    }
+  }
+
+  for (const question of narrative.characterQuestions ?? []) {
+    if (!characters.has(question.characterId)) throw new Error(`Character question ${question.id}: unknown character ${question.characterId}`);
+    for (const factId of question.requiresFacts ?? []) {
+      if (!factIds.has(factId)) throw new Error(`Character question ${question.id}: unknown fact ${factId}`);
+    }
+    if (question.resolvedByInsightId && !insightIds.has(question.resolvedByInsightId)) {
+      throw new Error(`Character question ${question.id}: unknown insight ${question.resolvedByInsightId}`);
     }
   }
 
@@ -398,6 +487,9 @@ function validatePlayerNarrativeReferences(
       if (effect.type === 'learn-fact' && !factIds.has(effect.factId)) {
         throw new Error(`Unknown learned fact: ${effect.factId}`);
       }
+      if (effect.type === 'learn-insight' && !insightIds.has(effect.insightId)) {
+        throw new Error(`Unknown learned insight: ${effect.insightId}`);
+      }
     }
   }
 }
@@ -410,6 +502,7 @@ export function buildStoryBundleFromDocuments(input: {
   events: unknown[];
   worldlines: unknown;
   characters?: unknown[];
+  characterInsights?: unknown;
   relationships?: unknown;
   knowledge?: unknown;
   activities?: unknown;
@@ -455,7 +548,7 @@ export function buildStoryBundleFromDocuments(input: {
 
 export async function buildStoryBundleFromManifest(manifest: StoryManifest): Promise<StoryBundle> {
   const base = 'story/';
-  const [loop, initialState, actions, worldlines, schedules, events, characters, relationships, knowledge, activities, protagonistSchedule, narrative, artifacts, playerChoices, travel] = await Promise.all([
+  const [loop, initialState, actions, worldlines, schedules, events, characters, characterInsights, relationships, knowledge, activities, protagonistSchedule, narrative, artifacts, playerChoices, travel] = await Promise.all([
     loadYaml(base + manifest.loop),
     loadYaml(base + manifest.world),
     loadYaml(base + manifest.actions),
@@ -463,6 +556,7 @@ export async function buildStoryBundleFromManifest(manifest: StoryManifest): Pro
     Promise.all(manifest.schedules.map((path) => loadYaml(base + path))),
     Promise.all(manifest.events.map((path) => loadYaml(base + path))),
     manifest.characters ? Promise.all(manifest.characters.map((path) => loadYaml(base + path))) : Promise.resolve([]),
+    manifest.character_insights ? loadYaml(base + manifest.character_insights) : Promise.resolve(undefined),
     manifest.relationships ? loadYaml(base + manifest.relationships) : Promise.resolve(undefined),
     manifest.knowledge ? loadYaml(base + manifest.knowledge) : Promise.resolve(undefined),
     manifest.activities ? loadYaml(base + manifest.activities) : Promise.resolve(undefined),
@@ -480,6 +574,7 @@ export async function buildStoryBundleFromManifest(manifest: StoryManifest): Pro
     events,
     worldlines,
     characters,
+    characterInsights,
     relationships,
     knowledge,
     activities,

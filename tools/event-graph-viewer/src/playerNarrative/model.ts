@@ -3,8 +3,7 @@ import type { PlannedTravel } from './travel';
 
 export type ForegroundFreeze = { sceneId: string; frozenMinute: number };
 
-export type PlayerSessionV2 = {
-  version: 2;
+type PlayerSessionFields = {
   storyMinuteAtLastSync: number;
   lastSyncedRealTimeMs: number;
   lastSeenRealTimeMs: number;
@@ -20,9 +19,20 @@ export type PlayerSessionV2 = {
   foregroundFreeze: ForegroundFreeze | null;
 };
 
-export function createInitialPlayerSession(nowMs: number): PlayerSessionV2 {
+export type PlayerSessionV2 = PlayerSessionFields & {
+  version: 2;
+};
+
+export type PlayerSessionV3 = PlayerSessionFields & {
+  version: 3;
+  knownInsightIds: string[];
+};
+
+export type PlayerSession = PlayerSessionV3;
+
+export function createInitialPlayerSession(nowMs: number): PlayerSessionV3 {
   return {
-    version: 2,
+    version: 3,
     storyMinuteAtLastSync: 14 * 60 + 20,
     lastSyncedRealTimeMs: nowMs,
     lastSeenRealTimeMs: nowMs,
@@ -34,6 +44,7 @@ export function createInitialPlayerSession(nowMs: number): PlayerSessionV2 {
     openedArtifactIds: [],
     submittedActionIds: [],
     knownFactIds: ['fact_zhixia_dead_five_years'],
+    knownInsightIds: [],
     inboxItemIds: [],
     foregroundFreeze: null,
   };

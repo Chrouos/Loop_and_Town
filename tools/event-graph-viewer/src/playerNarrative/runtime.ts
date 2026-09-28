@@ -10,7 +10,7 @@ import { projectActivityPresentation, type ActivityPresentationView } from './ac
 import { availableChoicesForScene } from './choices';
 import { currentStoryMinute, formatStoryMinute } from './clock';
 import { reconcilePersistentObservations, type InboxItem, type PersistentObservationInput } from './inbox';
-import type { PlayerSessionV2 } from './model';
+import type { PlayerSessionV3 } from './model';
 import { orderNarrativeQueue, type PlayerNarrativeQueueItem } from './queue';
 
 export type PlayerRuntimeView = {
@@ -55,7 +55,7 @@ function observationInputs(
 
 export function reconcilePlayerRuntime(
   story: StoryBundle,
-  session: PlayerSessionV2,
+  session: PlayerSessionV3,
   nowMs: number,
 ): PlayerRuntimeView {
   const storyMinute = currentStoryMinute(session, nowMs);

@@ -1,7 +1,7 @@
 import { startActivity } from '../narrative/activity';
 import type { PlayerChoiceDefinition } from '../narrative/types';
 import type { StoryBundle } from '../lib/loadSimulationStory';
-import type { PlayerSessionV2 } from './model';
+import type { PlayerSessionV3 } from './model';
 import { planTravel } from './travel';
 
 export function availableChoicesForScene(
@@ -25,14 +25,15 @@ function appendUnique(values: string[], value: string): string[] {
 
 export function applyChoiceEffects(
   story: StoryBundle,
-  session: PlayerSessionV2,
+  session: PlayerSessionV3,
   choice: PlayerChoiceDefinition,
   currentStoryMinute: number,
-): PlayerSessionV2 {
-  let next: PlayerSessionV2 = {
+): PlayerSessionV3 {
+  let next: PlayerSessionV3 = {
     ...session,
     submittedActionIds: [...session.submittedActionIds],
     knownFactIds: [...session.knownFactIds],
+    knownInsightIds: [...session.knownInsightIds],
   };
 
   for (const effect of choice.effects) {
@@ -54,6 +55,11 @@ export function applyChoiceEffects(
 
     if (effect.type === 'learn-fact') {
       next = { ...next, knownFactIds: appendUnique(next.knownFactIds, effect.factId) };
+      continue;
+    }
+
+    if (effect.type === 'learn-insight') {
+      next = { ...next, knownInsightIds: appendUnique(next.knownInsightIds, effect.insightId) };
       continue;
     }
 

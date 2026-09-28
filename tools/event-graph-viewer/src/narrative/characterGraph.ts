@@ -51,7 +51,9 @@ export function projectCharacterGraph(
     details[character.id] = {
       characterId: character.id,
       name: character.name,
-      backgroundSummary: character.background.summary,
+      backgroundSummary: mode === 'player-known'
+        ? character.identity.occupation ?? ''
+        : character.background.summary,
       traits: [...character.personality.traits],
       relationshipEdgeIds: edges
         .filter((edge) => edge.source === character.id || edge.target === character.id)

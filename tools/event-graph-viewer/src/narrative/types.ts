@@ -44,6 +44,27 @@ export type KnowledgeFact = {
   summary: string;
 };
 
+export type CharacterInsightDefinition = {
+  id: string;
+  characterId: string;
+  title: string;
+  presentation: string;
+  retainedBy: string;
+  sourceLoop?: string;
+  requiresFacts?: string[];
+  learnedFrom?: string;
+  resetRule?: string;
+  clueUse?: string;
+};
+
+export type CharacterQuestionDefinition = {
+  id: string;
+  characterId: string;
+  text: string;
+  requiresFacts?: string[];
+  resolvedByInsightId?: string;
+};
+
 export type AmbientBeatDefinition = {
   id: string;
   atMinute: number;
@@ -142,7 +163,8 @@ export type PlayerChoiceEffect =
   | { type: 'start-activity'; activityId: string }
   | { type: 'submit-action'; actionId: string }
   | { type: 'travel'; to: string }
-  | { type: 'learn-fact'; factId: string };
+  | { type: 'learn-fact'; factId: string }
+  | { type: 'learn-insight'; insightId: string };
 
 export type PlayerChoiceDefinition = {
   id: string;
@@ -168,6 +190,8 @@ export type NarrativeFoundation = {
   protagonistSchedule: ProtagonistScheduleDefinition;
   scenes: NarrativeSceneDefinition[];
   artifacts: ArtifactDefinition[];
+  characterInsights?: CharacterInsightDefinition[];
+  characterQuestions?: CharacterQuestionDefinition[];
 };
 
 export function emptyNarrativeFoundation(): NarrativeFoundation {
@@ -179,5 +203,7 @@ export function emptyNarrativeFoundation(): NarrativeFoundation {
     protagonistSchedule: { characterId: 'protagonist', entries: [] },
     scenes: [],
     artifacts: [],
+    characterInsights: [],
+    characterQuestions: [],
   };
 }

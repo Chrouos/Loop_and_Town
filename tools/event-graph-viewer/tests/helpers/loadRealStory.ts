@@ -24,6 +24,7 @@ export function loadRealStory() {
     characters?: string[];
     relationships?: string;
     knowledge?: string;
+    character_insights?: string;
     activities?: string;
     protagonist_schedule?: string;
     narrative?: string;
@@ -48,6 +49,7 @@ export function loadRealStory() {
     characters: manifest.characters?.map((path) => parse('/' + path)),
     relationships: manifest.relationships ? parse('/' + manifest.relationships) : undefined,
     knowledge: manifest.knowledge ? parse('/' + manifest.knowledge) : undefined,
+    characterInsights: manifest.character_insights ? parse('/' + manifest.character_insights) : undefined,
     activities: manifest.activities ? parse('/' + manifest.activities) : undefined,
     protagonistSchedule: manifest.protagonist_schedule ? parse('/' + manifest.protagonist_schedule) : undefined,
     narrative: { scenes: narrativeScenes },
