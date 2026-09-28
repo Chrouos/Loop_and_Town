@@ -11,6 +11,7 @@ import { LEGACY_KEY, exportSave, importLegacy, readSave, writeSave } from './sto
 import { EvidenceBoard } from './EvidenceBoard';
 import { WorldlineNotebook } from './WorldlineNotebook';
 import { ResetTransitionScene } from './scenes/ResetTransitionScene';
+import { DialogueScene } from './scenes/DialogueScene';
 import { markPlayerNarrativeSeen, projectPlayerNarrativeRecords } from './narrativeRecords';
 import type { PlayerStoryBundle } from '../types/playerStory';
 
@@ -155,7 +156,16 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
         <div className="document-lines">{record?.body.map((line, i) => <p key={i}>{line}</p>)}</div>
         {record?.excerpts.length ? <div className="excerpts"><span>留下你認為重要的句子</span>{record.excerpts.map(part => <button key={part.id} onClick={() => pin(`${record.id}:${part.id}`)}>{part.text}<span>＋</span></button>)}</div> : null}
         {record?.id === 'letter' && records.some(x => x.id === 'yu-an-message') && <div className="decisions"><p>手機震了一下。予安留了話。</p><button onClick={() => openRecord('yu-an-message')}>讀予安的留言</button></div>}
-        {record?.id === 'yu-an-message' && canAct ? <div className="decisions"><p>18:20 前，你可以答應陪若晴，也可以請予安去醫院。現在還沒有人知道今晚會怎樣。</p><button disabled={hasAction('protect_wakaharu')} onClick={() => choose('protect_wakaharu')}>{hasAction('protect_wakaharu') ? '已和若晴約好' : '保護若晴，陪她留在家裡'}</button><button disabled={hasAction('stop_doctor')} onClick={() => choose('stop_doctor')}>{hasAction('stop_doctor') ? '予安已答應去醫院' : '請予安幫忙攔住醫生'}</button></div> : null}
+        {record?.id === 'yu-an-message' && canAct ? <DialogueScene
+          speaker="予安"
+          text="18:20 前，你可以決定今晚要怎麼做。"
+          reducedMotion={prefersReducedMotion()}
+          choices={[
+            { actionId: 'protect_wakaharu', label: hasAction('protect_wakaharu') ? '已和若晴約好' : '保護若晴：「今晚，我陪你留下來。」', disabled: hasAction('protect_wakaharu') },
+            { actionId: 'stop_doctor', label: hasAction('stop_doctor') ? '予安已答應去醫院' : '請予安：「幫我去醫院。」', disabled: hasAction('stop_doctor') },
+          ]}
+          onChoose={actionId => choose(actionId as ActionId)}
+        /> : null}
         {record?.id === 'yu-an-message' && (hasAction('protect_wakaharu') || hasAction('stop_doctor')) && <div className="choice-replies" aria-label="今晚的回覆">
           {hasAction('protect_wakaharu') && <p>若晴回了訊息：「好，我今晚先不去車站。你來的時候，我把信給你看。」</p>}
           {hasAction('stop_doctor') && <p>予安回覆：「我現在去醫院找陳柏勳。會試著留住他，之後再回你。」</p>}

@@ -64,7 +64,7 @@ it('opens the envelope and records a deliberate action before the deadline', asy
   fireEvent(document, new Event('visibilitychange'));
   await user.click(screen.getByRole('button', { name: /讀予安的留言/ }));
   expect(screen.getByText(/她看起來不想自己去/)).toBeDefined();
-  await user.click(screen.getByRole('button', { name: /保護若晴/ }));
+  await user.click(await screen.findByRole('button', { name: /保護若晴/ }));
   expect(readSave(storage, 1000).loops[1].actionIds).toContain('protect_wakaharu');
 });
 
@@ -94,10 +94,10 @@ it('shows a character response in the scene immediately after confirming a choic
   current += Math.ceil((1080 - 372) / 12) * MINUTE;
   fireEvent(document, new Event('visibilitychange'));
   await user.click(screen.getByRole('button', { name: /讀予安的留言/ }));
-  await user.click(screen.getByRole('button', { name: /保護若晴/ }));
+  await user.click(await screen.findByRole('button', { name: /保護若晴/ }));
   expect(screen.getByText(/若晴回了訊息/)).toBeDefined();
   expect(screen.getByText(/今晚先不去車站/)).toBeDefined();
-  await user.click(screen.getByRole('button', { name: /請予安幫忙攔住醫生/ }));
+  await user.click(await screen.findByRole('button', { name: /請予安/ }));
   expect(screen.getByText(/予安回覆/)).toBeDefined();
   expect(readSave(storage, 1000).loops[1].actionIds).toEqual(['protect_wakaharu', 'stop_doctor']);
 });
