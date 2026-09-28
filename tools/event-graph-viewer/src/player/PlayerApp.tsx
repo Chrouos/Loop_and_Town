@@ -1,22 +1,28 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { loadSimulationStory } from '../lib/loadSimulationStory';
+import { loadPlayerStoryBundle } from '../lib/loadPlayerStoryBundle';
 import type { SimulationDefinition, WorldState } from '../simulator/types';
 import { clockMinuteAt, displayMinute, isLiveSyncAvailable } from './clock';
 import { entryPresentation, entryWindowFor } from './entry';
 import { reconcilePlayer, visibleRecords } from './knowledge';
 import { knownDiff, pinExcerpt } from './logic';
 import { normalizeSave, type ActionId, type PlayerSave } from './model';
-import { activeLoop, confirmAction, continuePendingBoundary, createNextLoop } from './runtime';
+import { activeLoop, confirmAction, continuePendingBoundary, createNextLoop, replayLoop } from './runtime';
 import { LEGACY_KEY, exportSave, importLegacy, readSave, writeSave } from './storage';
 import { EvidenceBoard } from './EvidenceBoard';
 import { WorldlineNotebook } from './WorldlineNotebook';
-import { recordById } from './story';
+import { projectPlayerNarrativeRecords } from './narrativeRecords';
+import type { PlayerStoryBundle } from '../types/playerStory';
 
-type Story = { definition: SimulationDefinition; initialState: WorldState };
+type LegacyStory = { definition: SimulationDefinition; initialState: WorldState };
+type Story = PlayerStoryBundle | LegacyStory;
 type Props = { now?: () => number; storage?: Storage; loadStory?: () => Promise<Story> };
 type Drawer = 'case' | 'board' | 'worldlines' | 'save' | null;
 
-export function PlayerApp({ now = Date.now, storage = window.localStorage, loadStory = loadSimulationStory }: Props) {
+function isPlayerStoryBundle(story: Story): story is PlayerStoryBundle {
+  return 'narrativeDocuments' in story;
+}
+
+export function PlayerApp({ now = Date.now, storage = window.localStorage, loadStory = () => loadPlayerStoryBundle('story/manifests/loop_01.yaml') }: Props) {
   const [save, setSave] = useState<PlayerSave>(() => readSave(storage, now()));
   const [story, setStory] = useState<Story | null>(null);
   const [error, setError] = useState('');
@@ -31,8 +37,15 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
   const commit = useCallback((next: PlayerSave) => { const copy = normalizeSave(next, now()); setSave(copy); writeSave(storage, copy); }, [now, storage]);
   const refresh = useCallback((data: Story) => {
     const time = now();
+    const simulation = isPlayerStoryBundle(data) ? data.simulation : data;
     setCurrentMs(time);
-    const next = reconcilePlayer(readSave(storage, time), time, data.definition, data.initialState);
+    const next = reconcilePlayer(
+      readSave(storage, time),
+      time,
+      simulation.definition,
+      simulation.initialState,
+      isPlayerStoryBundle(data) ? data : undefined,
+    );
     commit(next);
   }, [now, storage, commit]);
 
@@ -62,8 +75,16 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
   const clock = { loop: loopId, minute: clockMinuteAt(loop.clock, Math.max(currentMs, save.lastConfirmedMs)) };
   const entryWindow = entryWindowFor(Math.min(clock.minute, 1439));
   const entry = entryPresentation(entryWindow);
-  const records = visibleRecords(save, loopId);
-  const opened = save.knowledge.opened.includes(`${loopId}:letter`) || save.knowledge.opened.includes('letter');
+  const playerRecords = story && isPlayerStoryBundle(story)
+    ? projectPlayerNarrativeRecords(
+      story,
+      loopId,
+      replayLoop(story.simulation.definition, story.simulation.initialState, save, loopId, clock.minute).history,
+      clock.minute,
+    )
+    : undefined;
+  const records = visibleRecords(save, loopId, loopId === 1 ? undefined : playerRecords);
+  const opened = loopId !== 1 || save.knowledge.opened.includes(`${loopId}:letter`) || save.knowledge.opened.includes('letter');
   const record = records.find(x => x.id === selected) ?? records[0];
   const incoming = records.filter(item => item.revealMinute > 0 && !save.knowledge.opened.includes(`${loopId}:${item.id}`));
   const hasAction = (id: ActionId) => loop.actionIds.includes(id);
@@ -79,7 +100,11 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
   function chooseMode(mode: 'ACCELERATED' | 'LIVE_SYNC') {
     try {
       const nextSave = normalizeSave(save, now());
-      if (story) continuePendingBoundary(nextSave, story.definition, story.initialState);
+      if (story) {
+        const definition = isPlayerStoryBundle(story) ? story.simulation.definition : story.definition;
+        const initialState = isPlayerStoryBundle(story) ? story.simulation.initialState : story.initialState;
+        continuePendingBoundary(nextSave, definition, initialState);
+      }
       createNextLoop(nextSave, mode, now());
       commit(nextSave);
       if (story) refresh(story);

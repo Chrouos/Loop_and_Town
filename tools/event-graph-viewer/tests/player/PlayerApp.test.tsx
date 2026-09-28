@@ -12,6 +12,8 @@ import initialYaml from '../../../../story/world/day_01_initial.yaml?raw';
 import actionsYaml from '../../../../story/actions/day_01_actions.yaml?raw';
 import stationYaml from '../../../../story/events/day_01_1831.yaml?raw';
 import reporterYaml from '../../../../story/events/day_01_2114.yaml?raw';
+import { loadRealStory } from '../helpers/loadRealStory';
+import type { PlayerStoryBundle } from '../../src/types/playerStory';
 
 const initial: WorldState = { clock: { day: 0, time: '06:12' }, characters: { wakaharu: { location: 'old_station', status: 'alive' }, doctor: { location: 'old_station', status: 'alive' }, reporter: { location: 'hotel', status: 'alive' } }, world: { anomaly_1831_observed: false }, flags: { player_protected_wakaharu: false, player_stopped_doctor: false } };
 const definition: SimulationDefinition = { actions: [], events: [] };
@@ -19,6 +21,34 @@ const canonical: { initialState: WorldState; definition: SimulationDefinition } 
   initialState: initial,
   definition: { actions: (yaml.load(actionsYaml) as SimulationDefinition).actions, events: [yaml.load(stationYaml), yaml.load(reporterYaml)] as SimulationDefinition['events'] },
 };
+
+function realPlayerStory(): PlayerStoryBundle {
+  const story = loadRealStory();
+  return {
+    simulation: {
+      loop: story.loop,
+      initialState: story.initialState,
+      schedules: story.schedules,
+      definition: story.definition,
+      worldlines: story.worldlines,
+      playerChoices: story.playerChoices,
+      travelEdges: story.travelEdges,
+    },
+    narrativeDocuments: [
+      {
+        sourcePath: 'story/narrative/loop_01_player.yaml',
+        loopId: 1,
+        scenes: story.narrative.scenes.filter((scene) => !scene.id.startsWith('loop02_')),
+      },
+      {
+        sourcePath: 'story/narrative/loop_02_player.yaml',
+        loopId: 2,
+        scenes: story.narrative.scenes.filter((scene) => scene.id.startsWith('loop02_')),
+      },
+    ],
+    artifacts: story.narrative.artifacts,
+  };
+}
 
 it('opens the envelope and records a deliberate action before the deadline', async () => {
   const storage = window.localStorage;
@@ -140,4 +170,26 @@ it('disables Live Sync in the inactive early-morning gap but keeps accelerated m
   render(<PlayerApp now={() => now} storage={storage} loadStory={async () => ({ definition, initialState: initial })} />);
   expect((await screen.findByRole('button', { name: /跟著現在走/ }) as HTMLButtonElement).disabled).toBe(true);
   expect((screen.getByRole('button', { name: /回到記憶開始的地方/ }) as HTMLButtonElement).disabled).toBe(false);
+});
+
+it('renders Loop 2 survivor scenes without exposing author or relationship metadata', async () => {
+  const storage = window.localStorage;
+  storage.clear();
+  const save = normalizeSave(null, 0);
+  save.currentLoopId = 2;
+  save.loops[2] = emptyLoop(save.loops[1].clock);
+  save.loops[2].actionIds = ['protect_wakaharu'];
+  save.loops[2].clock.anchor.realStartedAtMs = 0;
+  save.loops[2].clock.lastProcessedMinute = 372;
+  storage.setItem(SAVE_KEY, JSON.stringify(save));
+  const now = () => Math.ceil((1111 - 372) / 12) * MINUTE;
+  render(<PlayerApp now={now} storage={storage} loadStory={async () => realPlayerStory() as never} />);
+  const user = userEvent.setup();
+
+  expect(await screen.findByText(/不是夢/)).toBeDefined();
+  await user.click(screen.getByRole('button', { name: /閱讀新消息：若晴還活著/ }));
+  expect(screen.getAllByText(/她活著/).length).toBeGreaterThan(0);
+  expect(screen.queryByText(/remember|trust|closeness|respect|pressure|DAG|storyDag/i)).toBeNull();
+  await user.click(screen.getByRole('button', { name: /閱讀新消息：18:31 的另一個死者/ }));
+  expect(screen.getByText(/找到陳柏勳/)).toBeDefined();
 });
