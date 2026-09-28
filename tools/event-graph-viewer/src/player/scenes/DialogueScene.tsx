@@ -32,7 +32,7 @@ export function DialogueScene({
   return <section className="dialogue-scene" aria-label={`${speaker} 的對話`}>
     <p className="dialogue-scene__speaker">{speaker}</p>
     <p className="dialogue-scene__text"><TypewriterText text={text} speed={speed} reducedMotion={reducedMotion} cursor onComplete={() => setComplete(true)} /></p>
-    {ready && choices.length > 0 && <div className="dialogue-scene__choices" aria-label="你的選擇">
+    {choices.length > 0 && <div className="dialogue-scene__choices" aria-label="你的選擇">
       {choices.map(choice => <button
         key={choice.actionId}
         className="dialogue-choice"
