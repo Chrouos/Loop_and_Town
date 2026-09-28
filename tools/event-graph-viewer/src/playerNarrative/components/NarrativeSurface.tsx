@@ -1,47 +1,97 @@
+import { useEffect } from 'react';
+import type { KeyboardEvent } from 'react';
 import type { NarrativeBlock } from '../../narrative/types';
+import { isTypewriterComplete, nextRevealDelay } from '../typewriter';
+
+export type PlaybackPhase = 'typing' | 'waiting';
 
 export type NarrativeSurfaceProps = {
-  blocks: NarrativeBlock[];
-  visibleCount?: number;
+  block: NarrativeBlock;
+  previousBlocks?: NarrativeBlock[];
+  phase: PlaybackPhase;
+  revealedCharacters: number;
   speakerNames?: Record<string, string>;
-  onContinue?: () => void;
-  continueLabel?: string;
+  onReveal: (revealedCharacters: number) => void;
+  onAdvance: () => void;
+  showAdvanceHint?: boolean;
 };
 
-export function NarrativeSurface({
-  blocks,
-  visibleCount = blocks.length,
-  speakerNames = {},
-  onContinue,
-  continueLabel = '繼續',
-}: NarrativeSurfaceProps) {
-  const visible = blocks.slice(0, Math.max(0, visibleCount));
+function blockText(block: NarrativeBlock): string {
+  return block.type === 'artifact' ? '' : block.text;
+}
+
+function blockKey(block: NarrativeBlock, index: number): string {
+  return `${block.type}-${block.type === 'dialogue' ? block.speaker : ''}-${index}-${blockText(block)}`;
+}
+
+function renderBlock(block: NarrativeBlock, speakerNames: Record<string, string>, text: string, className: string, key: string) {
+  if (block.type === 'dialogue') {
+    return (
+      <div className={`dialogue-beat ${className}`} key={key}>
+        <span className="dialogue-speaker">{speakerNames[block.speaker] ?? block.speaker}</span>
+        <p>「{text}」</p>
+      </div>
+    );
+  }
 
   return (
-    <section className="narrative-surface" aria-label="故事">
+    <p className={`${block.type === 'monologue' ? 'monologue-beat' : 'narration-beat'} ${className}`} key={key}>
+      {text}
+    </p>
+  );
+}
+
+export function NarrativeSurface({
+  block,
+  previousBlocks = [],
+  phase,
+  revealedCharacters,
+  speakerNames = {},
+  onReveal,
+  onAdvance,
+  showAdvanceHint = true,
+}: NarrativeSurfaceProps) {
+  const text = blockText(block);
+  const visibleText = text.slice(0, Math.max(0, Math.min(revealedCharacters, text.length)));
+
+  useEffect(() => {
+    if (phase !== 'typing' || isTypewriterComplete(text, revealedCharacters)) return undefined;
+
+    const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    if (reducedMotion) {
+      onReveal(text.length);
+      return undefined;
+    }
+
+    const timer = window.setTimeout(() => {
+      onReveal(revealedCharacters + 1);
+    }, nextRevealDelay(text, revealedCharacters));
+    return () => window.clearTimeout(timer);
+  }, [phase, text, revealedCharacters, onReveal]);
+
+  function handleKeyDown(event: KeyboardEvent<HTMLElement>) {
+    if (event.key !== ' ' && event.key !== 'Enter') return;
+    event.preventDefault();
+    onAdvance();
+  }
+
+  return (
+    <section
+      className="narrative-surface"
+      aria-label="故事"
+      aria-describedby="narrative-full-text"
+      tabIndex={0}
+      onClick={onAdvance}
+      onKeyDown={handleKeyDown}
+    >
       <div className="narrative-copy">
-        {visible.map((block, index) => {
-          if (block.type === 'artifact') return null;
-          if (block.type === 'dialogue') {
-            return (
-              <div className="dialogue-beat" key={`${block.speaker}-${index}`}>
-                <span className="dialogue-speaker">{speakerNames[block.speaker] ?? block.speaker}</span>
-                <p>「{block.text}」</p>
-              </div>
-            );
-          }
-          return (
-            <p className={block.type === 'monologue' ? 'monologue-beat' : 'narration-beat'} key={index}>
-              {block.text}
-            </p>
-          );
-        })}
+        {previousBlocks.slice(-2).map((previous, index) =>
+          renderBlock(previous, speakerNames, blockText(previous), `narrative-previous narrative-previous-${index + 1}`, blockKey(previous, index)),
+        )}
+        {renderBlock(block, speakerNames, visibleText, 'narrative-active', blockKey(block, 2))}
+        <span id="narrative-full-text" className="sr-only">{text}</span>
       </div>
-      {onContinue && (
-        <button className="continue-button" type="button" onClick={onContinue}>
-          {continueLabel}
-        </button>
-      )}
+      {phase === 'waiting' && showAdvanceHint && <span className="advance-hint" aria-label="推進故事">..... |</span>}
     </section>
   );
 }

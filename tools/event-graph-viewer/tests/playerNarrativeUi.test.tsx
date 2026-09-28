@@ -19,8 +19,16 @@ const letter: ArtifactDefinition = {
 
 describe('player narrative UI', () => {
   it('renders prose without author/debug labels', () => {
-    render(<NarrativeSurface blocks={[{ type: 'narration', text: '火車進站時，我差點沒認出月台。' }]} />);
-    expect(screen.getByText('火車進站時，我差點沒認出月台。')).not.toBeNull();
+    render(
+      <NarrativeSurface
+        block={{ type: 'narration', text: '火車進站時，我差點沒認出月台。' }}
+        phase="waiting"
+        revealedCharacters={18}
+        onReveal={() => undefined}
+        onAdvance={() => undefined}
+      />,
+    );
+    expect(screen.getByText('火車進站時，我差點沒認出月台。', { selector: 'p' })).not.toBeNull();
     expect(screen.queryByText(/WORLDLINE|impactType|Knowledge \+|BAD END/i)).toBeNull();
   });
 

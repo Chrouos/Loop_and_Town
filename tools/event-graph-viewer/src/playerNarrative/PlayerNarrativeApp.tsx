@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { StoryBundle } from '../lib/loadSimulationStory';
-import type { NarrativeSceneDefinition } from '../narrative/types';
+import type { NarrativeBlock, NarrativeSceneDefinition } from '../narrative/types';
 import { applyChoiceEffects } from './choices';
 import { freezeForeground, resumeWorld } from './clock';
 import { reconcilePlayerRuntime, type PlayerRuntimeView } from './runtime';
@@ -10,7 +10,7 @@ import { ActivitySurface } from './components/ActivitySurface';
 import { ArtifactSurface } from './components/ArtifactSurface';
 import { CharacterDrawer } from './components/CharacterDrawer';
 import { ChoiceSurface } from './components/ChoiceSurface';
-import { NarrativeSurface } from './components/NarrativeSurface';
+import { NarrativeSurface, type PlaybackPhase } from './components/NarrativeSurface';
 
 export type PlayerNarrativeAppProps = { story: StoryBundle };
 
@@ -29,10 +29,22 @@ function settleCompletedActivity(session: PlayerSessionV2, view: PlayerRuntimeVi
   };
 }
 
+type PlaybackState = {
+  sceneId: string;
+  beatIndex: number;
+  phase: PlaybackPhase;
+  revealedCharacters: number;
+};
+
+function blockText(block: NarrativeBlock): string {
+  return block.type === 'artifact' ? '' : block.text;
+}
+
 export function PlayerNarrativeApp({ story }: PlayerNarrativeAppProps) {
   const [nowMs, setNowMs] = useState(() => Date.now());
   const [session, setSession] = useState<PlayerSessionV2>(() => readPlayerSession(window.localStorage, Date.now()));
-  const [visibleCount, setVisibleCount] = useState(1);
+  const [playback, setPlayback] = useState<PlaybackState | null>(null);
+  const [previousBlocks, setPreviousBlocks] = useState<NarrativeBlock[]>([]);
   const [sceneKey, setSceneKey] = useState<string | null>(null);
   const [ambientText, setAmbientText] = useState<string | undefined>();
   const [charactersOpen, setCharactersOpen] = useState(false);
@@ -58,10 +70,15 @@ export function PlayerNarrativeApp({ story }: PlayerNarrativeAppProps) {
   }, [scene?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (!scene) return;
+    if (!scene) {
+      setPlayback(null);
+      setPreviousBlocks([]);
+      return;
+    }
     if (sceneKey !== scene.id) {
       setSceneKey(scene.id);
-      setVisibleCount(1);
+      setPlayback({ sceneId: scene.id, beatIndex: 0, phase: 'typing', revealedCharacters: 0 });
+      setPreviousBlocks([]);
     }
   }, [scene, sceneKey]);
 
@@ -99,7 +116,8 @@ export function PlayerNarrativeApp({ story }: PlayerNarrativeAppProps) {
       : [...settled.consumedSceneIds, current.id];
     persist(resumeWorld({ ...settled, consumedSceneIds: consumed }, Date.now()));
     setSceneKey(null);
-    setVisibleCount(1);
+    setPlayback(null);
+    setPreviousBlocks([]);
   }
 
   function choose(choiceId: string) {
@@ -113,20 +131,61 @@ export function PlayerNarrativeApp({ story }: PlayerNarrativeAppProps) {
       : [...applied.consumedSceneIds, scene.id];
     persist(resumeWorld({ ...applied, consumedSceneIds }, Date.now()));
     setSceneKey(null);
-    setVisibleCount(1);
+    setPlayback(null);
+    setPreviousBlocks([]);
     setAmbientText(undefined);
   }
 
   const readableBlocks = scene?.blocks.filter((block) => block.type !== 'artifact') ?? [];
-  const sceneComplete = visibleCount >= Math.max(1, readableBlocks.length);
+  const activeBlock = playback && playback.sceneId === scene?.id
+    ? readableBlocks[playback.beatIndex]
+    : undefined;
   const artifact = scene?.artifactId
     ? story.narrative.artifacts.find((item) => item.id === scene.artifactId)
     : undefined;
   const letterOpenChoice = view.availableChoices.find((choice) => choice.id === 'letter_open');
+  const sceneComplete = Boolean(
+    scene
+    && playback
+    && activeBlock
+    && playback.beatIndex === readableBlocks.length - 1
+    && playback.phase === 'waiting',
+  );
 
   const activityDefinition = view.activeActivity
     ? story.narrative.activities.find((item) => item.id === view.activeActivity?.activityId)
     : undefined;
+
+  useEffect(() => {
+    if (!playback || !activeBlock || playback.phase !== 'typing') return;
+    if (playback.revealedCharacters < blockText(activeBlock).length) return;
+    setPlayback((current) => current && current.phase === 'typing' ? { ...current, phase: 'waiting' } : current);
+  }, [activeBlock, playback]);
+
+  function advanceNarrative() {
+    if (!scene || !playback || !activeBlock) return;
+    if (playback.phase === 'typing') {
+      setPlayback({
+        ...playback,
+        phase: 'waiting',
+        revealedCharacters: blockText(activeBlock).length,
+      });
+      return;
+    }
+
+    if (playback.beatIndex < readableBlocks.length - 1) {
+      setPreviousBlocks((current) => [...current, activeBlock].slice(-2));
+      setPlayback({
+        sceneId: scene.id,
+        beatIndex: playback.beatIndex + 1,
+        phase: 'typing',
+        revealedCharacters: 0,
+      });
+      return;
+    }
+
+    if (!artifact && view.availableChoices.length === 0) finishScene(scene);
+  }
 
   return (
     <main className="player-narrative-shell">
@@ -136,13 +195,17 @@ export function PlayerNarrativeApp({ story }: PlayerNarrativeAppProps) {
       </header>
 
       <div className="player-stage">
-        {scene ? (
+        {scene && playback && activeBlock ? (
           <>
             <NarrativeSurface
-              blocks={readableBlocks}
-              visibleCount={visibleCount}
+              block={activeBlock}
+              previousBlocks={previousBlocks}
+              phase={playback.phase}
+              revealedCharacters={playback.revealedCharacters}
               speakerNames={speakerNames}
-              onContinue={!sceneComplete ? () => setVisibleCount((value) => value + 1) : undefined}
+              onReveal={(revealedCharacters) => setPlayback((current) => current ? { ...current, revealedCharacters } : current)}
+              onAdvance={advanceNarrative}
+              showAdvanceHint={!sceneComplete || (!artifact && view.availableChoices.length === 0)}
             />
 
             {sceneComplete && artifact && (
@@ -163,10 +226,9 @@ export function PlayerNarrativeApp({ story }: PlayerNarrativeAppProps) {
               <ChoiceSurface choices={view.availableChoices} onChoose={choose} />
             )}
 
-            {sceneComplete && view.availableChoices.length === 0 && (!artifact || session.openedArtifactIds.includes(artifact.id) || scene.id === 'prologue_letter_opened') && (
-              <button className="continue-button scene-finish" type="button" onClick={() => finishScene(scene)}>繼續</button>
-            )}
           </>
+        ) : scene ? (
+          <section className="quiet-surface" aria-label="場景載入中"><p>……</p></section>
         ) : view.activeActivity && view.activeActivity.status === 'running' ? (
           <ActivitySurface
             timeLabel={formatMinute(view.currentStoryMinute)}
