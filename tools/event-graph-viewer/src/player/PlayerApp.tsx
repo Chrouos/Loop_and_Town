@@ -10,6 +10,7 @@ import { activeLoop, confirmAction, continuePendingBoundary, createNextLoop, rep
 import { LEGACY_KEY, exportSave, importLegacy, readSave, writeSave } from './storage';
 import { EvidenceBoard } from './EvidenceBoard';
 import { WorldlineNotebook } from './WorldlineNotebook';
+import { ResetTransitionScene } from './scenes/ResetTransitionScene';
 import { markPlayerNarrativeSeen, projectPlayerNarrativeRecords } from './narrativeRecords';
 import type { PlayerStoryBundle } from '../types/playerStory';
 
@@ -22,6 +23,12 @@ function isPlayerStoryBundle(story: Story): story is PlayerStoryBundle {
   return 'narrativeDocuments' in story;
 }
 
+function prefersReducedMotion(): boolean {
+  return typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+    ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    : false;
+}
+
 export function PlayerApp({ now = Date.now, storage = window.localStorage, loadStory = () => loadPlayerStoryBundle('story/manifests/loop_01.yaml') }: Props) {
   const [save, setSave] = useState<PlayerSave>(() => readSave(storage, now()));
   const [story, setStory] = useState<Story | null>(null);
@@ -31,6 +38,8 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
   const [selected, setSelected] = useState('letter');
   const [importText, setImportText] = useState('');
   const [exporting, setExporting] = useState(false);
+  const [resetPresentationComplete, setResetPresentationComplete] = useState(false);
+  const [modeCommitInFlight, setModeCommitInFlight] = useState(false);
   const [currentMs, setCurrentMs] = useState(() => now());
   const opener = useRef<HTMLButtonElement | null>(null);
 
@@ -92,12 +101,18 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
   const next = clock.minute < 1100 ? '18:20 前，你還能改變今晚的行程' : clock.minute < 1111 ? '18:31，舊車站' : clock.minute < 1120 ? '等候鎮上的通報' : clock.minute < 1280 ? '21:20，予安說會再聯絡' : '午夜，日期會回到今天';
   const resetPending = loop.clock.pendingCriticalBoundary === 'reset';
 
+  useEffect(() => {
+    if (!resetPending) setResetPresentationComplete(false);
+  }, [resetPending]);
+
   function showDrawer(value: Drawer, target?: HTMLButtonElement) { opener.current = target ?? null; setDrawer(value); setNote(''); }
   function choose(id: ActionId) {
     try { const nextSave = normalizeSave(save, now()); confirmAction(nextSave, id, now()); commit(nextSave); setNote(id === 'protect_wakaharu' ? '你答應在若晴出門前陪她留在家裡。' : '你請予安先到醫院，設法留住陳柏勳。'); }
     catch (e) { setNote(e instanceof Error ? e.message : String(e)); }
   }
   function chooseMode(mode: 'ACCELERATED' | 'LIVE_SYNC') {
+    if (modeCommitInFlight) return;
+    setModeCommitInFlight(true);
     try {
       const nextSave = normalizeSave(save, now());
       if (story) {
@@ -109,6 +124,7 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
       commit(nextSave);
       if (story) refresh(story);
     } catch (e) { setNote(e instanceof Error ? e.message : String(e)); }
+    finally { setModeCommitInFlight(false); }
   }
   function openRecord(id: string) {
     const nextSave = normalizeSave(save, now());
@@ -132,7 +148,7 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
   return <div className="player-shell">
     <header className="player-header"><div className="wordmark">灰潮鎮 <span>／ 第七封信</span></div><div className="header-actions"><span className="town-time">第 {clock.loop} 次 · 鎮內 {displayMinute(clock.minute)}</span><button onClick={e => showDrawer('case', e.currentTarget)}>案卷 <i>{records.length}</i></button><button onClick={e => showDrawer('board', e.currentTarget)}>推理桌</button><button onClick={e => showDrawer('worldlines', e.currentTarget)}>世界線</button><button onClick={e => showDrawer('save', e.currentTarget)}>存檔</button></div></header>
     <main className="player-stage">
-      {error ? <p role="alert">無法讀取鎮上的紀錄：{error}</p> : !story ? <p>正在取出案卷……</p> : resetPending ? <div className="opening mode-choice"><p>鐘聲落下，今天又回到可以重來的地方。</p><p>下一次進入灰潮鎮時，你要怎麼走進這一天？</p><button onClick={() => chooseMode('LIVE_SYNC')} disabled={!isLiveSyncAvailable(currentMs)}>跟著現在走<span> · {isLiveSyncAvailable(currentMs) ? '從此刻的鎮內時間進入' : '現在是 Live Sync 無法進入的時間'}</span></button><button onClick={() => chooseMode('ACCELERATED')}>回到記憶開始的地方<span> · 從 06:12 的返程列車開始</span></button>{note && <p className="inline-note" role="status">{note}</p>}</div> : !opened ? <div className="opening"><p>返程列車在灰潮鎮的月台緩緩停下。</p><p>現在是灰潮鎮的{entry.label}，你手裡還握著那封不該出現的信。</p>{entry.lines.map(line => <p key={line}>{line}</p>)}<button className="envelope-button" onClick={() => openRecord('letter')} aria-label="拆開信封，讀姊姊的信"><span className="envelope" aria-hidden="true"><span className="envelope-flap"/><span className="envelope-name">林知夏　寄</span></span><span className="envelope-action">拆開信封</span></button></div> : <div className="reading-scene" key={`${clock.loop}:${record?.id}`}>
+      {error ? <p role="alert">無法讀取鎮上的紀錄：{error}</p> : !story ? <p>正在取出案卷……</p> : resetPending && !resetPresentationComplete ? <ResetTransitionScene reducedMotion={prefersReducedMotion()} onPresentationComplete={() => setResetPresentationComplete(true)} /> : resetPending ? <div className="opening mode-choice"><p>鐘聲落下，今天又回到可以重來的地方。</p><p>下一次進入灰潮鎮時，你要怎麼走進這一天？</p><button onClick={() => chooseMode('LIVE_SYNC')} disabled={modeCommitInFlight || !isLiveSyncAvailable(currentMs)}>跟著現在走<span> · {isLiveSyncAvailable(currentMs) ? '從此刻的鎮內時間進入' : '現在是 Live Sync 無法進入的時間'}</span></button><button onClick={() => chooseMode('ACCELERATED')} disabled={modeCommitInFlight}>回到記憶開始的地方<span> · 從 06:12 的返程列車開始</span></button>{note && <p className="inline-note" role="status">{note}</p>}</div> : !opened ? <div className="opening"><p>返程列車在灰潮鎮的月台緩緩停下。</p><p>現在是灰潮鎮的{entry.label}，你手裡還握著那封不該出現的信。</p>{entry.lines.map(line => <p key={line}>{line}</p>)}<button className="envelope-button" onClick={() => openRecord('letter')} aria-label="拆開信封，讀姊姊的信"><span className="envelope" aria-hidden="true"><span className="envelope-flap"/><span className="envelope-name">林知夏　寄</span></span><span className="envelope-action">拆開信封</span></button></div> : <div className="reading-scene" key={`${clock.loop}:${record?.id}`}>
         {incoming.length > 0 && <div className="incoming-records" aria-label="新消息"><p>鎮上有新消息</p>{incoming.map(item => <button key={item.id} onClick={() => openRecord(item.id)}>閱讀新消息：{item.title}</button>)}</div>}
         <div className="document-top"><span>第 {clock.loop} 次今天</span><span>{record?.source}　／　{record?.formedAt}</span></div>
         <h1>{record?.title}</h1>

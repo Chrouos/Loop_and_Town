@@ -136,11 +136,33 @@ it('offers a locked mode choice only after a foreground reset', async () => {
   save.loops[1].clock.pendingCriticalBoundary = 'reset';
   storage.setItem(SAVE_KEY, JSON.stringify(save));
   render(<PlayerApp now={() => now} storage={storage} loadStory={async () => ({ definition, initialState: initial })} />);
-  expect(await screen.findByRole('button', { name: /回到記憶開始的地方/ })).toBeDefined();
+  expect(await screen.findByText('世界接手了這一輪。')).toBeDefined();
+  expect(screen.queryByRole('button', { name: /回到記憶開始的地方/ })).toBeNull();
+  await userEvent.setup().click(await screen.findByRole('button', { name: '將記憶交還給世界' }));
+  expect(await screen.findByRole('button', { name: /回到記憶開始的地方/ }, { timeout: 2000 })).toBeDefined();
   expect((screen.getByRole('button', { name: /跟著現在走/ }) as HTMLButtonElement).disabled).toBe(false);
   await userEvent.setup().click(screen.getByRole('button', { name: /回到記憶開始的地方/ }));
   expect(screen.queryByRole('button', { name: /跟著現在走/ })).toBeNull();
   expect(readSave(storage, now).currentLoopId).toBe(2);
+});
+
+it('replays the reset presentation after reload without creating a loop', async () => {
+  const storage = window.localStorage;
+  storage.clear();
+  const now = 1_000;
+  const save = normalizeSave(null, now);
+  save.loops[1].clock.anchor.realStartedAtMs = now - ((1440 - 372) / 12) * MINUTE;
+  save.loops[1].clock.lastProcessedMinute = 1440;
+  save.loops[1].clock.pendingCriticalBoundary = 'reset';
+  storage.setItem(SAVE_KEY, JSON.stringify(save));
+
+  const first = render(<PlayerApp now={() => now} storage={storage} loadStory={async () => ({ definition, initialState: initial })} />);
+  expect(await screen.findByText('世界接手了這一輪。')).toBeDefined();
+  first.unmount();
+  render(<PlayerApp now={() => now} storage={storage} loadStory={async () => ({ definition, initialState: initial })} />);
+  expect(await screen.findByText('世界接手了這一輪。')).toBeDefined();
+  expect(readSave(storage, now).currentLoopId).toBe(1);
+  expect(readSave(storage, now).loops[1].clock.pendingCriticalBoundary).toBe('reset');
 });
 
 it('bootstraps a late Live Sync loop without exposing presence-only history', async () => {
@@ -168,7 +190,9 @@ it('disables Live Sync in the inactive early-morning gap but keeps accelerated m
   save.loops[1].clock.pendingCriticalBoundary = 'reset';
   storage.setItem(SAVE_KEY, JSON.stringify(save));
   render(<PlayerApp now={() => now} storage={storage} loadStory={async () => ({ definition, initialState: initial })} />);
-  expect((await screen.findByRole('button', { name: /跟著現在走/ }) as HTMLButtonElement).disabled).toBe(true);
+  expect(await screen.findByText('世界接手了這一輪。')).toBeDefined();
+  await userEvent.setup().click(await screen.findByRole('button', { name: '將記憶交還給世界' }));
+  expect((await screen.findByRole('button', { name: /跟著現在走/ }, { timeout: 2000 }) as HTMLButtonElement).disabled).toBe(true);
   expect((screen.getByRole('button', { name: /回到記憶開始的地方/ }) as HTMLButtonElement).disabled).toBe(false);
 });
 
