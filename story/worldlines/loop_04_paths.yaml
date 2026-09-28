@@ -1,0 +1,30 @@
+paths:
+  - id: loop_04_five_years_ago
+    label: Loop 04｜五年前・重建知夏的世界線
+    visibility: public
+    node_ids:
+      - L4_N00_hard_reset_0612
+      - L4_N01_detective_confrontation
+      - L4_N02_hidden_recorder
+      - L4_N03_future_voice
+      - L4_N04_seven_records
+      - L4_N05_reporter_confession
+      - L4_N06_first_correction
+      - L4_N07_ethical_break
+      - L4_N08_final_call_log
+      - L4_N08a_yuan_missed_call
+      - L4_N09_unknown_call_1803
+      - L4_N10_mirror_warning
+    edge_ids:
+      - L4_E00
+      - L4_E01
+      - L4_E02
+      - L4_E03
+      - L4_E04
+      - L4_E05
+      - L4_E06
+      - L4_E07
+      - L4_E08a
+      - L4_E08b
+      - L4_E09a
+      - L4_E09b

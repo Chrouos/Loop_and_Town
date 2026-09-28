@@ -1,0 +1,211 @@
+scenes:
+  - id: loop03_1420_third_awake
+    at: { day: 0, time: "14:20" }
+    kind: narration
+    participants: [protagonist]
+    blocks:
+      - type: narration
+        text: 我睜開眼睛時沒有立刻起身。車窗外還是灰潮鎮前那一段低矮的防風林。
+      - type: monologue
+        text: 第三次。還是十月三日。
+      - type: narration
+        text: 這一次，我先把今天當成一張圖。誰會去哪裡、幾點離開、幾點抵達，我已經看過兩次。
+      - type: monologue
+        text: 如果問題出在 18:31，那就把所有人都移開。
+
+  - id: loop03_1540_wakaharu_foreknowledge
+    at: { day: 0, time: "15:40" }
+    kind: dialogue
+    participants: [protagonist, wakaharu]
+    blocks:
+      - type: narration
+        text: 若晴正在咖啡店後面整理紙箱。我沒有等她先提今晚的事。
+      - type: dialogue
+        speaker: protagonist
+        text: 妳今天傍晚不要去舊車站。
+      - type: dialogue
+        speaker: wakaharu
+        text: ……妳怎麼知道我要去？
+      - type: narration
+        text: 她手上的膠帶停在半空。上一輪我花了很久才讓她願意說；這一輪，我直接跳到了答案。
+      - type: monologue
+        text: 對我來說只是已知資訊。對她來說，卻像我一直在看著她。
+
+  - id: loop03_1630_yuan_notices
+    at: { day: 0, time: "16:30" }
+    kind: dialogue
+    participants: [protagonist, yuan]
+    blocks:
+      - type: narration
+        text: 商店街轉角，一顆球還沒滾上馬路，我已經先伸腳把它擋住。幾秒後，那台熟悉的白色貨車從路口開過。
+      - type: dialogue
+        speaker: yuan
+        text: 妳今天很奇怪。
+      - type: dialogue
+        speaker: protagonist
+        text: 哪裡？
+      - type: dialogue
+        speaker: yuan
+        text: 不是今天。妳像是已經來過這裡很多次了。
+      - type: narration
+        text: 我沒有回答。他也沒有追問，只是之後一路都在看我。
+
+  - id: loop03_1720_doctor_intercept
+    at: { day: 0, time: "17:20" }
+    kind: dialogue
+    participants: [protagonist, doctor]
+    blocks:
+      - type: dialogue
+        speaker: protagonist
+        text: 你手上的東西今天不能交出去。
+      - type: dialogue
+        speaker: doctor
+        text: 妳知道那是什麼？
+      - type: dialogue
+        speaker: protagonist
+        text: 不知道。但上一個拿到的人死了。
+      - type: narration
+        text: 柏勳盯著我看了很久。沒有驚訝，也沒有笑。
+      - type: dialogue
+        speaker: doctor
+        text: ……這是第幾次？
+      - type: narration
+        text: 我愣住。他立刻移開視線，像剛才那句話從來沒說過。
+      - type: dialogue
+        speaker: doctor
+        text: 沒事。我今天不去車站。
+
+  - id: loop03_1800_clear_station
+    at: { day: 0, time: "18:00" }
+    kind: narration
+    participants: [protagonist, wakaharu, doctor, reporter, detective, yuan]
+    blocks:
+      - type: narration
+        text: 到六點，我已經把所有知道的人都從舊車站附近移開。
+      - type: narration
+        text: 若晴留在家裡。柏勳回醫院。庭安被我拖在咖啡店。志遠去查另一件舊案。予安被我要求留在鐘錶店。
+      - type: monologue
+        text: 我第一次覺得自己不是在過今天，而是在安排今天。
+      - type: narration
+        text: 18:20，沒有人靠近。18:25，沒有異常。18:29，我開始相信這次真的可以。
+
+  - id: loop03_1831_no_death
+    at: { day: 0, time: "18:31" }
+    kind: dialogue
+    participants: [protagonist, wakaharu, doctor, yuan]
+    blocks:
+      - type: narration
+        text: 18:31。
+      - type: narration
+        text: 沒有停電。沒有尖叫。沒有人倒下。風從舊月台穿過去，普通得讓人想笑。
+      - type: narration
+        text: 18:32，我先打給若晴。她接了。再打給柏勳，他也接了。
+      - type: dialogue
+        speaker: yuan
+        text: 所以我現在可以出門了嗎？
+      - type: narration
+        text: 我坐在路邊，第一次真的笑出聲。不是因為解開了什麼，只因為今天終於沒有死人。
+
+  - id: loop03_1910_wakaharu_resignation
+    at: { day: 0, time: "19:10" }
+    kind: dialogue
+    participants: [wakaharu]
+    blocks:
+      - type: narration
+        text: 沒有死亡把晚上截斷，若晴真的回到咖啡店，把早就寫好的辭職信放到店長面前。
+      - type: dialogue
+        speaker: wakaharu
+        text: 我還沒有完全想好。
+      - type: dialogue
+        speaker: wakaharu
+        text: 可是如果等到想好，我可能又會多待一年。
+      - type: narration
+        text: 她仍然擔心母親，也不知道作品集夠不夠好。只是今天，她終於有機會去做原本就想做的事。
+
+  - id: loop03_2000_yuan_realtor
+    at: { day: 0, time: "20:00" }
+    kind: dialogue
+    participants: [protagonist, yuan]
+    blocks:
+      - type: narration
+        text: 鐘錶店門口站著一個拿資料夾的陌生人。我這才想起，予安今天本來就有房仲要來。
+      - type: dialogue
+        speaker: protagonist
+        text: 你真的要賣？
+      - type: narration
+        text: 予安把牆上一只停走三年的掛鐘拿下來，擦了擦鐘面。
+      - type: dialogue
+        speaker: yuan
+        text: 我爸死掉以後，這裡每樣東西都有人跟我說不能動。
+      - type: dialogue
+        speaker: yuan
+        text: 有時候我不知道我是在顧店，還是在替所有人保存一個他們比較喜歡的過去。
+
+  - id: loop03_2240_not_success
+    at: { day: 0, time: "22:40" }
+    kind: narration
+    participants: [protagonist]
+    blocks:
+      - type: narration
+        text: 九點半、十點、十點四十分。什麼都沒有發生。
+      - type: narration
+        text: 我重新翻姊姊留下的筆記，在頁角看到一句以前沒有真正讀懂的話。
+      - type: narration
+        text: 不要把「沒有人死」當成成功。
+      - type: monologue
+        text: 我盯著那句話很久。她像早就知道我會走到這一步。
+
+  - id: loop03_2310_doctor_old_record
+    at: { day: 0, time: "23:10" }
+    kind: dialogue
+    participants: [protagonist, doctor]
+    blocks:
+      - type: narration
+        text: 柏勳主動來到老家，把一張五年前的病歷影本放到桌上。名字不是林知夏，而是一個我從沒見過的人。
+      - type: narration
+        text: 死亡時間是 18:31。日期在知夏死亡前十二天。
+      - type: dialogue
+        speaker: protagonist
+        text: 這是誰？
+      - type: dialogue
+        speaker: doctor
+        text: 一個本來不應該死的人。
+      - type: dialogue
+        speaker: doctor
+        text: 今天真的沒有人死嗎？
+      - type: dialogue
+        speaker: protagonist
+        text: 至少我知道的人都活著。
+      - type: dialogue
+        speaker: doctor
+        text: 那不一定是一回事。
+
+  - id: loop03_2359_bell
+    at: { day: 0, time: "23:59" }
+    kind: narration
+    participants: [protagonist]
+    blocks:
+      - type: narration
+        text: 23:58，予安還在抱怨房仲開價太低。若晴傳來一張清到一半的員工置物櫃照片。所有我知道的人都還活著。
+      - type: narration
+        text: 23:59，第一聲鐘響。街上的人沒有任何反應。
+      - type: narration
+        text: 我衝到門外。有人收衣服，有人騎車經過，便利商店的門照常開合。
+      - type: monologue
+        text: 只有我聽得到。
+      - type: narration
+        text: 十二聲鐘響完時，我已經知道答案了。沒有人死亡，世界也沒有打算放過這一天。
+
+  - id: loop03_0000_reset
+    at: { day: 1, time: "00:00" }
+    kind: narration
+    participants: [protagonist]
+    blocks:
+      - type: narration
+        text: 手機螢幕黑了一瞬，再亮起來時，日期仍然是 10 月 3 日。
+      - type: narration
+        text: 若晴活著的晚上、予安的房仲、柏勳帶來的病歷，全都被重新推回今天的起點。
+      - type: monologue
+        text: 死亡不是輪迴的原因。
+      - type: monologue
+        text: 那 18:31 到底是什麼？

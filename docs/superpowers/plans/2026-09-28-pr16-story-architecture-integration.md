@@ -39,7 +39,7 @@
 - Modify: `docs/first-loop-story.md`
 - Create: `docs/superpowers/specs/2026-09-27-main-story-character-bible-design.md`, `docs/superpowers/specs/2026-09-27-dag-story-viewer-design.md`
 - Create: `docs/superpowers/plans/2026-09-27-main-story-runtime-breakdown.md`, `docs/superpowers/plans/2026-09-27-dag-story-viewer-implementation.md`, `docs/superpowers/plans/2026-09-28-complete-project-roadmap.md`
-- Modify/Create: `story/characters/detective.yaml`, `story/characters/doctor.yaml`, `story/characters/protagonist.yaml`, `story/characters/reporter.yaml`, `story/characters/wakaharu.yaml`, `story/characters/yuan.yaml`, `story/characters/zhixia.yaml`, `story/knowledge/character_insights.yaml`, `story/relationships/relationship_state.yaml`, `story/relationships/final_decisions.yaml`, `story/relationships/loop_01.yaml`
+- Modify/Create: `story/characters/detective.yaml`, `story/characters/doctor.yaml`, `story/characters/protagonist.yaml`, `story/characters/reporter.yaml`, `story/characters/wakaharu.yaml`, `story/characters/yuan.yaml`, `story/characters/zhixia.yaml`, `story/knowledge/facts.yaml`, `story/knowledge/character_insights.yaml`, `story/relationships/relationship_state.yaml`, `story/relationships/final_decisions.yaml`, `story/relationships/loop_01.yaml`
 - Create: `story/events/day_01_story_dag.yaml`, `story/events/loop_03_story_dag.yaml` through `story/events/loop_07_story_dag.yaml`, `story/events/final_story_dag.yaml`
 - Create: `story/worldlines/day_01_paths.yaml`, `story/worldlines/loop_03_paths.yaml` through `story/worldlines/loop_07_paths.yaml`, `story/worldlines/final_paths.yaml`
 - Create: `story/narrative/loop_02_player.yaml` through `story/narrative/loop_07_player.yaml`, `story/narrative/final_player.yaml`
