@@ -10,6 +10,7 @@ import { CausalTimelineGraph } from './CausalTimelineGraph';
 import { CausalTimelineToolbar } from './CausalTimelineToolbar';
 import { NodeDetailPanel } from './NodeDetailPanel';
 import { WorldlineSetCompare } from './WorldlineSetCompare';
+import './causalTimelineWorkbench.css';
 
 type NarrativeScene = {
   id: string;
