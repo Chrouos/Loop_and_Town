@@ -493,6 +493,38 @@ Optional Compare Drawer / Mode
 
 ---
 
+# Writing Rule Going Forward
+
+後續新增或修改故事時，先讓內容能被這個 Viewer 清楚回答，再補小說文本。
+
+推薦順序：
+
+```text
+Canon Truth
+→ Character Goal
+→ Scene / Decision
+→ State Change
+→ Causal Relation
+→ Delayed Effect
+→ Convergence impact
+→ Worldline Trace
+→ Novel Scene
+```
+
+每個重要事件至少要能回答：
+
+```text
+Why did this happen?
+What changed?
+Who is affected?
+When does it happen?
+What can it affect later?
+```
+
+這份規則是後續故事持續擴寫時的作者端檢查基準。
+
+---
+
 # Success Criteria
 
 完成後作者應能在約 10 秒內回答：
