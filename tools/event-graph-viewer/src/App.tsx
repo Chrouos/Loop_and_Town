@@ -1,13 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import yaml from 'js-yaml';
 import { CharacterGraphView } from './components/CharacterGraphView';
-import { EventGraphView } from './components/EventGraphView';
-import { NodeDetailPanel } from './components/NodeDetailPanel';
+import { CausalTimelineWorkbench } from './components/CausalTimelineWorkbench';
 import { ScenarioSimulator } from './components/ScenarioSimulator';
 import { TimelineView } from './components/TimelineView';
 import { ViewTabs, type ViewName } from './components/ViewTabs';
 import { WorldlineDiffView } from './components/WorldlineDiffView';
-import { WorldlinePathSelector } from './components/WorldlinePathSelector';
 import { parseStoryDagText, parseStoryWorldlinePathsText } from './lib/loadStory';
 import { loadSimulationStory, type StoryBundle } from './lib/loadSimulationStory';
 import type { NarrativeSceneDefinition } from './narrative/types';
@@ -46,8 +44,6 @@ export default function App() {
   const [story, setStory] = useState<StoryBundle | null>(null);
   const [storyDag, setStoryDag] = useState<StoryDagDocument | null>(null);
   const [storyPaths, setStoryPaths] = useState<StoryWorldlinePath[]>([]);
-  const [selectedPathId, setSelectedPathId] = useState('loop_01_baseline');
-  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [leftDraftActionIds, setLeftDraftActionIds] = useState<string[]>([]);
   const [rightDraftActionIds, setRightDraftActionIds] = useState<string[]>([]);
   const [appliedActionIds, setAppliedActionIds] = useState<{ left: string[]; right: string[] }>({
@@ -134,32 +130,6 @@ export default function App() {
       .catch((reason: unknown) => setError(reason instanceof Error ? reason.message : String(reason)));
   }, []);
 
-  const selectedPath = useMemo(
-    () => storyPaths.find((path) => path.id === selectedPathId),
-    [storyPaths, selectedPathId],
-  );
-  const activeNodeIds = useMemo(
-    () => selectedPath ? new Set(selectedPath.nodeIds) : undefined,
-    [selectedPath],
-  );
-  const activeEdgeIds = useMemo(
-    () => selectedPath ? new Set(selectedPath.edgeIds) : undefined,
-    [selectedPath],
-  );
-  const selectedNode = useMemo(
-    () => storyDag?.nodes.find((node) => node.id === selectedNodeId) ?? null,
-    [storyDag, selectedNodeId],
-  );
-  const downstreamTitles = useMemo(() => {
-    if (!storyDag || !selectedNodeId) return [];
-    const targetIds = storyDag.edges
-      .filter((edge) => edge.source === selectedNodeId)
-      .map((edge) => edge.target);
-    return targetIds
-      .map((id) => storyDag.nodes.find((node) => node.id === id)?.title)
-      .filter((title): title is string => Boolean(title));
-  }, [storyDag, selectedNodeId]);
-
   const generated = useMemo(() => {
     if (!story) return null;
     const left = simulateStory({ story, actionIds: appliedActionIds.left });
@@ -180,12 +150,14 @@ export default function App() {
     });
   }
 
+  const showSimulator = view === 'timeline' || view === 'diff';
+
   return (
     <main className="app-shell">
       <header className="app-header">
         <div>
           <p className="eyebrow">灰潮鎮 · Narrative Debug Tool</p>
-          <h1>Event Graph Viewer</h1>
+          <h1>Causal Timeline Workbench</h1>
           {story && storyDag && (
             <p className="loaded">
               Loaded: {story.loop.id} / {storyDag.nodes.length} causal nodes · {storyDag.edges.length} causal edges
@@ -204,7 +176,7 @@ export default function App() {
         <section className="panel loading-state">載入劇情資料中…</section>
       ) : (
         <>
-          {view !== 'characters' && (
+          {showSimulator && (
             <ScenarioSimulator
               actions={story.definition.actions}
               leftActionIds={leftDraftActionIds}
@@ -216,29 +188,11 @@ export default function App() {
           )}
 
           {view === 'graph' ? (
-            <>
-              <WorldlinePathSelector
-                paths={storyPaths}
-                selectedId={selectedPathId}
-                onChange={setSelectedPathId}
-                mode="author"
-              />
-              <div className="story-dag-reader-layout">
-                <EventGraphView
-                  dagDocument={storyDag}
-                  onNodeSelect={setSelectedNodeId}
-                  activeNodeIds={activeNodeIds}
-                  activeEdgeIds={activeEdgeIds}
-                />
-                {selectedNode && (
-                  <NodeDetailPanel
-                    node={selectedNode}
-                    narrativeScenes={story.narrative.scenes}
-                    downstreamTitles={downstreamTitles}
-                  />
-                )}
-              </div>
-            </>
+            <CausalTimelineWorkbench
+              document={storyDag}
+              paths={storyPaths}
+              narrativeScenes={story.narrative.scenes}
+            />
           ) : view === 'characters' ? (
             <CharacterGraphView story={story.narrative} />
           ) : view === 'timeline' ? (
