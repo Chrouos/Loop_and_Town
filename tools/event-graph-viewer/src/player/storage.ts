@@ -1,10 +1,16 @@
 import { normalizeSave, type PlayerSave } from './model';
 
-export const SAVE_KEY = 'ash-town-player-v1';
+export const SAVE_KEY = 'ash-town-player-v2';
+export const PREVIOUS_SAVE_KEY = 'ash-town-player-v1';
 export const LEGACY_KEY = 'ash-town-bible-v1';
 
 export function readSave(storage: Pick<Storage, 'getItem'>, nowMs: number): PlayerSave {
-  try { return normalizeSave(storage.getItem(SAVE_KEY), nowMs); }
+  try {
+    const v2 = storage.getItem(SAVE_KEY);
+    if (v2) return normalizeSave(v2, nowMs);
+    const v1 = storage.getItem(PREVIOUS_SAVE_KEY);
+    return normalizeSave(v1 ?? null, nowMs);
+  }
   catch { return normalizeSave(null, nowMs); }
 }
 

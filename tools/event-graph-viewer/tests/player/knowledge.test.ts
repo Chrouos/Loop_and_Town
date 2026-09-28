@@ -2,31 +2,46 @@ import { expect, it } from 'vitest';
 import yaml from 'js-yaml';
 import { normalizeSave } from '../../src/player/model';
 import { reconcilePlayer, visibleRecords } from '../../src/player/knowledge';
+import { MINUTE } from '../../src/player/clock';
+import { createNextLoop } from '../../src/player/runtime';
 import type { ActionDefinition, EventDefinition, WorldState } from '../../src/simulator/types';
 import initialYaml from '../../../../story/world/day_01_initial.yaml?raw';
 import actionsYaml from '../../../../story/actions/day_01_actions.yaml?raw';
 import stationYaml from '../../../../story/events/day_01_1831.yaml?raw';
 import reporterYaml from '../../../../story/events/day_01_2114.yaml?raw';
-const initial = yaml.load(initialYaml) as WorldState;
+const initial = { ...(yaml.load(initialYaml) as WorldState), clock: { day: 0, time: '06:12' } };
 const definition = { actions: (yaml.load(actionsYaml) as { actions: ActionDefinition[] }).actions, events: [yaml.load(stationYaml), yaml.load(reporterYaml)] as EventDefinition[] };
 
 it('never shows the outcome before a sourced bulletin arrives', () => {
-  let save = reconcilePlayer(normalizeSave(null, 0), 30 * 60_000, definition, initial);
+  const convergence = Math.ceil((1111 - 372) / 12 * MINUTE);
+  const bulletin = Math.ceil((1120 - 372) / 12 * MINUTE);
+  let save = reconcilePlayer(normalizeSave(null, 0), 30 * MINUTE, definition, initial);
   expect(visibleRecords(save, 1).some(x => x.id.includes('bulletin'))).toBe(false);
-  save = reconcilePlayer(save, 31 * 60_000, definition, initial);
+  save = reconcilePlayer(save, convergence, definition, initial);
   expect(visibleRecords(save, 1).map(x => x.id)).toContain('station-blackout');
   expect(visibleRecords(save, 1).some(x => x.id.includes('bulletin'))).toBe(false);
-  save = reconcilePlayer(save, 40 * 60_000, definition, initial);
+  save.loops[1].clock.pendingCriticalBoundary = undefined;
+  save.loops[1].clock.lastProcessedMinute = 1111;
+  save = reconcilePlayer(save, bulletin, definition, initial);
   expect(visibleRecords(save, 1).map(x => x.id)).toContain('station-bulletin-wakaharu');
   expect(visibleRecords(save, 1).some(x => x.id.includes('reporter'))).toBe(false);
 });
 
-it('reconciles the delayed event and seals an absent loop once', () => {
-  let save = reconcilePlayer(normalizeSave(null, 0), 4 * 60 * 60_000, definition, initial);
-  expect(visibleRecords(save, 1).map(x => x.id)).toContain('reporter-message');
-  save = reconcilePlayer(save, 2 * 86_400_000, definition, initial);
-  const before = [...save.loops[1].revealedIds];
-  expect(save.loops[1].sealed).toBe(true);
-  expect(reconcilePlayer(save, 2 * 86_400_000, definition, initial).loops[1].revealedIds).toEqual(before);
-  expect(visibleRecords(save, 2).some(x => x.id.includes('bulletin'))).toBe(true);
+it('stops offline reconciliation at the first critical boundary without creating a later loop', () => {
+  const save = reconcilePlayer(normalizeSave(null, 0), 4 * 60 * 60_000, definition, initial);
+  expect(save.currentLoopId).toBe(1);
+  expect(save.loops[1].clock.pendingCriticalBoundary).toBe('convergence');
+  expect(save.loops[1].clock.lastProcessedMinute).toBe(1111);
+  expect(save.loops[2]).toBeUndefined();
+});
+
+it('keeps late Live Sync pre-entry history internal without revealing presence-only evidence', () => {
+  const entryAt = new Date('2026-09-28T21:40:00+08:00').getTime();
+  const save = normalizeSave(null, entryAt);
+  save.loops[1].sealed = true;
+  const next = createNextLoop(save, 'LIVE_SYNC', entryAt);
+  const reconciled = reconcilePlayer(next, entryAt, definition, initial);
+  expect(reconciled.loops[2].history.some(item => item.eventId === 'evt_1831_station')).toBe(true);
+  expect(visibleRecords(reconciled, 2).map(item => item.id)).not.toContain('station-blackout');
+  expect(visibleRecords(reconciled, 2).map(item => item.id)).toContain('station-bulletin-wakaharu');
 });

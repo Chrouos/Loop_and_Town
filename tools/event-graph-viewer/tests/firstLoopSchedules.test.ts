@@ -68,7 +68,7 @@ it('wakaharu station movement skips when the player changes her route home', () 
 
 it('defines the baseline routes needed by the first loop', () => {
   const state = yaml.load(worldText) as any;
-  expect(state.clock).toEqual({ day: 0, time: '14:20' });
+  expect(state.clock).toEqual({ day: 0, time: '06:12' });
   expect(state.characters.wakaharu.route).toBe('old_station');
   expect(state.characters.doctor.route).toBe('old_station');
   expect(state.characters.reporter.route).toBe('normal');
