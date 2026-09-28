@@ -1,0 +1,215 @@
+id: final_story_dag
+title: Final｜大家決定自己的風險
+nodes:
+  - id: F_N00_full_truth
+    title: 17:42 主角公開完整真相
+    time: "17:42"
+    actor_ids: [protagonist, yuan, wakaharu, doctor, reporter, detective]
+    visibility: public
+    detail:
+      before: [過去多由主角利用跨 Loop 資訊先安排角色位置。]
+      after: [所有主要角色知道 18:31、五年前事故與知夏最後留下的警告。]
+      reason: Final 不再把資訊壟斷在記憶持有者手上。
+      affected_characters: [protagonist, yuan, wakaharu, doctor, reporter, detective]
+      delayed_effects: [每個 NPC 依自己的價值與 Relationship State 決定是否參與及如何承擔風險。]
+      knowledge_changes: [knowledge.final_truth_shared = true]
+      relationship_changes: []
+      narrative_refs: [final_1742_full_truth]
+
+  - id: F_N01_everyone_chooses
+    title: 17:50 每個人開始做自己的決定
+    time: "17:50"
+    actor_ids: [protagonist, yuan, wakaharu, doctor, reporter, detective]
+    visibility: public
+    detail:
+      before: [主角知道所有人的行程與弱點，理論上可以再次安排最佳位置。]
+      after: [主角只提供資訊，不直接指定任何 NPC 的 outcome。]
+      reason: Relationship State 決定角色是否相信、合作或拒絕；Character Insight 只幫玩家理解怎麼溝通。
+      affected_characters: [protagonist, yuan, wakaharu, doctor, reporter, detective]
+      delayed_effects: [五個 NPC 的選擇平行發生並在 18:31 重新合流。]
+      knowledge_changes: [知道一個人不等於擁有他的決定權。]
+      relationship_changes: []
+      narrative_refs: [final_1750_everyone_chooses]
+
+  - id: F_N02_wakaharu_decides
+    title: 若晴自己決定是否留下記錄
+    time: "17:52"
+    actor_ids: [wakaharu, protagonist]
+    visibility: public
+    detail:
+      before: [若晴知道 18:31 的風險，也知道主角曾多次為了救她改變她的行程。]
+      after: [她依當前 Loop 的 Respect 與 Pressure 自己選擇留下拍攝或離開並交出照片。]
+      reason: 自由與不被安排是若晴穩定的人格核心。
+      affected_characters: [wakaharu]
+      delayed_effects: [無論去留，影像資料都成為 18:31 外部觀測的一部分。]
+      knowledge_changes: []
+      relationship_changes: []
+      narrative_refs: []
+
+  - id: F_N03_doctor_decides
+    title: 柏勳自己決定病歷是否進同步區
+    time: "17:53"
+    actor_ids: [doctor, protagonist]
+    visibility: public
+    detail:
+      before: [柏勳知道原始病歷可能是最可靠的客觀時間基準，也可能被異常破壞。]
+      after: [他依證據完整度與 Trust 自行決定帶原件或只交付複本。]
+      reason: 柏勳重視證據與醫療紀錄責任，不會只因主角說「相信我」而冒險。]
+      affected_characters: [doctor]
+      delayed_effects: [18:31 擁有不同強度但都合法取得的醫療時間證據。]
+      knowledge_changes: []
+      relationship_changes: []
+      narrative_refs: []
+
+  - id: F_N04_reporter_decides
+    title: 庭安自己決定公開到什麼程度
+    time: "17:54"
+    actor_ids: [reporter, protagonist]
+    visibility: public
+    detail:
+      before: [庭安知道公開資料可以讓鎮外留下副本，也可能再次傷害當事人。]
+      after: [她依 Trust 與 Respect 決定公開完整檔案或先匿名化部分內容。]
+      reason: 她與知夏最後的分歧正是「不要替所有人決定」。]
+      affected_characters: [reporter]
+      delayed_effects: [部分真相在灰潮鎮外留下獨立副本。]
+      knowledge_changes: []
+      relationship_changes: []
+      narrative_refs: []
+
+  - id: F_N05_detective_decides
+    title: 志遠自己決定如何承認五年前的隱瞞
+    time: "17:55"
+    actor_ids: [detective, protagonist]
+    visibility: public
+    detail:
+      before: [志遠仍背著未登錄錄音器與證物程序問題。]
+      after: [他自行選擇立即補登自白或先保全證物鏈。]
+      reason: 承認錯誤不能被主角代替完成。
+      affected_characters: [detective]
+      delayed_effects: [五年前案件第一次可能留下正式制度紀錄。]
+      knowledge_changes: []
+      relationship_changes: []
+      narrative_refs: []
+
+  - id: F_N06_yuan_decides
+    title: 予安自己決定是否陪主角走到 18:31
+    time: "17:58"
+    actor_ids: [yuan, protagonist]
+    visibility: public
+    detail:
+      before: [主角很清楚如何利用予安的責任感讓他留下。]
+      after: [是否進同步核心由予安根據 Trust、Respect 與 Pressure 自己決定。]
+      reason: 玩家越了解予安，越不能把這份了解當成操控他的捷徑。
+      affected_characters: [yuan, protagonist]
+      delayed_effects: [予安可能陪主角進入同步窗口，也可能在外部維持時間基準。]
+      knowledge_changes: []
+      relationship_changes: []
+      narrative_refs: []
+
+  - id: F_N06b_handoff_open
+    title: 18:03 第七封交接通道再次開啟
+    time: "18:03"
+    actor_ids: [protagonist, zhixia]
+    visibility: public
+    detail:
+      before: [五個 NPC 已做出自己的風險決定。]
+      after: [第七封把問題留給主角：不是替別人選，而是決定自己如何處理跨 Loop 記憶。]
+      reason: 知夏留下的最後教訓是停止單人最佳化。
+      affected_characters: [protagonist, zhixia]
+      delayed_effects: [18:31 後主角將在三種自我承擔方式之間選擇。]
+      knowledge_changes: [Final choice belongs only to protagonist memory carrier.]
+      relationship_changes: []
+      narrative_refs: [final_1803_handoff_open]
+
+  - id: F_N07_collective_1831
+    title: 18:31 各自選擇在同一個 Convergence 合流
+    time: "18:31"
+    actor_ids: [protagonist, yuan, wakaharu, doctor, reporter, detective]
+    visibility: public
+    detail:
+      before: [每個人以不同方式承擔或拒絕風險。]
+      after: [世界不再只有主角的一份決策；留下與離開都成為被承認的選擇。]
+      reason: Final 把「共同承擔」定義為共享真相與決策權，而不是要求所有人站在同一位置。]
+      affected_characters: [protagonist, yuan, wakaharu, doctor, reporter, detective]
+      delayed_effects: [主角最後只能選擇自己的記憶與輪迴要如何延續。]
+      knowledge_changes: [共同決策不要求一致答案。]
+      relationship_changes: []
+      narrative_refs: [final_1831_convergence]
+
+  - id: F_N08_protagonist_choice
+    title: 主角只決定自己願意承擔什麼
+    time: "18:32"
+    actor_ids: [protagonist]
+    visibility: public
+    detail:
+      before: [NPC 的去留與貢獻已經由他們自己決定。]
+      after: [主角在接受單一世界、繼續輪迴、放下跨 Loop 記憶之間做選擇。]
+      reason: 主角最後的權力只剩對自己的記憶持有者身分負責。
+      affected_characters: [protagonist]
+      delayed_effects: [產生三個不標示優劣的 Ending。]
+      knowledge_changes: []
+      relationship_changes: []
+      narrative_refs: []
+
+  - id: F_N09_ending_a
+    title: Ending A｜明天
+    time: "23:59"
+    actor_ids: [protagonist]
+    visibility: public
+    detail:
+      before: [主角可以繼續要求世界重算，尋找更完美的結果。]
+      after: [她接受這個不完美但由所有人共同決定的世界作為新的現實。]
+      reason: 不再用「還能更好」否定眼前已經存在的人生。]
+      affected_characters: [protagonist, yuan, wakaharu, doctor, reporter, detective]
+      delayed_effects: [00:00 之後時間首次繼續到 00:01。]
+      knowledge_changes: []
+      relationship_changes: []
+      narrative_refs: [final_a_tomorrow]
+
+  - id: F_N10_ending_b
+    title: Ending B｜再一次
+    time: "23:59"
+    actor_ids: [protagonist]
+    visibility: public
+    detail:
+      before: [主角知道下一輪所有 NPC 的當前關係狀態都會重置。]
+      after: [她仍選擇保留交接並再次進入 06:12。]
+      reason: 她還不能接受停止尋找其他可能。]
+      affected_characters: [protagonist]
+      delayed_effects: [下一輪 Trust、Closeness、Respect、Pressure 歸零，只有主角記得。]
+      knowledge_changes: []
+      relationship_changes: []
+      narrative_refs: [final_b_once_more]
+
+  - id: F_N11_ending_c
+    title: Ending C｜忘記我
+    time: "23:59"
+    actor_ids: [protagonist, yuan]
+    visibility: public
+    detail:
+      before: [跨 Loop 關係只由主角一人背負。]
+      after: [主角切斷第六與第七載體，不再把不存在世界線的記憶帶往未來。]
+      reason: 她選擇讓真正發生的關係從兩個人都能記住的今天重新開始。]
+      affected_characters: [protagonist, yuan]
+      delayed_effects: [日期前進；不存在世界線的私人記憶不再由主角承載。]
+      knowledge_changes: []
+      relationship_changes: []
+      narrative_refs: [final_c_forget_me]
+
+edges:
+  - { id: F_E00, source: F_N00_full_truth, target: F_N01_everyone_chooses, label: "share truth", visibility: public }
+  - { id: F_E01a, source: F_N01_everyone_chooses, target: F_N02_wakaharu_decides, label: "agency: wakaharu", visibility: public }
+  - { id: F_E01b, source: F_N01_everyone_chooses, target: F_N03_doctor_decides, label: "agency: doctor", visibility: public }
+  - { id: F_E01c, source: F_N01_everyone_chooses, target: F_N04_reporter_decides, label: "agency: reporter", visibility: public }
+  - { id: F_E01d, source: F_N01_everyone_chooses, target: F_N05_detective_decides, label: "agency: detective", visibility: public }
+  - { id: F_E01e, source: F_N01_everyone_chooses, target: F_N06_yuan_decides, label: "agency: yuan", visibility: public }
+  - { id: F_E02a, source: F_N02_wakaharu_decides, target: F_N06b_handoff_open, label: "own contribution", visibility: public }
+  - { id: F_E02b, source: F_N03_doctor_decides, target: F_N06b_handoff_open, label: "own contribution", visibility: public }
+  - { id: F_E02c, source: F_N04_reporter_decides, target: F_N06b_handoff_open, label: "own contribution", visibility: public }
+  - { id: F_E02d, source: F_N05_detective_decides, target: F_N06b_handoff_open, label: "own contribution", visibility: public }
+  - { id: F_E02e, source: F_N06_yuan_decides, target: F_N06b_handoff_open, label: "own contribution", visibility: public }
+  - { id: F_E03, source: F_N06b_handoff_open, target: F_N07_collective_1831, label: "18:31", visibility: public }
+  - { id: F_E04, source: F_N07_collective_1831, target: F_N08_protagonist_choice, label: "only choose self", visibility: public }
+  - { id: F_E05a, source: F_N08_protagonist_choice, target: F_N09_ending_a, label: "accept one world", visibility: public }
+  - { id: F_E05b, source: F_N08_protagonist_choice, target: F_N10_ending_b, label: "continue loop", visibility: public }
+  - { id: F_E05c, source: F_N08_protagonist_choice, target: F_N11_ending_c, label: "release cross-loop memory", visibility: public }

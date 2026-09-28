@@ -36,6 +36,30 @@ knowledge: knowledge/facts.yaml
 activities: activities/protagonist.yaml
 protagonist_schedule: schedules/protagonist.yaml
 narrative: narrative/loop_01_player.yaml
+narratives:
+  - narrative/loop_02_player.yaml
+  - narrative/loop_03_player.yaml
+  - narrative/loop_04_player.yaml
+  - narrative/loop_05_player.yaml
+  - narrative/loop_06_player.yaml
+  - narrative/loop_07_player.yaml
+  - narrative/final_player.yaml
+story_dags:
+  - events/day_01_story_dag.yaml
+  - events/loop_03_story_dag.yaml
+  - events/loop_04_story_dag.yaml
+  - events/loop_05_story_dag.yaml
+  - events/loop_06_story_dag.yaml
+  - events/loop_07_story_dag.yaml
+  - events/final_story_dag.yaml
+worldline_paths:
+  - worldlines/day_01_paths.yaml
+  - worldlines/loop_03_paths.yaml
+  - worldlines/loop_04_paths.yaml
+  - worldlines/loop_05_paths.yaml
+  - worldlines/loop_06_paths.yaml
+  - worldlines/loop_07_paths.yaml
+  - worldlines/final_paths.yaml
 artifacts:
   - artifacts/zhixia_letter.yaml
 player_choices: choices/loop_01_player_v0_1.yaml

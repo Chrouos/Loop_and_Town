@@ -3,49 +3,102 @@ relationships:
     to: zhixia
     type: sister
     visibility: public
-    summary: 姊妹；知夏的死亡是主角離開灰潮鎮的主要原因。
+    summary: 姊妹；知夏的死亡是主角離開灰潮鎮的主要原因。主角仍懷疑自己五年前離開的選擇間接造成知夏死亡。
   - from: zhixia
     to: protagonist
     type: protective_sister
     visibility: author
-    summary: 知夏習慣保護妹妹，也因此隱瞞部分危險資訊。
+    summary: 知夏深愛妹妹，但保護逐漸變成控制；死亡前半年刻意疏遠主角，目的是逼她離開灰潮鎮。
+
   - from: protagonist
     to: yuan
     type: old_friend
     visibility: public
-    summary: 高中同學，五年來偶爾聯絡。
+    summary: 高中同學，五年來偶爾聯絡；予安是少數知道主角離開灰潮鎮後生活的人。
   - from: yuan
     to: protagonist
     type: concerned_friend
     visibility: author
-    summary: 仍然在意主角，但不擅長談姊姊的死亡。
+    summary: 仍然在意主角，但不擅長談知夏死亡，也擔心主角再次把整個人生困在灰潮鎮。
+
   - from: yuan
     to: zhixia
-    type: familiar_respect
-    visibility: public
-    summary: 從小認識知夏，對她一直抱有敬意。
+    type: guilt_and_respect
+    visibility: author
+    summary: 從小認識知夏；五年前 17:58 沒接到她最後一通電話，五年來一直認為自己可能錯過救她的機會。
+  - from: zhixia
+    to: yuan
+    type: trusted_helper
+    visibility: author
+    summary: 知夏相信予安的實作能力，常找他修老鐘、錄音設備與研究器材，但沒有把世界線真相全部告訴他。
+
   - from: wakaharu
     to: zhixia
     type: attachment
     visibility: public
-    summary: 把知夏視為姊姊般的重要存在。
+    summary: 把知夏視為姊姊般的重要存在；知夏也是第一個真正支持她攝影與離開灰潮鎮的人。
   - from: zhixia
     to: wakaharu
-    type: protective
+    type: protective_mentor
     visibility: author
-    summary: 試圖讓若晴遠離研究所事件。
+    summary: 把若晴當妹妹，也曾試圖讓她遠離研究所事件；知夏相信若晴應該離開灰潮鎮過自己的生活。
+
+  - from: wakaharu
+    to: yuan
+    type: old_crush_and_dependency
+    visibility: author
+    summary: 年少時曾有好感；現在更接近把予安視為灰潮鎮裡不會突然消失的安全感。
+  - from: yuan
+    to: wakaharu
+    type: sibling_like_care
+    visibility: author
+    summary: 一直把若晴當妹妹；當若晴壓力過高時，會優先放下自己的行程去幫她。
+
   - from: doctor
     to: zhixia
     type: medical_connection
     visibility: author
-    summary: 五年前知夏死亡當日，陳柏勳曾接觸相關醫療紀錄。
+    summary: 五年前曾接觸知夏的異常記憶與醫療紀錄，後來成為最早相信她並非單純精神問題的人之一。
+  - from: zhixia
+    to: doctor
+    type: reluctant_trust
+    visibility: author
+    summary: 相信柏勳的專業，但不完全接受他用「保護」為理由封存資訊的方式。
+
   - from: reporter
     to: zhixia
-    type: former_colleague
+    type: former_partner_broken_trust
     visibility: author
-    summary: 曾在舊研究所有工作往來，但庭安對外否認相識。
+    summary: 五年前曾是最接近知夏真相的調查搭檔，後來因「能否把死亡風險轉移給別人」而決裂。
+  - from: zhixia
+    to: reporter
+    type: former_partner
+    visibility: author
+    summary: 知夏仍信任庭安能完成調查，因此留下「如果妹妹回來，不要讓她知道我做過什麼」的承諾。
+
+  - from: reporter
+    to: doctor
+    type: shared_secret
+    visibility: author
+    summary: 研究所事故後共同隱瞞部分醫療資料；不是共謀，而是兩人都相信公開全部資訊會造成更大傷害。
+  - from: doctor
+    to: reporter
+    type: guarded_alliance
+    visibility: author
+    summary: 知道庭安也藏著資料，因此既會保護她，也不完全相信她的判斷。
+
   - from: detective
     to: zhixia
     type: case_officer
     visibility: author
-    summary: 五年前參與知夏死亡案件的第一批處理人員。
+    summary: 五年前參與知夏死亡案件的第一批處理人員，至今仍不相信那只是單純意外。
+  - from: detective
+    to: doctor
+    type: professional_distrust
+    visibility: author
+    summary: 認為柏勳隱瞞了五年前的醫療紀錄。
+  - from: doctor
+    to: detective
+    type: professional_distrust
+    visibility: author
+    summary: 認為志遠手上一定還有未公開的證物；兩人其實都做了替別人決定哪些真相可以被知道的事。

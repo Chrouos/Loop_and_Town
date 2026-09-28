@@ -5,30 +5,44 @@ identity:
   occupation: 地方史研究者／圖書館員
   hometown: 灰潮鎮
 background:
-  summary: 主角的姊姊，五年前死於舊車站附近；死亡前曾持續記錄異常的時間與日期。
+  summary: 主角的姊姊，五年前死於舊車站附近；生前從地方史檔案追查到舊研究所，之後逐漸成為能保留部分世界線記憶的人。
   history:
-    - 長期整理灰潮鎮地方史資料。
+    - 長期整理灰潮鎮地方史資料，原本只把研究所當成地方產業史的一部分。
+    - 從舊檔案發現研究所與 18:31 異常事件的關聯。
+    - 開始出現 Déjà vu、記得尚未發生事件等殘留現象。
+    - 曾與葉庭安合作調查，但兩人最後因「能不能把風險轉移給別人」而決裂。
+    - 為了讓妹妹遠離灰潮鎮，死亡前半年刻意疏遠她。
     - 五年前死亡，案件以意外結案。
+  current_goal_before_death: 不再追求單純阻止死亡，而是嘗試讓資訊跨世界線殘留，交給未來的人繼續調查。
+  moral_conflict: 她愛主角，也因此曾主動把危險從主角身上移向其他人。
 personality:
   traits:
     - 冷靜
     - 保護欲強
+    - 控制慾強
     - 不輕易解釋自己的擔憂
+    - 在長期輪迴後逐漸變得結果導向
   habits:
     - 用紙本留下索引與時間註記
+    - 重要訊息會刻意分散在不同載體
   dislikes:
     - 把未確認的推測當成事實
+    - 別人替她承擔危險
 speech:
   tone: restrained
   calls:
     protagonist: 妹妹
     yuan: 予安
     wakaharu: 若晴
+    reporter: 庭安
 knowledge:
   initial:
     - fact_zhixia_dead_five_years
   hidden:
     - fact_1831_is_special
     - fact_research_institute_connection
+    - fact_memory_residue_exists
 secrets:
-  - 死亡前可能曾經保有過輪迴殘留記憶。
+  - 曾經保有多次世界線的殘留記憶。
+  - 主角收到的實體信只是她留下的第七種跨世界線訊息載體。
+  - 她曾為了保護主角，接受由其他人承擔風險的世界線。

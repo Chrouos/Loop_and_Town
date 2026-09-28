@@ -3,20 +3,26 @@ name: 主角
 identity:
   hometown: 灰潮鎮
 background:
-  summary: 五年前因姊姊林知夏死亡離開灰潮鎮；這次回來整理長期空置的老家，準備出售。
+  summary: 五年前因姊姊林知夏死亡離開灰潮鎮；表面上這次只是回來整理老家並出售房子，真正驅動她的是一直沒有回答的愧疚：如果當時沒有離開，姊姊會不會還活著。
   history:
     - 在灰潮鎮長大，與周予安是高中同學。
+    - 小時候非常依賴姊姊，長大後開始討厭所有人都把自己視為「知夏的妹妹」。
+    - 知夏死亡前半年，兩人因主角決定離開灰潮鎮發生激烈爭執。
     - 林知夏死亡後離開故鄉，五年間很少回來。
+  current_goal: 整理老家、完成出售，並查清楚昨天才寄出的「第七封信」究竟從哪裡來。
+  inner_conflict: 想知道真相，但很容易把調查變成證明自己五年前沒有做錯選擇。
 personality:
   traits:
     - 觀察細節
     - 對熟悉的人較柔軟
     - 面對姊姊相關話題時容易迴避
+    - 一旦認定可以修正錯誤，就容易過度投入
   habits:
     - 緊張時會重複確認日期與時間
     - 習慣先把事情整理好再做判斷
   dislikes:
     - 被替自己下結論
+    - 別人用姊姊的名字替她做決定
 speech:
   tone: quiet
   calls:
@@ -28,5 +34,6 @@ knowledge:
     - fact_yuan_runs_clock_shop
     - fact_protagonist_returned_to_sell_house
   hidden: []
-secrets: []
+secrets:
+  - 她一直懷疑自己五年前離開灰潮鎮的決定間接造成姊姊死亡，但從未對任何人說出口。
 schedule_ref: schedules/protagonist.yaml

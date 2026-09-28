@@ -1,0 +1,37 @@
+id: relationship_state
+visibility: hidden
+purpose: 決定角色在當前 Loop 是否願意相信、合作、拒絕或自行承擔風險；不是永久好感度。
+
+dimensions:
+  - trust
+  - closeness
+  - respect
+  - pressure
+
+range:
+  trust: { min: -5, max: 5 }
+  closeness: { min: 0, max: 5 }
+  respect: { min: -5, max: 5 }
+  pressure: { min: 0, max: 5 }
+
+reset_on_loop: true
+reset_value: 0
+
+persistent_across_loops:
+  - character_insight
+  - protagonist_memory
+  - discovered_evidence
+
+forbidden_metrics:
+  - affection
+  - romance_score
+  - universal_favorability
+
+rules:
+  - 玩家不能直接選擇 NPC 的最終行動，只能改變資訊、相處方式與當前關係狀態。
+  - Trust 表示角色是否相信主角提供的資訊，不等於喜歡主角。
+  - Closeness 表示當前 Loop 的相處深度，不跨 Reset 保留。
+  - Respect 表示角色是否感到自己的選擇權被尊重。
+  - Pressure 表示角色是否感到主角在利用預知、秘密或情緒壓力操控自己。
+  - Character Insight 跨 Loop 保留，但只能幫玩家理解如何溝通，不能直接兌換關係數值。
+  - Reset 後所有 Relationship State 回到基準；主角只保留如何理解這個人的記憶。

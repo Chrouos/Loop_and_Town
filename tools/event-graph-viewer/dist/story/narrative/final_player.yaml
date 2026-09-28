@@ -1,0 +1,111 @@
+scenes:
+  - id: final_1742_full_truth
+    at: { day: 0, time: "17:42" }
+    kind: dialogue
+    participants: [protagonist, yuan, wakaharu, doctor, reporter, detective]
+    blocks:
+      - type: narration
+        text: 17:42，舊研究所的備用會議室第一次坐滿了人。不是因為我把他們叫到同一個位置，而是因為我把知道的事情完整攤在桌上，讓每個人自己決定要不要留下。
+      - type: dialogue
+        speaker: protagonist
+        text: 我不能再替你們選。
+      - type: dialogue
+        speaker: protagonist
+        text: 我只能把我知道的風險說清楚。剩下的，是你們自己的今天。
+      - type: narration
+        text: 沒有人立刻回答。這一次，沉默不是等待主角下指令，而是在各自衡量自己願意承擔的東西。
+
+  - id: final_1750_everyone_chooses
+    at: { day: 0, time: "17:50" }
+    kind: narration
+    participants: [protagonist, yuan, wakaharu, doctor, reporter, detective]
+    blocks:
+      - type: narration
+        text: 若晴決定自己要不要留下拍攝；柏勳決定原始病歷要不要進同步區；庭安決定公開到什麼程度；志遠決定何時承認五年前的隱瞞；予安決定要站在我身邊，還是留在外面守著正常的時間。
+      - type: monologue
+        text: 我以前把這些叫作行程。現在我才知道，那些其實都是別人的選擇。
+      - type: narration
+        text: 有人留下，也可能有人離開。重要的不是把所有人排到同一個最佳位置，而是每個人都知道風險後，仍能說出自己的答案。
+
+  - id: final_1803_handoff_open
+    at: { day: 0, time: "18:03" }
+    kind: narration
+    participants: [protagonist, zhixia]
+    blocks:
+      - type: narration
+        text: 18:03，第七封信上的墨水重新變深。五年前方向矛盾的那通電話、前六個載體、姊的記憶，像同一條線終於接回現在。
+      - type: dialogue
+        speaker: zhixia
+        text: 不是找到沒有代價的世界。
+      - type: dialogue
+        speaker: zhixia
+        text: 是不要再假裝只有妳有資格替它付代價。
+      - type: monologue
+        text: 我不能再替他們選。我只能決定，我自己願意承擔什麼。
+
+  - id: final_1831_convergence
+    at: { day: 0, time: "18:31" }
+    kind: narration
+    participants: [protagonist, yuan, wakaharu, doctor, reporter, detective, zhixia]
+    blocks:
+      - type: narration
+        text: 18:31。燈光短暫熄滅，所有時鐘失去同一秒。這一次沒有預先安排好的安全隊形。留下的人照自己的決定行動，離開的人也以自己的方式把資料、照片或時間基準留在外面。
+      - type: narration
+        text: 第七封只剩最後一行空白。它沒有問我要救誰。
+      - type: monologue
+        text: 它在等我決定，自己要怎麼面對那些只有我記得的昨天。
+
+  - id: final_a_tomorrow
+    at: { day: 0, time: "23:59" }
+    kind: narration
+    participants: [protagonist]
+    blocks:
+      - type: monologue
+        text: 我選擇讓這個不完美的今天成為真的。
+      - type: narration
+        text: 我沒有再要求世界把所有遺憾修掉。知夏仍然死在五年前，有些關係仍然沒有和好，有些人今天也沒有選擇留下。但那不是失敗。
+      - type: narration
+        text: 23:59，沒有鐘聲。
+      - type: narration
+        text: 00:00 之後，數字第一次變成 00:01。
+      - type: monologue
+        text: 我還記得那些不存在的友誼。這一次，我不再用它們否定眼前的人。
+
+  - id: final_b_once_more
+    at: { day: 1, time: "06:12" }
+    kind: narration
+    participants: [protagonist, yuan]
+    blocks:
+      - type: monologue
+        text: 我還不能停。
+      - type: narration
+        text: 我保留第七封的交接，讓同步重新完成。上一輪每個人做出的決定，沒有成為下一輪的永久授權。
+      - type: narration
+        text: 06:12，我再次在列車上醒來。今天的信任、親近、尊重與壓力全部回到起點，只有我知道昨天發生過什麼。
+      - type: dialogue
+        speaker: yuan
+        text: ……好久不見。
+      - type: dialogue
+        speaker: protagonist
+        text: 嗯。
+
+  - id: final_c_forget_me
+    at: { day: 0, time: "23:59" }
+    kind: narration
+    participants: [protagonist, yuan]
+    blocks:
+      - type: monologue
+        text: 如果只有我能把不存在的昨天帶過來，那我可以選擇不再帶了。
+      - type: narration
+        text: 我切斷第六與第七載體的交接。那些只屬於其他 Loop 的早餐、爭吵、死亡、和好與友誼，不再跟著我穿過同步點。
+      - type: narration
+        text: 日期繼續前進。這一個真正發生過的今天仍然屬於所有人，但那些只有我曾經擁有的昨天留在了不存在的世界線裡。
+      - type: dialogue
+        speaker: yuan
+        text: 妳還是喝原本那個嗎？
+      - type: dialogue
+        speaker: protagonist
+        text: ……原本哪個？
+      - type: dialogue
+        speaker: yuan
+        text: 沒事。我重新問一次。妳喝什麼？

@@ -1,0 +1,771 @@
+id: day_01_story_dag
+title: Day 01 因果 DAG
+nodes:
+  - id: N00_arrival_graytide
+    title: 主角回到灰潮鎮
+    time: "06:12"
+    actor_ids: [protagonist]
+    visibility: public
+    detail:
+      before: [主角五年沒有回到灰潮鎮，只打算處理老家出售。]
+      after: [主角重新進入知夏死亡後停滯五年的生活圈。]
+      reason: 房屋出售與整理遺物迫使她回鄉。
+      affected_characters: [protagonist, yuan]
+      delayed_effects: [鎮上認識林家的人會陸續得知主角回來。]
+      knowledge_changes: []
+      relationship_changes: []
+      narrative_refs: [prologue_arrival]
+
+  - id: N00_loop02_reset_awareness
+    title: 第二次在返鄉列車上醒來
+    time: "06:12"
+    actor_ids: [protagonist]
+    visibility: public
+    detail:
+      before: [主角記得若晴在上一輪 18:31 死亡，也記得午夜世界重置。]
+      after: [主角第一次帶著完整未來資訊重新進入同一天。]
+      reason: 午夜 Reset 只重置小鎮狀態，沒有清除主角記憶。
+      affected_characters: [protagonist, wakaharu, doctor]
+      delayed_effects: [主角會優先嘗試改變若晴 17:20 之後的行程。]
+      knowledge_changes: [若晴會在基準世界線 18:31 死亡。]
+      relationship_changes: []
+      narrative_refs: [loop02_1420_reset_awareness]
+
+  - id: N00_shopkeeper_mistake
+    title: 店家把主角錯認成知夏
+    time: "07:26"
+    actor_ids: [protagonist]
+    visibility: public
+    detail:
+      before: [主角仍把回鄉當成單純處理房產。]
+      after: [她第一次被迫正面感受到自己與知夏仍被小鎮綁在一起。]
+      reason: 主角與知夏外貌相似，而店主多年沒有見到她。
+      affected_characters: [protagonist]
+      delayed_effects: [是否糾正店主會改變晚間居民口中的目擊傳聞。]
+      knowledge_changes: [fact_shopkeeper_mistook_protagonist_for_zhixia]
+      relationship_changes: []
+      narrative_refs: [prologue_after_store]
+
+  - id: N00_correct_shopkeeper
+    title: 主角立即糾正店家
+    time: "07:27"
+    actor_ids: [protagonist]
+    visibility: public
+    detail:
+      before: [店主短暫以為林知夏出現在店裡。]
+      after: [店主知道回來的是知夏的妹妹。]
+      reason: 主角不願讓姊姊仍活著的錯誤印象繼續流傳。
+      affected_characters: [protagonist]
+      delayed_effects: [志遠晚間聽到的是主角返鄉，而非知夏目擊情報。]
+      knowledge_changes: []
+      relationship_changes: []
+      narrative_refs: []
+
+  - id: N00_leave_mistake
+    title: 主角沒有糾正店家
+    time: "07:27"
+    actor_ids: [protagonist]
+    visibility: public
+    detail:
+      before: [店主短暫把主角認成知夏。]
+      after: [錯誤目擊以「像知夏的人」形式留在居民聊天中。]
+      reason: 主角不想在陌生人面前解釋姊姊死亡。
+      affected_characters: [protagonist, detective]
+      delayed_effects: [晚上可能出現「有人看見知夏」的錯誤傳聞。]
+      knowledge_changes: []
+      relationship_changes: []
+      narrative_refs: []
+
+  - id: N00_yuan_reunion
+    title: 主角與予安重逢
+    time: "07:40"
+    actor_ids: [protagonist, yuan]
+    visibility: public
+    detail:
+      before: [兩人五年來只有偶爾聯絡。]
+      after: [予安重新成為主角在灰潮鎮最容易求助的人。]
+      reason: 予安知道主角今天回來處理老家。
+      affected_characters: [protagonist, yuan]
+      delayed_effects: [主角之後可以把郵局、車站等調查交給予安。]
+      knowledge_changes: [fact_yuan_runs_clock_shop]
+      relationship_changes: [yuan.trust_protagonist baseline]
+      narrative_refs: [prologue_yuan_reunion]
+
+  - id: N00_old_house
+    title: 主角重新打開老家
+    time: "07:48"
+    actor_ids: [protagonist]
+    visibility: public
+    detail:
+      before: [房子維持知夏死亡後的舊樣子。]
+      after: [主角開始整理郵件與知夏遺物。]
+      reason: 她必須在房仲聯絡前完成第一輪整理。
+      affected_characters: [protagonist]
+      delayed_effects: []
+      knowledge_changes: []
+      relationship_changes: []
+      narrative_refs: [prologue_old_house]
+
+  - id: N00_letter_discovered
+    title: 發現第七封信
+    time: "07:55"
+    actor_ids: [protagonist]
+    visibility: public
+    detail:
+      before: [主角認為姊姊死亡五年已是確定事實。]
+      after: [她拿到署名林知夏、郵戳卻是昨天的實體信件。]
+      reason: 信被混在老家累積的郵件中。
+      affected_characters: [protagonist, yuan, reporter]
+      delayed_effects: [主角開始查郵局與知夏生前留下的紀錄。]
+      knowledge_changes: [fact_zhixia_letter_received]
+      relationship_changes: []
+      narrative_refs: [prologue_letter_discovery, prologue_letter_opened]
+
+  - id: N00_search_zhixia_room
+    title: 搜查知夏房間
+    time: "08:05"
+    actor_ids: [protagonist]
+    visibility: public
+    detail:
+      before: [主角只知道信件不可能由五年前死亡的知夏正常寄出。]
+      after: [玩家必須決定有限時間內先查哪一類遺物。]
+      reason: 一個人不可能在同一輪把所有地方與物件都查完。
+      affected_characters: [protagonist, wakaharu, reporter]
+      delayed_effects: [找到不同遺物會改變下午對若晴與庭安的提問方式。]
+      knowledge_changes: []
+      relationship_changes: []
+      narrative_refs: []
+
+  - id: N00_find_watch
+    title: 找到停在 18:31 的手錶
+    time: "08:12"
+    actor_ids: [protagonist]
+    visibility: public
+    detail:
+      before: [18:31 對主角還沒有意義。]
+      after: [18:31 成為可被反覆驗證的時間線索。]
+      reason: 手錶停在知夏遺物箱中，時間固定不動。
+      affected_characters: [protagonist]
+      delayed_effects: [20:30 知道知夏死亡時間後，主角會重新檢查手錶。]
+      knowledge_changes: [fact_1831_is_special]
+      relationship_changes: []
+      narrative_refs: []
+
+  - id: N00_find_research_photo
+    title: 找到知夏與研究所人員合照
+    time: "08:14"
+    actor_ids: [protagonist, reporter]
+    visibility: public
+    detail:
+      before: [主角不知道庭安和知夏早已認識。]
+      after: [若稍後遇見庭安，主角能辨認她出現在知夏舊照片中。]
+      reason: 知夏把舊研究所活動照片留在書桌資料夾。
+      affected_characters: [protagonist, reporter]
+      delayed_effects: [16:40 對庭安的對話可由普通試探變成直接拆穿。]
+      knowledge_changes: [fact_reporter_knew_zhixia, fact_research_institute_connection]
+      relationship_changes: []
+      narrative_refs: []
+
+  - id: N00_find_wakaharu_photo
+    title: 找到若晴拍給知夏的照片
+    time: "08:16"
+    actor_ids: [protagonist, wakaharu]
+    visibility: public
+    detail:
+      before: [主角只把若晴當成知夏可能認識的晚輩。]
+      after: [主角知道攝影是若晴與知夏關係中的私人連結。]
+      reason: 照片背面留有若晴的簽名與日期。
+      affected_characters: [protagonist, wakaharu]
+      delayed_effects: [16:10 主角可以從攝影而不是知夏死亡切入談話。]
+      knowledge_changes: [fact_wakaharu_close_to_zhixia]
+      relationship_changes: []
+      narrative_refs: []
+
+  - id: N00_assign_yuan_postoffice
+    title: 請予安查郵局
+    time: "08:35"
+    actor_ids: [protagonist, yuan]
+    visibility: public
+    detail:
+      before: [予安下午原本要處理鐘錶店工作。]
+      after: [予安替主角查昨天是否真的有人寄出第七封信。]
+      reason: 主角無法同時查知夏房間與郵局。
+      affected_characters: [yuan, protagonist]
+      delayed_effects: [予安會錯過一部分車站周邊目擊資訊，但能帶回郵局紀錄。]
+      knowledge_changes: []
+      relationship_changes: [yuan.available_time -1]
+      narrative_refs: []
+
+  - id: N01_wakaharu_photography
+    title: 與若晴聊攝影
+    time: "09:10"
+    actor_ids: [protagonist, wakaharu]
+    visibility: public
+    detail:
+      before: [若晴把主角視為回來追查知夏的人，保持距離。]
+      after: [若晴願意談自己的攝影作品與離開灰潮鎮的打算。]
+      reason: 主角先關心若晴自己的生活，而不是直接追問知夏。
+      affected_characters: [wakaharu]
+      delayed_effects: []
+      knowledge_changes: []
+      relationship_changes: [wakaharu.trust_protagonist +1]
+      narrative_refs: [scene_wakaharu_cafe, loop02_1610_wakaharu_alive]
+
+  - id: N02_wakaharu_opens_up
+    title: 若晴放下戒心
+    time: "09:18"
+    actor_ids: [wakaharu]
+    visibility: public
+    detail:
+      before: [若晴不打算主動告知晚上的行程。]
+      after: [若晴願意透露今天還有一件與知夏有關的事要處理。]
+      reason: 她認為主角至少願意把她當成一個有自己人生的人。
+      affected_characters: [wakaharu, protagonist]
+      delayed_effects: []
+      knowledge_changes: [主角知道若晴晚上另有安排。]
+      relationship_changes: []
+      narrative_refs: [scene_wakaharu_cafe]
+
+  - id: N03_station_plan_known
+    title: 玩家知道若晴要去舊車站
+    time: "17:20"
+    actor_ids: [protagonist, wakaharu]
+    visibility: public
+    detail:
+      before: [若晴預計獨自前往舊車站。]
+      after: [主角知道她的目的地，可以選擇介入、尾隨或轉告他人。]
+      reason: 若晴信任足夠，主動透露行程。
+      affected_characters: [protagonist, wakaharu, reporter, yuan]
+      delayed_effects: []
+      knowledge_changes: ["reveal: station_plan"]
+      relationship_changes: []
+      narrative_refs: [scene_wakaharu_before_leaving, loop02_1645_wrong_warning]
+
+  - id: N04_stop_wakaharu
+    title: 若晴沒有去舊車站
+    time: "17:35"
+    actor_ids: [protagonist, wakaharu]
+    visibility: public
+    detail:
+      before: [若晴會在 17:45 左右離開咖啡店前往車站。]
+      after: [若晴留在咖啡店或回家，錯過 18:05 的交付。]
+      reason: 主角不是用「妳會死」逼她服從，而是理解她真正想離開灰潮鎮的生活目標，說服她先完成自己的作品集。
+      affected_characters: [wakaharu, doctor]
+      delayed_effects: [柏勳抵達車站後找不到原本的收件人。]
+      knowledge_changes: []
+      relationship_changes: [wakaharu.trust_protagonist 依說服方式改變]
+      narrative_refs: [loop02_1718_wakaharu_persuaded]
+
+  - id: N05_doctor_no_recipient
+    title: 柏勳抵達車站但若晴沒來
+    time: "18:05"
+    actor_ids: [doctor, wakaharu]
+    visibility: public
+    detail:
+      before: [柏勳依照五年前留下的約定，把封存資料帶到舊車站。]
+      after: [原定收件人缺席，柏勳必須自行決定資料去向。]
+      reason: 若晴被主角說服留在咖啡店處理自己的事情。
+      affected_characters: [doctor, wakaharu]
+      delayed_effects: [柏勳在車站停留時間超過原本的五分鐘。]
+      knowledge_changes: []
+      relationship_changes: []
+      narrative_refs: [loop02_1805_doctor_no_recipient]
+
+  - id: N05_doctor_calls_wakaharu
+    title: 柏勳兩次聯絡若晴未果
+    time: "18:07"
+    actor_ids: [doctor, wakaharu]
+    visibility: public
+    detail:
+      before: [柏勳可以選擇把資料留下或直接帶走。]
+      after: [沒有取得若晴即時同意，柏勳拒絕把知夏資料留在無人車站。]
+      reason: 第一通電話沒接，第二通進入語音信箱。
+      affected_characters: [doctor]
+      delayed_effects: [資料繼續留在柏勳身上。]
+      knowledge_changes: []
+      relationship_changes: []
+      narrative_refs: [loop02_1805_doctor_no_recipient]
+
+  - id: N05_doctor_keeps_documents
+    title: 柏勳決定自行帶回資料
+    time: "18:12"
+    actor_ids: [doctor]
+    visibility: public
+    detail:
+      before: [柏勳預計把封存資料交給若晴後離開。]
+      after: [柏勳沒有收件人，自己保管資料並開始返回醫院。]
+      reason: 他不願把林知夏的醫療資料留在無人看管的舊車站。
+      affected_characters: [doctor]
+      delayed_effects: [返程與基準世界線不同。]
+      knowledge_changes: []
+      relationship_changes: []
+      narrative_refs: [loop02_1812_doctor_decides_return]
+
+  - id: N05_doctor_enters_maintenance
+    title: 柏勳改走舊維修通道
+    time: "18:24"
+    actor_ids: [doctor]
+    visibility: public
+    detail:
+      before: [柏勳可繞回商店街返回醫院。]
+      after: [他為節省時間走進五年前也使用過的舊站維修通道。]
+      reason: 正門外道路施工，而維修通道能少繞十多分鐘。
+      affected_characters: [doctor]
+      delayed_effects: [18:31 時柏勳仍位於舊站異常設備影響範圍。]
+      knowledge_changes: []
+      relationship_changes: []
+      narrative_refs: [loop02_1824_maintenance_passage]
+
+  - id: N06_tell_reporter
+    title: 玩家把若晴行程告訴庭安
+    time: "17:24"
+    actor_ids: [protagonist, reporter]
+    visibility: public
+    detail:
+      before: [庭安原本 17:30 回旅館，19:50 再去舊研究所。]
+      after: [庭安取消原路線，提前前往舊車站。]
+      reason: 庭安知道知夏不希望若晴直接取得那份資料。
+      affected_characters: [reporter, wakaharu, doctor]
+      delayed_effects: [庭安的研究所行程被推遲。]
+      knowledge_changes: []
+      relationship_changes: []
+      narrative_refs: []
+
+  - id: N07_reporter_arrives_station
+    title: 庭安提前抵達舊車站
+    time: "17:52"
+    actor_ids: [reporter]
+    visibility: public
+    detail:
+      before: [庭安不會在 18:00 前出現在車站。]
+      after: [庭安能直接看到柏勳與若晴的交付。]
+      reason: 玩家提前透露若晴行程。
+      affected_characters: [reporter, doctor, wakaharu]
+      delayed_effects: []
+      knowledge_changes: [庭安確認柏勳仍保留知夏的資料。]
+      relationship_changes: []
+      narrative_refs: [scene_1810_yuan_observation]
+
+  - id: N08_reporter_confronts_doctor
+    title: 庭安攔下柏勳
+    time: "18:04"
+    actor_ids: [reporter, doctor]
+    visibility: public
+    detail:
+      before: [柏勳會在 18:05 快速完成交付。]
+      after: [柏勳被迫停下與庭安爭執，交付延後。]
+      reason: 庭安認為把資料交給若晴會重演五年前的錯誤。
+      affected_characters: [doctor, reporter, wakaharu]
+      delayed_effects: []
+      knowledge_changes: []
+      relationship_changes: [reporter.doctor_conflict +1]
+      narrative_refs: []
+
+  - id: N09_handoff_delayed
+    title: 柏勳延後離開
+    time: "18:12"
+    actor_ids: [doctor, wakaharu, reporter]
+    visibility: public
+    detail:
+      before: [柏勳原定 18:10 前離開車站。]
+      after: [柏勳仍停留在車站異常區附近。]
+      reason: 庭安介入交付。
+      affected_characters: [doctor, wakaharu, reporter]
+      delayed_effects: [18:31 時柏勳仍可能處於高風險區域。]
+      knowledge_changes: []
+      relationship_changes: []
+      narrative_refs: []
+
+  - id: N10_ask_yuan_to_join
+    title: 玩家要予安陪同去車站
+    time: "17:30"
+    actor_ids: [protagonist, yuan]
+    visibility: public
+    detail:
+      before: [予安 17:50 會回鐘錶店，20:00 與房仲見面。]
+      after: [予安改往舊車站，晚間私人行程被壓縮。]
+      reason: 主角需要一個可信任的人陪同。
+      affected_characters: [yuan, protagonist]
+      delayed_effects: [20:00 房仲約可能取消。, 18:31 異常可能在予安身上留下記憶殘留。]
+      knowledge_changes: []
+      relationship_changes: [yuan.trust_protagonist +1]
+      narrative_refs: []
+
+  - id: N11_yuan_at_station
+    title: 予安進入 18:31 異常區
+    time: "18:18"
+    actor_ids: [yuan]
+    visibility: public
+    detail:
+      before: [予安原本不會在收束點附近。]
+      after: [予安暴露於車站異常與停電。]
+      reason: 玩家把他帶進事件中心。
+      affected_characters: [yuan]
+      delayed_effects: [下一輪開始出現 Déjà vu。]
+      knowledge_changes: []
+      relationship_changes: []
+      narrative_refs: [scene_1810_yuan_observation]
+
+  - id: N12_yuan_misses_realtor
+    title: 予安錯過 20:00 房仲約
+    time: "20:00"
+    actor_ids: [yuan]
+    visibility: public
+    detail:
+      before: [予安原本會和房仲談出售鐘錶店。]
+      after: [看店安排取消，出售決定延後。]
+      reason: 玩家持續佔用予安的晚間時間。
+      affected_characters: [yuan]
+      delayed_effects: [予安繼續留在鐘錶店的時間變長。]
+      knowledge_changes: []
+      relationship_changes: []
+      narrative_refs: [scene_2000_yuan_realtor]
+
+  - id: N13_show_letter_to_reporter
+    title: 玩家向庭安出示第七封信
+    time: "16:48"
+    actor_ids: [protagonist, reporter]
+    visibility: public
+    detail:
+      before: [庭安只打算試探主角知道多少。]
+      after: [庭安確認跨世界線訊息再次出現，立即改變行程。]
+      reason: 她認得這類訊息曾在知夏身邊出現。
+      affected_characters: [reporter]
+      delayed_effects: [庭安可能取消 19:50 的研究所原定路線。]
+      knowledge_changes: [庭安知道第七封信已抵達主角手上。]
+      relationship_changes: []
+      narrative_refs: [scene_reporter_cafe]
+
+  - id: N14_question_doctor_early
+    title: 玩家提前詢問柏勳
+    time: "17:05"
+    actor_ids: [protagonist, doctor]
+    visibility: public
+    detail:
+      before: [柏勳按原計畫 17:40 離院。]
+      after: [柏勳知道主角已開始追查知夏與若晴，重新評估交付方式。]
+      reason: 主角在醫院直接提到知夏或若晴。
+      affected_characters: [doctor, wakaharu, protagonist]
+      delayed_effects: []
+      knowledge_changes: []
+      relationship_changes: [doctor.caution +1]
+      narrative_refs: [scene_doctor_before_leaving]
+
+  - id: N15_doctor_changes_route
+    title: 柏勳改變交付路線
+    time: "17:40"
+    actor_ids: [doctor]
+    visibility: public
+    detail:
+      before: [柏勳預計直接前往舊車站。]
+      after: [柏勳可能提早聯絡若晴、改由側路前往或暫緩交付。]
+      reason: 主角提前讓他意識到交付已被注意。
+      affected_characters: [doctor, wakaharu]
+      delayed_effects: [18:05 的人物碰面組合改變。]
+      knowledge_changes: []
+      relationship_changes: []
+      narrative_refs: []
+
+  - id: N16_baseline_handoff
+    title: 柏勳把資料交給若晴
+    time: "18:05"
+    actor_ids: [doctor, wakaharu]
+    visibility: public
+    detail:
+      before: [若晴與柏勳依約抵達。]
+      after: [若晴取得封存資料，柏勳準備離開。]
+      reason: 沒有前序介入破壞原定交付。
+      affected_characters: [doctor, wakaharu]
+      delayed_effects: []
+      knowledge_changes: []
+      relationship_changes: []
+      narrative_refs: [scene_1805_station_handoff]
+
+  - id: N17_wakaharu_warning
+    title: 若晴說出 18:31 不是死亡時間
+    time: "18:18"
+    actor_ids: [wakaharu, protagonist]
+    visibility: public
+    detail:
+      before: [主角把 18:31 當成單純死亡時間線索。]
+      after: [主角首次知道這個時間本身比死者更重要。]
+      reason: 若晴讀到知夏留下的內容，且仍願意信任主角。
+      affected_characters: [protagonist, wakaharu]
+      delayed_effects: []
+      knowledge_changes: [fact_1831_is_special]
+      relationship_changes: []
+      narrative_refs: [scene_1818_warning]
+
+  - id: N20_convergence_1831
+    title: 18:31 Convergence
+    time: "18:31"
+    actor_ids: []
+    visibility: public
+    detail:
+      before: [白天累積的所有路線、位置、信任與資訊差異在此匯合。]
+      after: [車站區域發生停電、鐘聲與異常；具體受害者依世界線不同。]
+      reason: 18:31 是灰潮鎮的因果收束點。
+      affected_characters: [wakaharu, doctor, reporter, yuan, protagonist]
+      delayed_effects: [23:59 鐘聲。, 00:00 世界線重置。]
+      knowledge_changes: []
+      relationship_changes: []
+      narrative_refs: []
+
+  - id: N21_wakaharu_dies
+    title: 若晴在舊車站死亡
+    time: "18:31"
+    actor_ids: [wakaharu, protagonist]
+    visibility: public
+    detail:
+      before: [若晴帶著柏勳交付的資料留在車站異常區。]
+      after: [若晴死亡，主角自然把柏勳視為第一嫌疑人。]
+      reason: 第一輪所有人物仍依基準行程抵達最危險的位置組合。
+      affected_characters: [wakaharu, protagonist, doctor, detective]
+      delayed_effects: [警方重啟五年前相同時間與地點的比較。]
+      knowledge_changes: [主角形成柏勳可能害死若晴的錯誤因果假設。]
+      relationship_changes: []
+      narrative_refs: [scene_1831_wakaharu, scene_1842_station_aftermath]
+
+  - id: N22_doctor_dies
+    title: 柏勳在 18:31 死亡
+    time: "18:31"
+    actor_ids: [doctor]
+    visibility: public
+    detail:
+      before: [若晴被阻止前往車站，柏勳仍帶著資料改走其他通道。]
+      after: [若晴存活，但柏勳成為這一輪死者。]
+      reason: 玩家改變收件人與返程，使柏勳留在收束影響範圍。
+      affected_characters: [doctor, wakaharu, protagonist]
+      delayed_effects: [主角確認死者可變，但 18:31 不變。]
+      knowledge_changes: [死者不是固定條件。]
+      relationship_changes: []
+      narrative_refs: [scene_1831_doctor, loop02_1831_doctor_death]
+
+  - id: N23_no_death
+    title: 18:31 無人死亡
+    time: "18:31"
+    actor_ids: [protagonist]
+    visibility: public
+    detail:
+      before: [玩家已避開目前知道的高風險路線與人物碰面。]
+      after: [18:31 異常仍發生，但沒有已知角色死亡。]
+      reason: 死亡不是收束本身，只是高偏差世界線常見的結果。
+      affected_characters: [protagonist, wakaharu, doctor, reporter, yuan]
+      delayed_effects: [23:59 鐘聲與 00:00 Reset 仍會發生。]
+      knowledge_changes: [死亡不是輪迴原因。]
+      relationship_changes: []
+      narrative_refs: [scene_1831_no_death]
+
+  - id: N24_evening_continues
+    title: 18:31 之後的夜晚仍繼續
+    time: "18:45"
+    actor_ids: [protagonist]
+    visibility: public
+    detail:
+      before: [主角剛經歷一種 18:31 結果。]
+      after: [死亡與否都不能直接結束這一天，玩家仍有時間追查結果。]
+      reason: 18:31 是修正開始，不是 Reset 本身。
+      affected_characters: [protagonist, yuan, detective]
+      delayed_effects: [當晚蒐集的資訊會成為下一輪的起點。]
+      knowledge_changes: []
+      relationship_changes: []
+      narrative_refs: []
+
+  - id: N22_detective_shift
+    title: 志遠開始懷疑不是單純謀殺
+    time: "19:10"
+    actor_ids: [detective, protagonist]
+    visibility: public
+    detail:
+      before: [志遠仍傾向把今日死亡視為獨立案件。]
+      after: [他第一次主動把今日電力異常與五年前知夏死亡現場連在一起。]
+      reason: 死者改變後仍重現 18:31、局部停電與舊站設備異常。
+      affected_characters: [detective, protagonist]
+      delayed_effects: [志遠開始重新檢視五年前沒有公開的證物。]
+      knowledge_changes: [五年前也曾有類似電力異常。]
+      relationship_changes: []
+      narrative_refs: [loop02_1910_detective_shift]
+
+  - id: N22_reporter_replans
+    title: 柏勳死亡使庭安取消研究所行程
+    time: "19:50"
+    actor_ids: [reporter]
+    visibility: public
+    detail:
+      before: [庭安原本計畫 19:50 獨自進舊研究所。]
+      after: [她先去確認柏勳攜帶的醫療資料是否被警方扣走。]
+      reason: 柏勳的死亡讓五年前被分散保管的資料重新暴露。
+      affected_characters: [reporter, detective]
+      delayed_effects: [舊研究所調查被推遲。]
+      knowledge_changes: []
+      relationship_changes: []
+      narrative_refs: [loop02_1950_reporter_replans]
+
+  - id: N22_wakaharu_resigns
+    title: 若晴存活後仍然辭職
+    time: "20:30"
+    actor_ids: [wakaharu, protagonist]
+    visibility: public
+    detail:
+      before: [玩家可能把「若晴活著」誤認成這條世界線已成功。]
+      after: [若晴照原計畫辭職、投稿，繼續準備離開灰潮鎮。]
+      reason: 辭職與攝影計畫本來就是若晴自己的人生，不是死亡事件的附屬支線。
+      affected_characters: [wakaharu, protagonist]
+      delayed_effects: [玩家第一次理解被救的人仍有不圍繞玩家的未來。]
+      knowledge_changes: []
+      relationship_changes: []
+      narrative_refs: [loop02_2030_wakaharu_resignation]
+
+  - id: N22_worldline_compare
+    title: 主角比較前兩條世界線
+    time: "22:10"
+    actor_ids: [protagonist]
+    visibility: public
+    detail:
+      before: [Loop 01 若晴死亡；Loop 02 若晴存活但柏勳死亡。]
+      after: [主角確認死者會變，但 18:31 與車站異常不變。]
+      reason: 只有跨世界線比較才能分開 Variable 與 Invariant。
+      affected_characters: [protagonist]
+      delayed_effects: [下一輪實驗目標改成讓 18:31 沒有人死亡。]
+      knowledge_changes: [18:31 比死者身分更接近核心。]
+      relationship_changes: []
+      narrative_refs: [loop02_2210_worldline_compare]
+
+  - id: N25_postoffice_no_record
+    title: 郵局沒有第七封信的寄件紀錄
+    time: "19:10"
+    actor_ids: [protagonist, yuan]
+    visibility: public
+    detail:
+      before: [主角仍能假設有人冒用知夏名義寄信。]
+      after: [一般寄件流程無法解釋昨天的郵戳與信件來源。]
+      reason: 予安或主角查到同批郵件紀錄中沒有對應寄件資訊。
+      affected_characters: [protagonist, yuan]
+      delayed_effects: [第七封信從惡作劇嫌疑轉為真正異常證據。]
+      knowledge_changes: [第七封信沒有正常寄件紀錄。]
+      relationship_changes: []
+      narrative_refs: []
+
+  - id: N26_case_summary_1831
+    title: 知夏五年前也是 18:31 死亡
+    time: "20:30"
+    actor_ids: [protagonist, detective]
+    visibility: public
+    detail:
+      before: [主角只知道若晴或柏勳在今天的 18:31 出事。]
+      after: [她確認五年前知夏在同一地點附近、同一分鐘死亡。]
+      reason: 志遠只提供正式案件摘要，不交出藏起來的錄音器。
+      affected_characters: [protagonist, detective]
+      delayed_effects: [主角會回家重新檢查停在 18:31 的手錶。]
+      knowledge_changes: [fact_detective_first_responder, fact_1831_is_special]
+      relationship_changes: []
+      narrative_refs: [scene_2030_detective_old_case]
+
+  - id: N27_watch_message
+    title: 手錶後蓋出現知夏警告
+    time: "22:40"
+    actor_ids: [protagonist]
+    visibility: public
+    detail:
+      before: [主角早上只把停錶視為死亡時間遺物。]
+      after: [她拆開後蓋，看到知夏留下的訊息。]
+      reason: 只有知道 18:31 重複出現後，主角才有理由重新檢查手錶。
+      affected_characters: [protagonist]
+      delayed_effects: [下一輪主角會主動改變第一個死者的行程。]
+      knowledge_changes: [不要先救第一個死者。]
+      relationship_changes: []
+      narrative_refs: [scene_2240_watch_warning]
+
+  - id: N28_impossible_bell
+    title: 沒有鐘的鐘樓響起
+    time: "23:59"
+    actor_ids: [protagonist]
+    visibility: public
+    detail:
+      before: [鐘樓的鐘體五年前已被拆除。]
+      after: [主角聽見物理上不應存在的鐘聲。]
+      reason: 午夜前的世界線修正進入最後階段。
+      affected_characters: [protagonist]
+      delayed_effects: [一分鐘後世界重置。]
+      knowledge_changes: [異常不只存在於舊車站。]
+      relationship_changes: []
+      narrative_refs: [scene_2359_impossible_bell, loop02_2359_bell_again]
+
+  - id: N29_midnight_reset
+    title: 00:00 世界重置
+    time: "00:00"
+    actor_ids: [protagonist]
+    visibility: public
+    detail:
+      before: [主角保留今天發生過的一切記憶。]
+      after: [日期重新回到 10 月 3 日，人物行程回復，但主角記憶與部分證據狀態保留。]
+      reason: 午夜是因果修正完成點。
+      affected_characters: [protagonist, wakaharu, doctor, reporter, yuan, detective]
+      delayed_effects: [下一輪開始。]
+      knowledge_changes: [主角確認自己被困在同一天。]
+      relationship_changes: []
+      narrative_refs: [scene_0000_reset, loop02_0000_reset_again]
+
+edges:
+  - { id: E00_01, source: N00_arrival_graytide, target: N00_shopkeeper_mistake, label: "return to town", visibility: public }
+  - { id: E00_loop02_resume, source: N00_loop02_reset_awareness, target: N00_yuan_reunion, label: "remember previous loop", visibility: public }
+  - { id: E00_02a, source: N00_shopkeeper_mistake, target: N00_correct_shopkeeper, label: "correct identity", visibility: public }
+  - { id: E00_02b, source: N00_shopkeeper_mistake, target: N00_leave_mistake, label: "let mistake stand", visibility: public }
+  - { id: E00_03a, source: N00_correct_shopkeeper, target: N00_yuan_reunion, label: "continue home", visibility: public }
+  - { id: E00_03b, source: N00_leave_mistake, target: N00_yuan_reunion, label: "continue home", visibility: public }
+  - { id: E00_04, source: N00_yuan_reunion, target: N00_old_house, label: "open old house", visibility: public }
+  - { id: E00_05, source: N00_old_house, target: N00_letter_discovered, label: "sort mail", visibility: public }
+  - { id: E00_06, source: N00_letter_discovered, target: N00_search_zhixia_room, label: "search for source", visibility: public }
+  - { id: E00_07a, source: N00_search_zhixia_room, target: N00_find_watch, label: "inspect watch", visibility: public }
+  - { id: E00_07b, source: N00_search_zhixia_room, target: N00_find_research_photo, label: "inspect desk", visibility: public }
+  - { id: E00_07c, source: N00_search_zhixia_room, target: N00_find_wakaharu_photo, label: "inspect photos", visibility: public }
+  - { id: E00_08, source: N00_letter_discovered, target: N00_assign_yuan_postoffice, label: "delegate post office", visibility: public }
+  - { id: E00_09a, source: N00_find_wakaharu_photo, target: N01_wakaharu_photography, label: "recognize her photography", visibility: public }
+  - { id: E00_09b, source: N00_find_watch, target: N01_wakaharu_photography, label: "continue investigation", visibility: public }
+  - { id: E00_09c, source: N00_find_research_photo, target: N13_show_letter_to_reporter, label: "recognize reporter", visibility: public }
+
+  - { id: E01_trust, source: N01_wakaharu_photography, target: N02_wakaharu_opens_up, label: "trust +1", visibility: public }
+  - { id: E02_reveal_station, source: N02_wakaharu_opens_up, target: N03_station_plan_known, label: "reveal: station_plan", visibility: public }
+  - { id: E03_stop_wakaharu, source: N03_station_plan_known, target: N04_stop_wakaharu, label: "understand her own goal", visibility: public }
+  - { id: E04_no_recipient, source: N04_stop_wakaharu, target: N05_doctor_no_recipient, label: "wakaharu absent", visibility: public }
+  - { id: E04b_call_wakaharu, source: N05_doctor_no_recipient, target: N05_doctor_calls_wakaharu, label: "call twice", visibility: public }
+  - { id: E04c_keep_documents, source: N05_doctor_calls_wakaharu, target: N05_doctor_keeps_documents, label: "keep documents", visibility: public }
+  - { id: E04d_maintenance_route, source: N05_doctor_keeps_documents, target: N05_doctor_enters_maintenance, label: "shorter return route", visibility: public }
+  - { id: E05_tell_reporter, source: N03_station_plan_known, target: N06_tell_reporter, label: "tell reporter", visibility: public }
+  - { id: E06_reporter_route, source: N06_tell_reporter, target: N07_reporter_arrives_station, label: "arrive station", visibility: public }
+  - { id: E07_confront, source: N07_reporter_arrives_station, target: N08_reporter_confronts_doctor, label: "confront doctor", visibility: public }
+  - { id: E08_delay_handoff, source: N08_reporter_confronts_doctor, target: N09_handoff_delayed, label: "delay handoff", visibility: public }
+  - { id: E09_baseline_handoff, source: N03_station_plan_known, target: N16_baseline_handoff, label: "no intervention", visibility: public }
+  - { id: E10_warning, source: N16_baseline_handoff, target: N17_wakaharu_warning, label: "trust + document", visibility: public }
+  - { id: E11_yuan_join, source: N03_station_plan_known, target: N10_ask_yuan_to_join, label: "ask yuan", visibility: public }
+  - { id: E12_yuan_station, source: N10_ask_yuan_to_join, target: N11_yuan_at_station, label: "route change", visibility: public }
+  - { id: E13_yuan_realtor, source: N11_yuan_at_station, target: N12_yuan_misses_realtor, label: "delayed: miss 20:00 appointment", visibility: public }
+  - { id: E14_show_letter, source: N13_show_letter_to_reporter, target: N06_tell_reporter, label: "reporter alarmed", visibility: public }
+  - { id: E15_doctor_caution, source: N14_question_doctor_early, target: N15_doctor_changes_route, label: "caution +1", visibility: public }
+  - { id: E16_route_to_convergence, source: N15_doctor_changes_route, target: N20_convergence_1831, label: "altered arrival", visibility: public }
+  - { id: E17_saved_to_convergence, source: N04_stop_wakaharu, target: N20_convergence_1831, label: "wakaharu absent", visibility: author }
+  - { id: E18_documents_to_convergence, source: N05_doctor_enters_maintenance, target: N20_convergence_1831, label: "doctor remains in anomaly area", visibility: public }
+  - { id: E19_delayed_to_convergence, source: N09_handoff_delayed, target: N20_convergence_1831, label: "doctor still nearby", visibility: public }
+  - { id: E20_baseline_to_convergence, source: N17_wakaharu_warning, target: N20_convergence_1831, label: "baseline arrival", visibility: public }
+  - { id: E21_yuan_to_convergence, source: N11_yuan_at_station, target: N20_convergence_1831, label: "yuan exposed", visibility: public }
+
+  - { id: E22_baseline_outcome, source: N20_convergence_1831, target: N21_wakaharu_dies, label: "baseline positions", visibility: public }
+  - { id: E23_doctor_outcome, source: N20_convergence_1831, target: N22_doctor_dies, label: "wakaharu saved / doctor exposed", visibility: public }
+  - { id: E24_no_death_outcome, source: N20_convergence_1831, target: N23_no_death, label: "known risks avoided", visibility: public }
+  - { id: E25_after_wakaharu, source: N21_wakaharu_dies, target: N24_evening_continues, label: "investigate death", visibility: public }
+  - { id: E26_after_doctor, source: N22_doctor_dies, target: N24_evening_continues, label: "compare changed victim", visibility: public }
+  - { id: E27_after_no_death, source: N23_no_death, target: N24_evening_continues, label: "wait for midnight", visibility: public }
+  - { id: E28_postoffice, source: N00_assign_yuan_postoffice, target: N25_postoffice_no_record, label: "return with result", visibility: public }
+  - { id: E29_evening_case, source: N24_evening_continues, target: N26_case_summary_1831, label: "compare five years ago", visibility: public }
+  - { id: E30_post_to_case, source: N25_postoffice_no_record, target: N26_case_summary_1831, label: "letter remains unexplained", visibility: public }
+  - { id: E31_case_to_watch, source: N26_case_summary_1831, target: N27_watch_message, label: "recheck 18:31 watch", visibility: public }
+  - { id: E32_watch_to_bell, source: N27_watch_message, target: N28_impossible_bell, label: "approach midnight", visibility: public }
+  - { id: E33_bell_to_reset, source: N28_impossible_bell, target: N29_midnight_reset, label: "00:00", visibility: public }
+
+  - { id: E34_loop02_detective, source: N24_evening_continues, target: N22_detective_shift, label: "same anomaly, different victim", visibility: public }
+  - { id: E35_loop02_reporter, source: N24_evening_continues, target: N22_reporter_replans, label: "doctor death changes plan", visibility: public }
+  - { id: E36_loop02_wakaharu, source: N24_evening_continues, target: N22_wakaharu_resigns, label: "survivor continues own life", visibility: public }
+  - { id: E37_detective_compare, source: N22_detective_shift, target: N22_worldline_compare, label: "five-year anomaly", visibility: public }
+  - { id: E38_reporter_compare, source: N22_reporter_replans, target: N22_worldline_compare, label: "downstream route changed", visibility: public }
+  - { id: E39_wakaharu_compare, source: N22_wakaharu_resigns, target: N22_worldline_compare, label: "life continues", visibility: public }
+  - { id: E40_loop02_bell, source: N22_worldline_compare, target: N28_impossible_bell, label: "wait for invariant", visibility: public }

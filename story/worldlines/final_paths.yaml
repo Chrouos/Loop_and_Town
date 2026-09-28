@@ -1,0 +1,93 @@
+paths:
+  - id: ending_a_tomorrow
+    label: Ending A｜明天
+    visibility: public
+    node_ids:
+      - F_N00_full_truth
+      - F_N01_everyone_chooses
+      - F_N02_wakaharu_decides
+      - F_N03_doctor_decides
+      - F_N04_reporter_decides
+      - F_N05_detective_decides
+      - F_N06_yuan_decides
+      - F_N06b_handoff_open
+      - F_N07_collective_1831
+      - F_N08_protagonist_choice
+      - F_N09_ending_a
+    edge_ids:
+      - F_E00
+      - F_E01a
+      - F_E01b
+      - F_E01c
+      - F_E01d
+      - F_E01e
+      - F_E02a
+      - F_E02b
+      - F_E02c
+      - F_E02d
+      - F_E02e
+      - F_E03
+      - F_E04
+      - F_E05a
+
+  - id: ending_b_once_more
+    label: Ending B｜再一次
+    visibility: public
+    node_ids:
+      - F_N00_full_truth
+      - F_N01_everyone_chooses
+      - F_N02_wakaharu_decides
+      - F_N03_doctor_decides
+      - F_N04_reporter_decides
+      - F_N05_detective_decides
+      - F_N06_yuan_decides
+      - F_N06b_handoff_open
+      - F_N07_collective_1831
+      - F_N08_protagonist_choice
+      - F_N10_ending_b
+    edge_ids:
+      - F_E00
+      - F_E01a
+      - F_E01b
+      - F_E01c
+      - F_E01d
+      - F_E01e
+      - F_E02a
+      - F_E02b
+      - F_E02c
+      - F_E02d
+      - F_E02e
+      - F_E03
+      - F_E04
+      - F_E05b
+
+  - id: ending_c_forget_me
+    label: Ending C｜忘記我
+    visibility: public
+    node_ids:
+      - F_N00_full_truth
+      - F_N01_everyone_chooses
+      - F_N02_wakaharu_decides
+      - F_N03_doctor_decides
+      - F_N04_reporter_decides
+      - F_N05_detective_decides
+      - F_N06_yuan_decides
+      - F_N06b_handoff_open
+      - F_N07_collective_1831
+      - F_N08_protagonist_choice
+      - F_N11_ending_c
+    edge_ids:
+      - F_E00
+      - F_E01a
+      - F_E01b
+      - F_E01c
+      - F_E01d
+      - F_E01e
+      - F_E02a
+      - F_E02b
+      - F_E02c
+      - F_E02d
+      - F_E02e
+      - F_E03
+      - F_E04
+      - F_E05c

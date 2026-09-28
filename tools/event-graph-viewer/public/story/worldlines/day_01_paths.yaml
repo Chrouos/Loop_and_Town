@@ -1,0 +1,140 @@
+paths:
+  - id: loop_01_baseline
+    label: Loop 01｜第一個今天
+    visibility: public
+    node_ids:
+      - N00_arrival_graytide
+      - N00_shopkeeper_mistake
+      - N00_correct_shopkeeper
+      - N00_yuan_reunion
+      - N00_old_house
+      - N00_letter_discovered
+      - N00_search_zhixia_room
+      - N00_find_watch
+      - N00_find_wakaharu_photo
+      - N00_assign_yuan_postoffice
+      - N01_wakaharu_photography
+      - N02_wakaharu_opens_up
+      - N03_station_plan_known
+      - N16_baseline_handoff
+      - N17_wakaharu_warning
+      - N20_convergence_1831
+      - N21_wakaharu_dies
+      - N24_evening_continues
+      - N25_postoffice_no_record
+      - N26_case_summary_1831
+      - N27_watch_message
+      - N28_impossible_bell
+      - N29_midnight_reset
+    edge_ids:
+      - E00_01
+      - E00_02a
+      - E00_03a
+      - E00_04
+      - E00_05
+      - E00_06
+      - E00_07a
+      - E00_07c
+      - E00_08
+      - E00_09a
+      - E01_trust
+      - E02_reveal_station
+      - E09_baseline_handoff
+      - E10_warning
+      - E20_baseline_to_convergence
+      - E22_baseline_outcome
+      - E25_after_wakaharu
+      - E28_postoffice
+      - E29_evening_case
+      - E30_post_to_case
+      - E31_case_to_watch
+      - E32_watch_to_bell
+      - E33_bell_to_reset
+
+  - id: loop_02_wakaharu_saved_doctor_dies
+    label: Loop 02｜若晴存活・柏勳死亡
+    visibility: public
+    node_ids:
+      - N00_loop02_reset_awareness
+      - N00_yuan_reunion
+      - N00_old_house
+      - N00_letter_discovered
+      - N00_search_zhixia_room
+      - N00_find_wakaharu_photo
+      - N01_wakaharu_photography
+      - N02_wakaharu_opens_up
+      - N03_station_plan_known
+      - N04_stop_wakaharu
+      - N05_doctor_no_recipient
+      - N05_doctor_calls_wakaharu
+      - N05_doctor_keeps_documents
+      - N05_doctor_enters_maintenance
+      - N20_convergence_1831
+      - N22_doctor_dies
+      - N24_evening_continues
+      - N22_detective_shift
+      - N22_reporter_replans
+      - N22_wakaharu_resigns
+      - N22_worldline_compare
+      - N28_impossible_bell
+      - N29_midnight_reset
+    edge_ids:
+      - E00_loop02_resume
+      - E00_04
+      - E00_05
+      - E00_06
+      - E00_07c
+      - E00_09a
+      - E01_trust
+      - E02_reveal_station
+      - E03_stop_wakaharu
+      - E04_no_recipient
+      - E04b_call_wakaharu
+      - E04c_keep_documents
+      - E04d_maintenance_route
+      - E18_documents_to_convergence
+      - E23_doctor_outcome
+      - E26_after_doctor
+      - E34_loop02_detective
+      - E35_loop02_reporter
+      - E36_loop02_wakaharu
+      - E37_detective_compare
+      - E38_reporter_compare
+      - E39_wakaharu_compare
+      - E40_loop02_bell
+      - E33_bell_to_reset
+
+  - id: loop_author_reporter_intervention
+    label: Author｜庭安介入交付
+    visibility: author
+    node_ids:
+      - N00_arrival_graytide
+      - N00_old_house
+      - N00_letter_discovered
+      - N00_search_zhixia_room
+      - N00_find_research_photo
+      - N13_show_letter_to_reporter
+      - N06_tell_reporter
+      - N07_reporter_arrives_station
+      - N08_reporter_confronts_doctor
+      - N09_handoff_delayed
+      - N20_convergence_1831
+      - N24_evening_continues
+      - N26_case_summary_1831
+      - N27_watch_message
+      - N28_impossible_bell
+      - N29_midnight_reset
+    edge_ids:
+      - E00_05
+      - E00_06
+      - E00_07b
+      - E00_09c
+      - E14_show_letter
+      - E06_reporter_route
+      - E07_confront
+      - E08_delay_handoff
+      - E19_delayed_to_convergence
+      - E29_evening_case
+      - E31_case_to_watch
+      - E32_watch_to_bell
+      - E33_bell_to_reset

@@ -1,0 +1,224 @@
+scenes:
+  - id: loop02_1420_reset_awareness
+    at: { day: 0, time: "06:12" }
+    kind: narration
+    participants: [protagonist]
+    blocks:
+      - type: narration
+        text: 「下一站，灰潮鎮。」廣播響起時，我已經站了起來。
+      - type: narration
+        text: 昨晚沾在袖口上的灰不見了，手機裡也沒有若晴死亡後的任何通話紀錄。
+      - type: monologue
+        text: 不是夢。因為我知道接下來每一個人會說什麼，也知道 18:31 會發生什麼。
+      - type: monologue
+        text: 這一次，若晴不能去舊車站。
+
+  - id: loop02_1610_wakaharu_alive
+    at: { day: 0, time: "08:02" }
+    kind: dialogue
+    participants: [protagonist, wakaharu]
+    blocks:
+      - type: narration
+        text: 若晴正在替靠窗的客人換水。她活著，動作和平常一樣快，甚至因為找不到筆而皺了一下眉。
+      - type: monologue
+        text: 我盯得太久，她終於抬起頭。
+      - type: dialogue
+        speaker: wakaharu
+        text: 妳幹嘛那樣看我？
+      - type: monologue
+        text: 我差點說「因為妳昨天死了」。最後只指了指她桌邊的攝影作品集。
+
+  - id: loop02_1645_wrong_warning
+    at: { day: 0, time: "08:37" }
+    kind: dialogue
+    participants: [protagonist, wakaharu]
+    blocks:
+      - type: dialogue
+        speaker: protagonist
+        text: 今天不要去舊車站。
+      - type: dialogue
+        speaker: wakaharu
+        text: ……為什麼？
+      - type: narration
+        text: 她沒有立刻害怕，只是把作品集闔起來。那個動作比退後更像一道門。
+      - type: dialogue
+        speaker: wakaharu
+        text: 如果妳又是因為知夏姊才來替我決定事情，那妳可以不用管。
+
+  - id: loop02_1718_wakaharu_persuaded
+    at: { day: 0, time: "09:10" }
+    kind: dialogue
+    participants: [protagonist, wakaharu]
+    blocks:
+      - type: narration
+        text: 我沒有再提死亡，也沒有拿姊姊壓她。我把她下午收到的外地攝影課程通知推回她面前。
+      - type: dialogue
+        speaker: protagonist
+        text: 妳不是說今天想把作品集最後一版送出去？先做妳自己的事。車站那件事晚一天不會消失。
+      - type: dialogue
+        speaker: wakaharu
+        text: 妳今天真的很奇怪。
+      - type: narration
+        text: 她看了我很久，最後把原本準備帶去車站的外套重新掛回椅背。
+      - type: dialogue
+        speaker: wakaharu
+        text: 好。我先把攝影那邊處理完。陳醫生那邊我再跟他說。
+
+  - id: loop02_1742_doctor_departure
+    at: { day: 0, time: "09:34" }
+    kind: narration
+    participants: [doctor]
+    blocks:
+      - type: narration
+        text: 柏勳離開醫院時，把一只牛皮紙袋放進公事包最內層。
+      - type: narration
+        text: 他沒有收到若晴取消會面的訊息。手機在白袍口袋裡震過一次，被他錯過了。
+      - type: narration
+        text: 對他而言，今天仍只是把拖了五年的東西交還出去。
+
+  - id: loop02_1805_doctor_no_recipient
+    at: { day: 0, time: "09:57" }
+    kind: narration
+    participants: [doctor]
+    blocks:
+      - type: narration
+        text: 柏勳站在舊車站入口等了幾分鐘。若晴沒來。
+      - type: narration
+        text: 他撥了兩次電話。第一次沒接，第二次被直接轉進語音信箱。
+      - type: monologue
+        text: 原本只需要五分鐘的交付，現在變成了一個必須重新決定的問題。
+      - type: narration
+        text: 他沒有把資料留在無人的置物櫃，而是重新收回公事包。
+
+  - id: loop02_1812_doctor_decides_return
+    at: { day: 0, time: "10:04" }
+    kind: dialogue
+    participants: [doctor]
+    blocks:
+      - type: narration
+        text: 柏勳傳了一則訊息給若晴：「資料我先帶回去。妳準備好再找我。」
+      - type: narration
+        text: 正門外的道路正在施工。他看了一眼時間，轉向舊站側邊那條早已停用的員工通道。
+      - type: monologue
+        text: 那是他五年前就走過的路。比繞回商店街快十幾分鐘。
+
+  - id: loop02_1824_maintenance_passage
+    at: { day: 0, time: "10:16" }
+    kind: narration
+    participants: [doctor]
+    blocks:
+      - type: narration
+        text: 維修通道的感應燈只亮了一半。柏勳用手機照著地面，從兩扇生鏽的配電門中間穿過。
+      - type: narration
+        text: 頭頂原本沒有電的舊燈忽然閃了一下。
+      - type: narration
+        text: 他停住腳步。牆上的指示燈一格一格亮起，像有人在另一頭重新啟動了停用多年的設備。
+      - type: monologue
+        text: 他第一個反應不是逃跑，而是回頭看公事包裡那份屬於林知夏的紀錄。
+
+  - id: loop02_1831_doctor_death
+    at: { day: 0, time: "18:31" }
+    kind: narration
+    participants: [protagonist, doctor]
+    blocks:
+      - type: narration
+        text: 18:31。
+      - type: narration
+        text: 商店街的燈同時暗了一瞬。我立刻打給若晴。
+      - type: dialogue
+        speaker: wakaharu
+        text: 我在店裡。怎麼了？
+      - type: narration
+        text: 她的聲音還在。下一秒，遠處傳來我已經聽過一次的鐘聲。
+      - type: narration
+        text: 十七分鐘後，消防員在舊車站維修通道找到陳柏勳。維修門從內側鎖死，舊配電設備卻留下剛啟動過的高熱。
+      - type: monologue
+        text: 我救了若晴。可是死掉的人沒有消失，只是換了一個名字。
+
+  - id: loop02_1910_detective_shift
+    at: { day: 0, time: "19:10" }
+    kind: dialogue
+    participants: [protagonist, detective]
+    blocks:
+      - type: dialogue
+        speaker: detective
+        text: 五年前那天，舊站附近也跳過一次電。
+      - type: narration
+        text: 志遠說完就停住，像是後悔自己多講了一句。
+      - type: dialogue
+        speaker: protagonist
+        text: 姊姊也是 18:31。今天也是。差別只有死的人。
+      - type: narration
+        text: 這一次，他沒有立刻叫我不要亂聯想。
+
+  - id: loop02_1950_reporter_replans
+    at: { day: 0, time: "19:50" }
+    kind: narration
+    participants: [reporter]
+    blocks:
+      - type: narration
+        text: 庭安原本已經走到舊研究所外圍，卻在收到柏勳死亡的消息後停下。
+      - type: narration
+        text: 她沒有進研究所，而是掉頭去確認警方帶走了哪些遺物。
+      - type: monologue
+        text: 我改掉若晴的行程，柏勳改了路，現在連庭安晚上原本要做的事也跟著消失了。
+
+  - id: loop02_2030_wakaharu_resignation
+    at: { day: 0, time: "20:30" }
+    kind: dialogue
+    participants: [protagonist, wakaharu]
+    blocks:
+      - type: narration
+        text: 咖啡店已經打烊一半。若晴從圍裙口袋拿出一個折了很多次的信封，放到店長面前。
+      - type: narration
+        text: 上面只有兩個字：辭職。
+      - type: dialogue
+        speaker: wakaharu
+        text: 我本來以為今天做完那件事，就可以走了。
+      - type: narration
+        text: 她看了一眼手機上陳醫生未讀的最後一則訊息。
+      - type: dialogue
+        speaker: wakaharu
+        text: 結果好像還是得走。
+      - type: monologue
+        text: 她活下來之後沒有停在原地等我。她還是要投稿、辭職、照顧母親，也還是想離開灰潮鎮。
+
+  - id: loop02_2210_worldline_compare
+    at: { day: 0, time: "22:10" }
+    kind: narration
+    participants: [protagonist]
+    blocks:
+      - type: narration
+        text: 我在紙上畫了兩欄。
+      - type: narration
+        text: 第一輪：若晴，18:31。第二輪：柏勳，18:31。
+      - type: monologue
+        text: 我改了死者。沒有改掉時間。
+      - type: monologue
+        text: 知夏留下的警告不是叫我更快救人。她是在叫我不要把死者當成原因。
+
+  - id: loop02_2359_bell_again
+    at: { day: 0, time: "23:59" }
+    kind: narration
+    participants: [protagonist]
+    blocks:
+      - type: narration
+        text: 23:59。第二次，我提前盯著手機上的秒數。
+      - type: narration
+        text: 我知道鐘樓裡沒有鐘，也知道接下來會聽見什麼。
+      - type: narration
+        text: 第一聲響起時，我沒有被嚇到。真正讓我害怕的是——它和上一輪一模一樣。
+
+  - id: loop02_0000_reset_again
+    at: { day: 1, time: "00:00" }
+    kind: narration
+    participants: [protagonist]
+    blocks:
+      - type: narration
+        text: 世界再次被切斷。
+      - type: narration
+        text: 「下一站，灰潮鎮。」
+      - type: narration
+        text: 我睜開眼，列車窗外仍是同一片灰色海岸。
+      - type: monologue
+        text: 若晴活下來沒有用。柏勳死了也沒有用。那如果 18:31 沒有人死呢？

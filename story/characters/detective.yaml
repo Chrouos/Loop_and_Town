@@ -5,29 +5,40 @@ identity:
   occupation: 刑警
   hometown: 灰潮鎮
 background:
-  summary: 灰潮鎮刑警；五年前是林知夏死亡案件的第一批到場人員之一，至今仍保留部分未公開的案件資訊。
+  summary: 灰潮鎮刑警；五年前是林知夏死亡案件第一批到場人員之一，至今仍保留一件未登錄證物，也因此從未真正相信知夏只是意外死亡。
   history:
     - 五年前參與林知夏死亡案件處理。
-    - 熟悉鎮內監視器、戶籍、車牌與舊案資料。
+    - 當晚找到一台停在 18:31 的錄音設備。
+    - 錄音內出現「尚未抵達現場的自己」的聲音，因此沒有將設備登錄進正式證物清單。
+    - 五年間持續私下比對相關事故，但沒有找到能用正式程序說明的證據。
+  current_goal: 維持現行調查程序，同時確認今天的異常是否與五年前同一件未解事件有關。
+  inner_conflict: 他最重視證據與程序，卻親手藏了一件最重要的證物。
 personality:
   traits:
     - 審慎
     - 重視紀錄
     - 不輕易承諾
+    - 對無法驗證的資訊非常防備
   habits:
     - 對時間與證物編號記得很清楚
+    - 遇到矛盾證詞時會先重建時間線，不立刻判斷動機
   dislikes:
     - 沒有證據的指控
+    - 私自隱藏關鍵資料，即使自己也做過同樣的事
 speech:
   tone: measured
   calls:
     protagonist: 妳
     zhixia: 林知夏
+    doctor: 陳醫生
 knowledge:
   initial:
     - fact_zhixia_dead_five_years
     - fact_detective_first_responder
   hidden:
     - fact_missing_evidence_exists
+    - fact_1831_is_special
 secrets:
   - 五年前有一項證物沒有登錄進正式證物清單。
+  - 未登錄證物是一台錄音設備，其中錄到當時尚未抵達現場的自己。
+  - 他一直懷疑陳柏勳隱瞞醫療資料，卻沒有意識到兩人其實做了同樣的選擇。

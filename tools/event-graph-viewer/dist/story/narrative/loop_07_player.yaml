@@ -1,0 +1,214 @@
+scenes:
+  - id: loop07_0612_final_question
+    at: { day: 0, time: "06:12" }
+    kind: narration
+    participants: [protagonist, zhixia]
+    blocks:
+      - type: narration
+        text: 06:12。我在列車震動裡醒來，第一件事不是確認今天誰會死，而是打開第七封信。昨晚新增的字還在。
+      - type: narration
+        text: 第七個不是讓我記得。是讓妳收到。
+      - type: narration
+        text: 紙面慢慢浮出另一句話：不要問我怎麼救所有人。問我，我最後選了誰。
+      - type: monologue
+        text: 我沒有立刻追問。因為我已經知道，那句話不可能有乾淨的答案。
+
+  - id: loop07_0830_hidden_notebook
+    at: { day: 0, time: "08:30" }
+    kind: dialogue
+    participants: [protagonist, reporter, zhixia]
+    blocks:
+      - type: narration
+        text: 庭安帶我進舊研究所資料室最裡面，把一塊鬆掉的牆板拆下來。後面不是設備，而是一本被塑膠袋包了五年的工作筆記。
+      - type: dialogue
+        speaker: reporter
+        text: 我不是只燒過她的信。這一本，是我藏的。
+      - type: narration
+        text: 每一頁都不是「誰該死」，而是某條世界線發生過什麼：世界線 14，若晴存活，柏勳死亡。世界線 19，柏勳存活，志遠重傷。世界線 23，我留在灰潮鎮，18:31 後失聯。
+      - type: dialogue
+        speaker: reporter
+        text: 一開始她每頁都寫「再試一次」。後來寫「不能全部保住」。再後來，只剩數字。
+
+  - id: loop07_0920_worldline_31
+    at: { day: 0, time: "09:20" }
+    kind: narration
+    participants: [protagonist, reporter, zhixia]
+    blocks:
+      - type: narration
+        text: 我翻到世界線 31。那一頁比其他頁乾淨，只有我的名字、死亡，以及 18:31。
+      - type: narration
+        text: 五年前的那一輪，姊第一次真正把我留在灰潮鎮。我們沒有爭吵，甚至一起吃了晚餐。
+      - type: narration
+        text: 18:31 前後，舊站供電異常、街區號誌失效，一輛車偏離道路。我死了。不是謀殺，也不是世界指定誰必須死，只是一條被改寫過的因果鏈把我放進了那個位置。
+      - type: dialogue
+        speaker: reporter
+        text: 那是她開始變的那一輪。
+      - type: monologue
+        text: 她不是第一次救不了我。她是第一次成功把我留下，然後看著那個選擇殺死我。
+
+  - id: loop07_1040_designed_argument
+    at: { day: 0, time: "10:40" }
+    kind: dialogue
+    participants: [protagonist, reporter, zhixia]
+    blocks:
+      - type: narration
+        text: 我一直記得死亡前半年那場爭吵。知夏突然冷下來，專挑我最不能忍的話說。
+      - type: dialogue
+        speaker: zhixia
+        text: 妳不是一直都想離開嗎？那就走啊。
+      - type: narration
+        text: 我真的走了。五年沒有回來。現在才知道，她記得世界線 31，所以開始把「讓妹妹留下」改成「無論如何讓妹妹離開」。
+      - type: dialogue
+        speaker: protagonist
+        text: 所以她是為了救我？
+      - type: dialogue
+        speaker: reporter
+        text: 是。但這不代表她後來做的每件事都對。
+
+  - id: loop07_1210_people_as_variables
+    at: { day: 0, time: "12:10" }
+    kind: narration
+    participants: [protagonist, reporter, zhixia]
+    blocks:
+      - type: narration
+        text: 筆記後半開始出現我很熟悉的東西：每個人的時間、路線、能被什麼話說服、哪一通電話會讓誰晚七分鐘出門。
+      - type: narration
+        text: 知夏沒有發現「死亡會自動轉移」。她發現的是更危險的事：只要改變行程，風險就會沿著新的因果鏈落到不同人身上。
+      - type: narration
+        text: 她有幾次明知道某個安排會讓另一個人更靠近危險，仍然選了那條世界線，因為她算過總傷亡更少，或者因為那條線能把我送出灰潮鎮。
+      - type: monologue
+        text: 她不是把死亡從我身上搬給別人。她是開始接受「別人承擔比較大的風險」作為可以比較的結果。
+
+  - id: loop07_1340_final_break
+    at: { day: 0, time: "13:40" }
+    kind: dialogue
+    participants: [protagonist, reporter, zhixia]
+    blocks:
+      - type: narration
+        text: 庭安把另一段舊錄音放進播放器。兩個人的聲音都很疲倦，像這場爭論早就重複過很多次。
+      - type: dialogue
+        speaker: reporter
+        text: 妳現在已經不是在救人了。
+      - type: dialogue
+        speaker: zhixia
+        text: 那我要怎麼辦？
+      - type: dialogue
+        speaker: reporter
+        text: 至少不要替所有人決定。
+      - type: dialogue
+        speaker: zhixia
+        text: 可是如果我不決定，死的人只會更多。
+      - type: dialogue
+        speaker: reporter
+        text: 那妳有沒有問過他們？
+      - type: dialogue
+        speaker: zhixia
+        text: ……來不及。
+
+  - id: loop07_1500_do_not_become_me
+    at: { day: 0, time: "15:00" }
+    kind: narration
+    participants: [protagonist, reporter, zhixia]
+    blocks:
+      - type: narration
+        text: 工作筆記最後一頁沒有解法，也沒有下一條安全路線。
+      - type: narration
+        text: 只有一句話：如果她回來，不要讓她變成我。
+      - type: dialogue
+        speaker: reporter
+        text: 我五年前沒有把這句交給妳。我以為妳不知道，就不會回來碰這些。
+      - type: monologue
+        text: 可是第七封還是把我叫回來了。不是要我完成姊的計算，而是要我看懂她最後為什麼不再相信那套算法。
+
+  - id: loop07_1620_letter_reply
+    at: { day: 0, time: "16:20" }
+    kind: narration
+    participants: [protagonist, zhixia]
+    blocks:
+      - type: narration
+        text: 我在第七封空白處寫：妳既然不想讓我變成妳，為什麼還叫我回來？
+      - type: narration
+        text: 很久沒有任何字出現。直到紙纖維像被水浸過一樣慢慢變深。
+      - type: narration
+        text: 因為我一個人做錯了。
+      - type: narration
+        text: 所以這一次，不該再由一個人決定。
+      - type: monologue
+        text: 她沒有把答案留給我。她把決定權退了回來。
+
+  - id: loop07_1758_yuan_choice
+    at: { day: 0, time: "17:58" }
+    kind: dialogue
+    participants: [protagonist, yuan]
+    blocks:
+      - type: narration
+        text: 17:58，予安那支用了很多年的舊手機響了。畫面沒有號碼，和五年前那通未接來電一樣。
+      - type: dialogue
+        speaker: yuan
+        text: 妳要我接嗎？
+      - type: narration
+        text: 我差點直接回答。這幾輪裡，我已經太習慣知道哪個選項可能導向哪個結果。
+      - type: dialogue
+        speaker: protagonist
+        text: 我可以把我知道的告訴你。但接不接，你自己決定。
+      - type: narration
+        text: 他看了我一眼，沒有把手機遞過來。這一次，最後按下按鍵的人會是予安自己。
+
+  - id: loop07_1758_yuan_answers
+    at: { day: 0, time: "17:58" }
+    kind: dialogue
+    participants: [protagonist, yuan]
+    blocks:
+      - type: narration
+        text: 予安自己按下接聽，開了擴音。
+      - type: dialogue
+        speaker: yuan
+        text: 喂？
+      - type: narration
+        text: 電話另一端先是一段像列車經過隧道的雜訊，接著出現我的聲音。不是現在的我。
+      - type: dialogue
+        speaker: protagonist
+        text: 18:31 之後，不要再救我。
+      - type: narration
+        text: 通話立刻斷線。予安沒有問我是不是早就知道。他只把手機收回口袋，像在保留自己剛才做出的決定。
+
+  - id: loop07_1758_yuan_declines
+    at: { day: 0, time: "17:58" }
+    kind: dialogue
+    participants: [protagonist, yuan]
+    blocks:
+      - type: narration
+        text: 予安盯著螢幕幾秒，最後按掉來電。
+      - type: dialogue
+        speaker: yuan
+        text: 五年前我沒接，是因為在生氣。今天不接，是我知道它可能改變很多事，還是決定先不讓一通不知道從哪裡來的電話替我選。
+      - type: narration
+        text: 我沒有阻止他。也沒有偷偷把這條世界線標成錯誤答案。
+      - type: monologue
+        text: 不知道電話裡有什麼，會讓我難受。但那不是把決定搶回來的理由。
+
+  - id: loop07_1831_collective_convergence
+    at: { day: 0, time: "18:31" }
+    kind: narration
+    participants: [protagonist, yuan, wakaharu, doctor, reporter, detective]
+    blocks:
+      - type: narration
+        text: 18:31 到來時，若晴、予安、柏勳、庭安和志遠都知道我們為什麼聚在這裡。沒有人被我單獨安排到某個「安全位置」。
+      - type: narration
+        text: 燈光短暫熄滅。遠處傳來那口早已拆掉的鐘。沒有人倒下，也沒有人立刻按照我的指示移動。
+      - type: monologue
+        text: 世界沒有在等一個死人。至少這一次，看起來更像是在等我們怎麼面對同一件事。
+
+  - id: loop07_1831_collective_burden
+    at: { day: 0, time: "18:31" }
+    kind: narration
+    participants: [protagonist, yuan, wakaharu, doctor, reporter, detective, zhixia]
+    blocks:
+      - type: narration
+        text: 第七封信在我手裡變熱，紙上慢慢浮出最後兩行。
+      - type: narration
+        text: 這次不要選誰活。
+      - type: narration
+        text: 選你們願意一起承擔什麼。
+      - type: narration
+        text: 我抬頭看向其他人。第一次，我沒有先把下一步寫進自己的筆記本。

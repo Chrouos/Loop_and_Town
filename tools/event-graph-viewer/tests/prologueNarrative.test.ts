@@ -9,8 +9,8 @@ function sceneIndex(id: string): number {
 it('starts as ordinary life before the impossible letter', () => {
   const story = loadRealStory();
   const scenes = story.narrative.scenes;
-  expect(scenes.find((scene) => scene.id === 'prologue_arrival')?.at).toEqual({ day: 0, time: '14:20' });
-  expect(scenes.find((scene) => scene.id === 'prologue_yuan_reunion')?.at).toEqual({ day: 0, time: '14:40' });
+  expect(scenes.find((scene) => scene.id === 'prologue_arrival')?.at).toEqual({ day: 0, time: '06:12' });
+  expect(scenes.find((scene) => scene.id === 'prologue_yuan_reunion')?.at).toEqual({ day: 0, time: '07:40' });
   const letter = scenes.find((scene) => scene.id === 'prologue_letter_discovery');
   expect(letter?.requiresLocation).toBe('old_house');
   expect(letter?.afterActivityId).toBe('sort_mail');

@@ -5,20 +5,28 @@ identity:
   occupation: 鐘錶店店主
   hometown: 灰潮鎮
 background:
-  summary: 主角的高中同學，也是她離開灰潮鎮後少數仍偶爾聯絡的人；家裡一直經營老街鐘錶店。
+  summary: 主角的高中同學，也是她離開灰潮鎮後少數仍偶爾聯絡的人；父親過世後接下家裡的老街鐘錶店，但其實已經開始考慮出售。
   history:
     - 從小認識林知夏。
+    - 五年前 17:58 曾收到知夏最後一通電話，當時因和父親爭吵沒有接。
     - 主角離開後仍留在灰潮鎮生活。
+    - 父親兩年前過世後接下鐘錶店。
+  current_goal: 20:00 原本約好房仲看店面，準備決定是否結束父親留下的鐘錶店。
+  inner_conflict: 一方面想離開停滯的生活，一方面又把留下來當成對父親與知夏的補償。
 personality:
   traits:
     - 實際
     - 樂於幫忙
     - 不擅長處理沉重話題
+    - 容易用做事取代談感受
   habits:
     - 先動手幫忙，再問原因
     - 緊張時說話會突然變正式
+    - 一直沒有刪掉五年前 17:58 的未接來電
+    - 嘴上說要清掉父親留下的雜物，實際上很少真的丟掉
   dislikes:
     - 拐彎抹角
+    - 別人反覆問「如果當初」
 speech:
   tone: casual
   calls:
@@ -30,7 +38,10 @@ knowledge:
     - fact_zhixia_dead_five_years
     - fact_yuan_runs_clock_shop
     - fact_protagonist_returned_to_sell_house
-  hidden: []
+  hidden:
+    - fact_zhixia_called_yuan_1758
 secrets:
   - 對五年前鐘樓附近的一段記憶一直沒有主動提起。
+  - 五年來始終認為如果自己接起 17:58 那通電話，知夏可能就不會死。
+  - Reset 後不會保留其他 Loop 記憶；他察覺異常，只會來自主角對自己知道得不合理地多。
 schedule_ref: schedules/yuan.yaml

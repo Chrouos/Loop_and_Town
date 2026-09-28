@@ -1,5 +1,5 @@
 import yaml from 'js-yaml';
-import { buildStoryBundleFromDocuments } from '../../src/lib/loadSimulationStory';
+import { buildStoryBundleFromDocuments, parseNarrativeDocument } from '../../src/lib/loadSimulationStory';
 
 const rawFiles = import.meta.glob('../../../../story/**/*.yaml', {
   query: '?raw',
@@ -27,10 +27,16 @@ export function loadRealStory() {
     activities?: string;
     protagonist_schedule?: string;
     narrative?: string;
+    narratives?: string[];
     artifacts?: string[];
     player_choices?: string;
     travel?: string;
   };
+
+  const narrativeScenes = [
+    ...(manifest.narrative ? parseNarrativeDocument(parse('/' + manifest.narrative)) : []),
+    ...(manifest.narratives ?? []).flatMap((path) => parseNarrativeDocument(parse('/' + path))),
+  ];
 
   return buildStoryBundleFromDocuments({
     loop: parse('/' + manifest.loop),
@@ -44,7 +50,7 @@ export function loadRealStory() {
     knowledge: manifest.knowledge ? parse('/' + manifest.knowledge) : undefined,
     activities: manifest.activities ? parse('/' + manifest.activities) : undefined,
     protagonistSchedule: manifest.protagonist_schedule ? parse('/' + manifest.protagonist_schedule) : undefined,
-    narrative: manifest.narrative ? parse('/' + manifest.narrative) : undefined,
+    narrative: { scenes: narrativeScenes },
     artifacts: manifest.artifacts?.map((path) => parse('/' + path)),
     playerChoices: manifest.player_choices ? parse('/' + manifest.player_choices) : undefined,
     travel: manifest.travel ? parse('/' + manifest.travel) : undefined,

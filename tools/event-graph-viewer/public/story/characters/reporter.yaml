@@ -2,27 +2,35 @@ id: reporter
 name: 葉庭安
 age: 30
 identity:
-  occupation: 記者
+  occupation: 調查記者／前研究助理
   hometown: 灰潮鎮
 background:
-  summary: 自稱回鄉採訪地方新聞的記者；五年前其實曾是舊研究所的研究助理，也認識林知夏。
+  summary: 自稱回鄉採訪地方新聞的記者；五年前其實曾是舊研究所研究助理，也是林知夏最接近真相的調查搭檔之一。這次回鎮前已追查研究所舊案半年。
   history:
     - 曾在舊研究所工作。
-    - 五年前和林知夏有工作往來。
+    - 五年前與林知夏合作追查 18:31 異常與世界線殘留。
+    - 兩人後來因「是否能把死亡風險轉移給別人」而決裂。
+    - 研究所事故後離開灰潮鎮，之後成為調查記者。
+  current_goal: 19:50 原本準備獨自進入舊研究所，取回當年的實驗紀錄。
+  inner_conflict: 她想公開真相，卻仍在履行知夏生前要求她不要讓主角知道全部事情的承諾。
 personality:
   traits:
     - 反應快
     - 擅長控制資訊
     - 面對追問時會迅速改變話題
+    - 對自己認定的代價問題非常固執
   habits:
     - 說謊時會縮短回答
+    - 做危險調查前會先把資料分散備份
   dislikes:
     - 被迫解釋自己的過去
+    - 把犧牲說成沒有代價的最佳解
 speech:
   tone: composed
   calls:
     protagonist: 妳
     zhixia: 林知夏
+    doctor: 陳醫生
 knowledge:
   initial:
     - fact_zhixia_dead_five_years
@@ -30,6 +38,10 @@ knowledge:
     - fact_reporter_knew_zhixia
     - fact_research_institute_connection
     - fact_1831_is_special
+    - fact_memory_residue_exists
 secrets:
   - 對主角隱瞞自己曾在舊研究所工作，也隱瞞與林知夏相識。
+  - 知夏五年前要求她：如果妹妹回來，不要讓她知道自己做過什麼。
+  - 她不是因為害怕曝光才說謊，而是在履行一個死人留下的承諾。
+  - 五年前已開始懷疑每次「救人」只是把死亡移向另一個人。
 schedule_ref: schedules/reporter.yaml

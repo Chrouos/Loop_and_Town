@@ -1,0 +1,212 @@
+id: loop_07_story_dag
+title: Loop 07｜林知夏
+nodes:
+  - id: L7_N00_final_question
+    title: 第七封改問「我最後選了誰」
+    time: "06:12"
+    actor_ids: [protagonist, zhixia]
+    visibility: public
+    detail:
+      before: [主角剛理解第七封是跨記憶持有者的資訊交接。]
+      after: [調查焦點從技術機制轉向知夏最後做過的選擇。]
+      reason: 第七封新增「不要問我怎麼救所有人。問我，我最後選了誰」。
+      affected_characters: [protagonist, zhixia]
+      delayed_effects: [主角開始追查知夏是否曾主動接受某些人的風險上升。]
+      knowledge_changes: [知夏留下的最後問題是倫理選擇，不是技術解法。]
+      relationship_changes: []
+      narrative_refs: [loop07_0612_final_question]
+
+  - id: L7_N01_hidden_notebook
+    title: 庭安交出知夏最後一本工作筆記
+    time: "08:30"
+    actor_ids: [protagonist, reporter, zhixia]
+    visibility: public
+    detail:
+      before: [主角只看過零散病歷、錄音與載體實驗。]
+      after: [主角第一次看到知夏長期比較不同世界線結果的完整工作紀錄。]
+      reason: 庭安五年前把筆記藏在研究所資料室，而不是銷毀。]
+      affected_characters: [protagonist, reporter, zhixia]
+      delayed_effects: [Worldline 31 與知夏後期決策方式可以被還原。]
+      knowledge_changes: [知夏曾系統化記錄多條世界線的傷亡與結果。]
+      relationship_changes: [reporter.trust_protagonist +1]
+      narrative_refs: [loop07_0830_hidden_notebook]
+
+  - id: L7_N02_worldline_31
+    title: Worldline 31：留下來的主角在 18:31 死亡
+    time: "09:20"
+    actor_ids: [protagonist, reporter, zhixia]
+    visibility: public
+    detail:
+      before: [主角以為知夏死亡前半年突然冷淡，只是關係惡化。]
+      after: [主角知道知夏曾成功把自己留在灰潮鎮，但那條世界線的主角於 18:31 死亡。]
+      reason: 知夏工作筆記留下「世界線 31／主角：死亡／18:31」，庭安補足當時事故鏈。]
+      affected_characters: [protagonist, zhixia]
+      delayed_effects: [知夏之後不再嘗試讓妹妹留下，而開始設法讓她離開。]
+      knowledge_changes: [Worldline 31 中主角於 18:31 死亡。]
+      relationship_changes: []
+      narrative_refs: [loop07_0920_worldline_31]
+
+  - id: L7_N03_designed_argument
+    title: 五年前的姊妹決裂有一部分是知夏設計的
+    time: "10:40"
+    actor_ids: [protagonist, reporter, zhixia]
+    visibility: public
+    detail:
+      before: [主角把那場爭吵視為知夏變得冷漠的證據。]
+      after: [主角知道知夏利用對妹妹的了解，故意說最能逼她離開灰潮鎮的話。]
+      reason: Worldline 31 讓知夏把「留下妹妹」改成「確保妹妹離鎮」。]
+      affected_characters: [protagonist, zhixia]
+      delayed_effects: [主角重新理解自己五年未歸也是知夏介入世界線的一部分。]
+      knowledge_changes: [知夏曾刻意製造姊妹決裂以降低主角留鎮風險。]
+      relationship_changes: []
+      narrative_refs: [loop07_1040_designed_argument]
+
+  - id: L7_N04_people_as_variables
+    title: 知夏開始把人的風險放進比較表
+    time: "12:10"
+    actor_ids: [protagonist, reporter, zhixia]
+    visibility: public
+    detail:
+      before: [知夏早期仍以「再試一次」尋找所有人都能活下來的路線。]
+      after: [她開始比較路線、延遲與傷亡，甚至接受某些安排會讓別人承擔更高風險。]
+      reason: 多次改寫證明世界不會簡單配合救援；每次介入都會改變其他人的因果位置。]
+      affected_characters: [protagonist, zhixia, yuan, wakaharu, doctor, reporter, detective]
+      delayed_effects: [知夏逐漸把熟悉的人視為可預測、可調度的變數。]
+      knowledge_changes: [不存在固定「替死」規則；風險會隨行程與因果鏈重新分布。]
+      relationship_changes: []
+      narrative_refs: [loop07_1210_people_as_variables]
+
+  - id: L7_N05_final_break
+    title: 庭安與知夏最後一次決裂
+    time: "13:40"
+    actor_ids: [protagonist, reporter, zhixia]
+    visibility: public
+    detail:
+      before: [知夏相信自己必須選擇總傷亡更小的世界線。]
+      after: [庭安指出真正的界線不是算錯，而是知夏已經不再詢問被安排的人。]
+      reason: 錄音保存兩人最後一次關於「誰有權決定」的爭論。]
+      affected_characters: [reporter, zhixia, protagonist]
+      delayed_effects: [主角開始看見自己 Loop 03 安排所有人的行為與知夏相似。]
+      knowledge_changes: [知夏與庭安的核心分歧是決策權，而不是是否要救人。]
+      relationship_changes: []
+      narrative_refs: [loop07_1340_final_break]
+
+  - id: L7_N06_do_not_become_me
+    title: 「如果她回來，不要讓她變成我」
+    time: "15:00"
+    actor_ids: [protagonist, reporter, zhixia]
+    visibility: public
+    detail:
+      before: [主角仍可能把第七封理解成知夏留下的續作任務。]
+      after: [最後一頁證明知夏並不希望妹妹繼續獨自執行她的世界線算法。]
+      reason: 工作筆記最後一句不是操作方法，而是對庭安留下的警告。]
+      affected_characters: [protagonist, reporter, zhixia]
+      delayed_effects: [主角開始尋找「共同決策」而不是下一條最佳解。]
+      knowledge_changes: [如果她回來，不要讓她變成我。]
+      relationship_changes: []
+      narrative_refs: [loop07_1500_do_not_become_me]
+
+  - id: L7_N07_letter_reply
+    title: 知夏承認「我一個人做錯了」
+    time: "16:20"
+    actor_ids: [protagonist, zhixia]
+    visibility: public
+    detail:
+      before: [主角不知道知夏既然不希望她重走舊路，為何仍用第七封把她叫回來。]
+      after: [主角得到知夏最後的立場：問題不能再由單一記憶持有者替所有人決定。]
+      reason: 主角直接質問第七封，信件回覆「因為我一個人做錯了／所以這一次，不該再由一個人決定」。]
+      affected_characters: [protagonist, zhixia]
+      delayed_effects: [17:58 主角第一次刻意把最終 action 留給予安本人。]
+      knowledge_changes: [知夏把最後的選擇權交回當事人。]
+      relationship_changes: []
+      narrative_refs: [loop07_1620_letter_reply]
+
+  - id: L7_N09_yuan_choice
+    title: 17:58 主角不替予安接電話
+    time: "17:58"
+    actor_ids: [protagonist, yuan]
+    visibility: public
+    detail:
+      before: [主角已習慣根據跨 Loop 資訊替其他人選擇行程與行動。]
+      after: [主角只說明自己知道的風險，最後由予安自己決定接或不接。]
+      reason: 「不該再由一個人決定」第一次被轉化成實際行動。]
+      affected_characters: [protagonist, yuan]
+      delayed_effects: [兩個不同選擇產生不同資訊量，但都保留予安的自主性並在 18:31 重新合流。]
+      knowledge_changes: [共同決策不等於主角退出，而是把資訊與選擇分開。]
+      relationship_changes: [yuan.agency_respected +1]
+      narrative_refs: [loop07_1758_yuan_choice]
+
+  - id: L7_N10_yuan_answers
+    title: 予安自己接起 17:58 的電話
+    time: "17:58"
+    actor_ids: [protagonist, yuan]
+    visibility: public
+    detail:
+      before: [予安知道電話可能與五年前及世界線異常有關。]
+      after: [予安自行接聽，兩人聽見另一條世界線的主角說「18:31 之後，不要再救我」。]
+      reason: 予安選擇承擔知道電話內容的風險。]
+      affected_characters: [protagonist, yuan]
+      delayed_effects: [主角得到額外資訊，但不因此取得替其他人決定的權利。]
+      knowledge_changes: [某條世界線的主角曾要求 18:31 後不要再救她。]
+      relationship_changes: []
+      narrative_refs: [loop07_1758_yuan_answers]
+
+  - id: L7_N11_yuan_declines
+    title: 予安自己拒接 17:58 的電話
+    time: "17:58"
+    actor_ids: [protagonist, yuan]
+    visibility: public
+    detail:
+      before: [主角與予安都不知道電話另一端會提供什麼資訊。]
+      after: [予安主動拒絕讓未知通話替自己決定下一步，主角接受資訊缺失。]
+      reason: 有權選擇也包括有權拒絕取得可能改變人生的資訊。]
+      affected_characters: [protagonist, yuan]
+      delayed_effects: [18:31 的共同決策在資訊不完全下照樣發生。]
+      knowledge_changes: [不知道也是一種由當事人承擔的選擇。]
+      relationship_changes: []
+      narrative_refs: [loop07_1758_yuan_declines]
+
+  - id: L7_N12_collective_1831
+    title: 18:31 所有人共同面對 Convergence
+    time: "18:31"
+    actor_ids: [protagonist, yuan, wakaharu, doctor, reporter, detective]
+    visibility: public
+    detail:
+      before: [過去幾輪多由主角單方面安排每個人的「安全位置」。]
+      after: [所有主要角色知道 18:31 正在發生什麼，並共同留在決策現場。]
+      reason: 主角不再把 NPC 分散成待保護目標，而是把風險資訊公開。]
+      affected_characters: [protagonist, yuan, wakaharu, doctor, reporter, detective]
+      delayed_effects: [Final 的問題從「誰應該被救」轉成「大家願意一起承擔什麼」。]
+      knowledge_changes: [18:31 並非固定死亡交換，而是因果收束與共同選擇的關鍵窗口。]
+      relationship_changes: []
+      narrative_refs: [loop07_1831_collective_convergence]
+
+  - id: L7_N13_collective_burden
+    title: 第七封要求共同承擔，而不是選誰活
+    time: "18:31"
+    actor_ids: [protagonist, yuan, wakaharu, doctor, reporter, detective, zhixia]
+    visibility: public
+    detail:
+      before: [知夏與主角都曾把世界線問題視為單一記憶持有者要解出的最佳化問題。]
+      after: [第七封明確拒絕「選誰活」框架，要求把代價與風險變成共同決策。]
+      reason: Arc 7 已完成知夏失敗方式與主角可能重蹈覆轍的對照。]
+      affected_characters: [protagonist, yuan, wakaharu, doctor, reporter, detective, zhixia]
+      delayed_effects: [故事進入 Final。]
+      knowledge_changes: [這次不要選誰活；選你們願意一起承擔什麼。]
+      relationship_changes: []
+      narrative_refs: [loop07_1831_collective_burden]
+
+edges:
+  - { id: L7_E00, source: L7_N00_final_question, target: L7_N01_hidden_notebook, label: "ask what Zhixia chose", visibility: public }
+  - { id: L7_E01, source: L7_N01_hidden_notebook, target: L7_N02_worldline_31, label: "open worldline record", visibility: public }
+  - { id: L7_E02, source: L7_N02_worldline_31, target: L7_N03_designed_argument, label: "protect sister by separation", visibility: public }
+  - { id: L7_E03, source: L7_N03_designed_argument, target: L7_N04_people_as_variables, label: "control grows from knowledge", visibility: public }
+  - { id: L7_E04, source: L7_N04_people_as_variables, target: L7_N05_final_break, label: "risk optimization crosses ethical line", visibility: public }
+  - { id: L7_E05, source: L7_N05_final_break, target: L7_N06_do_not_become_me, label: "Zhixia recognizes failure", visibility: public }
+  - { id: L7_E06, source: L7_N06_do_not_become_me, target: L7_N07_letter_reply, label: "ask why call me back", visibility: public }
+  - { id: L7_E07, source: L7_N07_letter_reply, target: L7_N09_yuan_choice, label: "share information, return agency", visibility: public }
+  - { id: L7_E08, source: L7_N09_yuan_choice, target: L7_N10_yuan_answers, label: "Yuan chooses: answer", visibility: public }
+  - { id: L7_E09, source: L7_N09_yuan_choice, target: L7_N11_yuan_declines, label: "Yuan chooses: decline", visibility: public }
+  - { id: L7_E10, source: L7_N10_yuan_answers, target: L7_N12_collective_1831, label: "bring extra information to 18:31", visibility: public }
+  - { id: L7_E11, source: L7_N11_yuan_declines, target: L7_N12_collective_1831, label: "accept incomplete information", visibility: public }
+  - { id: L7_E12, source: L7_N12_collective_1831, target: L7_N13_collective_burden, label: "choose shared burden", visibility: public }

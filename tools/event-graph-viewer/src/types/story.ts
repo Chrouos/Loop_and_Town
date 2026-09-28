@@ -112,3 +112,12 @@ export type CharacterGraphProjection = {
   edges: CharacterGraphEdge[];
   details: Record<string, CharacterGraphDetail>;
 };
+
+export type {
+  StoryDagDocument,
+  StoryDagEdge,
+  StoryDagNode,
+  StoryDagNodeDetail,
+  StoryVisibility,
+  StoryWorldlinePath,
+} from './storyDag';

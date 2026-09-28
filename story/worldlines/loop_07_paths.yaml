@@ -1,0 +1,58 @@
+paths:
+  - id: loop_07_yuan_answers
+    label: Loop 07｜林知夏・予安接電話
+    visibility: public
+    node_ids:
+      - L7_N00_final_question
+      - L7_N01_hidden_notebook
+      - L7_N02_worldline_31
+      - L7_N03_designed_argument
+      - L7_N04_people_as_variables
+      - L7_N05_final_break
+      - L7_N06_do_not_become_me
+      - L7_N07_letter_reply
+      - L7_N09_yuan_choice
+      - L7_N10_yuan_answers
+      - L7_N12_collective_1831
+      - L7_N13_collective_burden
+    edge_ids:
+      - L7_E00
+      - L7_E01
+      - L7_E02
+      - L7_E03
+      - L7_E04
+      - L7_E05
+      - L7_E06
+      - L7_E07
+      - L7_E08
+      - L7_E10
+      - L7_E12
+
+  - id: loop_07_yuan_declines
+    label: Loop 07｜林知夏・予安不接電話
+    visibility: public
+    node_ids:
+      - L7_N00_final_question
+      - L7_N01_hidden_notebook
+      - L7_N02_worldline_31
+      - L7_N03_designed_argument
+      - L7_N04_people_as_variables
+      - L7_N05_final_break
+      - L7_N06_do_not_become_me
+      - L7_N07_letter_reply
+      - L7_N09_yuan_choice
+      - L7_N11_yuan_declines
+      - L7_N12_collective_1831
+      - L7_N13_collective_burden
+    edge_ids:
+      - L7_E00
+      - L7_E01
+      - L7_E02
+      - L7_E03
+      - L7_E04
+      - L7_E05
+      - L7_E06
+      - L7_E07
+      - L7_E09
+      - L7_E11
+      - L7_E12

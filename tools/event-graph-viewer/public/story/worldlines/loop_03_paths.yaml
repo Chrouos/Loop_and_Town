@@ -1,0 +1,30 @@
+paths:
+  - id: loop_03_no_death
+    label: Loop 03｜無人死亡・仍然重置
+    visibility: public
+    node_ids:
+      - L3_N00_third_awake
+      - L3_N01_foreknowledge_frightens_wakaharu
+      - L3_N02_yuan_notices_pattern
+      - L3_N03_doctor_asks_iteration
+      - L3_N04_clear_known_people
+      - L3_N05_no_death_1831
+      - L3_N06_wakaharu_resigns
+      - L3_N07_yuan_keeps_realtor
+      - L3_N08_not_success_note
+      - L3_N09_unknown_1831_death
+      - L3_N09b_impossible_bell
+      - L3_N10_midnight_reset
+    edge_ids:
+      - L3_E00
+      - L3_E01
+      - L3_E02
+      - L3_E03
+      - L3_E04
+      - L3_E05a
+      - L3_E05b
+      - L3_E06a
+      - L3_E06b
+      - L3_E07
+      - L3_E08
+      - L3_E09

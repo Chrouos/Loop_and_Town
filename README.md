@@ -10,7 +10,7 @@ npm install
 npm run dev
 ```
 
-開啟 Vite 顯示的網址，加上 `/player.html` 進入遊戲；根目錄仍是劇情除錯 Viewer。
+開啟 Vite 顯示的網址，根目錄是 manifest-driven 的完整 Story DAG / Worldline author viewer；加上 `/player.html` 進入玩家端。
 `npm test` 執行測試，`npm run build` 同時建立兩個入口。
 
 首次進入對應鎮內 18:00，約 20 分鐘後截止介入，31 分鐘後發生車站事件；離開網頁後按真實經過的時間補算。
@@ -66,17 +66,19 @@ YAML 劇情檔
 
 [`tools/event-graph-viewer/`](tools/event-graph-viewer/) 已提供第一版 read-only 劇情除錯工具。
 
-目前可查看：
+目前可查看完整 manifest 指定的 Loop 01–07 與 Final：
 
 ```text
 Event Graph
-→ Event / Variant / Delayed Effect 因果關係
+→ Story DAG 的 Before / After / Reason / Narrative Ref
 
 Timeline
 → 單一 Loop 真正發生過的事件
 
 Worldline Diff
 → 比較兩輪同一 Event 如何被改寫
+
+根目錄 `story/` 是唯一 Source of Truth；`npm run sync-story` 會同步部署用的 `public/story/`，viewer 會從 `story/manifests/loop_01.yaml` 載入完整 bundle。
 ```
 
 本機啟動：

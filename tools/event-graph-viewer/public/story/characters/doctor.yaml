@@ -5,31 +5,42 @@ identity:
   occupation: 醫師
   hometown: 灰潮鎮
 background:
-  summary: 灰潮鎮醫師；五年前林知夏死亡當日也在值班，現在仍知道部分與記憶殘留有關的異常。
+  summary: 灰潮鎮醫師；五年前林知夏死亡當日也在值班，並保存她描述「未發生事件記憶」的醫療紀錄。醫院逐年縮編，他已收到外地醫院調職邀請，卻因五年前事件一直沒有真正離開。
   history:
     - 長期在鎮內醫院工作。
     - 五年前曾接觸林知夏死亡當日的醫療紀錄。
+    - 知夏曾向他描述記得尚未發生事件的情況，他起初判斷與壓力、睡眠有關。
+    - 在知夏準確說中一件之後才發生的事故後，開始相信可能存在「記憶持有者」與世界線改寫現象。
+    - 研究所事故後，曾協助葉庭安隱瞞部分醫療資料。
+  current_goal: 17:40 秘密離院，把知夏留下的封存醫療資料交給許若晴，同時仍在考慮是否接受外地調職。
+  inner_conflict: 他相信保護當事人需要控制資訊，但也逐漸明白這種保護剝奪了別人選擇真相的權利。
 personality:
   traits:
     - 克制
     - 重視程序
     - 習慣隱瞞不確定的資訊
+    - 會把沉默合理化成保護
   habits:
     - 回答敏感問題前會先確認對方知道多少
+    - 重要資料仍偏好紙本封存
   dislikes:
     - 未經證實的診斷
+    - 被迫在證據不足時給出結論
 speech:
   tone: formal
   calls:
     protagonist: 妳
     zhixia: 林知夏
+    reporter: 葉小姐
 knowledge:
   initial:
     - fact_zhixia_dead_five_years
     - fact_doctor_on_duty_five_years_ago
   hidden:
     - fact_1831_is_special
-    - fact_memory_residue_exists
+    - fact_doctor_has_zhixia_medical_record
 secrets:
-  - 知道部分輪迴後記憶殘留現象，但從未公開說明。
+  - 知道知夏五年前曾保留其他世界線資訊，但沒有證據顯示一般 NPC 會跨 Reset 恢復記憶。
+  - 五年前曾協助葉庭安隱瞞部分研究所相關醫療資料。
+  - 他沒有離開灰潮鎮，部分原因是仍認為自己欠知夏一個解釋。
 schedule_ref: schedules/doctor.yaml
