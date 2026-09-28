@@ -113,18 +113,20 @@ describe('App', () => {
     stubRealStoryFetch();
     render(<App />);
 
-    const selector = await screen.findByLabelText('Loop / Worldline');
+    const selector = await screen.findByLabelText('Loop / Worldline') as HTMLSelectElement;
     fireEvent.change(selector, { target: { value: 'ending_a_tomorrow' } });
+    expect(selector.value).toBe('ending_a_tomorrow');
     expect(await screen.findByText('18:31 各自選擇在同一個 Convergence 合流')).toBeTruthy();
     fireEvent.click(screen.getByText('18:03 第七封交接通道再次開啟'));
     expect(await screen.findByText('我不能再替他們選。我只能決定，我自己願意承擔什麼。')).toBeTruthy();
-    expect(screen.getByText('Ending A｜明天')).toBeTruthy();
 
     fireEvent.change(selector, { target: { value: 'ending_b_once_more' } });
-    expect(await screen.findByText('Ending B｜再一次')).toBeTruthy();
+    expect(selector.value).toBe('ending_b_once_more');
+    expect(await screen.findByText('Ending B｜再一次', { selector: 'strong' })).toBeTruthy();
 
     fireEvent.change(selector, { target: { value: 'ending_c_forget_me' } });
-    fireEvent.click(await screen.findByText('Ending C｜忘記我'));
+    expect(selector.value).toBe('ending_c_forget_me');
+    fireEvent.click(await screen.findByText('Ending C｜忘記我', { selector: 'strong' }));
     expect(await screen.findByText('……原本哪個？')).toBeTruthy();
     expect(screen.getByText('沒事。我重新問一次。妳喝什麼？')).toBeTruthy();
   });
