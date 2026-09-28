@@ -25,7 +25,9 @@ function DetailList({ title, items }: { title: string; items: string[] }) {
   return (
     <section className="node-detail-section">
       <h4>{title}</h4>
-      <ul>{items.map((item) => <li key={item}>{item}</li>)}</ul>
+      <ul>
+        {items.map((item, index) => <li key={`${title}-${index}-${item}`}>{item}</li>)}
+      </ul>
     </section>
   );
 }
@@ -62,7 +64,7 @@ export function NodeDetailPanel({
         {node.detail.reason && <p>{node.detail.reason}</p>}
         {upstreamTitles.length > 0 ? (
           <ul>
-            {upstreamTitles.map((title) => <li key={title}>{title}</li>)}
+            {upstreamTitles.map((title, index) => <li key={`upstream-${index}-${title}`}>{title}</li>)}
           </ul>
         ) : !node.detail.reason ? <p>沒有更早的直接因果節點</p> : null}
       </section>
@@ -73,8 +75,8 @@ export function NodeDetailPanel({
           <p>目前沒有直接後續事件</p>
         ) : (
           <ul>
-            {downstreamTitles.map((title) => <li key={`downstream-${title}`}>{title}</li>)}
-            {node.detail.delayedEffects.map((effect) => <li key={`delayed-${effect}`}>{effect}</li>)}
+            {downstreamTitles.map((title, index) => <li key={`downstream-${index}-${title}`}>{title}</li>)}
+            {node.detail.delayedEffects.map((effect, index) => <li key={`delayed-${index}-${effect}`}>{effect}</li>)}
           </ul>
         )}
       </section>
