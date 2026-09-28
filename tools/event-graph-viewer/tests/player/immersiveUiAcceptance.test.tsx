@@ -21,6 +21,7 @@ describe('Player immersive UI acceptance flow', () => {
     render(<PlayerApp now={() => 1000} storage={window.localStorage} loadStory={async () => ({ definition, initialState: initial })} />);
     const user = userEvent.setup();
 
+    expect(screen.getByTestId('scene-frame')).toBeDefined();
     await user.click(await screen.findByRole('button', { name: /拆開信封/ }));
     expect(screen.getByText('回來一趟。')).toBeDefined();
   });
