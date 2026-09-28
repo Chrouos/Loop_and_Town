@@ -42,6 +42,7 @@ export type RelationshipDefinition = {
 export type KnowledgeFact = {
   id: string;
   summary: string;
+  characterId?: string;
 };
 
 export type CharacterInsightDefinition = {

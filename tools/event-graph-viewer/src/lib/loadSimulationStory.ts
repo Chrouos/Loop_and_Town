@@ -157,7 +157,13 @@ function normalizeKnowledge(value: unknown): KnowledgeFact[] {
   if (value === undefined || value === null) return [];
   const facts = (value as { facts?: unknown })?.facts;
   if (!Array.isArray(facts)) throw new Error('Invalid knowledge document');
-  return facts as KnowledgeFact[];
+  return facts.map((item) => {
+    const entry = item as Record<string, unknown>;
+    const characterId = entry.characterId ?? entry.character_id;
+    if (typeof entry.id !== 'string' || typeof entry.summary !== 'string') throw new Error('Invalid knowledge fact');
+    if (characterId !== undefined && typeof characterId !== 'string') throw new Error(`Invalid knowledge fact character: ${entry.id}`);
+    return { id: entry.id, summary: entry.summary, characterId: typeof characterId === 'string' ? characterId : undefined };
+  });
 }
 
 function normalizeCharacterMemory(value: unknown): {
@@ -459,6 +465,12 @@ function validatePlayerNarrativeReferences(
     if (!characters.has(insight.characterId)) throw new Error(`Character insight ${insight.id}: unknown character ${insight.characterId}`);
     for (const factId of insight.requiresFacts ?? []) {
       if (!factIds.has(factId)) throw new Error(`Character insight ${insight.id}: unknown fact ${factId}`);
+    }
+  }
+
+  for (const fact of narrative.knowledgeFacts) {
+    if (fact.characterId && !characters.has(fact.characterId)) {
+      throw new Error(`Knowledge fact ${fact.id}: unknown character ${fact.characterId}`);
     }
   }
 

@@ -13,14 +13,15 @@ const story: NarrativeFoundation = {
     background: { summary: '這段 authored background 不應直接出現在 player card。', history: ['secret history'] },
     personality: { traits: ['可靠'], habits: [], dislikes: [] },
     speech: { tone: 'casual', calls: {} },
-    knowledge: { initial: ['fact_shop'], hidden: ['fact_secret'] },
+    knowledge: { initial: ['fact_shop', 'fact_shared'], hidden: ['fact_secret'] },
     secrets: ['author secret'],
     scheduleRef: 'schedules/yuan.yaml',
   }],
   relationships: [],
   knowledgeFacts: [
-    { id: 'fact_shop', summary: '他經營鐘錶店。' },
-    { id: 'fact_secret', summary: '尚未知道的事。' },
+    { id: 'fact_shop', characterId: 'yuan', summary: '他經營鐘錶店。' },
+    { id: 'fact_secret', characterId: 'yuan', summary: '尚未知道的事。' },
+    { id: 'fact_shared', characterId: 'zhixia', summary: '林知夏五年前死亡。' },
   ],
   activities: [],
   protagonistSchedule: { characterId: 'protagonist', entries: [] },
@@ -44,7 +45,7 @@ const story: NarrativeFoundation = {
 
 describe('player character memory projection', () => {
   it('projects only player-known identity, facts, insights, and questions', () => {
-    const [memory] = projectCharacterMemory(story, ['fact_shop'], ['insight_yuan_tell']);
+    const [memory] = projectCharacterMemory(story, ['fact_shop', 'fact_shared'], ['insight_yuan_tell']);
 
     expect(memory).toMatchObject({
       characterId: 'yuan',
@@ -54,7 +55,7 @@ describe('player character memory projection', () => {
       insights: [{ id: 'insight_yuan_tell', title: '予安緊張時反而很正式', presentation: '他越客氣，通常越不安。' }],
       questions: [{ id: 'question_yuan_leave', text: '他為什麼急著離開？' }],
     });
-    expect(JSON.stringify(memory)).not.toMatch(/authored background|secret history|author secret|scheduleRef/);
+    expect(JSON.stringify(memory)).not.toMatch(/authored background|secret history|author secret|scheduleRef|fact_shared/);
   });
 
   it('hides unknown facts, insights, and gated questions', () => {
@@ -62,6 +63,18 @@ describe('player character memory projection', () => {
     expect(memory.facts).toEqual([]);
     expect(memory.insights).toEqual([]);
     expect(memory.questions).toEqual([]);
+  });
+
+  it('does not repeat a character-attributed fact on every character card', () => {
+    const loaded = loadRealStory();
+    const memory = projectCharacterMemory(loaded.narrative, ['fact_zhixia_dead_five_years'], []);
+
+    expect(memory.find((item) => item.characterId === 'zhixia')?.facts).toEqual([{
+      id: 'fact_zhixia_dead_five_years',
+      summary: '林知夏五年前死亡。',
+    }]);
+    expect(memory.find((item) => item.characterId === 'yuan')?.facts).toEqual([]);
+    expect(memory.find((item) => item.characterId === 'wakaharu')?.facts).toEqual([]);
   });
 });
 

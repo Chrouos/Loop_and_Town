@@ -30,7 +30,9 @@ function factsForCharacter(story: NarrativeFoundation, characterId: string, know
     .filter((factId) => knownFacts.has(factId));
   return visibleIds.flatMap((factId) => {
     const fact = story.knowledgeFacts.find((item) => item.id === factId);
-    return fact ? [fact] : [];
+    return fact?.characterId === characterId
+      ? [{ id: fact.id, summary: fact.summary }]
+      : [];
   });
 }
 

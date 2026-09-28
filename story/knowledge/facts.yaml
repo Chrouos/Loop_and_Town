@@ -1,23 +1,33 @@
 facts:
   - id: fact_zhixia_dead_five_years
+    character_id: zhixia
     summary: 林知夏五年前死亡。
   - id: fact_protagonist_returned_to_sell_house
+    character_id: protagonist
     summary: 主角這次回灰潮鎮是為了整理並出售老家。
   - id: fact_yuan_runs_clock_shop
+    character_id: yuan
     summary: 周予安現在經營老街鐘錶店。
   - id: fact_zhixia_called_yuan_1758
+    character_id: yuan
     summary: 五年前林知夏在 17:58 曾打電話給周予安，但他當時沒有接起。
   - id: fact_wakaharu_close_to_zhixia
+    character_id: wakaharu
     summary: 許若晴過去和林知夏關係親近。
   - id: fact_wakaharu_plans_to_leave_town
+    character_id: wakaharu
     summary: 許若晴已決定辭去咖啡店工作，重新申請外地學校並準備離開灰潮鎮。
   - id: fact_doctor_on_duty_five_years_ago
+    character_id: doctor
     summary: 五年前林知夏死亡當日，陳柏勳正在值班。
   - id: fact_doctor_has_zhixia_medical_record
+    character_id: doctor
     summary: 陳柏勳仍保留林知夏生前與異常記憶相關的封存醫療資料。
   - id: fact_reporter_knew_zhixia
+    character_id: reporter
     summary: 葉庭安其實認識林知夏。
   - id: fact_detective_first_responder
+    character_id: detective
     summary: 周志遠五年前參與林知夏死亡案件的第一批現場處理。
   - id: fact_1831_is_special
     summary: 18:31 與灰潮鎮的異常事件存在關聯。
@@ -30,8 +40,11 @@ facts:
   - id: fact_cafe_resident_chatter
     summary: 在車站外咖啡店聽見居民談起灰潮鎮近年的變化。
   - id: fact_shopkeeper_mistook_protagonist_for_zhixia
+    character_id: protagonist
     summary: 便利商店老闆一度把主角錯認成林知夏。
   - id: fact_zhixia_letter_received
+    character_id: zhixia
     summary: 主角已發現並讀到林知夏署名、郵戳為昨天的信。
   - id: fact_zhixia_borrowed_audio_adapter
+    character_id: zhixia
     summary: 五年前林知夏在死亡前一天曾向周家鐘錶店借用舊式音訊轉接器，紙本維修簿留有紀錄。
