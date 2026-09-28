@@ -79,6 +79,15 @@ describe('Player immersive UI acceptance flow', () => {
     expect(readSave(window.localStorage, now).currentLoopId).toBe(1);
   });
 
+  it('keeps the reading surface text-first and moves tools behind one quiet trigger', async () => {
+    render(<PlayerApp now={() => 1000} storage={window.localStorage} loadStory={async () => ({ definition, initialState: initial })} />);
+    await screen.findByRole('button', { name: /拆開信封/ });
+
+    expect(screen.queryByRole('button', { name: /推理桌|世界線|存檔/ })).toBeNull();
+    expect(screen.getByRole('button', { name: '開啟工具' })).toBeDefined();
+    expect(screen.queryByRole('contentinfo')).toBeNull();
+  });
+
   it('keeps narrative and secondary tools keyboard-usable with reduced motion', async () => {
     render(<PlayerApp now={() => 1000} storage={window.localStorage} loadStory={async () => ({ definition, initialState: initial })} />);
     const user = userEvent.setup();
@@ -87,11 +96,14 @@ describe('Player immersive UI acceptance flow', () => {
     await user.keyboard('{Enter}');
     expect(screen.getByText('回來一趟。')).toBeDefined();
 
-    const caseButton = screen.getByRole('button', { name: /案卷/ });
-    caseButton.focus();
+    const toolsButton = screen.getByRole('button', { name: '開啟工具' });
+    toolsButton.focus();
     await user.keyboard('{Enter}');
+    expect(screen.getByRole('dialog', { name: '工具' })).toBeDefined();
+    const caseButton = screen.getByRole('button', { name: /案卷/ });
+    await user.click(caseButton);
     expect(screen.getByRole('dialog', { name: '案卷' })).toBeDefined();
     await user.keyboard('{Escape}');
-    expect(document.activeElement).toBe(caseButton);
+    expect(document.activeElement).toBe(toolsButton);
   });
 });

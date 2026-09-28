@@ -21,7 +21,7 @@ import type { PlayerStoryBundle } from '../types/playerStory';
 type LegacyStory = { definition: SimulationDefinition; initialState: WorldState };
 type Story = PlayerStoryBundle | LegacyStory;
 type Props = { now?: () => number; storage?: Storage; loadStory?: () => Promise<Story> };
-type Drawer = 'case' | 'board' | 'worldlines' | 'save' | null;
+type Drawer = 'tools' | 'case' | 'board' | 'worldlines' | 'save' | null;
 
 function isPlayerStoryBundle(story: Story): story is PlayerStoryBundle {
   return 'narrativeDocuments' in story;
@@ -150,7 +150,7 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
   }
 
   return <div className="player-shell">
-    <header className="player-header"><WorldlineHud loop={clock.loop} time={displayMinute(clock.minute)} /><div className="header-actions"><button onClick={e => showDrawer('case', e.currentTarget)}>案卷 <i>{records.length}</i></button><button onClick={e => showDrawer('board', e.currentTarget)}>推理桌</button><button onClick={e => showDrawer('worldlines', e.currentTarget)}>世界線</button><button onClick={e => showDrawer('save', e.currentTarget)}>存檔</button></div></header>
+    <header className="player-header player-header--minimal"><WorldlineHud loop={clock.loop} time={displayMinute(clock.minute)} /><button className="player-utility-trigger" aria-label="開啟工具" onClick={e => showDrawer('tools', e.currentTarget)}>···</button></header>
     <main className="player-stage">
       <SceneFrame className="player-presentation-frame">
         {error ? <p role="alert">無法讀取鎮上的紀錄：{error}</p> : !story ? <p>正在取出案卷……</p> : resetPending && !resetPresentationComplete ? <ResetTransitionScene reducedMotion={prefersReducedMotion()} onPresentationComplete={() => setResetPresentationComplete(true)} /> : resetPending ? <div className="opening mode-choice"><p>鐘聲落下，今天又回到可以重來的地方。</p><p>下一次進入灰潮鎮時，你要怎麼走進這一天？</p><button onClick={() => chooseMode('LIVE_SYNC')} disabled={modeCommitInFlight || !isLiveSyncAvailable(currentMs)}>跟著現在走<span> · {isLiveSyncAvailable(currentMs) ? '從此刻的鎮內時間進入' : '現在是 Live Sync 無法進入的時間'}</span></button><button onClick={() => chooseMode('ACCELERATED')} disabled={modeCommitInFlight}>回到記憶開始的地方<span> · 從 06:12 的返程列車開始</span></button>{note && <p className="inline-note" role="status">{note}</p>}</div> : !opened ? <OpeningScene label={entry.label} lines={entry.lines} onOpenLetter={() => openRecord('letter')} /> : <div className="reading-scene" key={`${clock.loop}:${record?.id}`}>
@@ -179,9 +179,9 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
       </div>}
       </SceneFrame>
     </main>
-    <footer className="player-footer"><span>{next}</span><span>案卷只保存在這台裝置</span></footer>
-    {drawer && <div className="drawer-shade" onMouseDown={e => { if (e.target === e.currentTarget) setDrawer(null); }}><section className={`drawer ${drawer === 'board' ? 'wide' : ''}`} role="dialog" aria-modal="true" aria-label={drawer === 'case' ? '案卷' : drawer === 'board' ? '推理桌' : drawer === 'save' ? '存檔' : '世界線'}>
-      <header><h2>{drawer === 'case' ? '案卷' : drawer === 'board' ? '推理桌' : drawer === 'save' ? '存檔' : '世界線歷史'}</h2><button autoFocus onClick={() => setDrawer(null)} aria-label="關閉">×</button></header>
+    {drawer && <div className="drawer-shade" onMouseDown={e => { if (e.target === e.currentTarget) setDrawer(null); }}><section className={`drawer ${drawer === 'board' ? 'wide' : ''}`} role="dialog" aria-modal="true" aria-label={drawer === 'tools' ? '工具' : drawer === 'case' ? '案卷' : drawer === 'board' ? '推理桌' : drawer === 'save' ? '存檔' : '世界線'}>
+      <header><h2>{drawer === 'tools' ? '工具' : drawer === 'case' ? '案卷' : drawer === 'board' ? '推理桌' : drawer === 'save' ? '存檔' : '世界線歷史'}</h2><button autoFocus onClick={() => setDrawer(null)} aria-label="關閉">×</button></header>
+      {drawer === 'tools' && <div className="tool-menu"><button onClick={() => setDrawer('case')}>案卷 <i>{records.length}</i></button><button onClick={() => setDrawer('board')}>推理桌</button><button onClick={() => setDrawer('worldlines')}>世界線</button><button onClick={() => setDrawer('save')}>存檔</button></div>}
       {drawer === 'case' && <div className="case-list">{records.map(item => <button key={item.id} onClick={() => openRecord(item.id)}><small>{item.source} · {item.obtainedAt}</small><strong>{item.title}</strong>{!save.knowledge.opened.includes(`${clock.loop}:${item.id}`) && <em>新</em>}</button>)}</div>}
       {drawer === 'board' && <EvidenceBoard save={save} onChange={commit} onNotice={setNote} />}
       {drawer === 'worldlines' && <WorldlineNotebook save={save} currentLoop={clock.loop} knownDiff={knownDiff} />}

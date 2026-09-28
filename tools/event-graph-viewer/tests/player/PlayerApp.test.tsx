@@ -80,7 +80,8 @@ it('marks a fresh loop bulletin unread even when the same document was read last
   storage.setItem(SAVE_KEY, JSON.stringify(save));
   render(<PlayerApp now={() => 1000} storage={storage} loadStory={async () => ({ definition, initialState: initial })} />);
   const user = userEvent.setup();
-  await user.click(await screen.findByRole('button', { name: /案卷/ }));
+  await user.click(await screen.findByRole('button', { name: '開啟工具' }));
+  await user.click(screen.getByRole('button', { name: /案卷/ }));
   expect(screen.getByRole('button', { name: /車站通報.*新/ })).toBeDefined();
 });
 
