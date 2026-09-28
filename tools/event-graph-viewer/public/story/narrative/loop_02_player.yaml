@@ -120,6 +120,8 @@ scenes:
     at: { day: 0, time: "18:31" }
     kind: narration
     participants: [protagonist, doctor]
+    sourceEventId: evt_1831_station
+    sourceVariantId: doctor_dies
     blocks:
       - type: narration
         text: 18:31。
