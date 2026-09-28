@@ -59,10 +59,13 @@ export type WorldlineEntry = {
   day?: number;
   time: string;
   absoluteMinute?: number;
+  durationMinutes?: number;
+  endTime?: string;
   eventId: string;
   variantId?: string;
   title: string;
   source: 'event' | 'delayed' | 'player';
+  hasImmediateStateChange?: boolean;
 };
 
 export type DiffRow = {

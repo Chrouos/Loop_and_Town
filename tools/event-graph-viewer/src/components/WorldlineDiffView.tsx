@@ -5,7 +5,8 @@ function label(entry?: WorldlineHistoryEntry) {
   if (!entry) return '未發生';
   const dayPrefix = entry.day && entry.day > 0 ? `D${entry.day} ` : '';
   const variant = entry.variantId ? ` · ${entry.variantId}` : '';
-  return `${dayPrefix}${entry.time} ${entry.title}${variant}`;
+  const duration = entry.endTime && entry.endTime !== entry.time ? `–${entry.endTime}` : '';
+  return `${dayPrefix}${entry.time}${duration} ${entry.title}${variant}`;
 }
 
 function sourceLabel(entry?: WorldlineHistoryEntry) {

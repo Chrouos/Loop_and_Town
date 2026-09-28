@@ -7,7 +7,9 @@ function displayTime(entry: WorldlineEntry): string {
 }
 
 function label(entry?: WorldlineEntry) {
-  return entry ? entry.title : '未發生';
+  if (!entry) return '未發生';
+  const duration = entry.endTime && entry.endTime !== entry.time ? ` (${entry.time}–${entry.endTime})` : '';
+  return `${entry.title}${duration}`;
 }
 
 function sourceLabel(entry?: WorldlineEntry) {

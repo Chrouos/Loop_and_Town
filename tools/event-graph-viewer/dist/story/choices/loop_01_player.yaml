@@ -1,0 +1,25 @@
+choices:
+  - id: arrival_coffee
+    scene_id: prologue_arrival
+    label: 先去買杯咖啡
+    effects:
+      - type: start-activity
+        activity_id: buy_coffee
+  - id: arrival_convenience_store
+    scene_id: prologue_arrival
+    label: 去便利商店買水
+    effects:
+      - type: start-activity
+        activity_id: visit_convenience_store
+  - id: arrival_home_direct
+    scene_id: prologue_arrival
+    label: 直接回家
+    effects:
+      - type: travel
+        to: old_house
+  - id: letter_send_yuan_post_office
+    scene_id: main_story_handoff
+    label: 請予安幫忙去郵局問
+    effects:
+      - type: submit-action
+        action_id: send_yuan_to_post_office

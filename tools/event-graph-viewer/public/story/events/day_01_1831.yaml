@@ -1,0 +1,43 @@
+id: evt_1831_station
+title: "18:31 車站事件"
+at: "18:31"
+location: old_station
+
+variants:
+  - id: wakaharu_dies
+    priority: 100
+    when:
+      path: characters.wakaharu.location
+      op: eq
+      value: old_station
+    effects:
+      - set:
+          path: characters.wakaharu.status
+          value: dead
+    delayed_effects:
+      - id: reporter_missing_after_wakaharu_death
+        delay_minutes: 163
+        effects:
+          - emit_event:
+              event_id: evt_2114_reporter_missing
+
+  - id: doctor_dies
+    priority: 90
+    when:
+      path: characters.doctor.location
+      op: eq
+      value: old_station
+    effects:
+      - set:
+          path: characters.doctor.status
+          value: dead
+
+  - id: no_death
+    priority: 0
+    fallback: true
+    effects:
+      - add_flag: world.anomaly_1831_observed
+
+notes:
+  - "18:31 是事件本體，不是某個角色的固定死亡時間。"
+  - "wakaharu_dies 會在 163 分鐘後觸發 21:14 記者失蹤事件。"

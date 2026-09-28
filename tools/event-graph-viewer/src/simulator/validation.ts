@@ -1,6 +1,16 @@
 import { hasPath } from './state';
 import { parseTime, toAbsoluteMinute } from './time';
-import type { Condition, Effect, SimulationDefinition, StoryTimeInput, WorldState } from './types';
+import type { ActionDefinition, Condition, Effect, SimulationDefinition, StoryTimeInput, WorldState } from './types';
+
+const LAST_MINUTE_OF_DAY = 24 * 60 - 1;
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
+
+function hasOnlyKeys(value: Record<string, unknown>, allowedKeys: string[]): boolean {
+  return Object.keys(value).every((key) => allowedKeys.includes(key));
+}
 
 function assertUnique(values: string[], label: string): void {
   const seen = new Set<string>();
@@ -25,29 +35,79 @@ function validateCondition(condition: Condition, state: WorldState): void {
   }
 }
 
-function validateEffects(effects: Effect[], state: WorldState, eventIds: Set<string>): void {
+function validateEffects(effects: unknown, state: WorldState, eventIds: Set<string>, owner: string): void {
+  if (!Array.isArray(effects)) throw new Error(`Effects must be an array for ${owner}`);
+
   for (const effect of effects) {
-    if ('set' in effect) {
-      if (!hasPath(state, effect.set.path)) throw new Error(`Unknown state path: ${effect.set.path}`);
+    if (!isRecord(effect)) throw new Error(`Malformed effect for ${owner}`);
+    const operations = Object.keys(effect);
+    if (operations.length !== 1) throw new Error(`Effect must contain exactly one operation for ${owner}`);
+
+    const operation = operations[0];
+    if (operation === 'set') {
+      const set = effect.set;
+      if (!isRecord(set) || !hasOnlyKeys(set, ['path', 'value']) || typeof set.path !== 'string' || !Object.hasOwn(set, 'value')) {
+        throw new Error(`Malformed set effect for ${owner}`);
+      }
+      if (!hasPath(state, set.path)) throw new Error(`Unknown state path: ${set.path}`);
       continue;
     }
 
-    if ('add_flag' in effect) {
+    if (operation === 'add_flag') {
+      if (typeof effect.add_flag !== 'string' || !hasOnlyKeys(effect, ['add_flag'])) {
+        throw new Error(`Malformed add_flag effect for ${owner}`);
+      }
       if (!hasPath(state, effect.add_flag)) throw new Error(`Unknown state path: ${effect.add_flag}`);
       continue;
     }
 
-    if ('emit_event' in effect) {
-      if (!eventIds.has(effect.emit_event.event_id)) {
-        throw new Error(`Unknown emitted event: ${effect.emit_event.event_id}`);
+    if (operation === 'emit_event') {
+      const emitted = effect.emit_event;
+      if (!isRecord(emitted) || !hasOnlyKeys(emitted, ['event_id', 'at']) || typeof emitted.event_id !== 'string') {
+        throw new Error(`Malformed emit_event effect for ${owner}`);
       }
-      if (effect.emit_event.at) toAbsoluteMinute(effect.emit_event.at);
+      if (!eventIds.has(emitted.event_id)) {
+        throw new Error(`Unknown emitted event: ${emitted.event_id}`);
+      }
+      if (Object.hasOwn(emitted, 'at') && typeof emitted.at !== 'string') {
+        throw new Error(`Malformed emit_event effect for ${owner}`);
+      }
+      if (typeof emitted.at === 'string') toAbsoluteMinute(emitted.at);
       continue;
     }
 
-    const operation = Object.keys(effect as Record<string, unknown>)[0] ?? 'unknown';
     throw new Error(`Unknown effect operation: ${operation}`);
   }
+}
+
+function displayMinute(minute: number): string {
+  const value = minute % (24 * 60);
+  const hour = Math.floor(value / 60);
+  const minuteOfHour = value % 60;
+  return `${String(hour).padStart(2, '0')}:${String(minuteOfHour).padStart(2, '0')}`;
+}
+
+export function validateActionDefinition(
+  definition: SimulationDefinition,
+  action: ActionDefinition,
+  state: WorldState,
+  eventIds: Set<string>,
+): { actionMinute: number; durationMinutes: number } {
+  const actionMinute = toAbsoluteMinute(action.at);
+  const rawDuration = (action as { duration_minutes?: unknown }).duration_minutes;
+  const durationMinutes = rawDuration === undefined ? 0 : rawDuration;
+  if (typeof durationMinutes !== 'number' || !Number.isInteger(durationMinutes) || durationMinutes < 0) {
+    throw new Error(`Invalid duration for action ${action.id}`);
+  }
+
+  const dayEnd = Math.floor(actionMinute / (24 * 60)) * 24 * 60 + LAST_MINUTE_OF_DAY;
+  const loopEnd = definition.loop ? toAbsoluteMinute(definition.loop.range.end) : dayEnd;
+  if (actionMinute + durationMinutes > loopEnd) {
+    throw new Error(`Action ${action.id} ends after ${displayMinute(loopEnd)}`);
+  }
+
+  validateEffects((action as { effects?: unknown }).effects, state, eventIds, `action ${action.id}`);
+  return { actionMinute, durationMinutes };
 }
 
 function initialMinute(definition: SimulationDefinition, initialState: WorldState): number {
@@ -96,7 +156,7 @@ export function validateDefinition(definition: SimulationDefinition, initialStat
     const actionTime = toAbsoluteMinute(action.at);
     assertInLoopRange(definition, action.at, 'action', action.id);
     if (actionTime < initialTime) throw new Error(`Action before initial clock: ${action.id}`);
-    validateEffects(action.effects, initialState, eventIds);
+    validateActionDefinition(definition, action, initialState, eventIds);
   }
 
   for (const schedule of schedules) {
@@ -105,7 +165,7 @@ export function validateDefinition(definition: SimulationDefinition, initialStat
       assertInLoopRange(definition, entry.at, 'schedule', entry.id);
       if (entryTime < initialTime) throw new Error(`Schedule entry before initial clock: ${entry.id}`);
       if (entry.when) validateCondition(entry.when, initialState);
-      validateEffects(entry.effects, initialState, eventIds);
+      validateEffects(entry.effects, initialState, eventIds, `schedule ${entry.id}`);
     }
   }
 
@@ -123,13 +183,13 @@ export function validateDefinition(definition: SimulationDefinition, initialStat
       if (variant.fallback && variant.when) throw new Error(`Fallback variant must not define when: ${event.id}/${variant.id}`);
       if (!variant.fallback && !variant.when) throw new Error(`Conditional variant missing when: ${event.id}/${variant.id}`);
       if (variant.when) validateCondition(variant.when, initialState);
-      validateEffects(variant.effects, initialState, eventIds);
+      validateEffects(variant.effects, initialState, eventIds, `event variant ${event.id}/${variant.id}`);
 
       const delayed = variant.delayed_effects ?? [];
       assertUnique(delayed.map((item) => item.id), `Delayed effect ID in ${event.id}/${variant.id}`);
       for (const item of delayed) {
         if (item.delay_minutes < 0) throw new Error(`Negative delayed effect delay: ${item.id}`);
-        validateEffects(item.effects, initialState, eventIds);
+        validateEffects(item.effects, initialState, eventIds, `delayed effect ${item.id}`);
       }
     }
   }

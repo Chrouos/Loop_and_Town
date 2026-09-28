@@ -1,0 +1,15 @@
+id: evt_1910_yuan_information
+title: 郵局的寄件紀錄
+at: { day: 0, time: "19:10" }
+visibility: observable
+variants:
+  - id: postal_anomaly
+    priority: 100
+    when: { path: characters.yuan.assignment, op: eq, value: post_office }
+    effects:
+      - add_flag: flags.postal_record_anomaly_found
+  - id: no_postal_result
+    priority: 0
+    fallback: true
+    visibility: hidden
+    effects: []

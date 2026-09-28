@@ -18,6 +18,11 @@ export function projectTimelineEntries(history: WorldlineHistoryEntry[]): Worldl
       variantId: entry.variantId,
       title: entry.title,
       source: entry.kind === 'player-action' ? 'player' : entry.kind === 'delayed-effect' ? 'delayed' : 'event',
+      ...(entry.kind === 'player-action' ? {
+        durationMinutes: entry.durationMinutes,
+        endTime: entry.endTime,
+        hasImmediateStateChange: (entry.changes?.length ?? 0) > 0,
+      } : {}),
     }));
 }
 

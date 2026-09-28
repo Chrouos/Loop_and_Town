@@ -10,6 +10,11 @@ function actionMinute(action: ActionDefinition): number {
   return value.day * 1440 + hour * 60 + minute;
 }
 
+function actionDuration(action: ActionDefinition): string {
+  if (action.duration_minutes === undefined) return '';
+  return action.duration_minutes === 0 ? ' · 立即' : ` · 花費 ${action.duration_minutes} 分鐘`;
+}
+
 function effectSummary(effect: Effect): string {
   if ('set' in effect) return `${effect.set.path} → ${String(effect.set.value)}`;
   if ('add_flag' in effect) return `flag + ${effect.add_flag}`;
@@ -49,6 +54,7 @@ function ActionGroup({
             <span className="action-time">{actionTime(action)}</span>
             <span className="action-copy">
               <strong>{action.label}</strong>
+              {actionDuration(action) && <small>{actionDuration(action)}</small>}
               {action.effects.map((effect, index) => (
                 <small key={`${action.id}-effect-${index}`}>{effectSummary(effect)}</small>
               ))}

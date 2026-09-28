@@ -1,0 +1,12 @@
+id: zhixia_letter
+kind: letter
+author: zhixia
+formed_at: { day: 0, time: "08:00" }
+content:
+  - 回來一趟。
+  - 這一次，先別來找我。
+  - 如果午夜的鐘聲響起，就代表又失敗了。
+  - 姊
+presentation:
+  title: 第七封信
+  format: physical_letter

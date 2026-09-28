@@ -1,0 +1,35 @@
+id: wakaharu
+name: 許若晴
+age: 23
+identity:
+  occupation: 咖啡店員
+  hometown: 灰潮鎮
+background:
+  summary: 在灰潮鎮長大，和林知夏關係親近；近期重新接觸到知夏留下的東西。
+  history:
+    - 年少時常跟在林知夏身邊。
+    - 現在在老街咖啡店工作。
+personality:
+  traits:
+    - 謹慎
+    - 對熟人有明顯依賴
+    - 不擅長說謊
+  habits:
+    - 緊張時會先停下手上的動作
+  dislikes:
+    - 被逼問私事
+speech:
+  tone: soft
+  calls:
+    protagonist: 妳
+    zhixia: 知夏姊
+    yuan: 予安
+knowledge:
+  initial:
+    - fact_zhixia_dead_five_years
+    - fact_wakaharu_close_to_zhixia
+  hidden:
+    - fact_1831_is_special
+secrets:
+  - 知道林知夏曾經留下與 18:31 有關的警告，但不知道全貌。
+schedule_ref: schedules/wakaharu.yaml

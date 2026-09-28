@@ -1,0 +1,9 @@
+id: evt_1420_return_to_town
+title: 回到灰潮鎮
+at: { day: 0, time: "14:20" }
+visibility: observable
+variants:
+  - id: returned
+    priority: 0
+    fallback: true
+    effects: []

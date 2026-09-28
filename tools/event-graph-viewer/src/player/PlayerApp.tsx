@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { loadSimulationStory } from '../lib/loadSimulationStory';
 import type { SimulationDefinition, WorldState } from '../simulator/types';
-import { displayMinute, timeAt } from './clock';
+import { clockMinuteAt, displayMinute, isLiveSyncAvailable } from './clock';
+import { entryPresentation, entryWindowFor } from './entry';
 import { reconcilePlayer, visibleRecords } from './knowledge';
 import { knownDiff, pinExcerpt } from './logic';
 import { normalizeSave, type ActionId, type PlayerSave } from './model';
-import { confirmAction } from './runtime';
+import { activeLoop, confirmAction, continuePendingBoundary, createNextLoop } from './runtime';
 import { LEGACY_KEY, exportSave, importLegacy, readSave, writeSave } from './storage';
 import { EvidenceBoard } from './EvidenceBoard';
 import { WorldlineNotebook } from './WorldlineNotebook';
@@ -56,23 +57,37 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
     return () => { document.removeEventListener('keydown', close); opener.current?.focus(); };
   }, [drawer]);
 
-  const clock = timeAt(save.anchorMs, Math.max(currentMs, save.lastConfirmedMs));
-  const records = visibleRecords(save, clock.loop);
-  const opened = save.knowledge.opened.includes('1:letter') || save.knowledge.opened.includes('letter');
+  const loopId = save.currentLoopId;
+  const loop = activeLoop(save);
+  const clock = { loop: loopId, minute: clockMinuteAt(loop.clock, Math.max(currentMs, save.lastConfirmedMs)) };
+  const entryWindow = entryWindowFor(Math.min(clock.minute, 1439));
+  const entry = entryPresentation(entryWindow);
+  const records = visibleRecords(save, loopId);
+  const opened = save.knowledge.opened.includes(`${loopId}:letter`) || save.knowledge.opened.includes('letter');
   const record = records.find(x => x.id === selected) ?? records[0];
-  const incoming = records.filter(item => item.revealMinute > 0 && !save.knowledge.opened.includes(`${clock.loop}:${item.id}`));
-  const hasAction = (id: ActionId) => save.loops[clock.loop]?.actionIds.includes(id) ?? false;
+  const incoming = records.filter(item => item.revealMinute > 0 && !save.knowledge.opened.includes(`${loopId}:${item.id}`));
+  const hasAction = (id: ActionId) => loop.actionIds.includes(id);
   const canAct = clock.minute < 1100;
   const next = clock.minute < 1100 ? '18:20 前，你還能改變今晚的行程' : clock.minute < 1111 ? '18:31，舊車站' : clock.minute < 1120 ? '等候鎮上的通報' : clock.minute < 1280 ? '21:20，予安說會再聯絡' : '午夜，日期會回到今天';
+  const resetPending = loop.clock.pendingCriticalBoundary === 'reset';
 
   function showDrawer(value: Drawer, target?: HTMLButtonElement) { opener.current = target ?? null; setDrawer(value); setNote(''); }
   function choose(id: ActionId) {
     try { const nextSave = normalizeSave(save, now()); confirmAction(nextSave, id, now()); commit(nextSave); setNote(id === 'protect_wakaharu' ? '你答應在若晴出門前陪她留在家裡。' : '你請予安先到醫院，設法留住陳柏勳。'); }
     catch (e) { setNote(e instanceof Error ? e.message : String(e)); }
   }
+  function chooseMode(mode: 'ACCELERATED' | 'LIVE_SYNC') {
+    try {
+      const nextSave = normalizeSave(save, now());
+      if (story) continuePendingBoundary(nextSave, story.definition, story.initialState);
+      createNextLoop(nextSave, mode, now());
+      commit(nextSave);
+      if (story) refresh(story);
+    } catch (e) { setNote(e instanceof Error ? e.message : String(e)); }
+  }
   function openRecord(id: string) {
     const nextSave = normalizeSave(save, now());
-    const readKey = `${clock.loop}:${id}`;
+    const readKey = `${loopId}:${id}`;
     if (!nextSave.knowledge.opened.includes(readKey)) nextSave.knowledge.opened.push(readKey);
     commit(nextSave); setSelected(id); setDrawer(null);
   }
@@ -87,9 +102,9 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
   }
 
   return <div className="player-shell">
-    <header className="player-header"><div className="wordmark">灰潮鎮 <span>／ 第七封信</span></div><div className="header-actions"><span className="town-time">鎮內 {displayMinute(clock.minute)}</span><button onClick={e => showDrawer('case', e.currentTarget)}>案卷 <i>{records.length}</i></button><button onClick={e => showDrawer('board', e.currentTarget)}>推理桌</button><button onClick={e => showDrawer('worldlines', e.currentTarget)}>世界線</button><button onClick={e => showDrawer('save', e.currentTarget)}>存檔</button></div></header>
+    <header className="player-header"><div className="wordmark">灰潮鎮 <span>／ 第七封信</span></div><div className="header-actions"><span className="town-time">第 {clock.loop} 次 · 鎮內 {displayMinute(clock.minute)}</span><button onClick={e => showDrawer('case', e.currentTarget)}>案卷 <i>{records.length}</i></button><button onClick={e => showDrawer('board', e.currentTarget)}>推理桌</button><button onClick={e => showDrawer('worldlines', e.currentTarget)}>世界線</button><button onClick={e => showDrawer('save', e.currentTarget)}>存檔</button></div></header>
     <main className="player-stage">
-      {error ? <p role="alert">無法讀取鎮上的紀錄：{error}</p> : !story ? <p>正在取出案卷……</p> : !opened ? <div className="opening"><p>你回到灰潮鎮時，信已經躺在門縫裡。</p><p>信封沒有寄件地址。郵戳是昨天的。</p><p>寄件人那一欄，寫著林知夏。</p><p>她五年前就死了。</p><button className="envelope-button" onClick={() => openRecord('letter')} aria-label="拆開信封，讀姊姊的信"><span className="envelope" aria-hidden="true"><span className="envelope-flap"/><span className="envelope-name">林知夏　寄</span></span><span className="envelope-action">拆開信封</span></button></div> : <div className="reading-scene" key={`${clock.loop}:${record?.id}`}>
+      {error ? <p role="alert">無法讀取鎮上的紀錄：{error}</p> : !story ? <p>正在取出案卷……</p> : resetPending ? <div className="opening mode-choice"><p>鐘聲落下，今天又回到可以重來的地方。</p><p>下一次進入灰潮鎮時，你要怎麼走進這一天？</p><button onClick={() => chooseMode('LIVE_SYNC')} disabled={!isLiveSyncAvailable(currentMs)}>跟著現在走<span> · {isLiveSyncAvailable(currentMs) ? '從此刻的鎮內時間進入' : '現在是 Live Sync 無法進入的時間'}</span></button><button onClick={() => chooseMode('ACCELERATED')}>回到記憶開始的地方<span> · 從 06:12 的返程列車開始</span></button>{note && <p className="inline-note" role="status">{note}</p>}</div> : !opened ? <div className="opening"><p>返程列車在灰潮鎮的月台緩緩停下。</p><p>現在是灰潮鎮的{entry.label}，你手裡還握著那封不該出現的信。</p>{entry.lines.map(line => <p key={line}>{line}</p>)}<button className="envelope-button" onClick={() => openRecord('letter')} aria-label="拆開信封，讀姊姊的信"><span className="envelope" aria-hidden="true"><span className="envelope-flap"/><span className="envelope-name">林知夏　寄</span></span><span className="envelope-action">拆開信封</span></button></div> : <div className="reading-scene" key={`${clock.loop}:${record?.id}`}>
         {incoming.length > 0 && <div className="incoming-records" aria-label="新消息"><p>鎮上有新消息</p>{incoming.map(item => <button key={item.id} onClick={() => openRecord(item.id)}>閱讀新消息：{item.title}</button>)}</div>}
         <div className="document-top"><span>第 {clock.loop} 次今天</span><span>{record?.source}　／　{record?.formedAt}</span></div>
         <h1>{record?.title}</h1>

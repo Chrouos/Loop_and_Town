@@ -14,7 +14,7 @@ import type {
   WorldState,
   WorldlineHistoryEntry,
 } from './types';
-import { validateDefinition } from './validation';
+import { validateActionDefinition, validateDefinition } from './validation';
 
 const MAX_PROCESSED_ITEMS = 1000;
 
@@ -70,24 +70,9 @@ export function createSimulation(definition: SimulationDefinition, initialState:
     history.push({ ...entry, sequence: sequence++, day: point.day, time: point.time, absoluteMinute: minute, minute, visibility: entry.visibility ?? 'debug' });
   }
 
-  function applyAction(actionOrId: ActionDefinition | string): void {
-    const action = typeof actionOrId === 'string' ? actions.get(actionOrId) : actionOrId;
-    if (!action) throw new Error(`Unknown action: ${String(actionOrId)}`);
-    const actionMinute = toAbsoluteMinute(action.at);
-    if (actionMinute < currentMinute) throw new Error(`Cannot apply action backwards: ${displayMinute(currentMinute)} -> ${displayMinute(actionMinute)}`);
-    const next = queue.peek();
-    if (next && next.executeAt < actionMinute) throw new Error(`Action ${action.id} occurs after pending event at ${displayMinute(next.executeAt)}`);
-    currentMinute = actionMinute;
-    const changes = executeEffects({ state, queue, events, currentMinute }, action.effects);
-    record({ kind: 'player-action', actionId: action.id, title: action.label, changes, visibility: action.visibility ?? 'observable' });
-  }
-
-  function runUntil(time: StoryTimeInput): void {
-    const target = toAbsoluteMinute(time);
-    if (target < currentMinute) throw new Error(`Cannot run simulation backwards: ${displayMinute(currentMinute)} -> ${displayMinute(target)}`);
-
+  function processQueue(target: number, includeTarget: boolean): void {
     let processed = 0;
-    while (queue.peek() && queue.peek()!.executeAt <= target) {
+    while (queue.peek() && (includeTarget ? queue.peek()!.executeAt <= target : queue.peek()!.executeAt < target)) {
       processed += 1;
       if (processed > MAX_PROCESSED_ITEMS) throw new Error(`Processed event limit exceeded: ${MAX_PROCESSED_ITEMS}`);
       const item = queue.dequeue()!;
@@ -114,6 +99,39 @@ export function createSimulation(definition: SimulationDefinition, initialState:
         record({ kind: 'effect', eventId: resolved.eventId, variantId: resolved.variantId, title: `${resolved.title} effects`, changes: resolved.changes, visibility: 'debug' });
       }
     }
+  }
+
+  function applyAction(actionOrId: ActionDefinition | string): void {
+    const action = typeof actionOrId === 'string' ? actions.get(actionOrId) : actionOrId;
+    if (!action) throw new Error(`Unknown action: ${String(actionOrId)}`);
+    const eventIds = new Set(events.keys());
+    const { actionMinute, durationMinutes } = validateActionDefinition(definition, action, state, eventIds);
+    if (actionMinute < currentMinute) {
+      throw new Error(`Action ${action.id} cannot start at ${displayMinute(actionMinute)} before current time ${displayMinute(currentMinute)}`);
+    }
+
+    processQueue(actionMinute, false);
+    currentMinute = actionMinute;
+    const changes = executeEffects({ state, queue, events, currentMinute }, action.effects);
+    const endMinute = actionMinute + durationMinutes;
+    record({
+      kind: 'player-action',
+      actionId: action.id,
+      title: action.label,
+      durationMinutes,
+      endTime: fromAbsoluteMinute(endMinute).time,
+      changes,
+      visibility: action.visibility ?? 'observable',
+    });
+    processQueue(endMinute, false);
+    currentMinute = endMinute;
+  }
+
+  function runUntil(time: StoryTimeInput): void {
+    const target = toAbsoluteMinute(time);
+    if (target < currentMinute) throw new Error(`Cannot run simulation backwards: ${displayMinute(currentMinute)} -> ${displayMinute(target)}`);
+
+    processQueue(target, true);
 
     currentMinute = target;
     const clock = state.clock;
@@ -150,13 +168,23 @@ export function simulate(input: {
     .sort((left, right) => left.minute - right.minute || left.index - right.index);
 
   let cursor = 0;
+  let durationCursor: number | null = null;
   while (cursor < orderedActions.length) {
     const minute = orderedActions[cursor].minute;
-    simulation.runUntil(fromAbsoluteMinute(minute));
+    const groupEnd = orderedActions.findIndex((item, index) => index >= cursor && item.minute !== minute);
+    const group = orderedActions.slice(cursor, groupEnd === -1 ? orderedActions.length : groupEnd);
+    const usesDurationOrdering = group.some(({ action }) => Object.hasOwn(action, 'duration_minutes'));
+    if (!usesDurationOrdering && durationCursor !== minute) simulation.runUntil(fromAbsoluteMinute(minute));
     while (cursor < orderedActions.length && orderedActions[cursor].minute === minute) {
       simulation.applyAction(orderedActions[cursor].action);
       cursor += 1;
     }
+    durationCursor = usesDurationOrdering
+      ? Math.max(...group.map(({ action }) => {
+        const duration = typeof action.duration_minutes === 'number' ? action.duration_minutes : 0;
+        return toAbsoluteMinute(action.at) + duration;
+      }))
+      : null;
   }
 
   simulation.runUntil(input.until);
