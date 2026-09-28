@@ -38,6 +38,9 @@ export type StoryManifest = {
   activities?: string;
   protagonist_schedule?: string;
   narrative?: string;
+  narratives?: string[];
+  story_dags?: string[];
+  worldline_paths?: string[];
   artifacts?: string[];
   player_choices?: string;
   travel?: string;
@@ -60,10 +63,14 @@ export type StoryBundle = {
   travelEdges: TravelEdgeDefinition[];
 };
 
-async function loadYaml(path: string): Promise<unknown> {
+export async function loadYamlText(path: string): Promise<string> {
   const response = await fetch(path);
   if (!response.ok) throw new Error(`HTTP ${response.status}: ${path}`);
-  return yaml.load(await response.text());
+  return response.text();
+}
+
+export async function loadYaml(path: string): Promise<unknown> {
+  return yaml.load(await loadYamlText(path));
 }
 
 function asManifest(value: unknown): StoryManifest {
@@ -84,11 +91,21 @@ function asManifest(value: unknown): StoryManifest {
   if (record.activities !== undefined && typeof record.activities !== 'string') throw new Error('Invalid story manifest activities');
   if (record.protagonist_schedule !== undefined && typeof record.protagonist_schedule !== 'string') throw new Error('Invalid story manifest protagonist_schedule');
   if (record.narrative !== undefined && typeof record.narrative !== 'string') throw new Error('Invalid story manifest narrative');
+  if (record.narratives !== undefined && !Array.isArray(record.narratives)) throw new Error('Invalid story manifest narratives');
+  if (record.narratives !== undefined && record.narratives.some((path) => typeof path !== 'string')) throw new Error('Invalid story manifest narratives');
+  if (record.story_dags !== undefined && !Array.isArray(record.story_dags)) throw new Error('Invalid story manifest story_dags');
+  if (record.story_dags !== undefined && record.story_dags.some((path) => typeof path !== 'string')) throw new Error('Invalid story manifest story_dags');
+  if (record.worldline_paths !== undefined && !Array.isArray(record.worldline_paths)) throw new Error('Invalid story manifest worldline_paths');
+  if (record.worldline_paths !== undefined && record.worldline_paths.some((path) => typeof path !== 'string')) throw new Error('Invalid story manifest worldline_paths');
   if (record.artifacts !== undefined && !Array.isArray(record.artifacts)) throw new Error('Invalid story manifest artifacts');
   if (record.player_choices !== undefined && typeof record.player_choices !== 'string') throw new Error('Invalid story manifest player_choices');
   if (record.travel !== undefined && typeof record.travel !== 'string') throw new Error('Invalid story manifest travel');
 
   return record as unknown as StoryManifest;
+}
+
+export async function loadStoryManifest(manifestPath: string): Promise<StoryManifest> {
+  return asManifest(await loadYaml(manifestPath));
 }
 
 function normalizeSchedule(value: unknown): ScheduleDefinition {
@@ -230,6 +247,10 @@ function normalizeScenes(value: unknown): NarrativeSceneDefinition[] {
       observation: normalizeObservation(record.observation),
     };
   });
+}
+
+export function parseNarrativeDocument(value: unknown): NarrativeSceneDefinition[] {
+  return normalizeScenes(value);
 }
 
 function normalizeArtifact(value: unknown): ArtifactDefinition {
@@ -426,8 +447,7 @@ export function buildStoryBundleFromDocuments(input: {
   };
 }
 
-async function loadManifestStory(manifestPath: string): Promise<StoryBundle> {
-  const manifest = asManifest(await loadYaml(manifestPath));
+export async function buildStoryBundleFromManifest(manifest: StoryManifest): Promise<StoryBundle> {
   const base = 'story/';
   const [loop, initialState, actions, worldlines, schedules, events, characters, relationships, knowledge, activities, protagonistSchedule, narrative, artifacts, playerChoices, travel] = await Promise.all([
     loadYaml(base + manifest.loop),
@@ -463,6 +483,10 @@ async function loadManifestStory(manifestPath: string): Promise<StoryBundle> {
     playerChoices,
     travel,
   });
+}
+
+async function loadManifestStory(manifestPath: string): Promise<StoryBundle> {
+  return buildStoryBundleFromManifest(await loadStoryManifest(manifestPath));
 }
 
 async function loadLegacyStory(): Promise<StoryBundle> {
