@@ -55,4 +55,22 @@ describe('player narrative runtime', () => {
     expect(view.currentLocation).toBe('old_station');
     expect(view.worldHistory.some((entry) => entry.eventId === 'evt_1831_station')).toBe(true);
   });
+
+  it('shows travel progress while the world is moving the protagonist', () => {
+    const story = loadRealStory();
+    const session = createInitialPlayerSession(0);
+    session.currentLocation = 'old_house';
+    const travelling = applyChoiceEffects(story, session, {
+      id: 'late-station', sceneId: 'main_story_handoff', label: '直接去車站',
+      effects: [{ type: 'travel' as const, to: 'old_station' }],
+    }, 1092);
+
+    const view = reconcilePlayerRuntime(story, travelling, (1100 - 860) * 60_000);
+
+    expect(view.activityPresentation).toMatchObject({
+      title: '正在路上……',
+      remainingLabel: '還有 14 分鐘',
+      etaLabel: '預計 18:34 抵達',
+    });
+  });
 });

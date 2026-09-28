@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { ActivityRun } from '../src/narrative/activity';
 import type { ActivityDefinition } from '../src/narrative/types';
-import { projectActivityPresentation, type ActivityClockProjection } from '../src/playerNarrative/activityPresentation';
+import { projectActivityPresentation, projectTravelPresentation, type ActivityClockProjection } from '../src/playerNarrative/activityPresentation';
 
 const clock: ActivityClockProjection = {
   formatStoryMinute: (minute) => `TIME-${minute}`,
@@ -69,6 +69,20 @@ describe('activity presentation projection', () => {
       remainingLabel: undefined,
       etaLabel: undefined,
       etaMode: 'hidden',
+    });
+  });
+
+  it('projects remaining time and arrival time for travel activities', () => {
+    expect(projectTravelPresentation(run({
+      activityId: 'travel:station:old_house',
+      startedAt: 860,
+      durationMinutes: 22,
+      remainingMinutes: 22,
+    }), clock)).toEqual({
+      title: '正在路上……',
+      remainingLabel: '還有 22 分鐘',
+      etaLabel: '預計 TIME-882 抵達',
+      etaMode: 'exact',
     });
   });
 });

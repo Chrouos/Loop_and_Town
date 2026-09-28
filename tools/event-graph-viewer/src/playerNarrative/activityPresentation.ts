@@ -49,3 +49,16 @@ export function projectActivityPresentation(
 
   return { title, etaMode };
 }
+
+export function projectTravelPresentation(
+  run: ActivityRun,
+  clock: ActivityClockProjection,
+): ActivityPresentationView {
+  if (run.status !== 'running') return { title: '正在路上……', etaMode: 'hidden' };
+  return {
+    title: '正在路上……',
+    remainingLabel: `還有 ${run.remainingMinutes} 分鐘`,
+    etaLabel: `預計 ${clock.formatStoryMinute(run.startedAt + run.durationMinutes)} 抵達`,
+    etaMode: 'exact',
+  };
+}

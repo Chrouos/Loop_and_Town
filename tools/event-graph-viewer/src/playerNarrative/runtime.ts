@@ -6,7 +6,7 @@ import { simulateStory } from '../simulator/storySimulation';
 import { fromAbsoluteMinute } from '../simulator/time';
 import type { WorldState, WorldlineHistoryEntry } from '../simulator/types';
 import { projectAmbientBeats } from './ambient';
-import { projectActivityPresentation, type ActivityPresentationView } from './activityPresentation';
+import { projectActivityPresentation, projectTravelPresentation, type ActivityPresentationView } from './activityPresentation';
 import { availableChoicesForScene } from './choices';
 import { currentStoryMinute, formatStoryMinute } from './clock';
 import { reconcilePersistentObservations, type InboxItem, type PersistentObservationInput } from './inbox';
@@ -78,6 +78,8 @@ export function reconcilePlayerRuntime(
       formatStoryMinute,
       estimatedCompletionMinute: (run) => run.startedAt + run.remainingMinutes,
     })
+    : advancedActivity?.activityId.startsWith('travel:')
+      ? projectTravelPresentation(advancedActivity, { formatStoryMinute, estimatedCompletionMinute: (run) => run.startedAt + run.durationMinutes })
     : null;
 
   const travelCompleted = Boolean(

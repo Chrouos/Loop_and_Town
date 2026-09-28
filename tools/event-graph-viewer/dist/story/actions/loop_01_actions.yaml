@@ -28,6 +28,7 @@ actions:
     visibility: observable
     effects:
       - set: { path: characters.wakaharu.route, value: home }
+      - set: { path: relationships.protagonist_wakaharu.trust, value: 2 }
 
   - id: stop_doctor
     at: { day: 0, time: "17:30" }

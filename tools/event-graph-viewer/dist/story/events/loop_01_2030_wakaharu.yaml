@@ -1,0 +1,20 @@
+id: evt_2030_wakaharu_life
+title: 20:30 若晴的選擇
+at: { day: 0, time: "20:30" }
+visibility: observable
+variants:
+  - id: wakaharu_life_continues
+    priority: 100
+    when:
+      all:
+        - { path: characters.wakaharu.status, op: eq, value: alive }
+        - { path: characters.doctor.status, op: eq, value: dead }
+        - { path: characters.wakaharu.life_status, op: eq, value: resignation_submitted }
+        - { path: relationships.protagonist_wakaharu.trust, op: eq, value: 2 }
+    effects:
+      - add_flag: flags.wakaharu_life_continues
+  - id: not_applicable
+    priority: 0
+    fallback: true
+    visibility: hidden
+    effects: []
