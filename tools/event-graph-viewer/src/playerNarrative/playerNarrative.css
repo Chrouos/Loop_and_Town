@@ -36,6 +36,16 @@ button { font: inherit; }
   min-height: 70vh;
 }
 
+.scene-transition { width: 100%; min-height: 100%; }
+.scene-transition-entering { animation: scene-fade-in .4s ease both; }
+.scene-transition-exiting { animation: scene-fade-out .25s ease both; }
+.scene-transition-black.scene-transition-entering { animation: scene-black-in .5s ease both; }
+.scene-transition-black.scene-transition-exiting { animation: scene-black-out .25s ease both; background: #000; }
+@keyframes scene-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes scene-fade-out { from { opacity: 1; } to { opacity: 0; } }
+@keyframes scene-black-in { from { opacity: 0; background: #000; } to { opacity: 1; background: transparent; } }
+@keyframes scene-black-out { from { opacity: 1; background: transparent; } to { opacity: 0; background: #000; } }
+
 .narrative-surface { display: flex; flex-direction: column; gap: 28px; outline: none; cursor: pointer; }
 .narrative-surface:focus-visible { outline: 1px solid rgba(236, 233, 224, .22); outline-offset: 16px; }
 .narrative-copy { display: flex; flex-direction: column; gap: 19px; }

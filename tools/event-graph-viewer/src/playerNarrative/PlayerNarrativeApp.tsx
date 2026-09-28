@@ -11,6 +11,7 @@ import { ArtifactSurface } from './components/ArtifactSurface';
 import { CharacterDrawer } from './components/CharacterDrawer';
 import { ChoiceSurface } from './components/ChoiceSurface';
 import { NarrativeSurface, type PlaybackPhase } from './components/NarrativeSurface';
+import { SceneTransition } from './components/SceneTransition';
 
 export type PlayerNarrativeAppProps = { story: StoryBundle };
 
@@ -195,8 +196,13 @@ export function PlayerNarrativeApp({ story }: PlayerNarrativeAppProps) {
       </header>
 
       <div className="player-stage">
-        {scene && playback && activeBlock ? (
-          <>
+        {scene ? (
+          <SceneTransition
+            sceneKey={scene.id}
+            variant={scene.kind === 'transition' ? 'black' : 'scene'}
+          >
+            {playback && activeBlock ? (
+              <>
             <NarrativeSurface
               block={activeBlock}
               previousBlocks={previousBlocks}
@@ -226,9 +232,11 @@ export function PlayerNarrativeApp({ story }: PlayerNarrativeAppProps) {
               <ChoiceSurface choices={view.availableChoices} onChoose={choose} />
             )}
 
-          </>
-        ) : scene ? (
-          <section className="quiet-surface" aria-label="場景載入中"><p>……</p></section>
+              </>
+            ) : (
+              <section className="quiet-surface" aria-label="場景載入中"><p>……</p></section>
+            )}
+          </SceneTransition>
         ) : view.activeActivity && view.activeActivity.status === 'running' ? (
           <ActivitySurface
             timeLabel={formatMinute(view.currentStoryMinute)}
