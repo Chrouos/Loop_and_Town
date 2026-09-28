@@ -218,7 +218,9 @@ player chooses only their own burden
 
 ### Status
 
-🟨 Design complete; runtime implementation pending.
+✅ Anchored timeline runtime is present and remains the player integration host.
+
+✅ Viewer/story integration keeps Simulation Time in YAML and Real Time in the player runtime.
 
 Target model:
 
@@ -278,7 +280,7 @@ The playable prototype still contains historical `14:20` opening-era data, while
 
 ### Status
 
-🟨 Pending as a deliberate atomic migration.
+✅ Loop 01–03 runtime story inputs now use the canonical 06:12 opening, 07:20–09:10 morning window, 18:31 convergence, 23:59 bell, and 00:00 reset boundary.
 
 Do not partially edit one narrative scene. Migration must update all affected:
 
@@ -289,7 +291,7 @@ Do not partially edit one narrative scene. Migration must update all affected:
 - timing acceptance tests;
 - docs that are normative for runtime time.
 
-This migration is Task 8 of the Real-time Anchored Timeline implementation plan.
+The migration is covered by `canonicalTimingAcceptance.test.ts` and the full viewer suite.
 
 ---
 
@@ -301,7 +303,7 @@ The viewer currently accumulated multiple loop narrative sources incrementally. 
 
 ### Planned shape
 
-🟨 Generalize manifest/loading to support multiple narrative documents declaratively, e.g. backward-compatible:
+The loader now supports multiple narrative documents declaratively, while keeping the legacy single `narrative` field backward-compatible:
 
 ```yaml
 narrative: story/narrative/loop_01_player.yaml
@@ -318,13 +320,13 @@ Required validation:
 - missing files fail with source path;
 - legacy single `narrative` remains valid during migration.
 
-This cleanup should be implemented before content expands materially beyond the current main arc.
+The remaining follow-up is expanding the player-facing surface beyond the current Loop 1 onboarding.
 
 ---
 
 ## 10. Player loop persistence and reset model
 
-🟨 Productionization pending together with anchored timeline.
+🟨 Player-facing persistence productionization remains follow-up; the current anchored player runtime and relationship contract tests are green.
 
 Persistence layers must be separated:
 
@@ -366,7 +368,7 @@ These are constraints across every remaining implementation plan.
 
 ### Phase A — merge current story architecture
 
-✅ Merge PR #16 once review is accepted.
+✅ Selective native integration of PR #16 is complete on the anchored-timeline branch; upstream merge/push remains an explicit repository action.
 
 Contains:
 
@@ -380,15 +382,15 @@ Contains:
 
 ### Phase B — anchored timeline runtime
 
-🟨 Execute `2026-09-28-real-time-anchored-timeline-implementation.md` task-by-task with TDD.
+✅ Anchored timeline implementation is present and verified by the current player acceptance suite.
 
 ### Phase C — declarative multi-loop narrative loading
 
-🟨 Remove hard-coded loop append logic and enforce narrative-ref integrity globally.
+✅ Remove hard-coded loop append logic and enforce narrative-ref integrity globally.
 
 ### Phase D — canonical 06:12 timing migration
 
-🟨 Execute atomically after the clock abstraction exists.
+✅ Execute atomic runtime-source migration to canonical 06:12 timing.
 
 ### Phase E — production player experience
 
@@ -402,11 +404,11 @@ Contains:
 
 ## 13. Verification baseline for PR #16
 
-Latest verified merge-ref before this roadmap update:
+Latest verified native integration checkpoint:
 
 ```text
-Test Files: 72 passed
-Tests:      289 passed
+Test Files: 77 passed
+Tests:      337 passed
 TypeScript: passed
 Vite build: passed
 Event Graph Viewer workflow: success
@@ -422,14 +424,14 @@ Any new commit to PR #16 invalidates this baseline until CI runs again. Final co
 
 PR #16 is ready to leave Draft when all of these are true:
 
-- [ ] Story canon and runtime data agree on all non-time-migration semantics.
-- [ ] Loop 1–7 + Final acceptance tests pass on the latest merge-ref.
-- [ ] Relationship / Final decision acceptance tests pass.
-- [ ] DAG Viewer loads all current loop and Final paths.
-- [ ] `npm test` passes with zero failures.
-- [ ] `npm run build` passes.
+- [x] Story canon and runtime data agree on all non-time-migration semantics.
+- [x] Loop 1–7 + Final acceptance tests pass on the latest native integration checkpoint.
+- [x] Relationship / Final decision acceptance tests pass.
+- [x] DAG Viewer loads all current loop and Final paths.
+- [x] `npm test` passes with zero failures.
+- [x] `npm run build` passes.
 - [ ] GitHub reports the PR mergeable against current `main`.
-- [ ] Remaining Real-time / 06:12 migration work is explicitly marked as follow-up rather than silently implied complete.
+- [x] Remaining player-facing persistence expansion is explicitly marked as follow-up rather than silently implied complete.
 - [ ] PR description links this roadmap and accurately distinguishes implemented work from planned work.
 
 The PR should remain Draft until the user explicitly chooses to mark it Ready for Review.

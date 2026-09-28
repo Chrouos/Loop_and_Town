@@ -1,0 +1,19 @@
+paths:
+  - id: loop_05_only_i_remember
+    label: Loop 05｜只有我記得
+    visibility: public
+    node_ids:
+      - L5_N00_reset_alone
+      - L5_N01_yuan_stranger_again
+      - L5_N02_key_from_lost_day
+      - L5_N04_character_insight_unlocked
+      - L5_N05_insight_becomes_clue
+      - L5_N03_yuan_questions_knowledge
+      - L5_N06_friendship_only_one_remembers
+    edge_ids:
+      - L5_E00
+      - L5_E01
+      - L5_E02
+      - L5_E03
+      - L5_E04
+      - L5_E05

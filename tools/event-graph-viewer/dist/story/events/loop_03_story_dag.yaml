@@ -1,0 +1,196 @@
+id: loop_03_story_dag
+title: Loop 03｜沒有死者的世界線
+nodes:
+  - id: L3_N00_third_awake
+    title: 第三次在同一天醒來
+    time: "06:12"
+    actor_ids: [protagonist]
+    visibility: public
+    detail:
+      before: [主角已看過若晴死亡與柏勳死亡兩種 18:31。]
+      after: [主角不再只想救一個人，而決定控制所有已知高風險行程。]
+      reason: 前兩輪證明死者會變，但 18:31 不變。
+      affected_characters: [protagonist, wakaharu, doctor, reporter, detective, yuan]
+      delayed_effects: [主角開始把人物位置當成可調度變數。]
+      knowledge_changes: [死者可變, 18:31 暫時不變]
+      relationship_changes: []
+      narrative_refs: [loop03_1420_third_awake]
+
+  - id: L3_N01_foreknowledge_frightens_wakaharu
+    title: 預知反而讓若晴害怕
+    time: "07:32"
+    actor_ids: [protagonist, wakaharu]
+    visibility: public
+    detail:
+      before: [上一輪主角先理解若晴，才得到她的信任。]
+      after: [這一輪主角直接說出尚未被告知的車站行程，若晴因此產生戒心。]
+      reason: 輪迴者把上一輪取得的私人資訊當成這一輪理所當然的已知資訊。
+      affected_characters: [wakaharu, protagonist]
+      delayed_effects: [若晴留下來，但不完全是因為信任主角。]
+      knowledge_changes: []
+      relationship_changes: [wakaharu.trust_protagonist -1]
+      narrative_refs: [loop03_1540_wakaharu_foreknowledge]
+
+  - id: L3_N02_yuan_notices_pattern
+    title: 予安察覺主角知道得不合理地多
+    time: "08:22"
+    actor_ids: [protagonist, yuan]
+    visibility: public
+    detail:
+      before: [予安只覺得主角回鄉後過度緊張。]
+      after: [他開始注意主角能預判商店關門、車輛與小事故。]
+      reason: 主角已經不自覺按照自己的跨 Loop 記憶行動。
+      affected_characters: [yuan, protagonist]
+      delayed_effects: [予安之後會更注意主角對今天與自己生活知道得太多，但不會因此想起其他 Loop。]
+      knowledge_changes: [予安懷疑主角掌握某種未公開資訊。]
+      relationship_changes: [yuan.suspicion +1]
+      narrative_refs: [loop03_1630_yuan_notices]
+
+  - id: L3_N03_doctor_asks_iteration
+    title: 柏勳問「這是第幾次？」
+    time: "09:12"
+    actor_ids: [protagonist, doctor]
+    visibility: public
+    detail:
+      before: [柏勳原本會帶資料前往舊車站。]
+      after: [柏勳答應今天不去車站，並從主角的說法察覺她可能和五年前知夏一樣正在經歷多個結果。]
+      reason: 主角直接說「上一個拿到資料的人死了」，而柏勳五年前曾記錄知夏描述不同結果的病歷。
+      affected_characters: [doctor, protagonist]
+      delayed_effects: [主角開始懷疑柏勳知道「記憶持有者」現象，而不是柏勳自己記得上一輪。]
+      knowledge_changes: [doctor_recognizes_memory_holder_pattern]
+      relationship_changes: [doctor.caution +1]
+      narrative_refs: [loop03_1720_doctor_intercept]
+
+  - id: L3_N04_clear_known_people
+    title: 主角清空所有已知高風險人物
+    time: "09:52"
+    actor_ids: [protagonist, wakaharu, doctor, reporter, detective, yuan]
+    visibility: public
+    detail:
+      before: [前兩輪至少有人依原行程進入舊車站異常區。]
+      after: [若晴在家、柏勳在醫院、庭安留在咖啡店、志遠查別案、予安留在鐘錶店。]
+      reason: 主角把前兩輪的時間與路線資訊組成一張風險地圖。
+      affected_characters: [wakaharu, doctor, reporter, detective, yuan]
+      delayed_effects: [五個人的私人行程與關係被主角不同程度改寫。]
+      knowledge_changes: []
+      relationship_changes: [protagonist.control_over_day +1]
+      narrative_refs: [loop03_1800_clear_station]
+
+  - id: L3_N05_no_death_1831
+    title: 18:31 沒有人死亡
+    time: "18:31"
+    actor_ids: [protagonist]
+    visibility: public
+    detail:
+      before: [所有已知角色都被移出主角認為的危險位置。]
+      after: [18:31 平靜通過，已知主要角色全部存活。]
+      reason: 主角成功避開前兩輪已知的高風險人物位置組合。
+      affected_characters: [protagonist, wakaharu, doctor, reporter, detective, yuan]
+      delayed_effects: [主角短暫相信自己已經解開輪迴。]
+      knowledge_changes: [死亡不是 18:31 的必然結果。]
+      relationship_changes: []
+      narrative_refs: [loop03_1831_no_death]
+
+  - id: L3_N06_wakaharu_resigns
+    title: 若晴仍然選擇辭職
+    time: "19:10"
+    actor_ids: [wakaharu]
+    visibility: public
+    detail:
+      before: [過去兩輪她的人生都被 18:31 的死亡事件打斷。]
+      after: [沒有死亡後，她終於照原本計畫處理離職與離鎮準備。]
+      reason: 辭職本來就是若晴自己的決定，不是輪迴事件造成的。
+      affected_characters: [wakaharu]
+      delayed_effects: [她會繼續準備攝影作品集與外地申請。]
+      knowledge_changes: []
+      relationship_changes: []
+      narrative_refs: [loop03_1910_wakaharu_resignation]
+
+  - id: L3_N07_yuan_keeps_realtor
+    title: 予安照常與房仲見面
+    time: "20:00"
+    actor_ids: [yuan, protagonist]
+    visibility: public
+    detail:
+      before: [前幾輪主角經常把予安叫來幫忙，讓他錯過自己的安排。]
+      after: [這一輪予安留在鐘錶店，因此房仲約正常進行。]
+      reason: 主角為了讓他遠離車站，反而第一次沒有佔用他的整個晚上。
+      affected_characters: [yuan, protagonist]
+      delayed_effects: [主角第一次看見自己介入與不介入都會改變別人的人生。]
+      knowledge_changes: [予安正在考慮出售父親留下的鐘錶店。]
+      relationship_changes: []
+      narrative_refs: [loop03_2000_yuan_realtor]
+
+  - id: L3_N08_not_success_note
+    title: 「沒有人死」不是成功
+    time: "22:40"
+    actor_ids: [protagonist]
+    visibility: public
+    detail:
+      before: [主角把所有人存活視為最接近成功的一輪。]
+      after: [知夏留下的筆記直接否定這個判斷。]
+      reason: 知夏曾經走過同樣的實驗階段。
+      affected_characters: [protagonist, zhixia]
+      delayed_effects: [主角開始把問題從「誰會死」轉向「為什麼會重置」。]
+      knowledge_changes: [不要把沒有人死當成成功。]
+      relationship_changes: []
+      narrative_refs: [loop03_2240_not_success]
+
+  - id: L3_N09_unknown_1831_death
+    title: 柏勳帶來十二天前的 18:31 死亡紀錄
+    time: "23:10"
+    actor_ids: [protagonist, doctor]
+    visibility: public
+    detail:
+      before: [主角只能確認自己認識的人今天都活著。]
+      after: [她知道五年前知夏死亡前十二天，也曾有陌生人在 18:31 死亡。]
+      reason: 柏勳在主角阻止交付後，認為她已經接近知夏當年的狀態。
+      affected_characters: [protagonist, doctor]
+      delayed_effects: [「所有我知道的人活著」不再等同「沒有人死」。]
+      knowledge_changes: [存在更早的 18:31 修正事件。]
+      relationship_changes: [doctor.trust_protagonist +1]
+      narrative_refs: [loop03_2310_doctor_old_record]
+
+  - id: L3_N09b_impossible_bell
+    title: 沒有鐘的鐘聲第三次響起
+    time: "23:59"
+    actor_ids: [protagonist]
+    visibility: public
+    detail:
+      before: [已知主要角色全部存活，主角仍期待日期正常前進。]
+      after: [只有主角對鐘聲產生明確反應，午夜修正仍然開始。]
+      reason: 死亡從來不是 Reset 的觸發條件。
+      affected_characters: [protagonist]
+      delayed_effects: [00:00 世界再次重置。]
+      knowledge_changes: [鐘聲與死亡無關。]
+      relationship_changes: []
+      narrative_refs: [loop03_2359_bell]
+
+  - id: L3_N10_midnight_reset
+    title: 無人死亡仍然 Reset
+    time: "00:00"
+    actor_ids: [protagonist]
+    visibility: public
+    detail:
+      before: [主角完成一條已知角色全部存活的世界線。]
+      after: [日期仍回到 10 月 3 日。]
+      reason: 午夜 Reset 的條件不是「有人死亡」。
+      affected_characters: [protagonist, wakaharu, doctor, reporter, detective, yuan]
+      delayed_effects: [下一輪主角停止只研究今天，轉而調查五年前知夏經歷過什麼。]
+      knowledge_changes: [死亡不是輪迴原因。]
+      relationship_changes: []
+      narrative_refs: [loop03_0000_reset]
+
+edges:
+  - { id: L3_E00, source: L3_N00_third_awake, target: L3_N01_foreknowledge_frightens_wakaharu, label: "use remembered schedule", visibility: public }
+  - { id: L3_E01, source: L3_N01_foreknowledge_frightens_wakaharu, target: L3_N02_yuan_notices_pattern, label: "foreknowledge becomes visible", visibility: public }
+  - { id: L3_E02, source: L3_N02_yuan_notices_pattern, target: L3_N03_doctor_asks_iteration, label: "continue clearing routes", visibility: public }
+  - { id: L3_E03, source: L3_N03_doctor_asks_iteration, target: L3_N04_clear_known_people, label: "doctor stays away", visibility: public }
+  - { id: L3_E04, source: L3_N04_clear_known_people, target: L3_N05_no_death_1831, label: "all known risks avoided", visibility: public }
+  - { id: L3_E05a, source: L3_N05_no_death_1831, target: L3_N06_wakaharu_resigns, label: "ordinary life continues", visibility: public }
+  - { id: L3_E05b, source: L3_N05_no_death_1831, target: L3_N07_yuan_keeps_realtor, label: "ordinary life continues", visibility: public }
+  - { id: L3_E06a, source: L3_N06_wakaharu_resigns, target: L3_N08_not_success_note, label: "evening remains normal", visibility: public }
+  - { id: L3_E06b, source: L3_N07_yuan_keeps_realtor, target: L3_N08_not_success_note, label: "protagonist sees his own life", visibility: public }
+  - { id: L3_E07, source: L3_N08_not_success_note, target: L3_N09_unknown_1831_death, label: "question success", visibility: public }
+  - { id: L3_E08, source: L3_N09_unknown_1831_death, target: L3_N09b_impossible_bell, label: "wait for midnight", visibility: public }
+  - { id: L3_E09, source: L3_N09b_impossible_bell, target: L3_N10_midnight_reset, label: "00:00", visibility: public }

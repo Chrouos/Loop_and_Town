@@ -1,0 +1,244 @@
+scenes:
+  - id: loop04_0612_hard_reset
+    at: { day: 0, time: "06:12" }
+    kind: narration
+    participants: [protagonist]
+    blocks:
+      - type: narration
+        text: 我睜開眼時，車廂還沒進灰潮鎮。窗外是清晨六點多的灰藍色天光，玻璃上倒映著手機螢幕。
+      - type: narration
+        text: 10 月 3 日，06:12。
+      - type: monologue
+        text: 原來真正被重置的不是下午兩點二十分。是更早。
+      - type: narration
+        text: 前三輪，我只是到了下午才真正開始行動。這一次，我終於有整個早上可以用。
+      - type: monologue
+        text: 不再改今天。先查清楚五年前。
+
+  - id: loop04_0910_detective_confrontation
+    at: { day: 0, time: "09:10" }
+    kind: dialogue
+    participants: [protagonist, detective]
+    blocks:
+      - type: narration
+        text: 九點十分，我第一次在這麼早的時間走進警局。周志遠正在整理昨夜留下的值班紀錄。
+      - type: dialogue
+        speaker: protagonist
+        text: 我要看我姊五年前的案子。
+      - type: dialogue
+        speaker: detective
+        text: 結案了。
+      - type: narration
+        text: 我把自己整理的時間線放到他面前。五年前知夏 18:31 死亡；第一輪若晴 18:31 死亡；第二輪柏勳 18:31 死亡；第三輪沒有人死亡，但午夜仍重置。
+      - type: narration
+        text: 志遠看完沒有先問我是不是瘋了。他站起來，把警局內側那扇平常敞著的門關上。
+      - type: monologue
+        text: 這個動作比相信我更糟。他知道 18:31 有問題。
+
+  - id: loop04_0930_hidden_recorder
+    at: { day: 0, time: "09:30" }
+    kind: dialogue
+    participants: [protagonist, detective, zhixia, reporter]
+    blocks:
+      - type: narration
+        text: 志遠從私人置物櫃最底層拿出一個舊紙袋。裡面是一台有撞痕的小型錄音器，顯示畫面永遠停在 18:31。
+      - type: dialogue
+        speaker: protagonist
+        text: 這不在證物清單裡。
+      - type: dialogue
+        speaker: detective
+        text: 對。我藏了五年。
+      - type: narration
+        text: 錄音裡先是風聲和急促的腳步，然後傳來知夏的聲音。
+      - type: dialogue
+        speaker: zhixia
+        text: 庭安，這次不是若晴。
+      - type: dialogue
+        speaker: reporter
+        text: 妳每次都說這次不一樣。
+      - type: narration
+        text: 我把播放鍵按停。五年前的若晴只有十八歲。這句話不是在描述今天，卻像她們早就看過某個若晴會死的版本。
+
+  - id: loop04_1020_future_voice
+    at: { day: 0, time: "10:20" }
+    kind: dialogue
+    participants: [protagonist, detective]
+    blocks:
+      - type: narration
+        text: 錄音繼續。18:28 的時間戳下，忽然出現第三個聲音。
+      - type: dialogue
+        speaker: detective
+        text: 不要碰她！
+      - type: narration
+        text: 那是周志遠的聲音。但五年前的正式出勤紀錄寫得很清楚：18:36 接到報案，18:42 才抵達舊車站。
+      - type: dialogue
+        speaker: protagonist
+        text: 你那時候根本不在這裡。
+      - type: dialogue
+        speaker: detective
+        text: 我知道。
+      - type: narration
+        text: 三年前，志遠處理另一起交通事故時，第一次真的喊出同一句「不要碰她」。連語氣和喘息都與五年前錄音裡一樣。
+      - type: monologue
+        text: 這台錄音器不是只記錄了過去。它曾經把某個未來提前留下來。
+
+  - id: loop04_1140_seven_records
+    at: { day: 0, time: "11:40" }
+    kind: dialogue
+    participants: [protagonist, doctor]
+    blocks:
+      - type: narration
+        text: 我把錄音器帶去醫院。柏勳只聽到一半，就把播放器按掉，帶我進一間沒有窗的舊病歷室。
+      - type: narration
+        text: 紙箱裡有七份病歷，全是林知夏。日期橫跨死亡前三個月。
+      - type: narration
+        text: 記得沒有發生過的對話。對尚未發生事故產生強烈確信。反覆確認日期。聲稱同一天曾經發生不同結果。
+      - type: dialogue
+        speaker: protagonist
+        text: 你為什麼沒有寫精神診斷？
+      - type: dialogue
+        speaker: doctor
+        text: 因為她說對了。
+      - type: narration
+        text: 他告訴我，知夏曾預言隔天下午 16:12，一台白色貨車會撞進學校旁的水果攤。時間、地點、車型全部吻合。
+      - type: dialogue
+        speaker: doctor
+        text: 從那天開始，我就不敢再把她說的事情當成妄想。
+
+  - id: loop04_1310_reporter_confession
+    at: { day: 0, time: "13:10" }
+    kind: dialogue
+    participants: [protagonist, reporter]
+    blocks:
+      - type: narration
+        text: 下午一點十分，我把錄音器和病歷影本一起放在葉庭安面前。這一次，我沒有問她認不認識知夏。
+      - type: dialogue
+        speaker: protagonist
+        text: 我知道妳認識她。我要知道妳們做過什麼。
+      - type: dialogue
+        speaker: reporter
+        text: 一開始，我們只是想證明她沒有瘋。
+      - type: narration
+        text: 五年前，庭安還是灰潮時間環境研究中心的研究助理。知夏從地方史資料裡查到研究所早年留下的大量同步觀測紀錄，兩人才開始一起驗證那些「還沒發生的事」。
+      - type: narration
+        text: 她們最早的方法很笨，也很誠實：知夏先說，庭安記下，什麼都不改，等事情發生，再比對。
+      - type: dialogue
+        speaker: reporter
+        text: 真正麻煩的不是她猜中。而是她有時候會忍不住去阻止。
+
+  - id: loop04_1400_first_correction
+    at: { day: 0, time: "14:00" }
+    kind: dialogue
+    participants: [protagonist, reporter, zhixia]
+    blocks:
+      - type: narration
+        text: 第一個被改掉的死亡，是河岸一個小孩的落水事故。知夏和庭安提前到場，把孩子拉了回來。
+      - type: narration
+        text: 當晚她們甚至喝酒慶祝，因為未來第一次被證明可以改變。
+      - type: narration
+        text: 幾個小時後，鎮另一端發生火災，死了一個原本沒有出現在知夏記憶裡的人。
+      - type: dialogue
+        speaker: reporter
+        text: 第一次我們說是巧合。第二次還能這樣說。第三次開始，就不能了。
+      - type: narration
+        text: 她們後來整理出多條結果：阻止落水，別處火災；阻止火災，車站設備事故；再改一次，傷者與死亡位置又換了。
+      - type: narration
+        text: 沒有證據顯示世界一定需要一個死者。但改動越大，其他地方越容易出現異常。
+      - type: dialogue
+        speaker: zhixia
+        text: 這像修正。
+      - type: narration
+        text: 「修正」從此成了她們記錄不同結果時使用的名字。
+
+  - id: loop04_1530_ethical_break
+    at: { day: 0, time: "15:30" }
+    kind: dialogue
+    participants: [protagonist, reporter, zhixia]
+    blocks:
+      - type: narration
+        text: 後來，知夏的筆記從「再試一次」變成了時間、路線、人名與傷亡數字。她開始比較的，不再是怎麼讓所有人活，而是哪個結果損失最小。
+      - type: narration
+        text: 有一次，她明知道某個倉庫工人會重傷，卻沒有阻止，因為另一個被改過的版本裡，醫院停電造成三人死亡。
+      - type: dialogue
+        speaker: reporter
+        text: 妳現在已經不是在救人了。
+      - type: dialogue
+        speaker: zhixia
+        text: 那我要怎麼辦？不做也是一個選擇。
+      - type: dialogue
+        speaker: reporter
+        text: 至少不要替所有人決定。
+      - type: dialogue
+        speaker: zhixia
+        text: 可是如果我不決定，死的人只會更多。
+      - type: narration
+        text: 我沒有立刻反駁。因為昨天的我才剛把若晴、柏勳、庭安、志遠和予安全部搬離自己認為危險的位置。
+      - type: monologue
+        text: 我不是在聽姊姊的故事。我是在看自己再往前走幾步會變成什麼。
+
+  - id: loop04_1741_final_call_log
+    at: { day: 0, time: "17:41" }
+    kind: narration
+    participants: [protagonist, detective, reporter, doctor, yuan]
+    blocks:
+      - type: narration
+        text: 傍晚，我把五年前知夏死亡當天的通聯紀錄重新排在桌上。
+      - type: narration
+        text: 17:41 葉庭安。17:52 陳柏勳。17:58 周予安，未接。18:03 未知號碼。18:31 林知夏死亡。
+      - type: narration
+        text: 前三通都有名字、有理由，也都能找到當事人。只有 18:03 像有人從紀錄裡把身分挖掉了一塊。
+      - type: monologue
+        text: 如果五年前所有人都只拿到一小塊，那 18:03 可能就是還沒有人看懂的那一塊。
+
+  - id: loop04_1758_yuan_missed_call
+    at: { day: 0, time: "17:58" }
+    kind: dialogue
+    participants: [protagonist, yuan]
+    blocks:
+      - type: narration
+        text: 我去找予安確認 17:58。他沉默很久，才承認那通電話是真的。
+      - type: dialogue
+        speaker: yuan
+        text: 那天我在跟我爸吵架。我看到她打來，想說晚點再回。
+      - type: dialogue
+        speaker: protagonist
+        text: 然後呢？
+      - type: dialogue
+        speaker: yuan
+        text: 沒有然後。她死了。
+      - type: narration
+        text: 沒有陰謀，沒有被藏起來的理由。只是一個人以為電話可以晚一點再接。
+      - type: monologue
+        text: 我第一次理解，五年前有些缺口不是因為秘密，只是因為人活著的時候不會知道哪一分鐘會變成最後一次。
+
+  - id: loop04_1803_unknown_call
+    at: { day: 0, time: "18:03" }
+    kind: narration
+    participants: [protagonist]
+    blocks:
+      - type: narration
+        text: 18:03。我盯著那筆通話紀錄。系統標成「撥出」，卻沒有號碼、沒有基地台欄位，也沒有任何正常計費資料。
+      - type: narration
+        text: 更奇怪的是，知夏之後的手寫筆記把 18:03 寫成「收到」。
+      - type: monologue
+        text: 同一通電話，在兩份紀錄裡有兩個方向。
+      - type: narration
+        text: 我把它和錄音器裡提早出現的未來聲音放在一起。紙本、聲音、通話紀錄，都開始出現同一種問題：資訊可以比它應該存在的時間更早抵達。
+      - type: monologue
+        text: 18:03 不是一個名字。它可能是一個跨過世界線的入口。
+
+  - id: loop04_2240_mirror_warning
+    at: { day: 0, time: "22:40" }
+    kind: narration
+    participants: [protagonist]
+    blocks:
+      - type: narration
+        text: 晚上，我把今天找到的東西攤在地板上：錄音器、病歷摘要、庭安的證詞、知夏的通話時間。
+      - type: narration
+        text: 我原本以為自己正在追上姊姊。現在才發現，更可怕的是我可能正在重走她的路。
+      - type: monologue
+        text: 先知道未來。再救一個人。再發現別的地方出事。最後開始覺得只有自己有資格安排所有人。
+      - type: narration
+        text: 紙張背面有一句知夏留下的筆跡。
+      - type: narration
+        text: 如果妳開始覺得自己有資格選誰該被救，就離答案太近了。

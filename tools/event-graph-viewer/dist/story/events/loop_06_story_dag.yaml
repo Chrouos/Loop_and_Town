@@ -1,0 +1,195 @@
+id: loop_06_story_dag
+title: Loop 06｜前六封信
+nodes:
+  - id: L6_N00_sort_carriers
+    title: 把所有「信」排成資訊載體
+    time: "06:12"
+    actor_ids: [protagonist]
+    visibility: public
+    detail:
+      before: [主角把紙條、借閱卡、錄音、病歷、庭安的信與第七封視為不同線索。]
+      after: [主角開始把它們視為知夏測試資訊如何跨世界線的連續實驗。]
+      reason: Arc 4 與 Arc 5 已證明知夏和主角都曾成為跨世界線記憶持有者。
+      affected_characters: [protagonist, zhixia]
+      delayed_effects: [調查目標從「每件東西寫了什麼」改成「每件東西為什麼能留下」。]
+      knowledge_changes: [七封信可能是七種資訊載體實驗。]
+      relationship_changes: []
+      narrative_refs: [loop06_0612_sort_carriers]
+
+  - id: L6_N01_first_note
+    title: 第一封：私人手寫紙條
+    time: "08:30"
+    actor_ids: [protagonist, zhixia]
+    visibility: public
+    detail:
+      before: [地方誌裡的紙條一直被當成普通備忘。]
+      after: [主角確認知夏把手寫紙張當成第一種跨線保存測試。]
+      reason: 紙條直接寫著「第一個成功留下來的是手寫」。
+      affected_characters: [protagonist, zhixia]
+      delayed_effects: [主角開始依載體穩定性重新檢查其他紀錄。]
+      knowledge_changes: [carrier_01_private_handwriting]
+      relationship_changes: []
+      narrative_refs: [loop06_0830_first_note]
+
+  - id: L6_N02_library_card
+    title: 第二封：第三方保管的紙
+    time: "09:40"
+    actor_ids: [protagonist, zhixia]
+    visibility: public
+    detail:
+      before: [第一種方法仍依賴知夏自己的房間與物品。]
+      after: [主角確認知夏刻意把第二次測試放進圖書館公共借閱系統。]
+      reason: 第三方保管能增加世界線必須同步改寫的範圍。
+      affected_characters: [protagonist, zhixia]
+      delayed_effects: [警局、醫院等第三方紀錄被重新視為可能的資訊錨點。]
+      knowledge_changes: [carrier_02_third_party_paper]
+      relationship_changes: []
+      narrative_refs: [loop06_0940_library_card]
+
+  - id: L6_N03_sound_carrier
+    title: 第三封：聲音能留下，但時間會亂
+    time: "11:00"
+    actor_ids: [protagonist, detective, zhixia]
+    visibility: public
+    detail:
+      before: [錄音中的未來志遠聲音只是無法解釋的異常證物。]
+      after: [主角理解聲音本身就是第三種載體，而時間錯序是它的特性。]
+      reason: 錄音中知夏直接留下第三次實驗註記。
+      affected_characters: [protagonist, detective, zhixia]
+      delayed_effects: [18:03 通話的方向矛盾得到新的解讀框架。]
+      knowledge_changes: [carrier_03_sound_time_unstable]
+      relationship_changes: []
+      narrative_refs: [loop06_1100_sound_carrier]
+
+  - id: L6_N04_medical_record
+    title: 第四封：別人記錄的「我」
+    time: "12:30"
+    actor_ids: [protagonist, doctor, zhixia]
+    visibility: public
+    detail:
+      before: [病歷主要被當作知夏異常記憶的醫療證據。]
+      after: [主角看出知夏刻意利用醫院對自己的正式紀錄作為第四種錨點。]
+      reason: 知夏認為「別人記錄的我」比自己持有的私人物件更穩定。
+      affected_characters: [protagonist, doctor, zhixia]
+      delayed_effects: [主角開始區分私人記憶與制度紀錄的穩定性。]
+      knowledge_changes: [carrier_04_external_record]
+      relationship_changes: []
+      narrative_refs: [loop06_1230_medical_record]
+
+  - id: L6_N05_fifth_letter
+    title: 第五封：被燒掉仍會重建的資訊
+    time: "14:10"
+    actor_ids: [protagonist, reporter, zhixia]
+    visibility: public
+    detail:
+      before: [庭安燒掉的信被視為一封失去的物證。]
+      after: [主角知道第五種方法不是保存同一張紙，而是讓條件成立時資訊重新生成。]
+      reason: 庭安曾多次燒掉信件，之後仍在不同位置看到核心內容相同的版本。
+      affected_characters: [protagonist, reporter, zhixia]
+      delayed_effects: [第七封也可能不是單純保存五年的同一件物品。]
+      knowledge_changes: [carrier_05_condition_reconstruction]
+      relationship_changes: [reporter.trust_protagonist +1]
+      narrative_refs: [loop06_1410_fifth_letter]
+
+  - id: L6_N06_character_insight
+    title: Character Insight 指出「東西不是被丟掉」
+    time: "15:10"
+    actor_ids: [protagonist, yuan]
+    visibility: public
+    detail:
+      before: [予安認為父親留下的舊式音訊轉接器可能早已被自己清掉。]
+      after: [主角根據過去 Loop 對予安的理解，判斷「他自己丟掉」不是最值得優先相信的解釋。]
+      reason: 主角記得另一條世界線裡，予安連父親留下的壞零件都不肯直接丟棄。
+      affected_characters: [protagonist, yuan]
+      delayed_effects: [主角改問「最後是誰移動過櫃子」，而不是把 Insight 當成事實判決。]
+      knowledge_changes: [insight_yuan_keeps_fathers_things]
+      relationship_changes: []
+      narrative_refs: [loop06_1510_insight_to_evidence]
+
+  - id: L6_N07_repair_ledger
+    title: 維修簿證實知夏借過音訊轉接器
+    time: "15:18"
+    actor_ids: [protagonist, yuan, zhixia]
+    visibility: public
+    detail:
+      before: [Character Insight 只能說明「應該再查」，不能證明知夏做過什麼。]
+      after: [五年前維修簿留下客觀紀錄：知夏在死亡前一天借用並歸還舊式音訊轉接器。]
+      reason: 予安想起父親會把外借與維修設備重登紙本簿冊，兩人因此找到紀錄。
+      affected_characters: [protagonist, yuan, zhixia]
+      delayed_effects: [第三封聲音實驗獲得獨立於主角記憶之外的客觀佐證。]
+      knowledge_changes: [fact_zhixia_borrowed_audio_adapter]
+      relationship_changes: []
+      narrative_refs: [loop06_1510_insight_to_evidence]
+
+  - id: L6_N08_sixth_carrier
+    title: 第六封：記憶持有者本人
+    time: "16:00"
+    actor_ids: [protagonist, zhixia]
+    visibility: public
+    detail:
+      before: [前五種方法都有可指認的物件、紀錄或重建條件。]
+      after: [主角理解第六種載體沒有物件；不被 Reset 清除記憶的人本身就是資訊載體。]
+      reason: 所有 NPC 都忘記上一輪，只有主角持續把事件與 Character Insight 帶到下一輪。
+      affected_characters: [protagonist, zhixia]
+      delayed_effects: [主角理解知夏後期為何容易把人變成可預測變數：她獨自背著太多不存在的版本。]
+      knowledge_changes: [carrier_06_memory_holder]
+      relationship_changes: []
+      narrative_refs: [loop06_1600_sixth_carrier]
+
+  - id: L6_N09_why_seventh
+    title: 第七封要跨過兩個記憶持有者
+    time: "17:40"
+    actor_ids: [protagonist, zhixia]
+    visibility: public
+    detail:
+      before: [第六種方法已足以讓同一個人把資訊從一輪帶往下一輪。]
+      after: [主角看出第七封必須解決不同問題：知夏死後，資訊仍要交給五年後的新持有者。]
+      reason: 知夏與主角不是同一個人，中間還隔著五年的死亡與世界線斷層。
+      affected_characters: [protagonist, zhixia]
+      delayed_effects: [18:03 未知通話被重新視為「交接」而不是單純聯絡。]
+      knowledge_changes: [carrier_07_cross_holder_handoff]
+      relationship_changes: []
+      narrative_refs: [loop06_1740_why_seventh]
+
+  - id: L6_N10_handoff_1803
+    title: 18:03 可能是最早的交接實驗
+    time: "18:03"
+    actor_ids: [protagonist, zhixia]
+    visibility: public
+    detail:
+      before: [電信紀錄說知夏撥出；知夏筆記卻寫「18:03，收到」。]
+      after: [主角不再只問電話另一端是誰，而開始問它連接的是哪兩個時間與哪兩個世界線位置。]
+      reason: 第三封證明聲音可時間錯序，第七封又需要跨記憶持有者交接。
+      affected_characters: [protagonist, zhixia]
+      delayed_effects: [Chapter 7 將追查五年前知夏最後真正選擇交給妹妹的內容。]
+      knowledge_changes: [18:03 可能是跨世界線資訊交接點。]
+      relationship_changes: []
+      narrative_refs: [loop06_1803_handoff_point]
+
+  - id: L6_N11_seventh_message
+    title: 第七封新增「是讓妳收到」
+    time: "18:31"
+    actor_ids: [protagonist, zhixia]
+    visibility: public
+    detail:
+      before: [主角已理解前六種資訊載體，但仍不知道第七封真正的技術目的。]
+      after: [信封內側出現新句子，明確指出第七次實驗的目標是把資訊交給下一個記憶持有者。]
+      reason: 主角完成前六種方法的重建，並在 18:31 收束點重新讀取第七封。
+      affected_characters: [protagonist, zhixia]
+      delayed_effects: [下一章問題變成「為什麼主角會成為接收者，以及知夏最後要交付什麼」。]
+      knowledge_changes: [第七封不是讓知夏記得，而是讓主角收到。]
+      relationship_changes: []
+      narrative_refs: [loop06_1831_seventh_message]
+
+edges:
+  - { id: L6_E00, source: L6_N00_sort_carriers, target: L6_N01_first_note, label: "classify carrier 1", visibility: public }
+  - { id: L6_E01, source: L6_N01_first_note, target: L6_N02_library_card, label: "compare custody", visibility: public }
+  - { id: L6_E02, source: L6_N02_library_card, target: L6_N03_sound_carrier, label: "test non-paper medium", visibility: public }
+  - { id: L6_E03, source: L6_N03_sound_carrier, target: L6_N04_medical_record, label: "compare external record", visibility: public }
+  - { id: L6_E04, source: L6_N04_medical_record, target: L6_N05_fifth_letter, label: "information can reconstruct", visibility: public }
+  - { id: L6_E05, source: L6_N05_fifth_letter, target: L6_N06_character_insight, label: "verify sound experiment", visibility: public }
+  - { id: L6_E06, source: L6_N06_character_insight, target: L6_N07_repair_ledger, label: "inspect repair ledger", visibility: public }
+  - { id: L6_E07, source: L6_N07_repair_ledger, target: L6_N08_sixth_carrier, label: "evidence confirms investigation path", visibility: public }
+  - { id: L6_E08, source: L6_N08_sixth_carrier, target: L6_N09_why_seventh, label: "same holder is not enough", visibility: public }
+  - { id: L6_E09, source: L6_N09_why_seventh, target: L6_N10_handoff_1803, label: "reframe 18:03 as handoff", visibility: public }
+  - { id: L6_E10, source: L6_N10_handoff_1803, target: L6_N11_seventh_message, label: "18:31 read seventh carrier", visibility: public }

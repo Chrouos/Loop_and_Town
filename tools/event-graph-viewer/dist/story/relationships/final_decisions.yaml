@@ -1,0 +1,84 @@
+id: final_relationship_decisions
+player_selects_outcomes: false
+
+shared_knowledge_required:
+  - knowledge.convergence_known
+  - knowledge.final_truth_shared
+
+decisions:
+  - character_id: wakaharu
+    question: 是否留下紀錄 18:31，而不是被主角安排到安全地點？
+    values: [自由, 自己決定去留, 用攝影留下真實]
+    outcomes:
+      - id: wakaharu_stays_to_document
+        when:
+          all:
+            - { path: knowledge.convergence_known, op: eq, value: true }
+            - { path: relationships.wakaharu.respect, op: gte, value: 2 }
+            - { path: relationships.wakaharu.pressure, op: lt, value: 3 }
+        contribution: 自己選擇留在安全邊界外側，以相機記錄 18:31 的同步異常。
+      - id: wakaharu_leaves_by_choice
+        fallback: true
+        contribution: 自己選擇離開同步區，但把當日照片與時間資訊交給其他人。
+
+  - character_id: doctor
+    question: 是否把封存病歷帶進同步區作為客觀時間基準？
+    values: [證據, 責任, 醫療倫理]
+    outcomes:
+      - id: doctor_brings_records
+        when:
+          all:
+            - { path: knowledge.final_truth_shared, op: eq, value: true }
+            - { path: relationships.doctor.trust, op: gte, value: 2 }
+            - { path: relationships.doctor.pressure, op: lt, value: 3 }
+        contribution: 自己決定帶入原始病歷與監測資料，承擔資料可能被同步異常破壞的風險。
+      - id: doctor_keeps_records_safe
+        fallback: true
+        contribution: 拒絕把唯一原件帶進危險區，只提供複本與已驗證的時間點。
+
+  - character_id: reporter
+    question: 是否公開五年前研究所紀錄，讓鎮外也留下不可被單一世界線抹除的副本？
+    values: [揭露真相, 對知夏的責任, 不再替當事人決定]
+    outcomes:
+      - id: reporter_publishes_archive
+        when:
+          all:
+            - { path: knowledge.final_truth_shared, op: eq, value: true }
+            - { path: relationships.reporter.trust, op: gte, value: 1 }
+            - { path: relationships.reporter.respect, op: gte, value: 2 }
+        contribution: 自己決定公開經交叉驗證的研究所資料，也公開自己五年前的隱瞞。
+      - id: reporter_withholds_names
+        fallback: true
+        contribution: 公開機制與機構責任，但暫不公開可能傷害仍在生活的當事人姓名。
+
+  - character_id: detective
+    question: 是否正式承認五年前藏起錄音器與未登錄證物？
+    values: [責任, 程序, 承認自己的錯]
+    outcomes:
+      - id: detective_discloses_evidence
+        when:
+          all:
+            - { path: knowledge.final_truth_shared, op: eq, value: true }
+            - { path: relationships.detective.trust, op: gte, value: 1 }
+            - { path: relationships.detective.respect, op: gte, value: 1 }
+            - { path: relationships.detective.pressure, op: lt, value: 4 }
+        contribution: 自己決定補登證物並留下正式自白，讓責任不再只存在主角記憶裡。
+      - id: detective_preserves_chain_first
+        fallback: true
+        contribution: 先保全證物鏈，不在 18:31 前做可能破壞法律效力的公開動作。
+
+  - character_id: yuan
+    question: 是否陪主角走進 18:31 的最後同步窗口？
+    values: [陪伴, 家人, 自己做決定]
+    outcomes:
+      - id: yuan_stays_by_choice
+        when:
+          all:
+            - { path: knowledge.convergence_known, op: eq, value: true }
+            - { path: relationships.yuan.trust, op: gte, value: 2 }
+            - { path: relationships.yuan.respect, op: gte, value: 1 }
+            - { path: relationships.yuan.pressure, op: lt, value: 3 }
+        contribution: 知道風險後仍自行選擇陪主角走到 18:31，但保留隨時退出的權利。
+      - id: yuan_waits_outside
+        fallback: true
+        contribution: 不進同步核心，在鐘錶店維持外部時間基準並等待主角回來。

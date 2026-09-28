@@ -5,19 +5,26 @@ identity:
   occupation: 咖啡店員
   hometown: 灰潮鎮
 background:
-  summary: 在灰潮鎮長大，和林知夏關係親近；近期重新接觸到知夏留下的東西。
+  summary: 在灰潮鎮長大，和林知夏關係親近；高中畢業後因母親長期健康不佳留在鎮上工作，最近重新準備攝影作品集與外地學校申請。
   history:
-    - 年少時常跟在林知夏身邊。
-    - 現在在老街咖啡店工作。
+    - 高中時常去圖書館躲避家庭衝突，林知夏是第一個認真看她攝影作品的大人。
+    - 父親早年離家，母親長期身體不好。
+    - 高中畢業後原本想離開灰潮鎮，最後選擇留下照顧母親。
+    - 現在在老街咖啡店工作，私下持續準備攝影作品集。
+  current_goal: 今天已經決定向咖啡店提出辭職，重新申請外地學校。
+  inner_conflict: 想離開灰潮鎮，又覺得離開等於拋下母親，也覺得自己五年來一直沒有做到知夏鼓勵她去做的事。
 personality:
   traits:
     - 謹慎
     - 對熟人有明顯依賴
     - 不擅長說謊
+    - 遇到真正重要的事時反而會自己做決定
   habits:
     - 緊張時會先停下手上的動作
+    - 把重要照片印成紙本而不是只留在手機
   dislikes:
     - 被逼問私事
+    - 別人拿知夏的名字要求她做選擇
 speech:
   tone: soft
   calls:
@@ -30,6 +37,9 @@ knowledge:
     - fact_wakaharu_close_to_zhixia
   hidden:
     - fact_1831_is_special
+    - fact_wakaharu_plans_to_leave_town
 secrets:
   - 知道林知夏曾經留下與 18:31 有關的警告，但不知道全貌。
+  - 已經寫好辭職信，也收到外地學校重新申請通知，但還沒告訴周予安與主角。
+  - 年少時曾對周予安有好感，現在更接近把他視為不會消失的安全感。
 schedule_ref: schedules/wakaharu.yaml

@@ -1,0 +1,29 @@
+paths:
+  - id: loop_06_six_letters
+    label: Loop 06｜前六封信・資訊交接
+    visibility: public
+    node_ids:
+      - L6_N00_sort_carriers
+      - L6_N01_first_note
+      - L6_N02_library_card
+      - L6_N03_sound_carrier
+      - L6_N04_medical_record
+      - L6_N05_fifth_letter
+      - L6_N06_character_insight
+      - L6_N07_repair_ledger
+      - L6_N08_sixth_carrier
+      - L6_N09_why_seventh
+      - L6_N10_handoff_1803
+      - L6_N11_seventh_message
+    edge_ids:
+      - L6_E00
+      - L6_E01
+      - L6_E02
+      - L6_E03
+      - L6_E04
+      - L6_E05
+      - L6_E06
+      - L6_E07
+      - L6_E08
+      - L6_E09
+      - L6_E10

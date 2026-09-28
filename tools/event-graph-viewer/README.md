@@ -1,6 +1,6 @@
 # Event Graph Viewer
 
-灰潮鎮劇情資料的 read-only 視覺化與除錯工具。
+灰潮鎮完整 Story DAG / Worldline 的 read-only 視覺化與除錯工具。
 
 目前提供三個核心視圖：
 
@@ -12,7 +12,7 @@ sync-story
 load + normalize
     ↓
 ┌──────────────┬──────────────┬────────────────┐
-Event Graph    Timeline       Worldline Diff
+Story DAG      Timeline       Worldline Diff
 因果關係         實際時間線       世界線差異
 ```
 
@@ -67,6 +67,10 @@ src/lib/worldlineDiff.ts 世界線差異計算
 src/components/        Graph / Timeline / Diff UI
 src/fixtures/          v0.1 世界線範例
 ```
+
+## Story DAG / Worldline
+
+author viewer 由 `story/manifests/loop_01.yaml` 載入 simulation、Loop 01–07 / Final narrative、DAG 與 worldline path，並在載入時檢查 duplicate IDs、narrative refs 與 path refs。
 
 ## Event Graph
 

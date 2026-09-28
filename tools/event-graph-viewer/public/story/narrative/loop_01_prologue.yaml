@@ -1,6 +1,6 @@
 scenes:
   - id: prologue_arrival
-    at: { day: 0, time: "14:20" }
+    at: { day: 0, time: "06:12" }
     kind: narration
     participants: [protagonist]
     blocks:
@@ -10,7 +10,7 @@ scenes:
         text: 五年沒回來，連風的味道都像變了。
 
   - id: prologue_station_exit
-    at: { day: 0, time: "14:25" }
+    at: { day: 0, time: "07:20" }
     kind: activity
     participants: [protagonist]
     starts_activity: walk_home
@@ -21,7 +21,7 @@ scenes:
         text: 這次只是回來整理房子。把該丟的丟掉，把該簽的簽完，就走。
 
   - id: prologue_groceries
-    at: { day: 0, time: "14:30" }
+    at: { day: 0, time: "07:30" }
     kind: activity
     participants: [protagonist]
     starts_activity: buy_groceries
@@ -32,7 +32,7 @@ scenes:
         text: 我買了水、雞蛋和一點晚餐材料。店員看了我好幾次，最後什麼也沒問。
 
   - id: prologue_yuan_reunion
-    at: { day: 0, time: "14:40" }
+    at: { day: 0, time: "07:40" }
     kind: dialogue
     participants: [protagonist, yuan]
     blocks:
@@ -52,7 +52,7 @@ scenes:
         factId: fact_yuan_runs_clock_shop
 
   - id: prologue_old_house
-    at: { day: 0, time: "15:00" }
+    at: { day: 0, time: "08:00" }
     kind: activity
     participants: [protagonist]
     starts_activity: clean_old_house
@@ -65,7 +65,7 @@ scenes:
         text: 書架上還有姊姊留下的書。灰很多，但排列方式一點都沒變。
 
   - id: prologue_rest_and_read
-    at: { day: 0, time: "15:30" }
+    at: { day: 0, time: "08:30" }
     kind: activity
     participants: [protagonist]
     starts_activity: rest_and_read
@@ -78,7 +78,7 @@ scenes:
         text: 我泡了杯茶，從書架抽出一本以前沒看完的小說。
 
   - id: prologue_sort_mail
-    at: { day: 0, time: "15:50" }
+    at: { day: 0, time: "08:50" }
     kind: activity
     participants: [protagonist]
     starts_activity: sort_mail
@@ -89,7 +89,7 @@ scenes:
         text: 大部分是廣告、帳單和早就失效的通知。我一封一封分到紙箱裡。
 
   - id: prologue_letter_discovery
-    at: { day: 0, time: "16:00" }
+    at: { day: 0, time: "09:00" }
     kind: artifact
     participants: [protagonist]
     artifact_id: zhixia_letter
@@ -107,7 +107,7 @@ scenes:
         factId: fact_zhixia_dead_five_years
 
   - id: prologue_letter_opened
-    at: { day: 0, time: "16:02" }
+    at: { day: 0, time: "09:02" }
     kind: artifact
     participants: [protagonist]
     artifact_id: zhixia_letter
@@ -120,7 +120,7 @@ scenes:
         text: 郵戳是昨天。我又看了一遍，還是昨天。
 
   - id: main_story_handoff
-    at: { day: 0, time: "16:10" }
+    at: { day: 0, time: "09:10" }
     kind: transition
     participants: [protagonist]
     blocks:
