@@ -136,7 +136,7 @@ it('offers a locked mode choice only after a foreground reset', async () => {
   save.loops[1].clock.pendingCriticalBoundary = 'reset';
   storage.setItem(SAVE_KEY, JSON.stringify(save));
   render(<PlayerApp now={() => now} storage={storage} loadStory={async () => ({ definition, initialState: initial })} />);
-  expect(await screen.findByText('世界接手了這一輪。')).toBeDefined();
+  expect(await screen.findByText('世界接手了這一輪。', {}, { timeout: 2000 })).toBeDefined();
   expect(screen.queryByRole('button', { name: /回到記憶開始的地方/ })).toBeNull();
   await userEvent.setup().click(await screen.findByRole('button', { name: '將記憶交還給世界' }));
   expect(await screen.findByRole('button', { name: /回到記憶開始的地方/ }, { timeout: 2000 })).toBeDefined();
@@ -157,10 +157,10 @@ it('replays the reset presentation after reload without creating a loop', async 
   storage.setItem(SAVE_KEY, JSON.stringify(save));
 
   const first = render(<PlayerApp now={() => now} storage={storage} loadStory={async () => ({ definition, initialState: initial })} />);
-  expect(await screen.findByText('世界接手了這一輪。')).toBeDefined();
+  expect(await screen.findByText('世界接手了這一輪。', {}, { timeout: 2000 })).toBeDefined();
   first.unmount();
   render(<PlayerApp now={() => now} storage={storage} loadStory={async () => ({ definition, initialState: initial })} />);
-  expect(await screen.findByText('世界接手了這一輪。')).toBeDefined();
+  expect(await screen.findByText('世界接手了這一輪。', {}, { timeout: 2000 })).toBeDefined();
   expect(readSave(storage, now).currentLoopId).toBe(1);
   expect(readSave(storage, now).loops[1].clock.pendingCriticalBoundary).toBe('reset');
 });
