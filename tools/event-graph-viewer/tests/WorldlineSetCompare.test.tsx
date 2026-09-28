@@ -40,9 +40,9 @@ describe('WorldlineSetCompare', () => {
     );
 
     expect(screen.getByRole('heading', { name: 'Worldline Compare' })).toBeTruthy();
-    expect(screen.getByRole('checkbox', { name: 'Loop 01' })).toBeChecked();
-    expect(screen.getByRole('checkbox', { name: 'Loop 02' })).toBeChecked();
-    expect(screen.getByRole('checkbox', { name: 'Loop 03' })).toBeChecked();
+    expect((screen.getByRole('checkbox', { name: 'Loop 01' }) as HTMLInputElement).checked).toBe(true);
+    expect((screen.getByRole('checkbox', { name: 'Loop 02' }) as HTMLInputElement).checked).toBe(true);
+    expect((screen.getByRole('checkbox', { name: 'Loop 03' }) as HTMLInputElement).checked).toBe(true);
     expect(screen.getByRole('heading', { name: 'Invariant' })).toBeTruthy();
     expect(screen.getByText('共同事件')).toBeTruthy();
     expect(screen.getByText('18:31 Convergence')).toBeTruthy();
