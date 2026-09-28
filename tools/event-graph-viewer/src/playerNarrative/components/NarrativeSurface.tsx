@@ -13,7 +13,7 @@ export type NarrativeSurfaceProps = {
   speakerNames?: Record<string, string>;
   onReveal: (revealedCharacters: number) => void;
   onAdvance: () => void;
-  showAdvanceHint?: boolean;
+  showCursor?: boolean;
 };
 
 function blockText(block: NarrativeBlock): string {
@@ -24,19 +24,27 @@ function blockKey(block: NarrativeBlock, index: number): string {
   return `${block.type}-${block.type === 'dialogue' ? block.speaker : ''}-${index}-${blockText(block)}`;
 }
 
-function renderBlock(block: NarrativeBlock, speakerNames: Record<string, string>, text: string, className: string, key: string) {
+function renderBlock(
+  block: NarrativeBlock,
+  speakerNames: Record<string, string>,
+  text: string,
+  className: string,
+  key: string,
+  showCursor = false,
+) {
+  const cursor = showCursor ? <span className="typing-cursor" aria-hidden="true" /> : null;
   if (block.type === 'dialogue') {
     return (
       <div className={`dialogue-beat ${className}`} key={key}>
         <span className="dialogue-speaker">{speakerNames[block.speaker] ?? block.speaker}</span>
-        <p>「{text}」</p>
+        <p>「{text}」{cursor}</p>
       </div>
     );
   }
 
   return (
     <p className={`${block.type === 'monologue' ? 'monologue-beat' : 'narration-beat'} ${className}`} key={key}>
-      {text}
+      {text}{cursor}
     </p>
   );
 }
@@ -49,7 +57,7 @@ export function NarrativeSurface({
   speakerNames = {},
   onReveal,
   onAdvance,
-  showAdvanceHint = true,
+  showCursor = true,
 }: NarrativeSurfaceProps) {
   const text = blockText(block);
   const visibleText = text.slice(0, Math.max(0, Math.min(revealedCharacters, text.length)));
@@ -93,14 +101,9 @@ export function NarrativeSurface({
         {previousBlocks.slice(-2).map((previous, index) =>
           renderBlock(previous, speakerNames, blockText(previous), `narrative-previous narrative-previous-${index + 1}`, blockKey(previous, index)),
         )}
-        {renderBlock(block, speakerNames, visibleText, 'narrative-active', blockKey(block, 2))}
+        {renderBlock(block, speakerNames, visibleText, 'narrative-active', blockKey(block, 2), showCursor)}
         <span id="narrative-full-text" className="sr-only">{text}</span>
       </div>
-      {phase === 'waiting' && showAdvanceHint && (
-        <span className="advance-hint" aria-label="推進故事">
-          <span className="typing-cursor" aria-hidden="true" />
-        </span>
-      )}
     </section>
   );
 }

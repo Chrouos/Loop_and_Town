@@ -219,7 +219,7 @@ export function PlayerNarrativeApp({ story }: PlayerNarrativeAppProps) {
               speakerNames={speakerNames}
               onReveal={(revealedCharacters) => setPlayback((current) => current ? { ...current, revealedCharacters } : current)}
               onAdvance={advanceNarrative}
-              showAdvanceHint={!sceneComplete || (!artifact && view.availableChoices.length === 0)}
+              showCursor={!sceneComplete || (!artifact && view.availableChoices.length === 0)}
             />
 
             {sceneComplete && artifact && (

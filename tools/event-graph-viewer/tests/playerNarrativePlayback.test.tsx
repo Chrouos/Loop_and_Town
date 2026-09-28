@@ -104,7 +104,8 @@ describe('player narrative playback', () => {
       />,
     );
 
-    expect(screen.getByLabelText('推進故事').querySelector('.typing-cursor')).not.toBeNull();
+    expect(screen.getByText('等待下一步', { selector: '.narrative-active' }).querySelector('.typing-cursor')).not.toBeNull();
+    expect(screen.queryByLabelText('推進故事')).toBeNull();
     expect(screen.queryByText('..... |')).toBeNull();
   });
 });
