@@ -33,3 +33,8 @@ export function writePlayerSession(storage: Pick<Storage, 'setItem'>, session: P
     return false;
   }
 }
+
+export function resetPlayerSession(storage: Pick<Storage, 'removeItem'>): void {
+  storage.removeItem(SAVE_KEY);
+  storage.removeItem(LEGACY_SAVE_KEY);
+}

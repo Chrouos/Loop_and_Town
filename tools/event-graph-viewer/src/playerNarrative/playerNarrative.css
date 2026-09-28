@@ -114,7 +114,10 @@ button { font: inherit; }
 .quiet-next-event { display: grid; gap: 8px; margin-top: 34px; font-family: system-ui, sans-serif; font-size: 12px; letter-spacing: .08em; color: rgba(236, 233, 224, .45); }
 .quiet-next-event strong { font-family: inherit; font-size: 14px; font-weight: 500; color: rgba(236, 233, 224, .7); }
 .quiet-next-event time { color: rgba(236, 233, 224, .55); }
-.player-tools { display: flex; padding: 20px 30px 28px; }
+.world-handoff-button { margin-top: 36px; padding: 9px 16px; border: 1px solid rgba(236,233,224,.16); color: rgba(236,233,224,.62); font-family: system-ui, sans-serif; font-size: 12px; letter-spacing: .08em; cursor: pointer; background: transparent; }
+.world-handoff-button:hover { color: #fff; border-color: rgba(236,233,224,.35); }
+.world-handoff-status { display: block; margin-top: 12px; font-family: system-ui, sans-serif; font-size: 11px; letter-spacing: .08em; color: rgba(236,233,224,.4); }
+.player-tools { display: flex; gap: 22px; padding: 20px 30px 28px; }
 .player-tools button { font-family: system-ui, sans-serif; color: rgba(236, 233, 224, .46); font-size: 13px; }
 
 .character-drawer { position: fixed; inset: 0 0 0 auto; width: min(430px, 92vw); padding: 26px; background: rgba(17,20,17,.97); backdrop-filter: blur(16px); border-left: 1px solid rgba(236,233,224,.08); overflow-y: auto; z-index: 20; animation: drawer-in .24s ease both; }

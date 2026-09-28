@@ -64,9 +64,11 @@ describe('player narrative UI', () => {
   });
 
   it('shows remaining time for the next world event while idle', () => {
+    const onHandoff = () => undefined;
     render(
       <IdleSurface
         upcomingEvent={{ title: '回到老家', minute: 15 * 60, remainingMinutes: 107 }}
+        onHandoff={onHandoff}
       />,
     );
 
@@ -74,5 +76,16 @@ describe('player narrative UI', () => {
     expect(screen.getByText('回到老家')).not.toBeNull();
     expect(screen.getByText(/還有 1 小時 47 分鐘/)).not.toBeNull();
     expect(screen.getByText(/15:00/)).not.toBeNull();
+    expect(screen.getByRole('button', { name: '交還給世界' })).not.toBeNull();
+  });
+
+  it('hands control back without presenting a skip action', () => {
+    let handedBack = false;
+    render(<IdleSurface onHandoff={() => { handedBack = true; }} />);
+
+    fireEvent.click(screen.getByRole('button', { name: '交還給世界' }));
+
+    expect(handedBack).toBe(true);
+    expect(screen.queryByRole('button', { name: /跳過|預設結果/ })).toBeNull();
   });
 });

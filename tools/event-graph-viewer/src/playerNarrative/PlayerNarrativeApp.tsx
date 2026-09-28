@@ -5,7 +5,7 @@ import type { NarrativeBlock, NarrativeSceneDefinition } from '../narrative/type
 import { applyChoiceEffects } from './choices';
 import { formatStoryMinute, freezeForeground, resumeWorld } from './clock';
 import { reconcilePlayerRuntime, type PlayerRuntimeView } from './runtime';
-import { readPlayerSession, writePlayerSession } from './storage';
+import { readPlayerSession, resetPlayerSession, writePlayerSession } from './storage';
 import type { PlayerSessionV3 } from './model';
 import { ActivitySurface } from './components/ActivitySurface';
 import { ArtifactSurface } from './components/ArtifactSurface';
@@ -47,6 +47,7 @@ export function PlayerNarrativeApp({ story }: PlayerNarrativeAppProps) {
   const [sceneKey, setSceneKey] = useState<string | null>(null);
   const [ambientText, setAmbientText] = useState<string | undefined>();
   const [charactersOpen, setCharactersOpen] = useState(false);
+  const [worldHandoff, setWorldHandoff] = useState(false);
 
   useEffect(() => {
     const timer = window.setInterval(() => setNowMs(Date.now()), 1_000);
@@ -84,6 +85,10 @@ export function PlayerNarrativeApp({ story }: PlayerNarrativeAppProps) {
       setPreviousBlocks([]);
     }
   }, [scene, sceneKey]);
+
+  useEffect(() => {
+    if (scene) setWorldHandoff(false);
+  }, [scene?.id]);
 
   useEffect(() => {
     if (scene) return;
@@ -137,6 +142,18 @@ export function PlayerNarrativeApp({ story }: PlayerNarrativeAppProps) {
     setPlayback(null);
     setPreviousBlocks([]);
     setAmbientText(undefined);
+  }
+
+  function handoffToWorld() {
+    const next = resumeWorld(settleCompletedActivity(session, view), nowMs);
+    persist(next);
+    setWorldHandoff(true);
+  }
+
+  function restartPlayer() {
+    if (!window.confirm('確定要重新開始嗎？目前這一輪的進度會被清除。')) return;
+    resetPlayerSession(window.localStorage);
+    window.location.reload();
   }
 
   const readableBlocks = scene?.blocks.filter((block) => block.type !== 'artifact') ?? [];
@@ -256,12 +273,18 @@ export function PlayerNarrativeApp({ story }: PlayerNarrativeAppProps) {
             prose={ambientText}
           />
         ) : (
-          <IdleSurface prose={ambientText} upcomingEvent={view.upcomingWorldEvent} />
+          <IdleSurface
+            prose={ambientText}
+            upcomingEvent={view.upcomingWorldEvent}
+            worldHandoff={worldHandoff}
+            onHandoff={handoffToWorld}
+          />
         )}
       </div>
 
       <nav className="player-tools" aria-label="輔助選單">
         <button type="button" onClick={() => setCharactersOpen(true)}>人物</button>
+        <button type="button" onClick={restartPlayer}>重新開始</button>
       </nav>
 
       <CharacterDrawer

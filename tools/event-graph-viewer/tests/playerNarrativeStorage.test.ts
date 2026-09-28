@@ -1,12 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { freezeForeground } from '../src/playerNarrative/clock';
 import { createInitialPlayerSession } from '../src/playerNarrative/model';
-import { LEGACY_SAVE_KEY, SAVE_KEY, readPlayerSession, writePlayerSession } from '../src/playerNarrative/storage';
+import { LEGACY_SAVE_KEY, SAVE_KEY, readPlayerSession, resetPlayerSession, writePlayerSession } from '../src/playerNarrative/storage';
 
 class MemoryStorage {
   data = new Map<string, string>();
   getItem(key: string) { return this.data.get(key) ?? null; }
   setItem(key: string, value: string) { this.data.set(key, value); }
+  removeItem(key: string) { this.data.delete(key); }
 }
 
 describe('player narrative storage', () => {
@@ -52,5 +53,16 @@ describe('player narrative storage', () => {
     const frozen = freezeForeground(createInitialPlayerSession(1_000), 'scene-a', 2_000);
     writePlayerSession(storage, frozen);
     expect(readPlayerSession(storage, 10_000).foregroundFreeze).toBeNull();
+  });
+
+  it('clears current and legacy saves when explicitly restarting', () => {
+    const storage = new MemoryStorage();
+    storage.data.set(SAVE_KEY, 'current');
+    storage.data.set(LEGACY_SAVE_KEY, 'legacy');
+
+    resetPlayerSession(storage);
+
+    expect(storage.data.has(SAVE_KEY)).toBe(false);
+    expect(storage.data.has(LEGACY_SAVE_KEY)).toBe(false);
   });
 });
