@@ -5,6 +5,7 @@ import { toAbsoluteMinute } from '../simulator/time';
 import type { NarrativeBlock, NarrativeSceneDefinition } from '../narrative/types';
 import type { PlayerStoryBundle } from '../types/playerStory';
 import type { PlayerNarrativeRecord, RecordAcquisition } from './story';
+import { compileSpatialScript } from './spatialText';
 
 const SPEAKER_LABELS: Record<string, string> = {
   protagonist: '你',
@@ -48,6 +49,7 @@ function sceneTitle(scene: NarrativeSceneDefinition, lines: string[]): string {
 function recordForScene(scene: NarrativeSceneDefinition): PlayerNarrativeRecord {
   const body = scene.blocks.map(visibleText).filter((line): line is string => Boolean(line && line.trim()));
   const minute = toAbsoluteMinute(scene.at);
+  const spatialScript = compileSpatialScript(scene.blocks);
   return {
     id: scene.id,
     sceneId: scene.id,
@@ -61,6 +63,7 @@ function recordForScene(scene: NarrativeSceneDefinition): PlayerNarrativeRecord 
     revealMinute: minute,
     availableUntilMinute: scene.availableUntil ? toAbsoluteMinute(scene.availableUntil) : undefined,
     acquisition: acquisitionFor(scene),
+    spatialScript: spatialScript.phrases.length ? spatialScript : undefined,
     matches: (history) => matchesScene(scene, history),
   };
 }
