@@ -1127,3 +1127,228 @@ Memory 只保存主角當時真正看清楚的程度。若只看到模糊人影�
 16. Memory 可以是 Text / Visual / Sound / Composite Moment。
 17. 只能 Capture 主角真正感知過的內容。
 18. Attention → Perception → Memory 是核心因果鏈。
+
+---
+
+## 32. Attention Interaction Model
+
+Attention 不應顯示為數值、Focus Bar、鎖定框或眼睛 Icon。玩家直接透過游標與世界互動，像是在操縱主角當下的感官。
+
+### 32.1 Hover → Notice / Focus
+
+Hover 代表主角開始注意某個目標，但還沒有正式中斷目前 Action。任何時刻只能 Focus 一個目標。
+
+例如：
+
+                             護士：「後來柏勳——」
+
+            ……喀。
+
+                                          窗外有人經過
+
+玩家 Hover「……喀。」後：
+
+                             護士：「後來……」
+                                   （淡化）
+
+            ……喀。
+            ↑ 清晰
+
+                                          …………
+                                          （淡化）
+
+其他內容不是消失，也不是暫停，而是因主角沒有專心感知而降低存在感。
+
+### 32.2 Click → Attend
+
+Click 代表主角真的把 Attention 轉向該目標。這不是瞬間 UI 切換，而是存在於 World Time 中的感知行為。
+
+例如：
+
+    護士 ───────────────────── 門
+      ↑                         ↑
+    Current                  Click
+    Attention
+
+主角需要經歷：
+
+    聽見聲音
+       ↓
+    意識到來源
+       ↓
+    轉頭 / 改變聆聽方向
+       ↓
+    看向門
+       ↓
+    Observe
+
+這個 Attention Shift 可能只需要不到一秒，也可能因距離、角色狀態或正在執行的 Action 而更久，但它不是零時間。
+
+例如：
+
+                             ……喀。
+
+                    [玩家 Click]
+
+    護士：「後來柏勳就——」
+
+                    [主角正在轉頭]
+
+                             門關上。
+
+玩家可能因為晚了一點，最後只看到門關上的瞬間。
+
+## 33. Elastic Attention
+
+Attention 是暫時偏離，而不是進入另一個永久模式。
+
+預設流程：
+
+    Original Action：聽護士說話
+             ↓
+          Hover
+             ↓
+          Notice
+             ↓
+          Click
+             ↓
+      Attention Shift
+             ↓
+          Observe
+             ↓
+    Observation 完成
+             ↓
+       Return Attention
+             ↓
+    Resume Original Action
+
+Observation 自然完成後，主角會自動把 Attention 拉回原本 Action。玩家不需要再次點擊原 Action。這種『被拉出去，再自然彈回』的行為稱為 Elastic Attention。
+
+### 33.1 Interrupting an Observation
+
+玩家可以在 Observation 尚未完成時，再 Click 其他目標來中斷。
+
+例如玩家原本在看門：
+
+            門正在慢慢打開……
+
+    護士：「等等，柏勳那天其實——」
+
+玩家此時 Click 護士：
+
+    Observe Door
+         ↓
+      Interrupt
+         ↓
+    Attention Shift
+         ↓
+    Attend Nurse
+
+結果可能是玩家重新聽到護士，但沒有看到門後到底是誰。
+
+Attention 可以形成：
+
+    護士 → 門 → 窗外 → 護士
+
+每一次轉移都是真實發生的感知行為，因此可能造成只看到一半、漏聽半句、或來不及看清楚。
+
+## 34. Single Focus Rule
+
+任何時刻只能有一個主要 Focus。Hover 新目標就代表主角的注意力正在偏向新目標，因此其他感知內容應被淡化。
+
+這條規則同時防止玩家用滑鼠快速掃過整個畫面來無成本取得所有資訊。
+
+例如玩家快速掃：
+
+    護士 → 門 → 窗戶 → 護士
+
+世界仍然按照原本時間持續：
+
+    ────────────── Real Time ──────────────→
+
+    護士    A────B────C────D
+    門           喀───關上
+    窗戶              人影──→消失
+
+玩家掃到門時，護士仍在從 B 說到 C；掃到窗戶時，門仍然會關上；重新回到護士時，她可能已經說到 D。
+
+因此到處 Hover 的結果可能不是取得更多資訊，而是：
+
+> 每件事情都感知到一點，但沒有任何一件事情真正看完整。
+
+## 35. Faded Does Not Mean Paused
+
+Attention System 的重要底層規則：
+
+> **被淡化 ≠ 沒有發生。世界永遠不等待玩家。**
+
+例如玩家正在 Focus 門：
+
+    Foreground
+        ……喀。
+        門正在打開。
+
+    Background / Faded
+        護士：「他後來去了港口。」
+
+即使護士文字被淡化，她仍然真的把這句話說完。玩家稍後把 Attention 移回護士時，不會重新播放這句話。
+
+這也適用於：
+
+- Dialogue
+- Ambient Narrative
+- Opportunity Window
+- NPC Movement
+- Environmental Sound
+- Visual Event
+
+除非特定事件本身具有持續狀態，否則錯過就是錯過。後續只能透過 Residual、下一輪、其他人物資訊或玩家自己的推理重新接近真相。
+
+## 36. Attention System Example
+
+完整例子：玩家正在醫院護理站與護士交談。
+
+    13:42:10
+
+                             護士：「我記得大概六點——」
+
+    13:42:12
+
+            ……喀。
+
+                             護士：「柏勳那時候……」
+
+    玩家 Hover「……喀。」
+    → 門聲變清晰
+    → 護士淡化，但仍繼續說
+
+    13:42:13
+
+    玩家 Click 門
+    → 主角開始轉頭
+
+                             護士：「……去了港口。」
+
+    13:42:14
+
+            門正在關上。
+            玩家只看到一隻手離開門框。
+
+    13:42:16
+
+    Observation 完成
+    → Elastic Attention 自動 Return
+
+    13:42:17
+
+                             護士：「之後我就沒看到他了。」
+
+此時玩家確實知道：
+
+- 門在 13:42 左右有異常
+- 看到了離開門框的一隻手
+- 護士最後說「之後我就沒看到他了」
+
+但玩家可能沒有真正聽清楚被淡化期間的「去了港口」。
+
+這不是系統扣除 Attention Point 的結果，而是玩家在同一段真實流動的時間裡選擇了自己的感知方向。
