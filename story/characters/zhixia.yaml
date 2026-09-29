@@ -5,15 +5,15 @@ identity:
   occupation: 地方史研究者／圖書館員
   hometown: 灰潮鎮
 background:
-  summary: 主角的姊姊，五年前死於舊車站附近；生前從地方史檔案追查到舊研究所，之後逐漸成為能保留部分世界線記憶的人。
+  summary: 主角的姊姊，五年前死於舊車站附近；生前從地方史檔案追查到舊研究所，之後成為特殊的跨世界線記憶持有者。
   history:
     - 長期整理灰潮鎮地方史資料，原本只把研究所當成地方產業史的一部分。
     - 從舊檔案發現研究所與 18:31 異常事件的關聯。
-    - 開始出現 Déjà vu、記得尚未發生事件等殘留現象。
+    - 在特殊機制下開始保留其他世界線的資訊；這不是普通 NPC 都會發生的現象。
     - 曾與葉庭安合作調查，但兩人最後因「能不能把風險轉移給別人」而決裂。
     - 為了讓妹妹遠離灰潮鎮，死亡前半年刻意疏遠她。
     - 五年前死亡，案件以意外結案。
-  current_goal_before_death: 不再追求單純阻止死亡，而是嘗試讓資訊跨世界線殘留，交給未來的人繼續調查。
+  current_goal_before_death: 不再追求單純阻止死亡，而是嘗試讓資訊跨世界線保留，交給未來的人繼續調查。
   moral_conflict: 她愛主角，也因此曾主動把危險從主角身上移向其他人。
 personality:
   traits:
@@ -41,8 +41,8 @@ knowledge:
   hidden:
     - fact_1831_is_special
     - fact_research_institute_connection
-    - fact_memory_residue_exists
+    - fact_zhixia_worldline_memory_exists
 secrets:
-  - 曾經保有多次世界線的殘留記憶。
+  - 曾作為特殊記憶持有者保有多次世界線資訊。
   - 主角收到的實體信只是她留下的第七種跨世界線訊息載體。
   - 她曾為了保護主角，接受由其他人承擔風險的世界線。
