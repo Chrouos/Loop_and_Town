@@ -7,15 +7,60 @@ import { projectPlayerNarrativeRecords } from './narrativeRecords';
 import { STORY_RECORDS, type PlayerNarrativeRecord, type VisibleRecord } from './story';
 import type { PlayerStoryBundle } from '../types/playerStory';
 
+const DEFAULT_PRESENCE_WINDOW_MINUTES = 5;
+
 function staticRecords(loop: number): PlayerNarrativeRecord[] {
   return STORY_RECORDS.map((record) => ({ ...record, sceneId: record.id, loopId: loop }));
 }
 
+function recordSource(loop: number, records?: PlayerNarrativeRecord[]): PlayerNarrativeRecord[] {
+  return records ?? staticRecords(loop);
+}
+
 export function visibleRecords(save: PlayerSave, loop: number, records?: PlayerNarrativeRecord[]): PlayerNarrativeRecord[] {
-  const ids = new Set(save.loops[loop]?.revealedIds ?? []);
-  const seen = new Set(save.loops[loop]?.seenSceneIds ?? []);
-  const source = records ?? staticRecords(loop);
-  return source.filter(record => ids.has(`${loop}:${record.id}`) && !seen.has(record.sceneId));
+  const entry = save.loops[loop];
+  const ids = new Set(entry?.revealedIds ?? []);
+  const perceived = new Set(entry?.perceivedSceneIds ?? []);
+  const seen = new Set(entry?.seenSceneIds ?? []);
+  return recordSource(loop, records).filter(record => (
+    ids.has(`${loop}:${record.id}`)
+    && !seen.has(record.sceneId)
+    && (record.acquisition !== 'presence' || perceived.has(record.sceneId))
+  ));
+}
+
+export function availablePresenceRecords(
+  save: PlayerSave,
+  loop: number,
+  minute: number,
+  records?: PlayerNarrativeRecord[],
+): PlayerNarrativeRecord[] {
+  const entry = save.loops[loop];
+  if (!entry) return [];
+  const ids = new Set(entry.revealedIds);
+  const perceived = new Set(entry.perceivedSceneIds);
+  return recordSource(loop, records).filter((record) => {
+    if (record.acquisition !== 'presence') return false;
+    if (!ids.has(`${loop}:${record.id}`) || perceived.has(record.sceneId)) return false;
+    if (record.revealMinute < entry.clock.entryMinute) return false;
+    const until = record.availableUntilMinute ?? record.revealMinute + DEFAULT_PRESENCE_WINDOW_MINUTES;
+    return record.revealMinute <= minute && minute <= until;
+  });
+}
+
+export function attendPresenceRecord(
+  save: PlayerSave,
+  loop: number,
+  recordId: string,
+  minute: number,
+  records?: PlayerNarrativeRecord[],
+): boolean {
+  const entry = save.loops[loop];
+  if (!entry) return false;
+  const candidate = availablePresenceRecords(save, loop, minute, records).find(record => record.id === recordId);
+  if (!candidate) return false;
+  if (!entry.perceivedSceneIds.includes(candidate.sceneId)) entry.perceivedSceneIds.push(candidate.sceneId);
+  return true;
 }
 
 function revealStatic(save: PlayerSave, loop: number, minute: number, definition: SimulationDefinition, initial: WorldState) {
