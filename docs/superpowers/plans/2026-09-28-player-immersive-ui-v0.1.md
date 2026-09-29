@@ -1,996 +1,530 @@
-# Player Immersive UI v0.1 Implementation Plan
+# Player Immersive UI v0.2 Implementation Plan
 
 ## Purpose
 
-Implement the approved Player UI direction defined in:
+Implement the Player-facing presentation defined in:
 
-- `docs/superpowers/specs/2026-09-28-player-immersive-ui-design.md`
+- `docs/core-gameplay-spec-v0.1.md` — canonical gameplay semantics
+- `docs/superpowers/specs/2026-09-28-player-immersive-ui-design.md` — Player presentation projection
 
-The target is the current player surface at:
+This plan supersedes the earlier fixed-Typewriter / generic-AmbientPrompt plan wherever it overlaps with current gameplay.
 
-- `tools/event-graph-viewer/src/player/PlayerApp.tsx`
+The most important migration rule is:
 
-This plan changes the **presentation layer** only.
-
-It does not redesign the simulation clock, reset rules, save format, causal runtime, Story YAML, or worldline truth.
-
----
-
-# Architecture Boundary
-
-Canonical dependency direction:
-
-```text
-Story / Runtime
-      ↓
-PlayerSave + LoopClock + Event State
-      ↓
-Presentation Projection
-      ↓
-Scene Components
-      ↓
-CSS / Motion / Atmosphere
-```
-
-The presentation layer may hide, stage, animate, or rephrase information already known to the player.
-
-It must not invent:
-
-- a worldline identifier the runtime cannot prove
-- a countdown when completion time is unknown
-- a result before the runtime resolves it
-- character knowledge the player has not obtained
-- a reset / next loop before the existing runtime authorizes it
+> **Reading, dialogue, Hover, Capture and Choice must not freeze World Time.**
 
 ---
 
-# Existing Systems to Preserve
-
-Do not rewrite these as part of this plan:
+# Architecture boundary
 
 ```text
-tools/event-graph-viewer/src/player/clock.ts
-tools/event-graph-viewer/src/player/runtime.ts
-tools/event-graph-viewer/src/player/model.ts
-tools/event-graph-viewer/src/player/knowledge.ts
-tools/event-graph-viewer/src/player/eventScheduler.ts
-tools/event-graph-viewer/src/player/storage.ts
-tools/event-graph-viewer/src/player/narrativeRecords.ts
-```
-
-Existing tools also remain functional:
-
-- 案卷
-- 推理桌
-- 世界線歷史
-- 存檔匯入 / 匯出
-
-`src/playerNarrative/` is an existing separate narrative surface.
-
-This implementation must not silently merge the two runtimes or migrate persistence into `playerNarrative`.
-
-Reusable visual ideas may be borrowed, but the authoritative target for this plan is `src/player/PlayerApp.tsx` and its current runtime.
-
----
-
-# Branch / PR Strategy
-
-PR #19 is documentation-only and must remain documentation-only.
-
-Implementation should happen in a separate branch after this plan is accepted.
-
-Recommended branch:
-
-```text
-feature/player-immersive-ui-v0.1
-```
-
-Recommended implementation PR:
-
-```text
-PR #19
-Player Immersive UI design + plan
+Story / Runtime Truth
         ↓
-feature/player-immersive-ui-v0.1
+Clock + Event Scheduler + World State
         ↓
-Player Immersive UI implementation PR
+Perception Projection
+        ↓
+Scene Presentation
+        ↓
+Player Attention Input
 ```
 
-If the implementation later requires an unmerged runtime branch, explicitly stack the implementation PR on that branch rather than copying runtime code into the UI PR.
+Presentation can change visibility and emphasis, but cannot change truth.
+
+Do not fabricate:
+
+- worldline identity
+- event result
+- ETA
+- perceived information
+- clue importance
+- contradiction / causality
+- NPC cross-loop memory
 
 ---
 
-# Verification Rules
+# Runtime audit before implementation
 
-Use TDD for each implementation task:
+Before UI work, inspect current Player Runtime for assumptions that violate the new canonical rules.
 
-```text
-RED
-→ add the smallest failing test
-→ confirm the expected failure
-
-GREEN
-→ add the smallest implementation
-→ run the focused test
-
-REGRESSION
-→ run affected Player tests
-
-COMMIT
-→ commit one coherent behavior change
-```
-
-Project commands run from:
+Specifically search for:
 
 ```text
-tools/event-graph-viewer
+pause story time while reading
+pause story time while decision open
+complete/skip narrative by advancing simulation
+knowledge auto-added when event fires
+Evidence Card auto-grant
+NPC memory residue across reset
 ```
 
-Focused test pattern:
+If found, do not preserve them just because they already exist.
 
-```bash
-npm test -- tests/player/<test-file>
-```
-
-Player regression gate:
-
-```bash
-npm test -- tests/player
-```
-
-Final gates:
-
-```bash
-npm test
-npm run build
-git diff --check
-```
+Document migration needed from old behavior to current Core Gameplay semantics.
 
 ---
 
-# Task 1 — Add the Presentation Scene Model
+# Task 1 — Presentation and perception model
 
-## Goal
-
-Create a deterministic boundary between runtime truth and visual scene rendering.
-
-## Files
-
-Create:
+Create / adapt:
 
 ```text
-tools/event-graph-viewer/src/player/presentation/model.ts
-tools/event-graph-viewer/src/player/presentation/deriveScene.ts
-tools/event-graph-viewer/tests/player/presentation.test.ts
+src/player/presentation/model.ts
+src/player/presentation/deriveScene.ts
 ```
 
-## RED
-
-Add tests proving the projection can represent these states without rendering React:
-
-1. reset boundary → `reset`
-2. unopened initial letter → `opening`
-3. readable/current narrative content → a narrative/document presentation state
-4. an authoritative in-progress activity → `idle`
-5. missing worldline identifier stays absent
-6. unknown ETA stays `unknown`; no numeric ETA is fabricated
-
-The projection test must be pure and use explicit fixture input.
-
-It must not require `localStorage`, DOM, timers, or `Date.now()`.
-
-## Implementation
-
-Define a discriminated union, for example:
+Model must represent separately:
 
 ```ts
-export type PlayerScene =
-  | OpeningSceneModel
-  | DialogueSceneModel
-  | DocumentSceneModel
-  | IdleSceneModel
-  | ResetSceneModel;
+MainAction
+PeripheralCue
+AttentionTarget
+PerceivedMoment
+DialoguePhrase
+Choice
+MemoryCaptureCandidate
 ```
 
-Common data should include only presentation-safe values:
-
-```ts
-export type SceneBase = {
-  loop: number;
-  time: string;
-  worldline?: string;
-  background?: SceneBackground;
-};
-```
-
-`deriveScene()` receives a normalized input object produced by `PlayerApp`.
-
-It must not import storage functions or mutate `PlayerSave`.
-
-Do not force all current records into dialogue.
-
-Document-like evidence and letters may remain a documentary reading presentation until story metadata proves a live character conversation.
-
-## GREEN
-
-Run:
-
-```bash
-npm test -- tests/player/presentation.test.ts
-```
-
-Then:
-
-```bash
-npm test -- tests/player/PlayerApp.test.tsx
-```
-
-Existing Player behavior must remain green because the new projection is not wired in yet.
-
-## Commit
+Important distinctions:
 
 ```text
-feat(player-ui): add presentation scene projection
+World Event ≠ Peripheral Cue ≠ Perceived Moment ≠ Memory
 ```
+
+Tests:
+
+- unperceived event does not appear as player knowledge
+- partial perception stays partial
+- one Main Action can coexist with many world events
+- one Focus only
+- projection does not pause runtime
 
 ---
 
-# Task 2 — Build Shared Scene Primitives
+# Task 2 — SceneFrame + SpatialTextLayer
 
-## Goal
-
-Create the low-level presentation components used by every scene.
-
-## Files
-
-Create:
+Create / adapt:
 
 ```text
-tools/event-graph-viewer/src/player/ui/SceneFrame.tsx
-tools/event-graph-viewer/src/player/ui/WorldlineHud.tsx
-tools/event-graph-viewer/src/player/ui/AmbientPrompt.tsx
-tools/event-graph-viewer/tests/player/scenePrimitives.test.tsx
+src/player/world/SceneFrame.tsx
+src/player/world/SpatialTextLayer.tsx
 ```
-
-Modify:
-
-```text
-tools/event-graph-viewer/src/player/player.css
-```
-
-## RED
-
-Test:
-
-- `WorldlineHud` renders Loop and Simulation Time
-- worldline line is omitted when the value is absent
-- `AmbientPrompt` uses a semantic interactive element when actionable
-- prompt can be activated by keyboard through native button semantics
-- decorative texture layers are hidden from accessibility APIs
-- scene content remains readable without a background asset
-
-Do not test exact pixel values in Vitest.
-
-Test semantic classes / attributes and visible content only.
-
-## Implementation
-
-### `SceneFrame`
 
 Responsibilities:
 
-```text
-background
-→ atmospheric overlay
-→ vignette
-→ optional grain / mist
-→ scene content
-```
+- scene background / character position
+- spatial text coordinates
+- speaker movement / Blocking
+- ambient text placement
+- foreground / faded presentation
 
-Do not add animation libraries.
+Do not implement a bottom fixed dialogue log as the default language.
 
-Use CSS transitions / keyframes only in v0.1.
+Tests:
 
-The component must support a no-image fallback so story development is not blocked by final art assets.
-
-### `WorldlineHud`
-
-Default hierarchy:
-
-```text
-LOOP 02                         14:22
-WORLDLINE 02-B
-```
-
-Do not derive worldline labels inside the component.
-
-### `AmbientPrompt`
-
-Visual language:
-
-```text
-將記憶交還給世界
-        ◇
-```
-
-The visible text may be minimal, but the hit area should be comfortably interactive.
-
-## CSS
-
-Start introducing explicit Player presentation sections:
-
-```text
-00 Tokens
-10 Scene
-20 Atmosphere
-30 HUD
-40 Narrative
-50 Interaction
-```
-
-Keep existing drawer/document styles temporarily.
-
-Do not refactor unrelated CSS in this task.
-
-## GREEN
-
-```bash
-npm test -- tests/player/scenePrimitives.test.tsx
-npm test -- tests/player/PlayerApp.test.tsx
-```
-
-## Commit
-
-```text
-feat(player-ui): add immersive scene primitives
-```
+- text position follows source position
+- multiple world sources can exist simultaneously
+- only Focus target is foregrounded
+- hidden / faded source still progresses in model state
 
 ---
 
-# Task 3 — Add the Typewriter Narrative Primitive
+# Task 3 — RhythmicText + TextEcho
 
-## Goal
-
-Make important narrative text feel performed rather than statically inserted.
-
-## Files
+Replace the old fixed-character `TypewriterText` concept.
 
 Create:
 
 ```text
-tools/event-graph-viewer/src/player/ui/TypewriterText.tsx
-tools/event-graph-viewer/tests/player/typewriterText.test.tsx
+src/player/world/RhythmicText.tsx
+src/player/world/TextEcho.tsx
 ```
 
-Modify:
-
-```text
-tools/event-graph-viewer/src/player/player.css
-```
-
-## RED
-
-Use fake timers to test:
-
-- text begins partially revealed when motion is enabled
-- advancing timers reveals the full string
-- punctuation introduces additional delay relative to normal characters
-- `onComplete` fires once
-- completed text can show a cursor
-- reduced-motion mode renders the complete text immediately
-
-Do not couple the primitive to story state.
-
-## Implementation
-
-Suggested API:
+Rhythmic input should be authored as Phrase / Beat / Pause, for example:
 
 ```ts
-type TypewriterTextProps = {
-  text: string;
-  speed?: number;
-  punctuationDelay?: number;
-  cursor?: boolean;
-  reducedMotion?: boolean;
-  onComplete?: () => void;
-};
+[
+  { type: 'phrase', text: '你……' },
+  { type: 'pause', durationMs: 700 },
+  { type: 'phrase', text: '你怎麼會知道這件事？' }
+]
 ```
 
-Default direction:
+Exact schema can change, but fixed `30ms / char` must not be the canonical story clock.
 
-```text
-normal character       20–40ms
-short punctuation      +60–120ms
-sentence punctuation   +120–240ms
-cursor blink           ~700ms
-```
+Tests:
 
-Exact tuning is visual polish, not a gameplay rule.
-
-Do not persist typewriter progress to PlayerSave.
-
-Reloading may replay the presentation of the currently visible scene.
-
-## GREEN
-
-```bash
-npm test -- tests/player/typewriterText.test.tsx
-```
-
-## Commit
-
-```text
-feat(player-ui): add typewriter narrative text
-```
+- Phrase order
+- authored Pause
+- Text Echo appears after completion
+- Echo fades without becoming Chat History
+- Reduced Motion simplifies animation but does not change World Time
+- no Fast-forward of NPC speech
 
 ---
 
-# Task 4 — Build ResetTransitionScene as an Isolated Cinematic
-
-## Goal
-
-Turn reset from an immediate mode-selection screen into an explicit narrative ritual.
-
-## Files
+# Task 4 — AttentionSurface
 
 Create:
 
 ```text
-tools/event-graph-viewer/src/player/scenes/resetTransition.ts
-tools/event-graph-viewer/src/player/scenes/ResetTransitionScene.tsx
-tools/event-graph-viewer/tests/player/resetTransitionScene.test.tsx
+src/player/world/AttentionSurface.tsx
 ```
 
-Modify:
+Canonical input:
 
 ```text
-tools/event-graph-viewer/src/player/player.css
+Hover → Notice / Focus
+Click → Attend
+Attention Shift → Observe
+Observation complete → Elastic Auto Return
+Click another target while observing → Attention Redirect
+leave / chase / switch action → True Interrupt
 ```
 
-## RED
+Tests:
 
-Test the semantic phase order:
-
-```text
-settling
-→ message
-→ handoff
-→ fade
-→ midnight
-→ complete
-```
-
-Required assertions:
-
-- primary message appears before mode controls exist
-- `世界接手了這一輪。` can be shown through `TypewriterText`
-- handoff prompt does not itself mutate runtime
-- `00:00` is shown only after handoff / fade progression
-- completion callback fires once
-- reduced motion shortens or removes visual delay while preserving semantic ordering
-
-Use fake timers for deterministic tests.
-
-## Implementation
-
-Keep visual phase state local to this scene.
-
-The scene may own presentation timers, but it must not import:
-
-```text
-createNextLoop
-continuePendingBoundary
-writeSave
-```
-
-It exposes only a callback such as:
-
-```ts
-onPresentationComplete(): void
-```
-
-Runtime transition remains the responsibility of `PlayerApp`.
-
-Recommended initial copy:
-
-```text
-世界接手了這一輪。
-
-將記憶交還給世界
-```
-
-At `midnight`, show:
-
-```text
-00:00
-```
-
-Do not invent `06:12` as the next screen inside this component unless the chosen runtime mode actually starts there.
-
-## GREEN
-
-```bash
-npm test -- tests/player/resetTransitionScene.test.tsx
-```
-
-## Commit
-
-```text
-feat(player-ui): add reset transition cinematic
-```
+1. only one Focus exists
+2. Hover target becomes clearer
+3. prior content fades
+4. faded content continues
+5. Click begins Attention Shift
+6. shift is not zero-time
+7. Observation auto-returns
+8. Redirect does not replace Main Action
+9. True Interrupt does
+10. rapid scanning cannot freeze all events
 
 ---
 
-# Task 5 — Integrate the Reset Cinematic into PlayerApp
+# Task 5 — Dialogue as continuous gameplay
 
-## Goal
-
-Replace the current immediate reset mode menu with:
+Create / adapt:
 
 ```text
-runtime reset pending
-→ ResetTransitionScene
-→ presentation complete
-→ existing mode choice
-→ existing runtime transition
+src/player/scenes/DialogueScene.tsx
 ```
 
-## Files
-
-Modify:
+Dialogue Scene must combine:
 
 ```text
-tools/event-graph-viewer/src/player/PlayerApp.tsx
-tools/event-graph-viewer/src/player/player.css
-tools/event-graph-viewer/tests/player/PlayerApp.test.tsx
+Spatial dialogue
++ Ambient events
++ Peripheral cues
++ AttentionSurface
++ TextEcho
++ Choice
++ Memory Input
++ Memory Capture
 ```
 
-Optionally add:
+Do not require `Continue` after every line.
 
-```text
-tools/event-graph-viewer/tests/player/resetIntegration.test.tsx
-```
+Ordinary protagonist replies may flow automatically.
 
-if the existing `PlayerApp.test.tsx` becomes too large.
+Explicit Choice appears only for meaningful intent / risk / relationship / worldline decisions.
 
-## RED
+Tests:
 
-Add integration coverage for:
-
-1. `pendingCriticalBoundary === 'reset'` initially shows the cinematic message
-2. `LIVE_SYNC` / `ACCELERATED` choices are not immediately visible
-3. after presentation completion the mode choices appear
-4. choosing a mode still calls the existing runtime path
-5. next loop is created only once
-6. reloading while reset is still pending does not advance the runtime automatically
-
-The test must preserve current Live Sync availability rules.
-
-## Implementation
-
-Add local presentation state, for example:
-
-```text
-resetPresentationComplete = false
-```
-
-When the current runtime is no longer reset-pending, clear that local state.
-
-After cinematic completion render the existing mode-selection behavior, visually restyled but semantically unchanged.
-
-Keep the current runtime sequence:
-
-```text
-continuePendingBoundary(...)
-→ createNextLoop(...)
-→ commit(...)
-→ refresh(...)
-```
-
-Do not move this sequence into `ResetTransitionScene`.
-
-Prevent accidental double activation while a mode action is being committed.
-
-## GREEN
-
-```bash
-npm test -- tests/player/PlayerApp.test.tsx
-npm test -- tests/player/anchoredTimelineAcceptance.test.ts
-npm test -- tests/player/runtime.test.ts
-```
-
-## Commit
-
-```text
-feat(player-ui): integrate cinematic reset flow
-```
+- dialogue does not pause clock
+- ambient event can expire during dialogue
+- Focus change can make player miss a line
+- returning Focus does not replay missed line
+- Choice and Memory Input are separate
 
 ---
 
-# Task 6 — Migrate Live Dialogue / Narrative Presentation
-
-## Goal
-
-Introduce scene-based character dialogue without incorrectly converting evidence documents into conversations.
-
-## Files
+# Task 6 — Memory Capture
 
 Create:
 
 ```text
-tools/event-graph-viewer/src/player/scenes/DialogueScene.tsx
-tools/event-graph-viewer/tests/player/dialogueScene.test.tsx
+src/player/world/MemoryCaptureTarget.tsx
 ```
 
-Modify:
+Integrate with Text Echo, Visual and Sound moments.
+
+Canonical behavior:
 
 ```text
-tools/event-graph-viewer/src/player/presentation/model.ts
-tools/event-graph-viewer/src/player/presentation/deriveScene.ts
-tools/event-graph-viewer/src/player/PlayerApp.tsx
-tools/event-graph-viewer/src/player/player.css
-tools/event-graph-viewer/tests/player/presentation.test.ts
-tools/event-graph-viewer/tests/player/PlayerApp.test.tsx
+Perception
+  ↓
+player Hold / capture input
+  ↓
+Capture becomes current Focus
+  ↓
+other perception fades but continues
+  ↓
+Memory persisted
 ```
 
-## RED
+No auto award based on importance.
 
-Test:
+Tests:
 
-- speaker + dialogue content are rendered as a scene
-- narrative text uses typewriter presentation
-- advancing is available only after the scene permits it
-- decisions use semantic `<button>` elements but do not look like rectangular web CTAs
-- existing action handlers still receive the same `ActionId`
-- document / evidence records remain document-like when their metadata does not prove live dialogue
-
-## Implementation
-
-Suggested component boundary:
-
-```tsx
-<DialogueScene
-  speaker={...}
-  text={...}
-  choices={...}
-  onAdvance={...}
-  onChoose={...}
-/>
-```
-
-Do not pass the entire `PlayerSave` into the component.
-
-Project only what it needs.
-
-Decision copy should read as player intention, for example:
-
-```text
-「今晚，我陪你留下來。」
-
-「予安，幫我去醫院。」
-```
-
-The action ID remains the canonical machine value underneath.
-
-## GREEN
-
-```bash
-npm test -- tests/player/dialogueScene.test.tsx
-npm test -- tests/player/presentation.test.ts
-npm test -- tests/player/PlayerApp.test.tsx
-```
-
-## Commit
-
-```text
-feat(player-ui): add immersive dialogue scenes
-```
+- Text / Visual / Sound / Composite types
+- cannot Capture unperceived event
+- Memory preserves original fidelity
+- Capture consumes Attention
+- Capture does not pause world
+- arbitrary low-value perceived content can be captured
+- captured Memory persists through Loop reset
 
 ---
 
-# Task 7 — Add IdleProgressScene Using Authoritative Waiting Data
+# Task 7 — Memory Library + Investigation Wall compatibility
 
-## Goal
-
-Make waiting visible as gameplay without creating a second timing system.
-
-## Files
-
-Create:
+Existing Evidence Board functionality should migrate semantically toward:
 
 ```text
-tools/event-graph-viewer/src/player/scenes/IdleProgressScene.tsx
-tools/event-graph-viewer/tests/player/idleProgressScene.test.tsx
+Memory Library
+Investigation Wall
 ```
 
-Modify as needed:
+Compatibility labels may remain temporarily if changing route names would cause unnecessary churn.
 
-```text
-tools/event-graph-viewer/src/player/presentation/model.ts
-tools/event-graph-viewer/src/player/presentation/deriveScene.ts
-tools/event-graph-viewer/src/player/PlayerApp.tsx
-tools/event-graph-viewer/src/player/player.css
-tools/event-graph-viewer/tests/player/presentation.test.ts
-```
+Required Investigation Wall semantics:
 
-## Mandatory pre-implementation check
+- reference Captured Memory
+- free placement
+- pan / zoom
+- free line
+- free note
+- grouping
+- no auto semantic edge type
+- no contradiction badge
+- no importance rank
 
-Before writing the adapter, identify which existing runtime source is authoritative for the waiting state being surfaced.
+Tests:
 
-Potential existing sources include:
-
-- Player event scheduler
-- action-duration/activity state already projected elsewhere
-- narrative runtime activity state
-
-Do not add a second countdown clock to PlayerSave merely for UI display.
-
-If the current runtime cannot prove an ETA, project `unknown`.
-
-## RED
-
-Test all ETA forms:
-
-### Exact
-
-```text
-預計完成時間：14:27
-```
-
-### Approximate
-
-```text
-大約還需要 5 分鐘
-```
-
-### Unknown
-
-```text
-庭安還沒有回來。
-...... ▌
-```
-
-Assertions:
-
-- unknown ETA never contains a fabricated number
-- `canIntervene=false` does not expose an action control
-- actor/activity copy is visible when known
-- the scene does not mutate scheduler state
-
-## Implementation
-
-Suggested model:
-
-```ts
-type IdleSceneModel = SceneBase & {
-  kind: 'idle';
-  actor?: string;
-  activity: string;
-  canIntervene: boolean;
-  eta:
-    | { kind: 'exact'; expectedAt: string }
-    | { kind: 'approximate'; minutes: number }
-    | { kind: 'unknown' };
-};
-```
-
-The scene should remain meaningful even when only `activity` is available.
-
-## GREEN
-
-```bash
-npm test -- tests/player/idleProgressScene.test.tsx
-npm test -- tests/player/eventScheduler.test.ts
-npm test -- tests/player/anchoredTimelineAcceptance.test.ts
-```
-
-## Commit
-
-```text
-feat(player-ui): present waiting as an idle scene
-```
+- deleting wall reference does not delete Memory
+- links contain player-authored meaning only
+- system does not auto-link memories
 
 ---
 
-# Task 8 — Migrate Opening and Demote Secondary Navigation
+# Task 8 — Live World / Waiting Scene
 
-## Goal
+Replace the conceptual `IdleProgressScene` as a progress page with a live world scene.
 
-Make the first impression feel like entering a game scene while preserving access to all current tools.
-
-## Files
-
-Create:
+Possible component:
 
 ```text
-tools/event-graph-viewer/src/player/scenes/OpeningScene.tsx
-tools/event-graph-viewer/tests/player/openingScene.test.tsx
+src/player/scenes/LiveWorldScene.tsx
 ```
 
-Modify:
+It can display runtime-known activity and ETA, but ETA is supplementary.
 
-```text
-tools/event-graph-viewer/src/player/PlayerApp.tsx
-tools/event-graph-viewer/src/player/player.css
-tools/event-graph-viewer/tests/player/PlayerApp.test.tsx
-```
+During waiting:
 
-Potential style-only changes:
+- World Time continues
+- Ambient Narrative continues
+- Opportunity Windows may open / close
+- Attention still works
+- player can True Interrupt if action rules allow
 
-```text
-tools/event-graph-viewer/src/player/EvidenceBoard.tsx
-tools/event-graph-viewer/src/player/WorldlineNotebook.tsx
-```
+Tests:
 
-Only touch those files if required for accessible integration.
-
-Do not change their internal gameplay logic.
-
-## RED
-
-Opening tests:
-
-- first-loop opening remains tied to the canonical opening state
-- the letter remains an explicit interactive object
-- opening does not become a generic `Continue` page
-
-Navigation tests:
-
-- 案卷 remains reachable
-- 推理桌 remains reachable
-- 世界線 remains reachable
-- 存檔 remains reachable
-- Escape closes drawers
-- focus returns to the opener after closing a drawer
-
-## Implementation
-
-Replace the dominant website-style header with a minimal HUD plus a secondary tool affordance.
-
-Target hierarchy:
-
-```text
-Scene
-├─ minimal WorldlineHud
-├─ current narrative interaction
-└─ corner / secondary tools
-   ├─ 案卷
-   ├─ 推理桌
-   ├─ 世界線
-   └─ 存檔
-```
-
-Keep tool labels explicit enough for accessibility and first-time discovery.
-
-Do not hide core tools behind hover-only interaction.
-
-## GREEN
-
-```bash
-npm test -- tests/player/openingScene.test.tsx
-npm test -- tests/player/PlayerApp.test.tsx
-npm test -- tests/player/board.test.tsx
-npm test -- tests/player/worldlines.test.tsx
-```
-
-## Commit
-
-```text
-feat(player-ui): migrate opening and secondary tools
-```
+- no fabricated ETA
+- unknown remains unknown
+- waiting is not loading state
+- events still occur during waiting
 
 ---
 
-# Task 9 — Add Immersive UI Acceptance Coverage
+# Task 9 — Attention Release for repeated dialogue
 
-## Goal
+Do not implement traditional Fast-forward.
 
-Test the complete presentation flow rather than only isolated components.
-
-## Files
-
-Create:
+When dialogue is already known:
 
 ```text
-tools/event-graph-viewer/tests/player/immersiveUiAcceptance.test.tsx
+known content → lower visual dominance
+World Time → unchanged
+Single Focus → unchanged
+ambient authored set → unchanged
 ```
 
-Modify only if a regression is found:
+Tests:
+
+- known line still consumes same world duration
+- Attention Release does not auto-focus another cue
+- no extra randomized clues generated by repeated visits
+
+---
+
+# Task 10 — Opening scene
+
+Create / adapt:
 
 ```text
-tools/event-graph-viewer/src/player/**
+src/player/scenes/OpeningScene.tsx
 ```
 
-## RED
+Use direct scene affordances, not generic next-page controls.
 
-Write acceptance scenarios for:
-
-### Scenario A — Opening
+Example:
 
 ```text
-enter first loop
-→ see scene-based opening
-→ interact with letter
-→ reach readable narrative
+返鄉列車
+雨
+信封
+林知夏　寄
+
+→ interact with the letter itself
 ```
 
-### Scenario B — Choice
+Opening must obey the same World Time and Attention rules once live gameplay begins.
+
+---
+
+# Task 11 — Reset cinematic
+
+Keep Reset as ritual:
 
 ```text
-read relevant message
-→ choose one existing action
-→ action is recorded by existing runtime
-→ scene reflects reply / consequence
-```
-
-### Scenario C — Waiting
-
-```text
-runtime exposes in-progress activity
-→ idle scene appears
-→ known ETA is shown only when authoritative
-```
-
-### Scenario D — Reset
-
-```text
-reset boundary
-→ cinematic first
+Convergence
+→ settling
+→ 23:59
+→ bell / fade
 → 00:00
-→ mode choice second
-→ choose next-loop mode
-→ one next loop is created
+→ next loop
 ```
 
-### Scenario E — Reload During Reset
+Do not use copy implying Captured Memory is discarded.
+
+After reset:
 
 ```text
-reset boundary
-→ reload
-→ cinematic may replay
-→ runtime still pending
-→ no automatic duplicate loop
+Captured Memory persists
+Investigation Wall persists
+NPC relationship state resets
+NPC normal memory resets
+world state resets according to loop runtime
 ```
 
-### Scenario F — Reduced Motion
+If `LIVE_SYNC / ACCELERATED` remains supported, show entry mode after cinematic boundary.
+
+Tests:
+
+- reset presentation does not duplicate next loop
+- captured Memory survives
+- normal NPC relationship state resets
+- reset sequence cannot erase protagonist knowledge
+
+---
+
+# Task 12 — Minimal HUD + secondary tools
+
+Keep Loop / Worldline / World Time low priority.
+
+Secondary tools:
 
 ```text
-prefers reduced motion
-→ complete information appears without long animation
-→ no gameplay content is skipped
+Memory Library
+Investigation Wall
+Worldline History
+Save / Settings
 ```
 
-### Scenario G — Keyboard
+No:
+
+- Attention meter
+- clue counter
+- quest checklist
+- contradiction count
+- Focus points
+
+---
+
+# Task 13 — Accessibility input mapping
+
+Keyboard / controller must provide equivalents for:
 
 ```text
-Tab / Enter / Space
-→ narrative interactions usable
-→ secondary tools usable
-→ drawer close / focus restore remains correct
+move Focus among currently perceivable targets
+Attend
+Capture
+Choice
+True Interrupt when applicable
+open / close secondary tools
 ```
 
-## GREEN
+Accessibility must not flatten simultaneous world events into a single fully-readable list, because that would break Perception Boundary.
 
-```bash
-npm test -- tests/player/immersiveUiAcceptance.test.tsx
-npm test -- tests/player
-```
+Reduced Motion cannot pause or fast-forward World Time.
 
-## Commit
+---
+
+# Task 14 — Acceptance scenarios
+
+## A — Single Focus
 
 ```text
-test(player-ui): add immersive UI acceptance coverage
+NPC speaks
++ door cue appears
++ window event occurs
+→ Hover door
+→ NPC / window fade
+→ all events continue
+```
+
+## B — Too late
+
+```text
+cue appears
+→ player Clicks late
+→ Attention Shift takes time
+→ only sees door closing
+```
+
+## C — Elastic Attention
+
+```text
+Main Action: dialogue
+→ observe door
+→ observation ends
+→ automatically return to dialogue
+```
+
+## D — Redirect
+
+```text
+observe door
+→ click nurse before observation ends
+→ partial door perception only
+→ Focus nurse
+```
+
+## E — Memory Capture cost
+
+```text
+Capture previous Text Echo
+→ next line continues
+→ player may miss it
+```
+
+## F — Loop knowledge
+
+```text
+Capture event in Loop 01
+→ Reset
+→ Memory exists in Loop 02
+→ NPC does not remember Loop 01 relationship
+```
+
+## G — Repeated dialogue
+
+```text
+known dialogue
+→ Attention Release
+→ no world acceleration
+→ player can focus finite concurrent event
 ```
 
 ---
 
-# Task 10 — Final Regression, Build, and Visual Review
-
-## Goal
-
-Verify presentation changes did not alter story truth or runtime behavior.
-
-## Automated verification
+# Verification gates
 
 Run from `tools/event-graph-viewer`:
 
@@ -1001,179 +535,75 @@ npm run build
 git diff --check
 ```
 
-Expected:
-
-- all Player tests pass
-- all repository tests pass
-- TypeScript passes through build script
-- Vite production build passes
-- no whitespace errors
-
-## Runtime invariant review
-
-Confirm the implementation does not change the semantics of:
+Additionally verify through tests or runtime inspection:
 
 ```text
-clock.ts
-runtime.ts
-model.ts
-knowledge.ts
-eventScheduler.ts
-storage.ts
+no foreground-reading clock freeze
+no dialogue clock freeze
+no capture clock freeze
+no fixed typewriter timing changing simulation
+no NPC memory residue persistence
+no auto clue award
 ```
-
-If any of these require code changes, stop and determine whether the work has expanded beyond a presentation-only PR.
-
-Do not quietly broaden scope.
-
-## Manual visual review
-
-Review at least:
-
-```text
-Opening
-Dialogue / reading
-Decision
-Idle / waiting
-Reset cinematic
-Mode choice after reset
-Secondary drawer
-```
-
-Check a desktop game-oriented viewport first, then a narrower viewport for basic usability.
-
-Visual acceptance questions:
-
-1. Does the main stage read as a scene rather than a webpage?
-2. Does the HUD stay secondary to the narrative?
-3. Are rectangular web CTA patterns removed from primary gameplay interaction?
-4. Does the Reset sequence feel continuous rather than like route navigation?
-5. Does waiting communicate that the world is still progressing?
-6. Is text still readable over every fallback/background state?
-7. Does reduced-motion mode remain fully usable?
-
-## Final implementation PR policy
-
-- Keep implementation PR Draft until visual review passes.
-- Do not auto-merge.
-- Do not mark Ready for Review without explicit human approval.
-- Do not include unrelated Story DAG / Viewer refactors.
-
-## Commit
-
-Only create a final cleanup commit if changes are actually needed:
-
-```text
-chore(player-ui): finish immersive UI verification
-```
-
-Avoid empty verification commits.
 
 ---
 
-# Planned File Map
-
-Expected new files:
+# Planned implementation order
 
 ```text
-tools/event-graph-viewer/src/player/presentation/model.ts
-tools/event-graph-viewer/src/player/presentation/deriveScene.ts
-
-tools/event-graph-viewer/src/player/ui/SceneFrame.tsx
-tools/event-graph-viewer/src/player/ui/WorldlineHud.tsx
-tools/event-graph-viewer/src/player/ui/TypewriterText.tsx
-tools/event-graph-viewer/src/player/ui/AmbientPrompt.tsx
-
-tools/event-graph-viewer/src/player/scenes/OpeningScene.tsx
-tools/event-graph-viewer/src/player/scenes/DialogueScene.tsx
-tools/event-graph-viewer/src/player/scenes/IdleProgressScene.tsx
-tools/event-graph-viewer/src/player/scenes/ResetTransitionScene.tsx
-tools/event-graph-viewer/src/player/scenes/resetTransition.ts
-
-tools/event-graph-viewer/tests/player/presentation.test.ts
-tools/event-graph-viewer/tests/player/scenePrimitives.test.tsx
-tools/event-graph-viewer/tests/player/typewriterText.test.tsx
-tools/event-graph-viewer/tests/player/resetTransitionScene.test.tsx
-tools/event-graph-viewer/tests/player/dialogueScene.test.tsx
-tools/event-graph-viewer/tests/player/idleProgressScene.test.tsx
-tools/event-graph-viewer/tests/player/openingScene.test.tsx
-tools/event-graph-viewer/tests/player/immersiveUiAcceptance.test.tsx
+1. runtime invariant audit
+2. perception / presentation model
+3. SceneFrame + SpatialTextLayer
+4. RhythmicText + TextEcho
+5. AttentionSurface
+6. Dialogue continuous gameplay
+7. Memory Capture
+8. Memory Library / Investigation Wall migration
+9. Live waiting scene
+10. Attention Release
+11. Opening
+12. Reset
+13. HUD / secondary tools
+14. accessibility
+15. acceptance + regression
 ```
 
-Expected main modified files:
-
-```text
-tools/event-graph-viewer/src/player/PlayerApp.tsx
-tools/event-graph-viewer/src/player/player.css
-tools/event-graph-viewer/tests/player/PlayerApp.test.tsx
-```
-
-Runtime files should remain unchanged unless an implementation blocker proves that the design boundary is incomplete.
+Do not implement old `TypewriterText` first and plan to fix it later; that would encode the wrong gameplay timing model into the foundation.
 
 ---
 
-# Execution Order
+# Done definition
+
+This implementation is complete only when:
 
 ```text
-1. Presentation model
-        ↓
-2. Scene primitives
-        ↓
-3. Typewriter text
-        ↓
-4. Reset cinematic component
-        ↓
-5. Reset integration
-        ↓
-6. Dialogue migration
-        ↓
-7. Idle / waiting migration
-        ↓
-8. Opening + secondary navigation
-        ↓
-9. Acceptance tests
-        ↓
-10. Full regression + visual review
+Scene-first presentation
++
+World Never Waits preserved
++
+Single Focus enforced
++
+Attention Shift consumes real time
++
+Elastic Attention works
++
+Spatial / Rhythmic dialogue works
++
+Text Echo works
++
+Memory Capture works
++
+Perception Boundary enforced
++
+Waiting remains live gameplay
++
+Attention Release replaces Fast-forward
++
+Investigation remains player-authored
++
+Loop persistence matches Core Gameplay v0.1
++
+Accessibility preserves gameplay semantics
++
+Tests + build green
 ```
-
-The first visible milestone is Task 5.
-
-At that point the current `世界接手了這一輪` screen should already demonstrate the intended visual language before the rest of the Player surface is migrated.
-
----
-
-# Done Definition
-
-Player Immersive UI v0.1 is complete only when:
-
-```text
-Scene-first layout exists
-+
-Reset cinematic is integrated
-+
-Dialogue can use narrative presentation
-+
-Waiting has exact / approximate / unknown states
-+
-Opening is scene-driven
-+
-Secondary tools remain accessible
-+
-Runtime truth is unchanged
-+
-Reduced motion works
-+
-Keyboard interaction works
-+
-Player tests pass
-+
-Full tests pass
-+
-Production build passes
-+
-Human visual review approves the direction
-```
-
-This plan intentionally treats final illustration assets, audio design, Three.js effects, and large-scale art production as later work.
-
-The v0.1 goal is to establish the **game presentation architecture and interaction language** first.
