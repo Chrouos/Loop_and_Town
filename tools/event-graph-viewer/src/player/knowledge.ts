@@ -6,7 +6,7 @@ import { activeLoop, replayLoop } from './runtime';
 import { projectPlayerNarrativeRecords } from './narrativeRecords';
 import { STORY_RECORDS, type PlayerNarrativeRecord } from './story';
 import type { PlayerStoryBundle } from '../types/playerStory';
-import { advanceAttention, beginAttention, redirectAttention } from './attention';
+import { ATTENTION_OBSERVATION_MS, advanceAttention, beginAttention, redirectAttention } from './attention';
 
 const DEFAULT_PRESENCE_WINDOW_MINUTES = 5;
 
@@ -62,9 +62,10 @@ export function attendPresenceRecord(
   if (!entry) return false;
   const candidate = availablePresenceRecords(save, loop, minute, records).find(record => record.id === recordId);
   if (!candidate) return false;
+  const observationMs = Math.max(ATTENTION_OBSERVATION_MS, candidate.spatialScript?.totalDurationMs ?? 0);
   entry.attention = entry.attention.phase === 'idle'
-    ? beginAttention(primaryTargetId, candidate.id, nowMs)
-    : redirectAttention(entry.attention, candidate.id, nowMs);
+    ? beginAttention(primaryTargetId, candidate.id, nowMs, observationMs)
+    : redirectAttention(entry.attention, candidate.id, nowMs, observationMs);
   return true;
 }
 
