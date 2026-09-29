@@ -19,6 +19,8 @@ import { SpatialTextLayer } from './SpatialTextLayer';
 import { markPlayerNarrativeSeen, projectPlayerNarrativeRecords } from './narrativeRecords';
 import { recordById } from './story';
 import type { PlayerStoryBundle } from '../types/playerStory';
+import { projectPlayerPresentation } from './presentation/projectPlayerPresentation';
+import { PlayerSceneStage } from './ui/PlayerSceneStage';
 
 type LegacyStory = { definition: SimulationDefinition; initialState: WorldState };
 type Story = PlayerStoryBundle | LegacyStory;
@@ -130,6 +132,15 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
   const canAct = clock.minute < 1100;
   const next = clock.minute < 1100 ? '18:20 前，你還能改變今晚的行程' : clock.minute < 1111 ? '18:31，舊車站' : clock.minute < 1120 ? '等候鎮上的通報' : clock.minute < 1280 ? '21:20，予安說會再聯絡' : '午夜，日期會回到今天';
   const resetPending = loop.clock.pendingCriticalBoundary === 'reset';
+  const presentation = projectPlayerPresentation({
+    save,
+    loopId,
+    minute: clock.minute,
+    records,
+    opportunities,
+    scene: record,
+    location: resetPending ? '灰潮鎮' : record?.acquisition === 'presence' ? '舊車站' : '灰潮鎮',
+  });
 
   useEffect(() => {
     if (!resetPending) setResetPresentationComplete(false);
@@ -196,9 +207,10 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
   }
 
   return <div className="player-shell">
-    <header className="player-header player-header--minimal"><WorldlineHud loop={clock.loop} time={displayMinute(clock.minute)} /><button className="player-utility-trigger" aria-label="開啟工具" onClick={e => showDrawer('tools', e.currentTarget)}>···</button></header>
+    <header className="player-header player-header--minimal"><WorldlineHud loop={clock.loop} time={displayMinute(clock.minute)} showTime={false} /><button className="player-utility-trigger" aria-label="開啟工具" onClick={e => showDrawer('tools', e.currentTarget)}>···</button></header>
     <main className={`player-stage ${resetPending && !resetPresentationComplete ? 'player-stage--cinematic' : 'player-stage--reading'}`}>
-      <SceneFrame className="scene-frame--flat player-presentation-frame">
+      <PlayerSceneStage presentation={presentation} reducedMotion={prefersReducedMotion()}>
+        <SceneFrame className="scene-frame--flat player-presentation-frame">
         {error ? <p role="alert">無法讀取鎮上的紀錄：{error}</p> : !story ? <p>正在取出案卷……</p> : resetPending && !resetPresentationComplete ? <ResetTransitionScene reducedMotion={prefersReducedMotion()} onPresentationComplete={() => setResetPresentationComplete(true)} /> : resetPending ? <div className="opening mode-choice"><p>鐘聲落下，今天又回到可以重來的地方。</p><p>下一次進入灰潮鎮時，你要怎麼走進這一天？</p><button onClick={() => chooseMode('LIVE_SYNC')} disabled={modeCommitInFlight || !isLiveSyncAvailable(currentMs)}>跟著現在走<span> · {isLiveSyncAvailable(currentMs) ? '從此刻的鎮內時間進入' : '現在是 Live Sync 無法進入的時間'}</span></button><button onClick={() => chooseMode('ACCELERATED')} disabled={modeCommitInFlight}>回到記憶開始的地方<span> · 從 06:12 的返程列車開始</span></button>{note && <p className="inline-note" role="status">{note}</p>}</div> : !opened ? <OpeningScene label={entry.label} lines={entry.lines} onOpenLetter={() => openRecord('letter')} /> : <div className={`reading-scene attention-${loop.attention.phase}`} key={`${clock.loop}:${record?.id}`}>
         {opportunities.length > 0 && <div className="presence-opportunities" aria-label="周遭動靜">{opportunities.map(item => <button key={item.id} onClick={() => attend(item.id)} aria-label={presenceCueLabel(item.id)} aria-current={loop.attention.targetId === item.id ? 'true' : undefined}>{presenceCueLabel(item.id)}</button>)}</div>}
         {loop.capture && <div className="memory-capture-status" role="status"><p>你正在把剛才的感覺留下來……</p></div>}
@@ -229,7 +241,8 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
         </div>}
         {note && <p className="inline-note" role="status">{note}</p>}
       </div>}
-      </SceneFrame>
+        </SceneFrame>
+      </PlayerSceneStage>
     </main>
     {drawer && <div className="drawer-shade" onMouseDown={e => { if (e.target === e.currentTarget) setDrawer(null); }}><section className={`drawer ${drawer === 'board' ? 'wide' : ''}`} role="dialog" aria-modal="true" aria-label={drawer === 'tools' ? '工具' : drawer === 'case' ? '案卷' : drawer === 'board' ? '推理桌' : drawer === 'save' ? '存檔' : '世界線'}>
       <header><h2>{drawer === 'tools' ? '工具' : drawer === 'case' ? '案卷' : drawer === 'board' ? '推理桌' : drawer === 'save' ? '存檔' : '世界線歷史'}</h2><button autoFocus onClick={() => setDrawer(null)} aria-label="關閉">×</button></header>
