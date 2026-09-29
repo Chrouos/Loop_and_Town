@@ -12,14 +12,17 @@ import reporterYaml from '../../../../story/events/day_01_2114.yaml?raw';
 const initial = { ...(yaml.load(initialYaml) as WorldState), clock: { day: 0, time: '06:12' } };
 const definition = { actions: (yaml.load(actionsYaml) as { actions: ActionDefinition[] }).actions, events: [yaml.load(stationYaml), yaml.load(reporterYaml)] as EventDefinition[] };
 
-it('never shows the outcome before a sourced bulletin arrives', () => {
+it('does not turn a presence-only world event into player knowledge before perception', () => {
   const convergence = Math.ceil((1111 - 372) / 12 * MINUTE);
   const bulletin = Math.ceil((1120 - 372) / 12 * MINUTE);
   let save = reconcilePlayer(normalizeSave(null, 0), 30 * MINUTE, definition, initial);
   expect(visibleRecords(save, 1).some(x => x.id.includes('bulletin'))).toBe(false);
+
   save = reconcilePlayer(save, convergence, definition, initial);
-  expect(visibleRecords(save, 1).map(x => x.id)).toContain('station-blackout');
+  expect(save.loops[1].revealedIds).toContain('1:station-blackout');
+  expect(visibleRecords(save, 1).map(x => x.id)).not.toContain('station-blackout');
   expect(visibleRecords(save, 1).some(x => x.id.includes('bulletin'))).toBe(false);
+
   save.loops[1].clock.pendingCriticalBoundary = undefined;
   save.loops[1].clock.lastProcessedMinute = 1111;
   save = reconcilePlayer(save, bulletin, definition, initial);
