@@ -102,7 +102,7 @@ it('shows a character response in the scene immediately after confirming a choic
   expect(readSave(storage, 1000).loops[1].actionIds).toEqual(['protect_wakaharu', 'stop_doctor']);
 });
 
-it('offers the newly arrived station record in the reading scene', async () => {
+it('requires Attend before a presence opportunity becomes readable knowledge', async () => {
   const storage = window.localStorage;
   storage.clear();
   let current = 1000;
@@ -112,10 +112,14 @@ it('offers the newly arrived station record in the reading scene', async () => {
   await user.click(await screen.findByRole('button', { name: /拆開信封/ }));
   current += Math.ceil((1111 - 372) / 12) * MINUTE;
   fireEvent(document, new Event('visibilitychange'));
-  // The player should see a route to a newly learned story beat without opening the case drawer.
-  expect(await screen.findByRole('button', { name: /閱讀新消息：車站的燈/ })).toBeDefined();
-  await user.click(screen.getByRole('button', { name: /閱讀新消息：車站的燈/ }));
+
+  expect(screen.queryByText(/停電只有幾秒/)).toBeNull();
+  expect(screen.queryByRole('button', { name: /閱讀新消息：車站的燈/ })).toBeNull();
+  const cue = await screen.findByRole('button', { name: /鐘聲/ });
+  await user.click(cue);
+
   expect(screen.getByText(/停電只有幾秒/)).toBeDefined();
+  expect(readSave(storage, current).loops[1].perceivedSceneIds).toContain('station-blackout');
 });
 
 it('frames Loop 1 at the return train and does not ask for a mode', async () => {
