@@ -25,6 +25,15 @@ it('does not perceive a target until shift and observation both finish', () => {
   expect(completed.state).toEqual({ phase: 'idle' });
 });
 
+it('lets a rhythmic observation remain focused until its authored presentation finishes', () => {
+  const observationMs = 3_200;
+  const started = beginAttention('nurse', 'door', 1_000, observationMs);
+
+  expect(started.observationEndsAtMs).toBe(1_000 + ATTENTION_SHIFT_MS + observationMs);
+  expect(advanceAttention(started, 1_000 + ATTENTION_SHIFT_MS + 900).completedTargetId).toBeUndefined();
+  expect(advanceAttention(started, 1_000 + ATTENTION_SHIFT_MS + observationMs).completedTargetId).toBe('door');
+});
+
 it('redirects Single Focus instead of running two observations in parallel', () => {
   const first = beginAttention('nurse', 'door', 1_000);
   const redirected = redirectAttention(first, 'window', 1_200);
