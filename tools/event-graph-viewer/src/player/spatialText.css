@@ -44,7 +44,8 @@
   pointer-events: none;
 }
 
-.reading-scene.attention-active .spatial-text-stage {
+.reading-scene.attention-shifting .spatial-text-stage,
+.reading-scene.attention-observing .spatial-text-stage {
   opacity: .58;
 }
 
