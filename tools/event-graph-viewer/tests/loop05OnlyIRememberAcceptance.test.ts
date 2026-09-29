@@ -19,7 +19,7 @@ function text(suffix: string) {
 }
 
 describe('Loop 05 only-I-remember canon', () => {
-  it('keeps reset memory exclusive to the protagonist and turns intimacy into clues', () => {
+  it('keeps reset memory exclusive to the protagonist without NPC residue', () => {
     const narrative = text('/narrative/loop_05_player.yaml');
 
     expect(narrative).toContain('好久不見');
@@ -31,9 +31,15 @@ describe('Loop 05 only-I-remember canon', () => {
     expect(narrative).not.toContain('想起上一輪');
   });
 
-  it('defines Character Insight separately from objective evidence', () => {
+  it('keeps character pattern metadata grounded in perception and non-deductive', () => {
     const document = yaml.load(raw('/knowledge/character_insights.yaml')) as {
-      insights?: Array<{ id: string; character_id: string; source_loop: string; clue_use: string }>;
+      insights?: Array<{
+        id: string;
+        character_id: string;
+        source_loop: string;
+        clue_use: string;
+        presentation: string;
+      }>;
     };
     const insights = document.insights ?? [];
     const yuan = insights.find((item) => item.id === 'insight_yuan_keeps_fathers_things');
@@ -41,8 +47,28 @@ describe('Loop 05 only-I-remember canon', () => {
 
     expect(yuan?.character_id).toBe('yuan');
     expect(yuan?.source_loop).toBeTruthy();
-    expect(yuan?.clue_use).toContain('父親');
+    expect(yuan?.clue_use).toContain('Captured Memory');
+    expect(yuan?.clue_use).toContain('不能自動排除');
+
     expect(wakaharu?.character_id).toBe('wakaharu');
+    expect(wakaharu?.clue_use).toContain('不能等同');
+    expect(wakaharu?.clue_use).toContain('說謊');
+    expect(wakaharu?.presentation).not.toContain('她在說謊');
+  });
+
+  it('uses remembered character moments as a player hypothesis, not an auto-unlocked truth', () => {
+    const narrative = text('/narrative/loop_05_player.yaml');
+    const dag = parseStoryDagText(raw('/events/loop_05_story_dag.yaml'));
+    const hypothesisNode = dag.nodes.find((node) => node.id === 'L5_N04_character_insight_unlocked');
+    const investigationNode = dag.nodes.find((node) => node.id === 'L5_N05_insight_becomes_clue');
+
+    expect(narrative).not.toContain('Character Insight unlocked');
+    expect(narrative).toContain('這不是答案');
+    expect(narrative).toContain('不能證明她現在在說謊');
+
+    expect(hypothesisNode?.title).toContain('假設');
+    expect(hypothesisNode?.detail.after.join(' ')).toContain('Investigation Wall');
+    expect(investigationNode?.detail.reason).toContain('不能替玩家排除');
   });
 
   it('provides a Loop 05 DAG where the protagonist remembers relationships but Yuan does not', () => {
