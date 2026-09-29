@@ -163,7 +163,8 @@ Resume Original Action
 ```text
 18:14  ——砰。
 
-玩家正在進行不可中斷的談話。
+玩家正在進行不可離開 / 不可切換 Main Action 的談話，
+且當下 Attention 沒有真正轉向聲音來源。
 
 18:31
 
@@ -292,7 +293,13 @@ v0.1 必須支援：
 
 特定 Dialogue / Event 可以接受特定 Memory 作為輸入。
 
-玩家不是從系統預設的 A/B/C 選項選擇問題，而是從自己的 Memory Library / Wall 找出一段記憶帶回當下。
+Memory Input 與重大 Choice 是兩種不同的玩家介入方式，不互相取代：
+
+- 一般對話由主角自然回答
+- 涉及主角意圖 / 行動方向 / Worldline 的時刻，可以出現少量重大 Choice
+- 當劇本節點允許時，玩家也可以從自己的 Memory Library / Wall 找出一段記憶帶回當下，形成不同於預設 Choice 的介入
+
+Memory Input 不應被理解成「所有對話都取消選項」，而是讓玩家能在特定時刻用自己實際累積的記憶改變談話。
 
 ```text
 若晴：「我六點一直都在店裡。」
@@ -871,7 +878,7 @@ Spatial Dialogue 的上一句不應立刻完全消失，也不應累積成 Chat 
 
 ## 24. Repeated Dialogue and Attention Release
 
-輪迴後重新遇到已知內容時，不快轉 World Time。所謂 Skip 更接近「我已經知道這段內容，因此不再把全部注意力放在它上面」。
+輪迴後重新遇到已知內容時，不快轉 World Time。所謂 Skip 在 v0.1 不代表時間跳躍或略過事件；它更接近「我已經知道這段內容，因此讓它退到 Attention 背景」。為避免和傳統 VN 的時間快轉混淆，設計與 UI 上應優先稱為 **Attention Release**，而不是 Fast-forward。
 
     「柏勳那天確實有來……」      ← 已知主對話退到背景
 
