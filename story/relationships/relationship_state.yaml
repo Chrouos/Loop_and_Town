@@ -1,6 +1,6 @@
 id: relationship_state
 visibility: hidden
-purpose: 決定角色在當前 Loop 是否願意相信、合作、拒絕或自行承擔風險；不是永久好感度。
+purpose: 決定角色在當前 Loop 是否願意相信、合作、拒絕或自行承擔風險；不是永久好感度，也不是跨 Loop 記憶。
 
 dimensions:
   - trust
@@ -18,14 +18,16 @@ reset_on_loop: true
 reset_value: 0
 
 persistent_across_loops:
-  - character_insight
-  - protagonist_memory
-  - discovered_evidence
+  - captured_memory
+  - investigation_wall
 
 forbidden_metrics:
   - affection
   - romance_score
   - universal_favorability
+  - residue
+  - memory_residue
+  - previous_loop_memory
 
 rules:
   - 玩家不能直接選擇 NPC 的最終行動，只能改變資訊、相處方式與當前關係狀態。
@@ -33,5 +35,7 @@ rules:
   - Closeness 表示當前 Loop 的相處深度，不跨 Reset 保留。
   - Respect 表示角色是否感到自己的選擇權被尊重。
   - Pressure 表示角色是否感到主角在利用預知、秘密或情緒壓力操控自己。
-  - Character Insight 跨 Loop 保留，但只能幫玩家理解如何溝通，不能直接兌換關係數值。
-  - Reset 後所有 Relationship State 回到基準；主角只保留如何理解這個人的記憶。
+  - Reset 後所有 NPC Relationship State 回到基準，普通 NPC 不保留上一輪記憶。
+  - 主角跨 Loop 可檢索、可用於 gameplay 的 persistent record 以 Captured Memory 為準。
+  - Character Insight 若存在，只能作為作者一致性或主角已感知經驗的表達，不能直接兌換關係數值或自動推理。
+  - 任何跨 Loop Memory 都必須遵守 Perception Boundary；未感知內容不可自動成為知識。
