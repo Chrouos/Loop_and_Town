@@ -59,6 +59,7 @@ function recordForScene(scene: NarrativeSceneDefinition): PlayerNarrativeRecord 
     body,
     excerpts: body.slice(0, 2).map((text, index) => ({ id: `${scene.id}:excerpt:${index}`, text })),
     revealMinute: minute,
+    availableUntilMinute: scene.availableUntil ? toAbsoluteMinute(scene.availableUntil) : undefined,
     acquisition: acquisitionFor(scene),
     matches: (history) => matchesScene(scene, history),
   };
