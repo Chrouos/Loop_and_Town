@@ -52,33 +52,35 @@ function historyAfter(result: SimulationResult, fromMinute: number): SimulationR
   return { ...result, history: result.history.filter(entry => (entry.absoluteMinute ?? entry.minute) > fromMinute) };
 }
 
+/**
+ * World Never Waits:
+ *
+ * Convergence and Bell are story events, not foreground locks. OFFLINE and
+ * BOOTSTRAP advancement must cross them normally. Reset remains the only
+ * pending lifecycle boundary because creating the next Loop is a separate
+ * transaction with its own time-mode / entry semantics.
+ */
 export function advanceLoop(input: AdvanceLoopInput): AdvanceLoopResult {
   const fromMinute = Math.max(LOOP_START_MINUTE, input.fromMinute);
   const requestedTarget = Math.max(fromMinute, input.targetMinute);
-  const pending = input.loop.clock.pendingCriticalBoundary;
 
   if (input.intent === 'FOREGROUND') {
-    const boundary = BOUNDARIES.find(item => item.id === pending);
-    if (!boundary) {
+    // Only Reset is allowed to remain pending in the current runtime model.
+    if (input.loop.clock.pendingCriticalBoundary !== 'reset') {
       const simulation = runSimulation(input, fromMinute);
       return { reachedMinute: fromMinute, simulation: historyAfter(simulation, fromMinute) };
     }
-    const simulation = runSimulation(input, boundary.minute);
-    return { reachedMinute: boundary.minute, simulation: historyAfter(simulation, fromMinute) };
+    const simulation = runSimulation(input, Math.min(fromMinute, RESET_MINUTE));
+    return { reachedMinute: Math.min(fromMinute, RESET_MINUTE), simulation: historyAfter(simulation, fromMinute) };
   }
 
-  const boundary = input.intent === 'OFFLINE'
-    ? firstCriticalBoundary(fromMinute, requestedTarget)
-    : undefined;
-  const exactBootstrapBoundary = input.intent === 'BOOTSTRAP'
-    ? BOUNDARIES.some(item => item.minute === requestedTarget && item.minute > fromMinute)
-    : false;
-  const reachedMinute = boundary?.minute ?? requestedTarget;
-  const simulationTarget = exactBootstrapBoundary ? Math.max(fromMinute, reachedMinute - 1) : reachedMinute;
-  const simulation = runSimulation(input, simulationTarget);
+  const crossesReset = fromMinute < RESET_MINUTE && requestedTarget >= RESET_MINUTE;
+  const reachedMinute = crossesReset ? RESET_MINUTE : requestedTarget;
+  const simulation = runSimulation(input, reachedMinute);
+
   return {
     reachedMinute,
-    pendingBoundary: boundary?.id ?? (exactBootstrapBoundary ? BOUNDARIES.find(item => item.minute === requestedTarget)?.id : undefined),
+    pendingBoundary: crossesReset ? 'reset' : undefined,
     simulation: historyAfter(simulation, fromMinute),
   };
 }
