@@ -30,8 +30,8 @@ const emitted = (history: WorldlineHistoryEntry[]) => history.some(x => x.kind =
 const stationBlackoutSpatial = compileSpatialScript([
   {
     type: 'narration',
-    text: '舊車站那一帶忽然暗了。',
-    presentation: { anchor: 'center', beats: ['舊車站那一帶……', '忽然暗了。'], beatMs: 520, pauseAfterMs: 240, echoMs: 1000 },
+    text: '停電只有幾秒。',
+    presentation: { anchor: 'center', beats: ['停電只有幾秒。'], beatMs: 520, pauseAfterMs: 240, echoMs: 1000 },
   },
   {
     type: 'narration',
