@@ -1,140 +1,126 @@
-# Loop_and_Town Complete Project Roadmap
+# Loop_and_Town Complete Project Roadmap v0.2
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement pending plans task-by-task. This document is the PR-level index and status ledger; detailed implementation steps live in the linked plans.
+## Precedence
 
-**Goal:** 將目前已確認的遊戲核心、主線故事、Event Graph、Worldline、Relationship State、Final、玩家 Runtime 與 Real-time Anchored Timeline 收斂成一份可追蹤的總計畫。
+Current canonical gameplay is defined by `Core Gameplay Spec v0.1`.
 
-**Architecture:** `docs/` 保存作者端 canon/spec/plan；`story/` 是 runtime story source of truth；`tools/event-graph-viewer/` 同時提供作者用 DAG Viewer 與玩家 runtime prototype。Story data 只知道 Simulation Time；runtime 才知道 Real Time；角色決策由角色狀態與目標驅動，而不是由玩家直接指定結局。
+Where older plans, story docs, prototypes or runtime assumptions overlap with Core Gameplay and conflict, **the current Core Gameplay rules win**.
 
-**Tech Stack:** TypeScript, React 18, Vite 5, Vitest, YAML, JSON Schema, @xyflow/react
-
-## Status Legend
-
-- ✅ Implemented + covered by current PR tests/build
-- 🟨 Designed / planned, implementation pending
-- 🔁 Existing foundation already on `main`, must remain compatible
-- ⛔ Explicitly not part of current merge
+This roadmap therefore treats older implementation as migration input, not immutable compatibility behavior.
 
 ---
 
-## 1. Existing foundation plans
+# 1. Product goal
 
-These plans predate the current story expansion and remain architectural dependencies.
+建立一個真實世界連動的放置視覺小說：
 
-| Area | Plan | Status |
-|---|---|---|
-| Event Graph Viewer | `docs/superpowers/plans/2026-09-23-event-graph-viewer.md` | 🔁 foundation present |
-| Player first loop | `docs/superpowers/plans/2026-09-23-player-first-loop.md` | 🔁 foundation present |
-| Story Simulation v0.2 | `docs/superpowers/plans/2026-09-23-story-simulation-v0.2.md` | 🔁 foundation present |
-| Worldline Simulator v0.1 | `docs/superpowers/plans/2026-09-23-worldline-simulator-v0.1.md` | 🔁 foundation present |
-| Narrative Foundation v0.1 | `docs/superpowers/plans/2026-09-24-narrative-foundation-v0.1.md` | 🔁 foundation present |
-| Action Duration / script control | `docs/superpowers/plans/2026-09-27-action-duration-script-control.md` on `main` | 🔁 implemented on main |
-
-Compatibility rule: this PR must not replace or regress these systems. The current merge-ref CI is the integration gate.
+```text
+Real / World Time keeps moving
+        ↓
+Player has one Main Action
+        ↓
+World creates simultaneous Dialogue / Ambient / Opportunities
+        ↓
+Single Focus Attention
+        ↓
+Perception
+        ↓
+Player-selected Memory Capture
+        ↓
+Investigation Wall
+        ↓
+Choice / Memory Input / Action
+        ↓
+Worldline changes
+        ↓
+Loop Reset
+        ↓
+Only protagonist-side remembered information persists
+```
 
 ---
 
-## 2. Canon and main narrative
+# 2. Canonical gameplay invariants
 
-### Specs / canon
+Every remaining implementation plan must preserve:
 
-- `docs/superpowers/specs/2026-09-27-main-story-character-bible-design.md`
+1. World Never Waits
+2. Single Main Action
+3. Single Focus
+4. Faded ≠ Paused
+5. Attention Shift Takes Time
+6. Perception Boundary
+7. Memory Is Player-selected
+8. No Auto Deduction
+9. Finite Information
+10. Loop Persistence Is Asymmetric
+
+Older designs that freeze Story Time while reading or deciding are superseded.
+
+---
+
+# 3. Story canon
+
+Primary story docs:
+
 - `docs/main-story.md`
 - `docs/character-bible.md`
 - `docs/relationship-map.md`
 - `docs/story-canon-memory.md`
 - `docs/story-canon-time.md`
+- Chapter 1–7 + Final docs
 
-### Chapter documents
+Current narrative principles:
 
-- Chapter 1: `docs/first-loop-story.md`
-- Chapter 2: `docs/chapter-02-living-survivor.md`
-- Chapter 3: `docs/chapter-03-no-death-worldline.md`
-- Chapter 4: `docs/chapter-04-five-years-ago.md`
-- Chapter 5: `docs/chapter-05-the-one-who-remembers.md`
-- Chapter 6: `docs/chapter-06-the-six-letters.md`
-- Chapter 7: `docs/chapter-07-lin-zhixia.md`
-- Final: `docs/final-1831.md`
-
-### Status
-
-✅ Chapter 0–Final story spine exists.
-
-✅ Main cast has private goals, history, pressure, and non-player-dependent schedules.
-
-✅ 18:31 is defined as causal convergence/correction, not a required death time.
-
-✅ The seventh letter is an information interface sustained by stable memory, not a normal physical mail mystery.
-
-✅ Ending resolution is about responsibility/consent, not choosing who must die.
+- NPCs have private goals and schedules independent of the player
+- saving someone is not a completion state
+- 18:31 is a causal convergence / correction point, not simply a victim timer
+- player intervention changes information, relationship and route before changing large outcomes
+- final resolution concerns responsibility / consent, not selecting who must die
+- normal NPCs do not accumulate cross-loop memory residue
+- Zhixia may be a story-specific former memory-holder exception if required by canon
 
 ---
 
-## 3. Story DAG and Worldline Viewer
+# 4. Event Graph / Author Viewer
 
-### Detailed design / plan
+Author Event Graph remains the source for causal truth:
 
-- Spec: `docs/superpowers/specs/2026-09-27-dag-story-viewer-design.md`
-- Plan: `docs/superpowers/plans/2026-09-27-dag-story-viewer-implementation.md`
+```text
+Canon Truth
+→ World Event Node
+→ Condition / Edge
+→ Character decision
+→ Schedule / Route change
+→ Delayed consequence
+→ Worldline Path
+```
 
-### Runtime data
+But it must now separately model the player knowledge boundary:
 
-- `story/events/day_01_story_dag.yaml`
-- `story/events/loop_03_story_dag.yaml`
-- `story/events/loop_04_story_dag.yaml`
-- `story/events/loop_05_story_dag.yaml`
-- `story/events/loop_06_story_dag.yaml`
-- `story/events/loop_07_story_dag.yaml`
-- `story/events/final_story_dag.yaml`
-- matching files under `story/worldlines/*_paths.yaml`
+```text
+World Event
+→ Peripheral Cue
+→ Attention
+→ Perception
+→ optional Memory Capture
+```
 
-### Status
+Important separation:
 
-✅ DAG is causal rather than a generic tree/flowchart.
+```text
+Author Viewer       = known causal truth
+Investigation Wall  = player's own hypotheses
+```
 
-✅ Supports branches and reconvergence.
-
-✅ Node inspector exposes Before / After / Reason / delayed effects / knowledge / relationship changes / narrative refs.
-
-✅ Worldline path selector can highlight individual paths and author mode can expose all possibilities.
-
-✅ Final contains three player-owned endings after NPC-owned decisions reconverge.
-
----
-
-## 4. Main story runtime breakdown
-
-Detailed plan:
-
-- `docs/superpowers/plans/2026-09-27-main-story-runtime-breakdown.md`
-
-Current implementation status:
-
-✅ Story docs split.
-
-✅ Character metadata expanded without changing canonical IDs.
-
-✅ Relationship graph expanded.
-
-✅ Schedule life lines added, including 若晴 resignation and independent NPC plans.
-
-✅ Chapter 2 worldline implemented with explicit causal steps rather than direct victim swap.
-
-✅ Later Loop 3–7 and Final have narrative + DAG + worldline path acceptance coverage.
+Author tools may show downstream effects and hidden causes.
+Player Investigation must not inherit those automatic semantics.
 
 ---
 
-## 5. Relationship State and Character Insight
+# 5. Relationship State
 
-### Runtime sources
-
-- `story/relationships/relationship_state.yaml`
-- `story/relationships/final_decisions.yaml`
-- `story/knowledge/character_insights.yaml`
-
-### Rules
-
-Loop-local dimensions:
+Loop-local relationship dimensions:
 
 ```text
 Trust
@@ -143,293 +129,483 @@ Respect
 Pressure
 ```
 
-Cross-loop retained knowledge:
+Optional local dimensions only where story needs them:
 
 ```text
-Character Insight
-Protagonist memory
-Discovered evidence / facts according to canon persistence rules
+availability
+obligation
+fear
+exposure
+promise_pressure
 ```
 
-Explicitly forbidden as the core model:
+Reset rule:
 
 ```text
-affection
-romance_score
-universal_favorability
+NPC relationship state → reset
+NPC previous-loop memory → reset
+NPC personality / values → stable
 ```
 
-### Status
+Forbidden as normal NPC state:
 
-✅ Relationship state model exists.
-
-✅ Numeric threshold engine is covered independently from the Action Duration simulator changes.
-
-✅ Final NPC decisions use each character's conditions and goals.
-
-✅ NPC fallback decisions remain valid agency-preserving outcomes, not automatic bad endings.
-
-✅ Player does not see raw relationship numbers in the intended player UX.
+```text
+memory_residue
+previous_loop_memory
+```
 
 ---
 
-## 6. Final 18:31
+# 6. Character Insight
 
-### Flow
+Character Insight is no longer a system-certified cross-loop clue layer.
+
+It is either:
+
+- author-facing consistency metadata, or
+- protagonist recollection grounded in actual Perception / Captured Memory
+
+It cannot automatically mean:
 
 ```text
-17:42  full truth shared
-  ↓
-17:50  each NPC decides their own involvement
-  ↓
-18:03  seventh-letter handoff / preparation
-  ↓
-18:31  collective convergence
-  ↓
-player chooses only their own burden
-  ├─ Ending A: 明天
-  ├─ Ending B: 再一次
-  └─ Ending C: 忘記我
+this NPC is lying
+this evidence proves X
+this is the correct question
 ```
 
-### Status
-
-✅ Final DAG implemented.
-
-✅ Final narrative implemented.
-
-✅ Final worldline paths implemented.
-
-✅ Viewer can load all three endings.
-
-✅ NPC decisions occur before the player's ending choice.
+If it affects gameplay, route it through explicit story conditions such as accepted Memory Input or current-loop interaction.
 
 ---
 
-## 7. Real-time Anchored Timeline
+# 7. Memory persistence
 
-### Design
+Cross-loop persistent gameplay records:
 
-- `docs/superpowers/specs/2026-09-28-real-time-anchored-timeline-design.md` on `main`
+```text
+Captured Memory
+Memory metadata
+Investigation Wall layout / links / notes
+Worldline History according to player-visible policy
+```
 
-### Implementation plan
+Not automatically persistent:
 
-- `docs/superpowers/plans/2026-09-28-real-time-anchored-timeline-implementation.md`
+```text
+NPC relationship state
+NPC prior-loop memories
+world state
+uncaptured full event details
+system-generated truth conclusions
+```
 
-### Status
+Perception chain:
 
-🟨 Design complete; runtime implementation pending.
+```text
+World Event
+→ Attention
+→ Perception
+→ player chooses Capture
+→ Persistent Memory
+```
 
-Target model:
+---
+
+# 8. Player-facing Cards — superseded rule
+
+The older rule:
+
+> Cards represent important evidence/events/worldline changes only.
+
+is superseded.
+
+Current rule:
+
+> **Any actually perceived Moment may be Captured if the player chooses.**
+
+This includes potentially irrelevant information such as:
+
+```text
+「最近真的好冷。」
+```
+
+The system must not decide importance at capture time.
+
+Therefore do not automatically award:
+
+- Event Card
+- Truth Card
+- Invariant Card
+- Important Clue
+
+just because the authored story considers an event significant.
+
+---
+
+# 9. Memory Library + Investigation Wall
+
+Player investigation layer:
+
+```text
+Memory Library
+= what I chose to remember
+
+Investigation Wall
+= what I think may be related
+```
+
+Memory Library can provide neutral search/filter:
+
+- Loop
+- time
+- character / scene
+- Memory type
+
+Investigation Wall supports:
+
+- free positioning
+- zoom / pan
+- Memory references
+- arbitrary links
+- notes
+- grouping
+
+No automatic:
+
+- contradiction detection
+- causal classification
+- truth score
+- clue importance
+
+Existing `EvidenceBoard` naming may temporarily remain as a compatibility alias, but semantics should migrate to Investigation Wall.
+
+---
+
+# 10. Player dialogue / presentation
+
+Target Player presentation:
+
+```text
+Spatial Typography
++ Rhythmic Text
++ Text Echo
++ Attention Gameplay
++ Ambient Events
++ Memory Capture
+```
+
+Not:
+
+```text
+fixed Dialogue Box
++ 30ms/character typewriter
++ Continue button after every line
+```
+
+Dialogue remains live gameplay.
+
+World Time continues while characters speak.
+
+Repeated dialogue uses Attention Release, not Fast-forward.
+
+---
+
+# 11. Attention model
+
+Canonical interaction:
+
+```text
+Main Action
+    ↓
+Peripheral Cue
+    ↓
+Hover → Notice / Single Focus
+    ↓
+Click → Attend
+    ↓
+Attention Shift (takes time)
+    ↓
+Observe
+    ↓
+Elastic Auto Return
+```
+
+If Focus changes during Observe:
+
+```text
+Attention Redirect
+```
+
+Only abandoning the Main Action is:
+
+```text
+True Interrupt
+```
+
+Rapid Hover scanning never pauses other events.
+
+---
+
+# 12. Waiting / idle gameplay
+
+Waiting is not `Loading...` and not a countdown page.
+
+During waiting:
+
+- World Time continues
+- Scene continues
+- Ambient events continue
+- Opportunity Windows may appear / expire
+- Attention remains active
+- player may Interrupt if the Action permits
+
+ETA is shown only when genuinely knowable.
+
+---
+
+# 13. Real-time Anchored Timeline
+
+Target model remains:
 
 ```text
 Real Time
    ↓
 Worldline Anchor
    ↓
-Time Scale
+Time Scale / Entry Mode
    ↓
-Simulation Time
+Simulation / World Time
    ↓
 Event Scheduler
-   ↓
-Narrative / NPC / Event Graph
 ```
 
-Policy:
+Requirements:
+
+- offline and online use the same event truth
+- player joining at a different real-world hour must not corrupt authored story order
+- loop entry strategy may differ between first loop / later loops
+- time-scale changes must not create event jumps
+- Worldline History can store real + world timestamps where useful
+
+New integration requirement:
+
+> Player reading / dialogue / Memory Capture must not create a hidden pause layer on top of this clock.
+
+---
+
+# 14. Reset
+
+Reset must be atomic at runtime and ritualized in presentation.
 
 ```text
-Loop 1
-→ forced onboarding
-→ Simulation Time starts 06:12
-→ accelerated; target balance default 6x
-
-Loop 2+
-→ configurable
-→ may opt into stronger real-world anchored sync
-→ authored event times remain unchanged
+Convergence
+→ settling
+→ 23:59
+→ 00:00
+→ next loop
 ```
 
-Key requirements:
+Reset must preserve protagonist-side memory semantics.
 
-- no player misses the opening because they started at 17:00 real time;
-- online and offline use the same scheduler;
-- reset is triggered by Simulation Time 00:00;
-- reset creates a new anchor at 06:12;
-- Worldline History records both simulation and real timestamps;
-- scale changes re-anchor without jumping story time.
+Do not use copy implying the protagonist gives away / loses Captured Memories unless future canon explicitly changes that mechanic.
 
 ---
 
-## 8. Canonical timing migration
+# 15. Player Immersive UI
 
-### Current issue
+PR #19's current design should be treated as the Player presentation companion to Core Gameplay.
 
-The playable prototype still contains historical `14:20` opening-era data, while the canon now defines:
+Implementation order:
 
 ```text
-06:12  reset / wake on return train
-07:20–08:00 arrival
-09:10  investigation available
-18:31  convergence
-23:59  bell
-00:00  reset
+runtime invariant audit
+→ Perception model
+→ Spatial Text
+→ Rhythmic Text / Text Echo
+→ Attention Surface
+→ Dialogue
+→ Memory Capture
+→ Investigation tools
+→ Live Waiting
+→ Reset
 ```
 
-### Status
-
-🟨 Pending as a deliberate atomic migration.
-
-Do not partially edit one narrative scene. Migration must update all affected:
-
-- narrative scenes;
-- schedules;
-- DAG nodes;
-- worldline paths;
-- timing acceptance tests;
-- docs that are normative for runtime time.
-
-This migration is Task 8 of the Real-time Anchored Timeline implementation plan.
+Old `TypewriterText`-first implementation order is superseded.
 
 ---
 
-## 9. Narrative loading / manifest cleanup
+# 16. Story chapter migration rule
 
-### Current issue
-
-The viewer currently accumulated multiple loop narrative sources incrementally. This worked for proving Arc 2–Final, but production authoring should not require hard-coded per-loop appends.
-
-### Planned shape
-
-🟨 Generalize manifest/loading to support multiple narrative documents declaratively, e.g. backward-compatible:
-
-```yaml
-narrative: story/narrative/loop_01_player.yaml
-narratives:
-  - story/narrative/loop_01_player.yaml
-  - story/narrative/loop_02_player.yaml
-  - story/narrative/loop_03_player.yaml
-```
-
-Required validation:
-
-- duplicate scene IDs fail fast;
-- every DAG `narrative_ref` resolves;
-- missing files fail with source path;
-- legacy single `narrative` remains valid during migration.
-
-This cleanup should be implemented before content expands materially beyond the current main arc.
-
----
-
-## 10. Player loop persistence and reset model
-
-🟨 Productionization pending together with anchored timeline.
-
-Persistence layers must be separated:
+When chapter docs contain phrases such as:
 
 ```text
-Meta State (cross-loop)
-├─ protagonist memory
-├─ Character Insight
-├─ discovered evidence allowed by canon
-└─ worldline history summaries
-
-Loop State (reset)
-├─ NPC schedule mutations
-├─ Trust / Closeness / Respect / Pressure
-├─ temporary flags
-├─ current activities
-└─ local route/event state
+玩家得到 Event Card
+Truth Card 更新
+Invariant Card 解鎖
 ```
 
-The reset operation must be atomic so a reload can never observe half old-loop / half new-loop state.
-
----
-
-## 11. Player-facing interaction principles
-
-These are constraints across every remaining implementation plan.
-
-- Do not make every sentence a collectible card.
-- Cards represent important evidence/events/worldline changes only.
-- The evidence board is spatial / freely arranged and linkable rather than a card wall.
-- NPCs are not clue dispensers; they have schedules and private goals before the player intervenes.
-- A small choice should affect information first, character state second, and only major causal changes should alter a worldline.
-- Saving someone is not a success state by itself; the saved character continues their own life.
-- The player can influence people but cannot directly command Final participation.
-- Worldline correction is causal, not moral punishment for saving someone.
-
----
-
-## 12. Delivery sequence after this PR
-
-### Phase A — merge current story architecture
-
-✅ Merge PR #16 once review is accepted.
-
-Contains:
-
-- complete story bible;
-- Chapter 2–Final narrative arc;
-- DAG/worldline data;
-- Relationship State / Character Insight;
-- Final NPC decision model;
-- Viewer integration and acceptance tests;
-- this master roadmap.
-
-### Phase B — anchored timeline runtime
-
-🟨 Execute `2026-09-28-real-time-anchored-timeline-implementation.md` task-by-task with TDD.
-
-### Phase C — declarative multi-loop narrative loading
-
-🟨 Remove hard-coded loop append logic and enforce narrative-ref integrity globally.
-
-### Phase D — canonical 06:12 timing migration
-
-🟨 Execute atomically after the clock abstraction exists.
-
-### Phase E — production player experience
-
-🟨 Connect loop persistence, offline resume summary, evidence board progression, and actual playable Arc 2+ transitions.
-
-### Phase F — content / balance pass
-
-🟨 Tune time scale, action durations, investigation windows, clue density, relationship thresholds, and offline cap values without changing canon architecture.
-
----
-
-## 13. Verification baseline for PR #16
-
-Latest verified merge-ref before this roadmap update:
+migrate them to:
 
 ```text
-Test Files: 72 passed
-Tests:      289 passed
-TypeScript: passed
-Vite build: passed
-Event Graph Viewer workflow: success
-Pages build job: success
-PR deploy job: skipped by PR workflow design
+World Event occurs
+→ protagonist may perceive it
+→ player may Capture it
+→ old and new Loop Memories coexist
+→ player may compare them on Investigation Wall
 ```
 
-Any new commit to PR #16 invalidates this baseline until CI runs again. Final completion claims must use the latest HEAD's fresh workflow results.
+New Worldline data does not overwrite old Captured Memory.
 
 ---
 
-## 14. PR Definition of Done
+# 17. Chapter 2 / 3 migration
 
-PR #16 is ready to leave Draft when all of these are true:
+Chapter 2 now demonstrates:
 
-- [ ] Story canon and runtime data agree on all non-time-migration semantics.
-- [ ] Loop 1–7 + Final acceptance tests pass on the latest merge-ref.
-- [ ] Relationship / Final decision acceptance tests pass.
-- [ ] DAG Viewer loads all current loop and Final paths.
-- [ ] `npm test` passes with zero failures.
-- [ ] `npm run build` passes.
-- [ ] GitHub reports the PR mergeable against current `main`.
-- [ ] Remaining Real-time / 06:12 migration work is explicitly marked as follow-up rather than silently implied complete.
-- [ ] PR description links this roadmap and accurately distinguishes implemented work from planned work.
+```text
+save 若晴
+→ 柏勳 route changes
+→ 柏勳 dies at 18:31
+```
 
-The PR should remain Draft until the user explicitly chooses to mark it Ready for Review.
+but the player is not automatically handed an `18:31 invariant` conclusion.
+
+Chapter 3 now demonstrates:
+
+```text
+known characters survive 18:31
+→ 23:59 bell still rings
+→ 00:00 reset still happens
+```
+
+Old Event Cards from previous loops remain independent Memories rather than being overwritten by the new worldline.
+
+---
+
+# 18. Zhixia exception boundary
+
+Story may establish:
+
+```text
+Zhixia = previous special memory holder
+Seventh Letter = handoff mechanism
+Protagonist = current memory holder
+```
+
+This is a story-specific mechanism.
+
+Do not generalize it into:
+
+```text
+any NPC near anomaly
+→ residue points
+→ eventually remembers loops
+```
+
+---
+
+# 19. Runtime / data migration priorities
+
+After current design PRs are coherent, implementation work should prioritize:
+
+### P0 — remove conflicting runtime assumptions
+
+- foreground read pause
+- decision pause if it freezes World Time
+- generic NPC residue persistence
+- auto clue / evidence grants that bypass Memory Capture
+
+### P1 — Attention + Perception foundation
+
+- Single Focus
+- Peripheral Cue
+- Attention Shift
+- Elastic Attention
+- Perception Boundary
+
+### P2 — Memory gameplay
+
+- Capture
+- Library
+- Wall
+- Memory Input
+
+### P3 — presentation
+
+- Spatial Dialogue
+- Rhythmic Text
+- Text Echo
+- live Waiting
+
+### P4 — full story integration
+
+- Chapter 1–Final runtime
+- Real-time anchor
+- offline reconciliation
+- Worldline history
+
+---
+
+# 20. Verification baseline
+
+Every implementation PR touching Player gameplay should test at minimum:
+
+```text
+World Time does not pause for reading
+World Time does not pause for dialogue
+World Time does not pause for Memory Capture
+only one Attention Focus exists
+faded events continue
+missed events remain missed
+unperceived events cannot become Memory
+Captured Memory persists across Reset
+NPC relationship / normal memory resets
+repeated dialogue does not Fast-forward world
+Investigation Wall does not auto-deduce
+```
+
+Then run repository gates:
+
+```bash
+npm test
+npm run build
+git diff --check
+```
+
+---
+
+# 21. PR relationship
+
+Current design hierarchy:
+
+```text
+Core Gameplay v0.1 (PR #20)
+        ↓ canonical gameplay semantics
+Player Immersive UI (PR #19)
+        ↓ presentation / implementation contract
+Main Story + DAG (PR #16)
+        ↓ story content and author causality
+Causal Timeline Workbench (PR #18)
+        ↓ author/debug visualization
+```
+
+PR number does not indicate authority; current canonical design does.
+
+---
+
+# 22. Definition of Done
+
+Project architecture is coherent when:
+
+- [ ] no active spec claims normal NPC cross-loop residue
+- [ ] no active Player spec freezes World Time during reading
+- [ ] no active Player spec uses fixed typewriter speed as story clock
+- [ ] no chapter automatically awards important clue cards
+- [ ] Perception Boundary exists between Event Graph and Player Knowledge
+- [ ] Memory Capture is the persistent player record path
+- [ ] Investigation Wall stays player-authored
+- [ ] Relationship State resets normally
+- [ ] Author causal tools remain separate from Player deduction tools
+- [ ] current Player UI design implements Single Focus / Elastic Attention
+- [ ] tests enforce the canonical invariants
+
+This roadmap is the project-level migration index. Older plans remain useful for implementation history, but they cannot override the current Core Gameplay rules.
