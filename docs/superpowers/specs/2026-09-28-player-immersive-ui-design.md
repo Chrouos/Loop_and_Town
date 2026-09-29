@@ -1,38 +1,54 @@
-# Player Immersive UI Design v0.1
+# Player Immersive UI Design v0.2
 
 ## Status
 
-Design draft for human review.
+Canonical Player-facing presentation design aligned with `Core Gameplay Spec v0.1`.
 
-This document defines the Player-facing UI direction for `Loop_and_Town`.
+This document supersedes earlier Player UI assumptions wherever they overlap with the current Core Gameplay rules.
 
-It is a **design spec only**. It does not claim implementation is complete.
+In particular, the following older assumptions are no longer normative:
 
-The visual direction takes inspiration from the quiet, restrained, emotionally weighted presentation associated with narrative games such as *彼方的她 - Aliya*, but does not copy its assets, layouts, or exact visual treatment.
+- foreground narrative reading freezes Story Time
+- fixed per-character typewriter timing is the primary dialogue mechanic
+- generic `Continue` / `AmbientPrompt` interaction drives dialogue
+- Evidence / Event / Truth cards are automatically granted because the system considers information important
+- repeated dialogue can be skipped by changing world speed
+
+The Player UI must never redefine runtime truth or weaken the canonical gameplay invariants.
 
 ---
 
-# Goal
+# 1. Goal
 
-把目前 Player 畫面從「網站式閱讀介面」改成「場景驅動的沉浸式放置敘事遊戲」。
+把 Player 畫面從「網站式閱讀介面」改成「持續活著的場景」。
 
-核心不是增加更多 UI，而是讓 UI 退後，讓玩家感覺自己仍然待在灰潮鎮裡。
-
-玩家應感受到：
+玩家不是在操作頁面，而是在一個不會等待自己的世界裡決定：
 
 ```text
-Scene
-  ↓
-Narrative
-  ↓
-Player intention
-  ↓
-World progression
-  ↓
-Memory / consequence
+注意什麼
+→ 感知什麼
+→ 記住什麼
+→ 何時介入
+→ 因此錯過什麼
 ```
 
-而不是：
+Target feeling:
+
+```text
+World continuously moves
+        ↓
+Scene / Dialogue / Ambient / Opportunity
+        ↓
+Attention
+        ↓
+Perception
+        ↓
+Memory / Choice / Action
+        ↓
+Worldline consequence
+```
+
+避免：
 
 ```text
 Page
@@ -44,223 +60,558 @@ Page
 
 ---
 
-# Product Position
+# 2. Canonical dependency
 
-Player UI 與 Author Viewer 使用同一套世界觀詞彙，但目的不同。
-
-```text
-Author Viewer
-→ 理解世界線因果
-→ Causal Timeline / Inspector / Diff
-
-Player UI
-→ 感受世界線因果
-→ Scene / Dialogue / Waiting / Reset
-```
-
-Player 不需要看到 runtime debug field。
-
-Player 應看到：
-
-- Loop
-- Worldline
-- Simulation Time
-- 世界正在發生什麼
-- 自己是否可以介入
-- 自己留下了哪些記憶
-
----
-
-# Existing Runtime to Keep
-
-本設計不重寫既有 Player Runtime。
-
-保留目前 `src/player` 中已存在的責任：
+`Core Gameplay Spec v0.1` is authoritative for gameplay semantics.
 
 ```text
-clock.ts
-runtime.ts
-model.ts
-knowledge.ts
-eventScheduler.ts
-storage.ts
-narrativeRecords.ts
-```
-
-這些仍負責：
-
-- Loop state
-- Simulation clock
-- save / load
-- action confirmation
-- worldline progression
-- knowledge persistence
-- reset boundary
-- offline reconciliation
-
-這次主要重構的是 **Presentation Layer**。
-
-Canonical dependency direction：
-
-```text
-Story / Runtime
-      ↓
-Player State
-      ↓
+Story / Runtime Truth
+        ↓
+World Time + Event State
+        ↓
+Player Perception State
+        ↓
 Presentation Projection
-      ↓
-Scene Components
+        ↓
+Scene / Text / Sound / Motion
 ```
 
-UI 不應反向修改或重新定義 runtime 規則。
+Presentation may stage or reduce information only according to what the protagonist can actually perceive.
+
+Presentation must not:
+
+- pause World Time because the player is reading
+- fabricate knowledge
+- fabricate ETA
+- automatically mark an event as a clue
+- reveal an event outside the protagonist's Perception Boundary
+- replay missed dialogue simply because Focus returns
+- infer contradiction / causality for the player
 
 ---
 
-# Design Principles
+# 3. Player UI invariants
 
-## 1. Scene first
+Every Player-facing component must preserve these rules:
 
-畫面主體永遠優先是場景。
+1. **World Never Waits** — reading, dialogue, Hover, Capture, Choice and overlays do not stop world progression unless a story/runtime rule explicitly freezes the whole world.
+2. **Single Main Action** — the protagonist performs one primary action at a time.
+3. **Single Focus** — only one Attention target is foregrounded at a time.
+4. **Faded ≠ Paused** — unfocused content keeps happening.
+5. **Attention Shift Takes Time** — changing sensory direction is a world action, not a zero-time UI toggle.
+6. **Perception Boundary** — only perceived information may become remembered information.
+7. **Memory Is Player-selected** — any perceived moment may be captured; the system does not rank importance.
+8. **No Auto Deduction** — UI never announces contradiction, lie, cause or correct answer.
+9. **Finite Information** — loops reveal authored events, not infinite generated clue drops.
+10. **Loop Persistence Is Asymmetric** — protagonist-side Captured Memory / Investigation persist; normal NPC relationships and memories reset.
 
-資訊層級：
+---
+
+# 4. Scene first
+
+畫面第一層永遠是世界本身：
 
 ```text
-1. Scene / atmosphere
-2. Narrative text
-3. Player interaction
-4. Minimal HUD
-5. Secondary tools
+Scene
++ Character position
++ Spatial text
++ Sound
++ Motion
++ Ambient events
 ```
 
-不要讓 Header、Button、Card 成為第一視覺焦點。
+第二層才是玩家的感知操作：
+
+```text
+Hover / Notice
+Click / Attend
+Observe
+Memory Capture
+Choice
+True Interrupt
+```
+
+第三層才是管理工具：
+
+```text
+Memory Library
+Investigation Wall
+Worldline History
+Save / Settings
+```
+
+不要讓 Header、Card、Button、Drawer 成為 gameplay 的第一視覺焦點。
 
 ---
 
-## 2. Text has weight
+# 5. Spatial Typography
 
-文字不是 static label，而是演出的一部分。
+文字是 World Layer，不是固定在底部 Dialogue Box 的內容。
 
-重要文字應支援：
+文字位置可以承擔：
 
-- typewriter reveal
-- punctuation pause
-- fade in / fade out
-- cursor blink
-- intentional silence
+- 說話者方位
+- 聲音來源
+- 距離
+- 人物移動
+- Attention 方向
+- 場景空間關係
+
+Example:
+
+```text
+              ……喀。
+
+
+                              「你找誰？」
+
+
+「……柏勳。」
+```
+
+不需要額外顯示：
+
+```text
+護士：
+主角：
+門：
+```
+
+角色移動時，文字 Blocking 也跟著移動。
+
+```text
+右上角     「你找誰？」
+              ↓
+右側       「柏勳？」
+              ↓
+右下附近   「你認識他？」
+```
+
+---
+
+# 6. Rhythmic Text, not fixed Typewriter
+
+舊版 `TypewriterText(speed, punctuationDelay)` 不再是核心設計。
+
+角色說話依 Phrase / Beat / Pause 演出：
+
+```text
+「你……」
+    ↓ pause
+「你怎麼會知道這件事？」
+```
+
+或：
+
+```text
+「我不是——」
+    ↓ stop
+「……算了。」
+```
+
+重要規則：
+
+> Speech Rhythm 是 World Time 的一部分。
+
+若 NPC 原本需要 2 秒說完一句話，不能因玩家設定「高速文字」就讓這句在 0.5 秒內完成並改變世界事件時間。
+
+Implementation 可以逐片段 reveal，但 timing source 應該是 authored Beat / Phrase，而不是固定 ms-per-character。
+
+Reduced Motion 可以降低視覺動畫，但不能改變事件語意或 World Time。
+
+---
+
+# 7. Text Echo
+
+完成的句子不立即消失，也不累積成 Chat History。
+
+```text
+「你找誰？」
+     ↓
+「你找誰？」（逐漸變淡）
+```
+
+Text Echo：
+
+- 短暫留在空間中
+- 最後自然消失
+- 可成為 Text Memory Capture 的入口
+- Echo 長度可反映角色心理衝擊
+- Echo 長度不得代表「系統認定的重要程度」
+
+---
+
+# 8. Attention Surface
+
+Player UI 必須支援真正的 Attention Gameplay。
+
+## 8.1 Peripheral Cue
+
+未被 Focus 的事件只以弱訊號存在：
+
+```text
+聲音
+人影
+局部文字
+動作
+震動
+光線變化
+```
+
+它只代表「主角可能注意到這裡有東西」，不代表已經取得完整資訊。
+
+## 8.2 Hover → Notice / Focus
+
+任何時刻只有一個主要 Focus。
+
+玩家 Hover 新目標時：
+
+```text
+Target → clearer
+Other perception → fades
+World → keeps moving
+```
 
 例如：
 
 ```text
-若晴
+                              護士：「柏勳那時候……」
+                              （淡化）
 
-「你真的還記得……
-昨天發生過的事嗎？」▌
+           ……喀。
+           ↑ Focus
 ```
 
-不是一次將整段 DOM 直接顯示。
+## 8.3 Click → Attend
+
+Click 表示主角真正投入感知。
+
+```text
+Click
+ ↓
+Attention Shift
+ ↓
+turn / listen / look
+ ↓
+Observe
+```
+
+Attention Shift 需要 World Time。
+
+玩家可能因此只看到門關上的最後一瞬間。
+
+## 8.4 Elastic Attention
+
+Observation 自然完成後：
+
+```text
+Original Main Action
+→ Notice
+→ Attend
+→ Observe
+→ Auto Return
+→ Resume original Attention
+```
+
+玩家不需要再點一次原目標。
+
+## 8.5 Attention Redirect
+
+Observation 尚未完成時，玩家可把 Focus 移到其他目標。
+
+這叫 **Attention Redirect**，不是 True Interrupt。
+
+## 8.6 True Interrupt
+
+只有主角真的放下目前 Main Action，例如：
+
+- 離開談話
+- 追出去
+- 停止搜查去另一地點
+- 改做另一個主要行動
+
+才叫 True Interrupt。
 
 ---
 
-## 3. Interaction as intention
+# 9. Dialogue is continuous gameplay
 
-玩家不應感覺自己在操作 Web CTA。
+Dialogue 不是暫停畫面。
 
-避免：
+一般台詞由主角既定性格自然回應，不需要每一句都顯示 A/B/C。
+
+玩家在 Dialogue 中仍然可以：
+
+- 保持 Focus 在說話者
+- Notice 其他 Peripheral Cue
+- Attend / Observe 另一個方向
+- Capture 一個已感知 Moment
+- 使用 Memory Input
+- 在真正重要的時刻做 Choice
+- True Interrupt / 離開
+
+Example:
 
 ```text
-[ 確認 ]
-[ 下一步 ]
-[ 繼續 ]
+                              「柏勳那天確實有來……」
+
+           ……喀。
+
+                              「我記得他大概六點——」
+
+                                          走廊有人經過
 ```
 
-優先使用語意化互動：
+三件事可以同時發生，但玩家只能完整 Focus 其中一個。
+
+---
+
+# 10. Meaningful Choice
+
+Choice 只在真的涉及下列內容時出現：
+
+- 主角意圖
+- 行動方向
+- 關係變化
+- 風險承擔
+- Worldline 分歧
+
+Choice 不使用大型 SaaS CTA。
+
+可存在於主角 Spatial Area：
 
 ```text
 「今晚，我陪你留下來。」
 
-「予安，幫我去醫院。」
+            ……
 
-將記憶交還給世界
-
-靜靜等待
+「我先去車站。」
 ```
 
-HTML 底層仍可使用 `<button>` 保留 accessibility，但視覺上不要像一般矩形按鈕。
+底層仍可使用 semantic `<button>` / keyboard interaction。
+
+Choice 與 Memory Input 是不同機制，不互相取代。
 
 ---
 
-## 4. Waiting is gameplay
+# 11. Attention Release for repeated dialogue
 
-放置等待不是 loading state。
+舊版 `Skip` / complete text 不得改變 World Time。
 
-Waiting Scene 必須回答：
-
-```text
-現在世界正在做什麼？
-誰正在行動？
-玩家目前能不能介入？
-大約還要多久？
-結果是否可預測？
-```
-
-ETA 可以是：
+已知內容可以視覺退到背景：
 
 ```text
-exact
-approximate
-unknown
+                              「柏勳那天確實有來……」
+                              （已知內容淡化）
+
+        ……兩個護士正在低聲說話。
 ```
 
-未知等待不應被強迫顯示假精準倒數。
+這叫 **Attention Release**。
+
+規則：
+
+- NPC 仍用原時間說完
+- 世界仍正常運行
+- Single Focus 仍成立
+- 不代表可以同時完整讀取所有 Ambient Event
+- 同時間地點的資訊是有限 authored set
 
 ---
 
-## 5. Reset is ritual
+# 12. Memory Capture UI
 
-Reset 不是 route change，也不是 mode-selection modal。
+Memory 不是自動收藏的 clue card。
 
-玩家必須先經歷：
+玩家主動決定：
+
+> 我要讓主角記住這個已經真正感知到的 Moment。
+
+## 12.1 Text
+
+Text Echo 可被 Hold：
+
+```text
+「我六點一直都在店裡。」
+          ↑
+        HOLD
+```
+
+感覺：
+
+```text
+Hold
+→ target becomes Focus
+→ surroundings fade
+→ Moment freezes perceptually
+→ subtle sensory cue
+→ becomes Memory
+```
+
+World Time 不停止。
+
+## 12.2 Visual / Sound / Composite
+
+同一機制也可用於：
+
+- Visual Memory
+- Sound Memory
+- Composite Moment
+
+Memory 不可比原始 Perception 更清楚。
+
+## 12.3 No clue confirmation
+
+Capture 後不要顯示：
+
+```text
+✓ 發現重要線索
+Rare Clue
+矛盾 +1
+```
+
+玩家甚至可以 Capture：
+
+```text
+「最近真的好冷。」
+```
+
+---
+
+# 13. Waiting / Idle presentation
+
+Waiting is gameplay，但不能退化成倒數頁。
+
+畫面仍然是一個活著的 Scene。
+
+可以呈現：
+
+- 玩家目前 Main Action
+- NPC 正在做什麼（僅限玩家合理知道）
+- Ambient Narrative
+- Opportunity Window
+- 當前 World Time
+
+ETA 只有在角色 / runtime /世界內真的可知道時才顯示。
+
+```text
+預計約 14:27 回來
+```
+
+如果不知道：
+
+```text
+庭安還沒有回來。
+```
+
+不要為了 UI 製造假精準數字。
+
+更重要的是：等待期間世界仍發生事情，玩家仍能 Observe / Capture / Interrupt。
+
+---
+
+# 14. Reset is ritual
+
+Reset 仍然是 cinematic boundary，不是 route switch modal。
 
 ```text
 Convergence
 → World settling
-→ Handoff
-→ Fade
+→ 23:59
+→ Fade / Bell
 → 00:00
-→ Memory transition
 → Next loop
 ```
 
-設定或模式選擇只能出現在情緒過場完成之後。
+Reset presentation 不應暗示主角「把記憶交還出去」或失去 Captured Memory，因為 protagonist-side Memory 是跨 Loop persistent。
+
+如果 runtime 提供 `LIVE_SYNC / ACCELERATED` entry mode，模式選擇應在 Reset ritual 完成後出現。
 
 ---
 
-## 6. Minimal HUD is diegetic
+# 15. Opening Scene
 
-Loop / Worldline / Time 是世界線儀表，而不是網站 header。
-
-基本形態：
+第一輪 canonical opening 保留其故事起點，例如：
 
 ```text
-LOOP 02                         09:14
+06:12
+返鄉列車
+→ 灰潮鎮
+→ 第七封信
+```
+
+Opening 應直接與場景物件互動：
+
+```text
+列車窗外
+雨
+信封
+林知夏　寄
+
+      [信封本身可互動]
+```
+
+避免 generic `Continue`。
+
+---
+
+# 16. Memory / Investigation tools
+
+Secondary tool layer 應以目前 Core Gameplay 詞彙為主：
+
+```text
+Memory Library
+Investigation Wall
+Worldline History
+Save / Settings
+```
+
+## Memory Library
+
+只負責找「我 Captured 過什麼」。
+
+允許中性 filter：Loop / time / character / scene / type。
+
+## Investigation Wall
+
+Infinite Canvas：
+
+- free placement
+- pan / zoom
+- Memory reference
+- free connection
+- note
+- grouping
+
+系統不替連線指定：
+
+- 矛盾
+- 因果
+- 說謊
+- 時間關係
+
+如果現有 UI 名稱仍叫 Evidence Board，可先保留 compatibility alias，但 gameplay semantics 必須是 Investigation Wall。
+
+---
+
+# 17. Minimal HUD
+
+Loop / Worldline / World Time 可存在，但不得成為網站 Header。
+
+```text
+LOOP 02                         14:22
 WORLDLINE 02-B
 ```
 
-低優先狀態可以進一步縮成：
+低對比、角落、沒有大 Card container。
 
-```text
-02                              09:14
-```
-
-HUD 應低對比、退到角落、避免大容器與大邊框。
+不要用 HUD 顯示 Attention meter / clue count / Focus points。
 
 ---
 
-# Visual Language
+# 18. Visual language
 
-## Mood
-
-關鍵詞：
+Mood:
 
 ```text
 quiet
@@ -273,993 +624,207 @@ soft decay
 slow breathing
 ```
 
-中文定位：
+可使用克制的：
 
-- 安靜
-- 孤獨
-- 潮濕
-- 記憶感
-- 低飽和
-- 微顆粒
-- 緩慢
-- 溫柔但壓抑
-
----
-
-## Color
-
-主體不使用純黑純白作為唯一語言。
-
-方向：
-
-```text
-Deep blue gray
-Muted green gray
-Cold charcoal
-Mist cyan
-Old-paper white
-Dim warm lamp
-```
+- pixel animation
+- grain
+- vignette
+- fog / rain
+- subtle parallax
+- local blur / dim
+- sound direction
+- Three.js / WebGL effect when it materially improves scene presence
 
 避免：
 
-- 高飽和 neon
-- 強烈 app gradient
-- 大面積純白 panel
+- neon SaaS gradient
+- large white panel
+- card-grid first layout
+- aggressive hover elevation
+- every sentence having animation effects
 
 ---
 
-## Texture
+# 19. Component architecture
 
-允許非常輕的：
-
-- film grain
-- vignette
-- soft fog
-- rain / dust particles
-- low-opacity scan texture
-- light leak
-
-特效必須保持克制。
-
-目標是讓畫面「有觸感」，不是做復古濾鏡展示。
-
----
-
-# Component Architecture
-
-建議將 Player Presentation 拆成：
+Recommended direction:
 
 ```text
 src/player/
 ├─ PlayerApp.tsx
-│
 ├─ scenes/
 │  ├─ OpeningScene.tsx
 │  ├─ DialogueScene.tsx
-│  ├─ IdleProgressScene.tsx
+│  ├─ LiveWorldScene.tsx
 │  └─ ResetTransitionScene.tsx
-│
-├─ ui/
+├─ world/
 │  ├─ SceneFrame.tsx
-│  ├─ WorldlineHud.tsx
-│  ├─ TypewriterText.tsx
-│  └─ AmbientPrompt.tsx
-│
+│  ├─ SpatialTextLayer.tsx
+│  ├─ RhythmicText.tsx
+│  ├─ TextEcho.tsx
+│  ├─ AttentionSurface.tsx
+│  ├─ WorldInteractionCue.tsx
+│  └─ MemoryCaptureTarget.tsx
 ├─ presentation/
 │  ├─ model.ts
 │  └─ deriveScene.ts
-│
-├─ player.css
-├─ runtime.ts
-├─ clock.ts
-├─ model.ts
-├─ knowledge.ts
-└─ ...
+└─ player.css
 ```
+
+These names are architectural guidance, not frozen implementation API.
+
+Do not preserve `TypewriterText` merely for compatibility if it encourages the old fixed-character timing model.
 
 ---
 
-# PlayerApp Responsibility
+# 20. Accessibility
 
-`PlayerApp` 保留 orchestration，但移除具體視覺 composition。
+Immersion cannot require inaccessible interaction.
 
-它負責：
+Keyboard / controller equivalents must exist for:
 
-```text
-load story
-read / write save
-refresh clock
-derive runtime state
-handle player actions
-open secondary tools
-```
+- move Focus among currently perceivable targets
+- Attend
+- Memory Capture
+- meaningful Choice
+- open / close secondary tools
 
-不再直接負責：
+Reduced Motion:
 
-```text
-reset animation layout
-typewriter timing
-scene fade
-ambient prompt styling
-HUD composition
-```
+- removes unnecessary motion
+- may render phrase transitions with simpler fades
+- does **not** fast-forward World Time
+- does **not** reveal missed content
 
-Target：
-
-```tsx
-<SceneFrame scene={scene}>
-  <WorldlineHud ... />
-  <PlayerScene scene={scene} ... />
-</SceneFrame>
-```
+Screen-reader presentation must avoid reading every simultaneous ambient event as if all were perceived; accessibility implementation should preserve Perception Boundary semantically.
 
 ---
 
-# Presentation Projection
+# 21. Testing requirements
 
-UI 不應自行解析大量 runtime condition。
+## Attention
 
-新增純函式 projection：
+Must test:
 
 ```text
-Runtime State
-    ↓
-deriveScene()
-    ↓
-PlayerScene Model
+only one Focus
+Hover new target → old content fades
+faded content continues progressing
+Click → Attention Shift → Observe
+Observation completion → Auto Return
+Redirect ≠ True Interrupt
 ```
 
-建議 union：
+## World Time
 
-```ts
-PlayerScene =
-  | OpeningSceneModel
-  | DialogueSceneModel
-  | IdleSceneModel
-  | ResetSceneModel
+Must test:
+
+```text
+reading does not pause world
+dialogue does not pause world
+Memory Capture does not pause world
+repeated dialogue Attention Release does not accelerate world
 ```
 
-Base information：
+## Perception
 
-```ts
-SceneBase = {
-  loop: number
-  worldline?: string
-  time: string
-  background?: SceneBackground
-}
+Must test:
+
+```text
+unperceived World Event cannot become Memory
+partial Perception produces only partial Memory
+missed dialogue does not replay on Focus return
 ```
 
-`deriveScene()` 應該是 deterministic pure function，方便測試。
+## Memory
+
+Must test:
+
+```text
+Capture accepts Text / Visual / Sound / Composite
+Capture itself takes Focus
+Captured Memory persists across loop reset
+NPC relationship state does not
+```
+
+## Dialogue
+
+Must test:
+
+```text
+ordinary response can flow automatically
+meaningful Choice is explicit
+Memory Input is separate from Choice
+ambient events continue during conversation
+```
+
+## Accessibility
+
+Must test keyboard Focus / Attend / Capture equivalents and Reduced Motion without altering World Time semantics.
 
 ---
 
-# SceneFrame
+# 22. Success criteria
 
-`SceneFrame` 是 Player UI 的視覺外殼。
+Player Immersive UI is aligned only when:
 
-它負責：
-
-```text
-background
-ambient movement
-overlay
-mist
-grain
-vignette
-scene crossfade
-content slot
-```
-
-概念 API：
-
-```tsx
-<SceneFrame
-  background="station-rain"
-  mood="night"
-  dim={0.42}
-  grain
-  vignette
->
-  ...
-</SceneFrame>
-```
-
-Scene transition：
-
-```text
-Scene A opacity ↓
-       +
-Scene B opacity ↑
-       ↓
-Scene B
-```
-
-建議正常 crossfade 約 `700–1200ms`。
+1. first impression is a world, not a webpage
+2. dialogue is spatial and rhythmic, not a chat log
+3. reading never freezes Story Time
+4. one Focus visually dominates while everything else keeps happening
+5. Attention Shift has perceptual time cost
+6. Observation naturally returns through Elastic Attention
+7. Memory is captured by the player, not auto-awarded by clue importance
+8. missed information remains missed
+9. repeated dialogue releases attention without fast-forward
+10. Waiting remains a live scene, not a progress modal
+11. Reset preserves protagonist Memory semantics
+12. Investigation tools do not auto-deduce
+13. keyboard / reduced-motion modes preserve gameplay semantics
+14. runtime truth remains authoritative
 
 ---
 
-# WorldlineHud
+# 23. Non-goals
 
-取代 gameplay 中目前網站式的大 Header 主導感。
+This design does not require v0.1 to ship:
 
-主要資訊：
-
-```text
-LOOP
-WORLDLINE
-Simulation Time
-optional world status
-```
-
-例如：
-
-```text
-LOOP 02                         14:22
-WORLDLINE 02-B
-```
-
-`案卷 / 推理桌 / 世界線 / 存檔` 保留，但降為 secondary tools。
-
-建議：
-
-```text
-Scene
-  ↓
-corner affordance
-  ├─ 案卷
-  ├─ 推理桌
-  ├─ 世界線
-  └─ 存檔
-```
-
-不要常駐一排大型 navigation buttons。
+- complete 3D town renderer
+- full audio engine
+- final character art
+- procedural ambient generation
+- LLM semantic clue matching
+- automatic deduction
+- infinite randomized clues
 
 ---
 
-# TypewriterText
-
-共用敘事 primitive。
-
-建議 API：
-
-```ts
-{
-  text: string
-  speed?: number
-  punctuationDelay?: number
-  cursor?: boolean
-  onComplete?: () => void
-}
-```
-
-行為：
+# 24. Design summary
 
 ```text
-character reveal
-→ punctuation pause
-→ completion
-→ cursor blink
+World never waits
+        ↓
+Scene continuously lives
+        ↓
+Peripheral cues compete
+        ↓
+Hover → Notice / Single Focus
+        ↓
+Click → Attend / Attention Shift
+        ↓
+Observe
+        ↓
+Capture / Choice / Redirect / True Interrupt
+        ↓
+Elastic return when observation ends
+        ↓
+Worldline continues
 ```
 
-建議預設：
+Core presentation principle:
 
-- normal character: 20–40ms
-- comma / short pause: +60–120ms
-- sentence punctuation: +120–240ms
-- completed cursor: ~700ms blink
+> 能用世界本身表達的資訊，就不要額外建立 UI。
 
-實際速度未來可由 accessibility / player preference 調整。
+Core gameplay principle:
 
----
-
-# AmbientPrompt
-
-`AmbientPrompt` 取代一般 CTA。
-
-例如：
-
-```text
-將記憶交還給世界
-          ◇
-```
-
-或：
-
-```text
-點擊繼續
-      ▌
-```
-
-底層可以是大範圍互動 target，避免要求玩家精準點小文字。
-
-Keyboard 支援：
-
-- Enter
-- Space
-- Escape 僅用於可取消 secondary overlay
-
----
-
-# OpeningScene
-
-第一輪仍保留 canonical opening：
-
-```text
-06:12
-返鄉列車
-→ 灰潮鎮
-→ 第七封信
-```
-
-第一輪不應因玩家現實時間而跳過故事起點。
-
-Opening Scene 應以場景與信件本身作為主要互動，而不是一般按鈕。
-
-例如：
-
-```text
-列車窗外
-雨
-信封
-林知夏　寄
-
-        拆開信
-```
-
----
-
-# DialogueScene
-
-目標是把「文件閱讀」與「角色現場對話」拆成不同語言。
-
-Dialogue Scene：
-
-```text
-┌────────────────────────────────────────────┐
-│                                            │
-│                 Scene                      │
-│                                            │
-│                         Character          │
-│                                            │
-│ 若晴                                       │
-│                                            │
-│ 「你真的還記得……                          │
-│ 昨天發生過的事嗎？」▌                      │
-│                                            │
-│                                  · · ·     │
-└────────────────────────────────────────────┘
-```
-
-對話預設不使用大型 opaque dialogue box。
-
-可使用：
-
-- bottom gradient
-- subtle text shadow
-- local dimming
-
-以保持文字可讀性。
-
----
-
-# Player Decisions
-
-Decision 仍然是 gameplay interaction，但不使用 Web button language。
-
-例如：
-
-```text
-「今晚，我陪你留下來。」
-
-                         或
-
-「予安，幫我去醫院。」
-```
-
-Hover / keyboard focus 使用：
-
-- underline
-- slight luminance increase
-- subtle marker
-
-不要使用：
-
-- large rounded rectangle
-- primary / secondary SaaS button hierarchy
-
-底層仍維持 semantic `<button>`。
-
----
-
-# IdleProgressScene
-
-這是放置玩法核心畫面。
-
-Presentation model 至少包含：
-
-```ts
-{
-  actor?: string
-  activity: string
-  canIntervene: boolean
-  etaKind: 'exact' | 'approximate' | 'unknown'
-  etaMinutes?: number
-  expectedAt?: string
-}
-```
-
-Example：
-
-```text
-             世界仍然在前進
-
-       庭安正在調查五年前的紀錄
-
-             還需要一點時間
-
-                約 5 分鐘
-                 14:27
-```
-
-Unknown：
-
-```text
-庭安還沒有回來。
-
-              ...... ▌
-```
-
-禁止使用：
-
-```text
-Loading...
-Processing...
-任務進行中
-請稍後
-```
-
----
-
-# ResetTransitionScene
-
-Reset 是 v0.1 第一個應完成的完整 cinematic scene。
-
-## State Machine
-
-```text
-settling
-   ↓
-message
-   ↓
-handoff
-   ↓
-fade
-   ↓
-midnight
-   ↓
-nextLoop
-```
-
-Suggested type：
-
-```ts
-ResetPhase =
-  | 'settling'
-  | 'message'
-  | 'handoff'
-  | 'fade'
-  | 'midnight'
-  | 'nextLoop'
-```
-
----
-
-## Reset Sequence
-
-### 1. settling
-
-上一個場景仍存在。
-
-- ambient audio / visual remains
-- saturation decreases
-- brightness decreases
-- actors disappear
-- rain / fog may continue briefly
-
-### 2. message
-
-HUD 顯示：
-
-```text
-23:59
-```
-
-逐字出現：
-
-```text
-世界接手了這一輪。
-```
-
-### 3. handoff
-
-短暫停頓後顯示：
-
-```text
-將記憶交還給世界
-```
-
-玩家 click / Space / Enter。
-
-### 4. fade
-
-Scene → black。
-
-### 5. midnight
-
-只顯示：
-
-```text
-00:00
-```
-
-### 6. nextLoop
-
-依 runtime 決定下一輪進入模式。
-
-如果下一輪 canonical start 是 accelerated：
-
-```text
-LOOP 04
-06:12
-```
-
-如果需要玩家選擇 Live Sync / Accelerated，選擇介面只能在 Reset ritual 完成後出現。
-
----
-
-# Reset and Entry Mode Choice
-
-目前 runtime 有：
-
-```text
-LIVE_SYNC
-ACCELERATED
-```
-
-這個功能保留。
-
-但 presentation sequence 必須改成：
-
-```text
-Reset cinematic
-→ memory transition complete
-→ optional entry mode choice
-→ createNextLoop()
-```
-
-而不是：
-
-```text
-reset pending
-→ immediately show two large mode buttons
-```
-
-Entry Mode Choice 仍需清楚，不必故意做成神秘選項。
-
-可用敘事化描述：
-
-```text
-跟著現在走
-從此刻的灰潮鎮進入
-
-回到記憶開始的地方
-從 06:12 的返鄉列車開始
-```
-
----
-
-# Evidence / Case / Worldline Tools
-
-以下現有功能必須保留：
-
-- Case records
-- Evidence Board
-- Worldline Notebook
-- Save import / export
-
-但這些是 secondary tool layer。
-
-它們可以使用 drawer / overlay，但打開之前不能主導 gameplay screen。
-
-建議：
-
-```text
-Gameplay Scene
-     ↓
-small corner affordance
-     ↓
-secondary overlay / drawer
-```
-
-Evidence Board 本身可以保留較高資訊密度，因為那是玩家主動切換到「調查模式」。
-
----
-
-# Scene Background Model
-
-第一版不需要建立複雜 3D Scene Engine。
-
-最低模型：
-
-```ts
-SceneBackground = {
-  id: string
-  image?: string
-  mood?: 'morning' | 'day' | 'evening' | 'night' | 'memory'
-  ambient?: 'rain' | 'fog' | 'dust' | 'none'
-  dim?: number
-}
-```
-
-未來可以擴充：
-
-- character layer
-- parallax layer
-- WebGL / Three.js effect
-- weather simulation
-
-但 v0.1 不應因此阻塞。
-
----
-
-# CSS Strategy
-
-目前維持既有 plain CSS。
-
-不新增 Tailwind / CSS-in-JS / component library。
-
-`player.css` 先按 responsibility 整理：
-
-```text
-00 Tokens
-10 Player Shell
-20 Scene Frame
-30 Ambient / Texture
-40 HUD
-50 Narrative Typography
-60 Dialogue
-70 Idle
-80 Reset
-90 Secondary Tools
-100 Accessibility
-```
-
-Design tokens：
-
-```text
---player-bg-deep
---player-bg-mist
---player-text-primary
---player-text-secondary
---player-text-faint
---player-accent-cold
---player-accent-warm
-
---player-motion-fast
---player-motion-normal
---player-motion-slow
-
---player-story-size-lg
---player-story-size-md
---player-meta-size-sm
-```
-
----
-
-# Motion Rules
-
-Motion 應該：
-
-- slow
-- subtle
-- predictable
-- narrative-driven
-
-Recommended：
-
-```text
-fade in              300–800ms
-fade out             400–900ms
-scene crossfade      700–1200ms
-ambient pulse        1800–2500ms
-cursor blink         ~700ms
-reset dim            600–1200ms
-```
-
-Avoid：
-
-- bounce
-- large scale pop
-- aggressive slide
-- card flip
-- SaaS-style hover elevation
-
----
-
-# Accessibility
-
-沉浸感不能建立在不可操作之上。
-
-必須支援：
-
-## Keyboard
-
-- Space / Enter advance narrative
-- Tab can reach actual decisions and tools
-- Escape closes secondary drawer
-
-## Reduced Motion
-
-尊重 `prefers-reduced-motion`。
-
-Reduced motion 下：
-
-```text
-typewriter → immediate / very fast reveal
-crossfade → short opacity transition
-ambient drift → disabled
-pulse → disabled or static
-```
-
-## Readability
-
-背景場景不能犧牲文字對比。
-
-允許局部 gradient / blur / dim 以保證閱讀。
-
----
-
-# Sound Boundary
-
-v0.1 可以保留 sound integration point，但不要求立即建立完整 sound engine。
-
-需要留出：
-
-```text
-scene enter cue
-text cue optional
-reset ambience fade
-midnight cue
-next-loop ambience
-```
-
-聲音不能成為 UI state machine 的唯一 timing source。
-
-Animation / state transition 必須在 mute 狀態仍可正常執行。
-
----
-
-# Testing Strategy
-
-## Unit
-
-### `deriveScene`
-
-確認 runtime state → scene model deterministic。
-
-至少測：
-
-- unopened first letter → Opening
-- active narrative → Dialogue
-- pending timed action → Idle
-- reset boundary → Reset
-
-### `TypewriterText`
-
-使用 fake timers 測：
-
-- character progression
-- punctuation pause
-- completion callback once
-- skip / complete behavior
-
-### Reset state machine
-
-測：
-
-```text
-settling
-→ message
-→ handoff
-→ fade
-→ midnight
-→ nextLoop
-```
-
-並確認重複 input 不會 create multiple next loops。
-
----
-
-## Integration
-
-`PlayerApp` 至少驗證：
-
-- existing save still loads
-- existing actions still work
-- evidence / case / worldline tools remain reachable
-- reset no longer immediately renders mode-choice buttons
-- mode choice still creates correct next loop after ritual
-- keyboard navigation remains available
-
----
-
-## Build gates
-
-每個 implementation slice 完成後：
-
-```text
-npm test
-npm run build
-```
-
-必須保持：
-
-- Vitest green
-- TypeScript green
-- Vite build green
-
----
-
-# Planned Implementation Slices
-
-這裡只定義 implementation ordering；詳細 task-by-task coding plan 會在本 spec 經 human review 後另寫。
-
-## Slice 1 — Presentation foundation
-
-新增：
-
-- `presentation/model.ts`
-- `presentation/deriveScene.ts`
-- `ui/SceneFrame.tsx`
-- `ui/WorldlineHud.tsx`
-- `ui/TypewriterText.tsx`
-- `ui/AmbientPrompt.tsx`
-
-先建立 primitives，不改 narrative canon。
-
----
-
-## Slice 2 — Reset cinematic
-
-新增：
-
-- `scenes/ResetTransitionScene.tsx`
-
-調整：
-
-- `PlayerApp.tsx`
-- `player.css`
-
-讓目前 reset mode-choice 之前先完成完整 ritual。
-
-這是第一個 visual validation checkpoint。
-
----
-
-## Slice 3 — Dialogue presentation
-
-新增：
-
-- `scenes/DialogueScene.tsx`
-
-將現場人物對話從 document-style presentation 拆出。
-
-保留 document / evidence records 作為另一種 investigation presentation。
-
----
-
-## Slice 4 — Idle / waiting presentation
-
-新增：
-
-- `scenes/IdleProgressScene.tsx`
-
-把 timed action / NPC investigation / real-time waiting 投影成可理解的世界狀態。
-
-ETA 必須支援 exact / approximate / unknown。
-
----
-
-## Slice 5 — Opening migration
-
-新增：
-
-- `scenes/OpeningScene.tsx`
-
-將第一封信與返鄉列車 opening 改成 scene-first presentation。
-
----
-
-## Slice 6 — Secondary UI cleanup
-
-重整：
-
-- Case drawer
-- Evidence Board affordance
-- Worldline entry
-- Save entry
-
-功能保持相容，但從 always-visible navigation 降為 secondary interaction。
-
----
-
-# Success Criteria
-
-完成 v0.1 後，Player 畫面必須符合：
-
-1. 第一眼先看到世界，而不是 header / card / button。
-2. 對話透過時間與動畫被「說出來」，不是靜態貼在頁面。
-3. 玩家決策不像 SaaS CTA。
-4. Waiting Scene 能讓玩家理解世界仍在前進。
-5. 未知事件不會顯示假精準 ETA。
-6. Reset 有完整情緒收束，不直接跳設定選單。
-7. `00:00 → next loop` 是可感知的 ritual。
-8. Loop / Worldline / Time 存在但不搶主畫面。
-9. Case / Evidence / Worldline / Save 功能沒有被移除。
-10. Existing runtime / save compatibility 不被破壞。
-11. `prefers-reduced-motion` 與 keyboard interaction 可正常使用。
-12. Tests / TypeScript / Vite build 保持綠燈。
-
----
-
-# Non-goals
-
-v0.1 不包含：
-
-- 重寫 Story DAG
-- 改變 Canon
-- 重寫 Worldline runtime
-- 建立完整 3D town renderer
-- 建立完整 audio engine
-- 新增外部 UI framework
-- Tailwind migration
-- 改寫 Evidence Board gameplay
-- 重做 Author Viewer
-- 一次完成所有角色美術與背景素材
-
----
-
-# Architecture Summary
-
-```text
-Story / YAML
-     ↓
-Player Runtime
-     ↓
-PlayerSave + Clock + Event State
-     ↓
-deriveScene()
-     ↓
-PlayerScene Model
-     ↓
-┌──────────────────────────────┐
-│ SceneFrame                   │
-│                              │
-│  WorldlineHud                │
-│                              │
-│  OpeningScene                │
-│  DialogueScene               │
-│  IdleProgressScene           │
-│  ResetTransitionScene        │
-│                              │
-│  AmbientPrompt               │
-└──────────────────────────────┘
-     ↓
-Secondary Investigation Tools
-```
-
-核心原則：
-
-> Scene first, text with weight, interaction as intention, waiting as gameplay, reset as ritual.
+> 被淡化，不代表沒有發生。
