@@ -839,3 +839,291 @@ Ambient Narrative 也可以使用相同空間：
 > 上一句文字退出後，應完全消失，還是留下短暫、極淡的殘影？
 
 這會影響閱讀節奏、記憶感與畫面資訊密度，需後續獨立討論。
+
+---
+
+## 22. Text Echo
+
+Spatial Dialogue 的上一句不應立刻完全消失，也不應累積成 Chat History。文字說完後進入 Text Echo（文字殘響）：
+
+    「你找誰？」
+         ↓
+    「你找誰？」（逐漸變淡）
+
+「……柏勳。」
+
+    「柏勳？」
+
+越舊的文字越淡，最後自然消失。Text Echo 表達的是「剛剛發生的事情仍短暫停留在主角的感知與意識中」，不是聊天紀錄。不同內容可以有不同殘留時間，但不等同線索重要度；例如「他三年前就死了。」可以因心理衝擊多停留一些，而不是因為系統判定它是重要線索。
+
+## 23. Rhythmic Text
+
+文字不採固定逐字 Typewriter Speed，而依角色真正說話的節奏，以 Phrase / Beat 為單位出現。
+
+    「你……」
+        （短暫停頓）
+    「你怎麼會知道這件事？」
+
+另一例：
+
+    「我不是——」
+        （停住）
+    「……算了。」
+
+劇本節奏接近 `Phrase → Pause → Phrase → Pause → Phrase`。Pause 期間仍是 World Time，聲音、人物動作、Ambient Narrative、Opportunity 都可以發生。若一句話需要 2 秒說完，那 2 秒真的存在於世界中：
+
+    13:42:10  「你……」
+    13:42:11  「你找誰？」
+    13:42:12  說完
+
+玩家不能靠加速文字讓 NPC 在 0.5 秒內完成原本需要 2 秒的說話，否則會破壞 Real-time World。
+
+## 24. Repeated Dialogue and Attention Release
+
+輪迴後重新遇到已知內容時，不快轉 World Time。所謂 Skip 更接近「我已經知道這段內容，因此不再把全部注意力放在它上面」。
+
+    「柏勳那天確實有來……」      ← 已知主對話退到背景
+
+          ……兩個護士正在小聲說話。
+
+    「昨天 307 又……」
+
+              ……藥不是已經停了嗎？
+
+    「後來他就離開了。」
+
+主對話仍正常發生並消耗真實時間，只是玩家的 Attention 被釋放，可以注意同一時間原本就存在的其他資訊。
+
+### 24.1 Information is finite
+
+重複場景不應因玩家反覆進入而無限生成新線索。同一時間、同一地點存在有限事件集合：
+
+    13:42:10 ～ 13:42:50 / 護理站
+    ├─ 主對話：護士說明柏勳來院時間
+    ├─ Ambient A：兩名護士談論 307 病房
+    ├─ Ambient B：推車經過
+    ├─ Ambient C：門發出「……喀。」
+    └─ Opportunity D：窗外短暫出現人影
+
+第一輪可能只聽主對話；第二輪注意到門聲；第三輪去聽 307 病房談話。全部探索後，這段時間就可能真的沒有更多內容。系統不為 Grinding 隨機製造情報。
+
+## 25. Memory Resonance
+
+再次經歷已知內容時，主角偶爾可以產生極短的內心記憶反應。這稱為 Memory Resonance（記憶共鳴）。
+
+    「柏勳那天確實有來……」
+
+          ……又是這句。
+          上次她也是這麼說的。
+
+若主角確實曾在另一輪感知到不同版本：
+
+    「柏勳那天確實有來……」
+
+          ……等等。
+          她上次說的是「沒有見過」。
+
+到這裡停止。系統不得繼續替玩家推論「她在說謊」「發現矛盾」「應該拿監視器質問她」。Memory Resonance 只表示主角想起自己確實經歷過的事情，不是 Hint System，也不保證有用。例如「最近真的很冷。」也可能引出「……她上次也抱怨過天氣。」
+
+## 26. Dialogue as Continuous Gameplay
+
+Dialogue 不是 Gameplay 的暫停區。一般故事對話由主角依既定性格自然回答，不需要每一句都要求玩家選 A / B / C：
+
+                              「你找誰？」
+
+    「……柏勳。」
+
+                              「柏勳？」
+
+只有真正涉及主角意圖、行動方向、關係變化、風險承擔或 Worldline 分歧時，才需要明確 Choice。
+
+                              「你跟柏勳是什麼關係？」
+
+            ……
+
+    「朋友。」
+    「我只是來找人的。」
+    「……」
+
+選項也應盡量存在於主角所在的 Spatial Area，而不是突然跳出傳統 A / B / C Menu。
+
+### 26.1 Player activity during dialogue
+
+一般對話自動回答不代表玩家只能看小說。對話期間世界持續發生：
+
+                              「柏勳那天確實有來……」
+
+            ……喀。
+
+    「我記得他大概六點左右——」
+
+                        走廊有人經過。
+
+玩家可以繼續專注護士、注意門聲、看經過的人、Capture 某一句話、使用 Memory 介入、中斷對話或離開現場。Dialogue 的核心 Gameplay 是「我現在注意什麼、記住什麼、忽略什麼，以及什麼時候介入」。
+
+## 27. Memory Capture
+
+Memory 不透過傳統收藏按鈕取得。玩家主動抓住正在從當下消失的感知，稱為 Memory Capture。
+
+### 27.1 Capturing a spoken sentence
+
+一句話說完進入 Text Echo：
+
+    「我六點一直都在店裡。」
+             ↓
+    「我六點一直都在店裡。」（逐漸淡去）
+
+玩家若認為值得記住，可以在消失前 Hold：
+
+    「我六點一直都在店裡。」
+             ↑
+           HOLD
+
+呈現可以是 `Hold → 文字 Focus → 周圍感知稍降 → 文字凝固 → 輕微紙張/快門式感知聲 → 像從當下被抽出 → 成為 Memory`。不顯示「已加入收藏」或「發現重要線索」。
+
+### 27.2 Capture does not pause the world
+
+Memory Capture 也需要 Attention，世界不會停止：
+
+    「我六點一直都在店裡。」 ← 玩家正在 Capture
+
+                         ……喀。
+
+                              「後來柏勳就——」
+
+玩家可能因為記住上一句而漏掉下一句或 Ambient Event。記住什麼，本身就是時間與注意力選擇。Capture 不要求 Pixel-perfect Input；靠近可 Capture 的 Echo / Moment 時只給非常弱的 Focus，Hold 時長由 Playtest 決定。
+
+## 28. Memory captures perceived Moments, not only text
+
+Memory Capture 的核心不是收藏句子，而是「玩家主動決定讓主角記住某個自己真正感知到的 Moment」。Memory 至少可來自 Text / Visual / Sound / Composite Moment。
+
+### 28.1 Visual Memory example
+
+17:52，玩家真的轉頭看到窗外有人跑過：
+
+            雨中的窗戶
+
+                    ── 人影跑過 ──→
+
+        ……誰？
+
+Capture 後可形成：
+
+    17:52 · Loop 02 · 醫院
+    ┌────────────────────┐
+    │   模糊的雨中窗戶     │
+    │          → 人影      │
+    └────────────────────┘
+    「窗外有人跑過。」
+
+Memory 只保存主角當時真正看清楚的程度。若只看到模糊人影，不能事後神奇地得到清楚的臉。
+
+### 28.2 Sound Memory example
+
+    18:14
+
+              砰——
+
+若主角確實聽見並 Capture，可形成：
+
+    18:14 · Loop 03 · 醫院走廊
+    Sound Memory
+    「不明撞擊聲」
+
+### 28.3 Composite Moment example
+
+某些 Moment 同時包含畫面、聲音與文字：
+
+    18:14:03
+
+    護士：「後來柏勳——」
+
+                    砰——
+
+    右側病房門輕微震了一下。
+
+如果玩家的 Attention 足以真正感知整個瞬間，Capture 可保存為 Composite Moment；但不能補上玩家當時沒有感知到的資訊。
+
+## 29. Perception Boundary
+
+核心規則：**主角只能記住自己當下實際感知到的東西。**
+
+例如同一時間左側護士正在說話，右側窗外有人跑過。如果玩家始終把 Attention 放在護士身上、根本沒有轉頭，就不能事後 Capture「窗外人影」，Memory Library 也不能自動得到人影照片。World Event 與 Player Knowledge 是兩件不同的事。
+
+    World Event
+        ↓
+    Attention
+        ↓
+    Perception
+        ↓
+    Memory Capture
+        ↓
+    Memory
+
+只有真正通過 Perception 的內容，才可能成為主角 Memory。
+
+## 30. Attention → Memory → Investigation Gameplay Loop
+
+目前核心互動鏈：
+
+    World continuously moves
+            ↓
+    Opportunity / Dialogue / Ambient Event
+            ↓
+    Player Attention
+            ↓
+    Perception
+            ↓
+    Memory Capture
+            ↓
+    Memory Library
+            ↓
+    Investigation Wall
+            ↓
+    Player-created relationships / hypotheses
+            ↓
+    Memory Input in future situations
+            ↓
+    Different Action / Event / Worldline
+            ↓
+    New World State
+
+### 30.1 Full example
+
+    Loop 01
+    17:52 玩家在醫院 → 注意窗外 → 看到模糊人影 → Capture
+    Memory：「17:52 醫院窗外的人影」
+
+    Loop 02
+    得知：「柏勳 17:50 已經離開醫院。」 → Capture
+    將兩張 Memory 放到 Investigation Wall
+    玩家自己連線並寫：「同一個人？」
+
+    Loop 03
+    再次遇到相關 Dialogue Node
+    拖入「17:52 醫院窗外的人影」
+    主角用自己的記憶介入
+    → 新 Dialogue / Action / Worldline
+
+遊戲不需要顯示「恭喜，發現矛盾！」；真正的推理存在於玩家自己對 Memory 的選擇、整理與使用。
+
+## 31. Text & Attention System — Current Principles
+
+1. 文字是 World Layer 的一部分，不只是 UI。
+2. Spatial Typography 用位置傳達方位與人物空間。
+3. Dialogue 文字位置跟隨角色 Blocking。
+4. 新句取代舊句，不累積成傳統聊天紀錄。
+5. 舊句以 Text Echo 短暫留下，再自然消失。
+6. 文字依 Speech Rhythm 分段出現，而不是固定逐字速度。
+7. Speech / Pause 真正占用 World Time。
+8. Real-time World 不允許透過文字加速改變事件時間。
+9. 重複內容可以退到 Attention 背景，但世界不快轉。
+10. 同一時空的可探索資訊有限，不因 Grinding 無限生成。
+11. Memory Resonance 只喚起已知經驗，不替玩家做推理。
+12. Dialogue 期間 Gameplay 持續進行。
+13. 一般台詞由主角自然回答，重大意圖才要求玩家 Choice。
+14. Memory Capture 是主動抓住正在消失的 Perceived Moment。
+15. Capture 不暫停世界。
+16. Memory 可以是 Text / Visual / Sound / Composite Moment。
+17. 只能 Capture 主角真正感知過的內容。
+18. Attention → Perception → Memory 是核心因果鏈。
