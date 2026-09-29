@@ -52,7 +52,7 @@ it('continues offline through Convergence and later events, stopping only at Res
   expect(save.loops[1].clock.pendingCriticalBoundary).toBe('reset');
   expect(save.loops[1].clock.lastProcessedMinute).toBe(1440);
   expect(save.loops[1].history.some(item => item.eventId === 'evt_1831_station')).toBe(true);
-  expect(save.loops[1].history.some(item => item.eventId === 'evt_2114_reporter')).toBe(true);
+  expect(save.loops[1].history.some(item => item.eventId === 'evt_2114_reporter_missing')).toBe(true);
   expect(save.loops[1].perceivedSceneIds).not.toContain('station-blackout');
   expect(save.loops[2]).toBeUndefined();
 });
