@@ -21,6 +21,7 @@ it('does not turn a presence-only world event into player knowledge before perce
 
   save = reconcilePlayer(save, convergence, definition, initial);
   expect(save.loops[1].revealedIds).toContain('1:station-blackout');
+  expect(save.loops[1].clock.pendingCriticalBoundary).toBeUndefined();
   expect(visibleRecords(save, 1).map(x => x.id)).not.toContain('station-blackout');
   expect(attendPresenceRecord(save, 1, 'station-blackout', 1111)).toBe(true);
   expect(visibleRecords(save, 1).map(x => x.id)).not.toContain('station-blackout');
@@ -31,8 +32,6 @@ it('does not turn a presence-only world event into player knowledge before perce
   });
   expect(visibleRecords(save, 1).some(x => x.id.includes('bulletin'))).toBe(false);
 
-  save.loops[1].clock.pendingCriticalBoundary = undefined;
-  save.loops[1].clock.lastProcessedMinute = 1111;
   save = reconcilePlayer(save, bulletin, definition, initial);
   expect(visibleRecords(save, 1).map(x => x.id)).toContain('station-bulletin-wakaharu');
   expect(visibleRecords(save, 1).some(x => x.id.includes('reporter'))).toBe(false);
@@ -47,11 +46,14 @@ it('attending a presence opportunity starts attention without changing world clo
   expect(save.loops[1].perceivedSceneIds).not.toContain('station-blackout');
 });
 
-it('stops offline reconciliation at the first critical boundary without creating a later loop', () => {
+it('continues offline through Convergence and later events, stopping only at Reset lifecycle', () => {
   const save = reconcilePlayer(normalizeSave(null, 0), 4 * 60 * 60_000, definition, initial);
   expect(save.currentLoopId).toBe(1);
-  expect(save.loops[1].clock.pendingCriticalBoundary).toBe('convergence');
-  expect(save.loops[1].clock.lastProcessedMinute).toBe(1111);
+  expect(save.loops[1].clock.pendingCriticalBoundary).toBe('reset');
+  expect(save.loops[1].clock.lastProcessedMinute).toBe(1440);
+  expect(save.loops[1].history.some(item => item.eventId === 'evt_1831_station')).toBe(true);
+  expect(save.loops[1].history.some(item => item.eventId === 'evt_2114_reporter')).toBe(true);
+  expect(save.loops[1].perceivedSceneIds).not.toContain('station-blackout');
   expect(save.loops[2]).toBeUndefined();
 });
 
