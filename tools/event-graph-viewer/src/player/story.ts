@@ -1,4 +1,5 @@
 import type { WorldlineHistoryEntry } from '../simulator/types';
+import { compileSpatialScript, type SpatialScript } from './spatialText';
 
 export type VisibleRecord = {
   id: string;
@@ -11,6 +12,7 @@ export type VisibleRecord = {
   revealMinute: number;
   availableUntilMinute?: number;
   acquisition: RecordAcquisition;
+  spatialScript?: SpatialScript;
   matches: (history: WorldlineHistoryEntry[]) => boolean;
 };
 
@@ -25,6 +27,24 @@ const always = () => true;
 const variant = (id: string) => (history: WorldlineHistoryEntry[]) => history.some(x => x.kind === 'event' && x.eventId === 'evt_1831_station' && x.variantId === id);
 const emitted = (history: WorldlineHistoryEntry[]) => history.some(x => x.kind === 'event' && x.eventId === 'evt_2114_reporter_missing');
 
+const stationBlackoutSpatial = compileSpatialScript([
+  {
+    type: 'narration',
+    text: '舊車站那一帶忽然暗了。',
+    presentation: { anchor: 'center', beats: ['舊車站那一帶……', '忽然暗了。'], beatMs: 520, pauseAfterMs: 240, echoMs: 1000 },
+  },
+  {
+    type: 'narration',
+    text: '——鐘聲。',
+    presentation: { anchor: 'upper-right', beats: ['——鐘聲。'], beatMs: 650, pauseAfterMs: 300, echoMs: 1500 },
+  },
+  {
+    type: 'monologue',
+    text: '……月台上發生了什麼？',
+    presentation: { anchor: 'lower-left', beats: ['……月台上', '發生了什麼？'], beatMs: 580, echoMs: 1200 },
+  },
+]);
+
 export const STORY_RECORDS: VisibleRecord[] = [
   { id: 'letter', title: '第七封信', source: '林知夏（信封署名）', formedAt: '郵戳：昨天', obtainedAt: '回到灰潮鎮時', revealMinute: 0, acquisition: 'persistent', matches: always,
     body: ['回來一趟。', '我知道你會先看信封，才肯相信裡面的字。', '這一次，先別來找我。', '如果午夜的鐘聲響起，就代表又失敗了。', '姊'],
@@ -36,7 +56,7 @@ export const STORY_RECORDS: VisibleRecord[] = [
     body: ['姓名：林知夏。', '地點：舊車站附近。', '結案記載：意外。', '這張紙沒有記下當時誰先到場。'],
     excerpts: [{ id: 'death', text: '林知夏的死亡記載距今五年。' }, { id: 'verdict', text: '舊案以意外結案。' }] },
   { id: 'station-blackout', title: '車站的燈', source: '你當時聽見的聲音', formedAt: '18:31', obtainedAt: '18:31', revealMinute: 1111, availableUntilMinute: 1119, acquisition: 'presence', matches: history => history.some(x => x.kind === 'event' && x.eventId === 'evt_1831_station'),
-    body: ['舊車站那一帶忽然暗了。', '停電只有幾秒。遠處傳來一聲鐘響。', '你還不知道月台上發生了什麼。'], excerpts: [{ id: 'time', text: '18:31，車站停電，鐘響了一聲。' }] },
+    body: ['舊車站那一帶忽然暗了。', '停電只有幾秒。遠處傳來一聲鐘響。', '你還不知道月台上發生了什麼。'], spatialScript: stationBlackoutSpatial, excerpts: [{ id: 'time', text: '18:31，車站停電，鐘響了一聲。' }] },
   { id: 'station-bulletin-wakaharu', title: '車站通報', source: '鎮內公告', formedAt: '18:40', obtainedAt: '18:40', revealMinute: 1120, acquisition: 'message', matches: variant('wakaharu_dies'),
     body: ['舊車站發現許若晴死亡。', '18:31 是現場異常發生的時間；通報沒有提供精確死亡時間。'], excerpts: [{ id: 'victim', text: '舊車站發現許若晴死亡；18:31 並非醫療推定的死亡時間。' }] },
   { id: 'station-bulletin-doctor', title: '車站通報', source: '鎮內公告', formedAt: '18:40', obtainedAt: '18:40', revealMinute: 1120, acquisition: 'message', matches: variant('doctor_dies'),
