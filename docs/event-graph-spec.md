@@ -1,241 +1,360 @@
 # Event Graph 管理規格
 
+> Event Graph 是 **Author / Simulation Truth**。
+>
+> Player Gameplay 的知識邊界以 `docs/core-gameplay-spec-v0.1.md` 為準。
+> Author Graph 可以知道真正因果，但 Player 不會因此自動知道答案。
+
 ## 目的
 
-Event Graph 是劇情與世界線模擬的 Source of Truth。
-視覺化工具只是編輯、檢查與模擬介面，不應把畫布本身當成唯一資料來源。
+Event Graph 管理：
+
+- Canon event
+- Event Variant
+- 前置條件
+- NPC / World State
+- Immediate / Delayed Effect
+- Schedule change
+- Convergence input
+- Worldline causal history
 
 推薦流程：
 
 ```text
-YAML 劇情檔
+Story YAML
 → Schema Validation
-→ Event Graph Engine
-→ Graph View / Timeline View / Worldline Diff / Simulator
+→ Event Graph / Simulator
+→ Author Timeline / Causal Workbench
+→ Player-safe projection
 ```
 
-## 專案結構
+最後一步不能省略。
 
 ```text
-story/
-├─ characters/
-├─ events/
-│  ├─ day_01.yaml
-│  └─ day_01_1831.yaml
-├─ cards/
-├─ world/
-│  ├─ locations.yaml
-│  └─ invariants.yaml
-├─ schemas/
-│  └─ event-graph.schema.json
-└─ layouts/
-   └─ day_01.layout.json
-
-tools/
-└─ event-graph-viewer/
+Author Truth ≠ Player Knowledge
 ```
 
-`layouts/` 與劇情資料分開。
-視覺化工具拖曳節點時，只改 layout，不要讓劇情 YAML 出現大量無意義 Git diff。
+## Source of Truth
 
-## Event Graph 基本模型
+```text
+劇情因果       → story YAML
+資料結構       → JSON Schema
+Author layout  → layout data
+實際世界歷史   → runtime Worldline History
+玩家感知       → Perception state
+玩家持久記憶   → Captured Memory
+玩家推理       → Investigation Wall
+```
 
-一個 Event 建議包含：
+Event Graph Viewer / Causal Timeline Workbench 是 Author / Debug 工具，不是 Player Investigation Wall。
+
+## Event 基本模型
+
+一個 Event 可以包含：
 
 ```text
 id
-時間 / 觸發時機
-地點
-前置條件
+simulation time / trigger
+location
+preconditions
+participants
 variants
-即時 effects
-延遲 delayed_effects
-卡片變化
-下一事件 / schedule 變化
+immediate effects
+delayed effects
+schedule changes
+causal links
+perception opportunities
 ```
 
-核心不是「玩家選 A → 劇情 A」，而是：
+不再把 `card mutation` 當成 Player-facing 核心資料模型。
+
+核心是：
 
 ```text
 World State
 +
 Conditions
-↓
++
+Character decisions
+        ↓
 Event Variant
-↓
-Effects
-↓
+        ↓
+Effects / delayed effects
+        ↓
 New World State
+```
+
+不是：
+
+```text
+玩家按 A
+→ 系統直接切到 A 結局
 ```
 
 ## Event 與 Variant
 
 同一事件可以因世界狀態不同得到不同結果。
 
-例如 `18:31 車站事件`：
+例如 `18:31`：
 
 ```text
-若晴在車站 + 醫生未介入
-→ 若晴死亡
+Worldline A
+→ 若晴在現場
+→ Variant A
 
-若晴受到保護 + 醫生在車站
-→ 醫生死亡
-
-若晴與醫生都不在車站
-→ 事件可能改寫為另一種異常
+Worldline B
+→ 若晴行程已改變
+→ 柏勳走到另一條路徑
+→ Variant B
 ```
 
-這些不是獨立劇本，而是同一個 Event 的不同 Variant。
+Author Graph 可以保存完整條件與真實結果。
+
+Player 只能知道自己實際 Perceive / Capture 到的部分。
 
 ## Delayed Effect
 
-延遲影響必須是第一級資料，而不是只寫在對白或腳本裡。
-
-例如：
+延遲影響是一級資料。
 
 ```yaml
-triggered_by: player_exposes_reporter
+triggered_by: event_x
 execute_at: "21:14"
 effects:
   - set: characters.reporter.status
     value: missing
 ```
 
-如此 Simulator 才能回答：
+Author tooling 可以回答：
 
-> 玩家 16:40 的行動，為什麼 21:14 才看到結果？
+```text
+16:40 的事件
+為什麼在 21:14 才造成後果？
+```
+
+Player UI 不應因此自動顯示這條 causal edge。
+
+玩家需要從自己的 Memory 與 Investigation Wall 建立 hypothesis。
 
 ## Worldline History
 
-Event Graph 描述「可能發生什麼」。
-Worldline History 則記錄「某一輪實際發生什麼」。
+Worldline History 記錄某輪實際發生的 Author Truth。
 
-每輪至少記錄：
+至少可追蹤：
 
 ```text
 loop_id
-resolved event variant
-world state before
-world state after
+simulation time
+resolved event / variant
+world state before / after
+character decision
 player action
 scheduled delayed effects
-card mutations
+causal source
+player_present / perception opportunity
 ```
 
 例如：
 
 ```text
 Loop 07
-17:30 玩家保護若晴
-18:31 evt_1831_station → doctor_dies
-
-若晴：Dead → Alive
-醫生：Alive → Dead
+17:30 player action
+18:31 evt_1831_station → variant_b
+21:14 delayed effect
 ```
 
-這些紀錄用於 Timeline、Worldline Diff 與卡片歷史。
+完整 History 可用於：
 
-## 卡片與 Event Graph
+- Author Timeline
+- Causal Timeline Workbench
+- Simulator replay
+- deterministic tests
+- Worldline comparison
 
-Event Variant 可以直接改寫 Event Card。
+但不能直接 dump 給 Player。
+
+## Perception Projection
+
+Event 發生不代表 Player 知道。
+
+Canonical chain：
+
+```text
+World Event
+    ↓
+Opportunity / Peripheral Cue
+    ↓
+Player Attention
+    ↓
+Perception
+    ↓
+optional Memory Capture
+```
+
+Event Graph 可以描述「可被感知的機會」，但是否真的成為 Player Knowledge 由 runtime Attention / Perception 決定。
 
 例如：
 
 ```text
-card: event_1831
-field: victim
-Loop 01 → wakaharu
-Loop 02 → doctor
-Loop 03 → null
+18:31 門後有人離開
 ```
 
-Truth Card 不應由單一世界線覆蓋，而是根據玩家跨 Loop 得到的 Knowledge 更新。
+Author Graph：知道人物、原因、下一站。
+
+Player 若只看到一隻手：
+
+```text
+Perception = 一隻手離開門框
+```
+
+系統不能把 Author node title、角色 ID 或 downstream effect 補給玩家。
 
 ## Invariant
 
-Invariant 建議不要一開始全部手寫成答案。
-系統可以從多輪 Worldline History 自動算候選：
+Author tooling 可以從多輪 Worldline History 計算 invariant candidate，例如：
 
 ```text
-每輪都相同的時間
-每輪都相同的地點
-總是先於某事件發生的節點
-不受玩家行動影響的狀態
+每輪都出現的時間
+固定先於某事件的節點
+不受某組變數影響的 state
 ```
 
-但「是否為真正核心真相」仍由劇情設計定義。
+這些功能用於：
 
-## 視覺化工具
+- Story design
+- Debug
+- Canon consistency
+- Causal Workbench
 
-至少需要三個主要視圖。
+**不能作為 Player 自動提示。**
 
-### 1. Event Graph
+Player 若要認為 `18:31` 是 invariant，必須來自自己跨 Loop 的 Perceived / Captured Moments 與 hypothesis。
+
+## Author Views
+
+### Event Graph
+
+顯示：
+
+- conditions
+- effects
+- delayed effects
+- participants
+- schedule changes
+- causal edges
+
+### Causal Timeline
+
+顯示某 Worldline 的 chronological Author Truth。
+
+### Worldline Diff
+
+完整 Diff 是 Author / Debug 功能。
 
 ```text
-[玩家拆穿記者]
-       ↓
-[記者恐慌]
-       ↓
-[改變 Schedule]
-       ↓ +4h
-[前往研究所]
-       ↓
-[21:14 失蹤]
+Loop A                    Loop B
+17:40 state A             17:40 state B
+18:31 variant A       →   18:31 variant B
+21:14 consequence A       consequence B
 ```
 
-需要能查看：
+Player 端不能直接使用這個完整 Diff。
 
-- 條件
-- Effects
-- Delayed Effects
-- 關聯 NPC
-- 關聯卡片
-
-### 2. Timeline
-
-依時間排列實際世界事件。
+Player Investigation 只能比較玩家自己保存的 Memory：
 
 ```text
-17:40       18:05       18:31          21:14
-醫生離院 → 若晴碰面 → 18:31 Event ──→ 延遲事件
+Captured Memory A
+        ↕
+Captured Memory B
+        ↓
+player-authored note / link / hypothesis
 ```
 
-### 3. Worldline Diff
-
-比較兩輪實際結果。
+## Investigation Wall boundary
 
 ```text
-Loop 04                  Loop 05
-17:40 醫生離院           17:40 醫生被攔下
-18:05 若晴碰面           18:05 若晴獨自行動
-18:31 若晴死亡        →  18:31 醫生死亡
+Causal Timeline Workbench
+= 作者知道實際因果
+
+Investigation Wall
+= 玩家認為事情可能如何相關
 ```
 
-這個視圖同時是玩家功能，也是劇情 Debug 工具。
+禁止直接把以下 Author 資訊投影成 Player 提示：
 
-## Validator / CI 建議
+- `why`
+- downstream effects
+- hidden condition
+- exact causal edge
+- invariant flag
+- correct contradiction
+- correct suspect
 
-每次提交劇情資料時檢查：
+## Relationship / NPC state
 
-- Event ID 是否重複
-- Character / Location 引用是否存在
-- Event 引用是否存在
-- 時間格式是否合法
-- Variant 是否永遠不可能成立
-- 是否存在 Unreachable Event
-- 是否存在不應出現的循環依賴
-- 互斥條件是否可能同時命中
-- 同時間同角色是否被排進兩個不同地點
-- Delayed Effect 的來源 Event 是否存在
-
-## Source of Truth 原則
+Event Graph 可以使用 loop-local Relationship State 作為條件，例如：
 
 ```text
-劇情邏輯 → YAML
-資料結構 → JSON Schema
-畫布座標 → layout.json
-玩家實際歷史 → runtime worldline log
-視覺化工具 → 只讀 / 編輯上述資料
+trust
+closeness
+respect
+pressure
+availability
 ```
 
-這能確保劇情可 review、可 diff、可測試，也能日後讓工具自動生成圖。
+一般 NPC 不使用 generic cross-loop `memory_residue`。
+
+Reset 後 NPC Relationship / prior-loop memory 依 Story Canon 重置。
+
+## Time contract
+
+Event Graph authoring 使用 Simulation Time，不直接存 real wall-clock timestamp。
+
+```text
+Story Event
+→ Simulation Time
+
+Runtime Clock
+→ Real Time ↔ Simulation Time mapping
+```
+
+World Time 不因閱讀、對話、Attention 或玩家離線而等待。
+
+Event Graph 不應設計成「等玩家打開畫面才觸發重要事件」。
+
+## Validator / CI
+
+至少檢查：
+
+- duplicate Event ID
+- unresolved Character / Location / Event refs
+- invalid time format
+- unreachable event / variant
+- impossible or overlapping conditions
+- invalid delayed-effect source
+- same character scheduled at incompatible locations
+- causal graph invalid cycles where prohibited
+- Player projection accidentally exposing author-only fields
+
+## Canonical boundary summary
+
+```text
+Author YAML / Event Graph
+        ↓
+World Simulation
+        ↓
+Worldline History
+        ↓
+Opportunity
+        ↓
+Attention
+        ↓
+Perception
+        ↓
+Memory Capture
+        ↓
+Player Investigation
+```
+
+核心原則：
+
+> Event Graph 可以知道真相；玩家必須自己經歷並推理出來。
