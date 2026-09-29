@@ -1,0 +1,27 @@
+.presence-opportunities {
+  min-height: 34px;
+  margin: 0 0 24px;
+}
+
+.presence-opportunities button {
+  border: 0;
+  background: transparent;
+  color: #879188;
+  padding: 6px 2px;
+  letter-spacing: .08em;
+  opacity: .72;
+  transition: opacity .2s ease, color .2s ease, transform .2s ease;
+}
+
+.presence-opportunities button:hover,
+.presence-opportunities button:focus-visible {
+  color: #d8ddd3;
+  opacity: 1;
+  transform: translateX(2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .presence-opportunities button {
+    transition: none;
+  }
+}
