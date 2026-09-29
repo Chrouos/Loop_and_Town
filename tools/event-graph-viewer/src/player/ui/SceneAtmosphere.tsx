@@ -18,4 +18,3 @@ export function SceneAtmosphere({ presentation, reducedMotion = false }: Props) 
     <span className="scene-atmosphere-layer__glow" />
   </div>;
 }
-

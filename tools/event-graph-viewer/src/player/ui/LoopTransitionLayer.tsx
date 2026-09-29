@@ -15,4 +15,3 @@ export function LoopTransitionLayer({ presentation, reducedMotion = false }: Pro
     {presentation.reset.pending && <p role="status">午夜正在靠近</p>}
   </div>;
 }
-

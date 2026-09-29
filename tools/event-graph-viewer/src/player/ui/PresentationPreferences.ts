@@ -17,7 +17,6 @@ export function getPresentationPreferences(reducedMotion: boolean, presentation?
     persistentMemoryIds: [...(presentation?.persistentMemoryIds ?? [])],
   };
 }
-
 export function atmosphereMode(presentation: PlayerPresentationModel): 'calm' | 'attention' | 'capture' | 'waiting' | 'reset' {
   if (presentation.mode === 'attention') return 'attention';
   if (presentation.mode === 'capture') return 'capture';
@@ -25,4 +24,3 @@ export function atmosphereMode(presentation: PlayerPresentationModel): 'calm' | 
   if (presentation.mode === 'reset') return 'reset';
   return 'calm';
 }
-

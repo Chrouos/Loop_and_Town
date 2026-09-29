@@ -32,4 +32,3 @@ export function InputParity({ onAdvance, onAttend, onCapture, onRelease, onSelec
     </>}
   </div>;
 }
-

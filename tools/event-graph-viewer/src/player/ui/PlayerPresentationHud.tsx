@@ -20,4 +20,3 @@ export function PlayerPresentationHud({ presentation }: Props) {
     <time dateTime={presentation.timeLabel}>{presentation.timeLabel}</time>
   </header>;
 }
-

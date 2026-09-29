@@ -27,7 +27,6 @@ function visibleScene(record: PlayerPresentationInput['records'][number]): Playe
     spatialScript: record.spatialScript,
   };
 }
-
 function loopSave(save: PlayerSave, loopId: PlayerLoopId) {
   return typeof loopId === 'number' ? save.loops[loopId] : undefined;
 }
@@ -117,4 +116,3 @@ export function projectLoopIntegration(
     inference: presentation.inference,
   };
 }
-

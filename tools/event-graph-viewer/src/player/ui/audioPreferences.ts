@@ -9,7 +9,6 @@ export function getAudioPreference(storage: PreferenceStorage): boolean {
     return false;
   }
 }
-
 export function setAudioPreference(storage: PreferenceStorage, enabled: boolean): boolean {
   try {
     storage.setItem(AUDIO_PREFERENCE_KEY, enabled ? 'on' : 'off');
@@ -18,4 +17,3 @@ export function setAudioPreference(storage: PreferenceStorage, enabled: boolean)
   }
   return enabled;
 }
-

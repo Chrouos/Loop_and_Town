@@ -20,7 +20,6 @@ export type PlayerVisibleScene = {
   acquisition: PlayerNarrativeRecord['acquisition'];
   spatialScript?: SpatialScript;
 };
-
 export type PlayerPresentationModel = {
   loopId: PlayerLoopId;
   timeLabel: string;
@@ -57,4 +56,3 @@ export type PlayerPresentationInput = {
   scene?: PlayerNarrativeRecord;
   location?: string;
 };
-
