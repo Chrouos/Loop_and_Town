@@ -19,9 +19,10 @@ const initial: WorldState = {
   characters: { wakaharu: { location: 'old_station', status: 'alive' } },
   world: {},
 };
+const local = (hour: number, minute = 0) => new Date(2026, 8, 28, hour, minute, 0, 0).getTime();
 
 it('real 17:00 first boot enters Loop 1 at 06:12 and ten real minutes become 120 simulation minutes', () => {
-  const start = new Date('2026-09-28T17:00:00+08:00').getTime();
+  const start = local(17);
   const save = normalizeSave(null, start);
   expect(save.currentLoopId).toBe(1);
   expect(activeLoop(save).clock.mode).toBe('ACCELERATED');
@@ -46,8 +47,8 @@ it('does not process events after a pending boundary until foreground continuati
   expect(later.loops[1].history.length).toBe(historyLength);
 });
 
-it('Live Sync bootstrap reaches 21:40 through the earlier critical event', () => {
-  const entryAt = new Date('2026-09-28T21:40:00+08:00').getTime();
+it('Live Sync bootstrap reaches local 21:40 through the earlier critical event', () => {
+  const entryAt = local(21, 40);
   const save = normalizeSave(null, entryAt);
   save.loops[1].sealed = true;
   createNextLoop(save, 'LIVE_SYNC', entryAt);
@@ -68,11 +69,11 @@ it('foreground reset creates exactly one next loop and keeps the previous anchor
   expect(save.loops[2].clock.mode).toBe('ACCELERATED');
 });
 
-it('Live Sync maps 17:05 to that Player Entry Point and rejects 02:00', () => {
-  const afternoon = new Date('2026-09-28T17:05:00+08:00').getTime();
+it('Live Sync maps local 17:05 to that Player Entry Point and rejects local 02:00', () => {
+  const afternoon = local(17, 5);
   expect(localMinuteOfDay(afternoon)).toBe(17 * 60 + 5);
   expect(createLoopClock('LIVE_SYNC', afternoon).entryMinute).toBe(17 * 60 + 5);
-  const early = new Date('2026-09-28T02:00:00+08:00').getTime();
+  const early = local(2);
   expect(isLiveSyncAvailable(early)).toBe(false);
   expect(() => createLoopClock('LIVE_SYNC', early)).toThrow();
   expect(createLoopClock('ACCELERATED', early).entryMinute).toBe(372);
