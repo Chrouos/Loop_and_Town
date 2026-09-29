@@ -18,11 +18,21 @@ export type CharacterInsight = {
   sourceLoop: number;
   text: string;
 };
+export type AttentionPhase = 'idle' | 'shifting' | 'observing';
+export type AttentionState = {
+  phase: AttentionPhase;
+  primaryTargetId?: string;
+  targetId?: string;
+  startedAtMs?: number;
+  shiftEndsAtMs?: number;
+  observationEndsAtMs?: number;
+};
 export type LoopSave = {
   actionIds: ActionId[];
   revealedIds: string[];
   perceivedSceneIds: string[];
   seenSceneIds: string[];
+  attention: AttentionState;
   sealed: boolean;
   clock: LoopClockState;
   history: LoopHistoryEntry[];
@@ -63,11 +73,14 @@ const emptyHistory = (value: unknown): LoopHistoryEntry[] => Array.isArray(value
   })).slice(0, 2000)
   : [];
 
+export const emptyAttention = (): AttentionState => ({ phase: 'idle' });
+
 export const emptyLoop = (clock: LoopClockState = createLoopClock('ACCELERATED', 0)): LoopSave => ({
   actionIds: [],
   revealedIds: [],
   perceivedSceneIds: [],
   seenSceneIds: [],
+  attention: emptyAttention(),
   sealed: false,
   clock,
   history: [],
@@ -105,6 +118,20 @@ function normalizeClock(value: unknown, nowMs: number): LoopClockState | undefin
   };
 }
 
+function normalizeAttention(value: unknown): AttentionState {
+  if (!record(value)) return emptyAttention();
+  const phase: AttentionPhase = value.phase === 'shifting' || value.phase === 'observing' ? value.phase : 'idle';
+  if (phase === 'idle') return emptyAttention();
+  return {
+    phase,
+    primaryTargetId: typeof value.primaryTargetId === 'string' ? value.primaryTargetId : undefined,
+    targetId: typeof value.targetId === 'string' ? value.targetId : undefined,
+    startedAtMs: finite(value.startedAtMs) ? value.startedAtMs : undefined,
+    shiftEndsAtMs: finite(value.shiftEndsAtMs) ? value.shiftEndsAtMs : undefined,
+    observationEndsAtMs: finite(value.observationEndsAtMs) ? value.observationEndsAtMs : undefined,
+  };
+}
+
 function normalizeLoop(value: unknown, nowMs: number, fallbackClock?: LoopClockState): LoopSave {
   const src = record(value) ? value : {};
   return {
@@ -112,6 +139,7 @@ function normalizeLoop(value: unknown, nowMs: number, fallbackClock?: LoopClockS
     revealedIds: [...new Set(strings(src.revealedIds))],
     perceivedSceneIds: [...new Set(strings(src.perceivedSceneIds))],
     seenSceneIds: [...new Set(strings(src.seenSceneIds))],
+    attention: normalizeAttention(src.attention),
     sealed: src.sealed === true,
     clock: normalizeClock(src.clock, nowMs) ?? fallbackClock ?? createLoopClock('ACCELERATED', nowMs),
     history: emptyHistory(src.history),
@@ -135,10 +163,6 @@ export function normalizeSave(raw: unknown, nowMs: number): PlayerSave {
   const requestedCurrent = finite(src.currentLoopId) && Number.isSafeInteger(src.currentLoopId) ? src.currentLoopId : 1;
   const currentLoopId = loops[requestedCurrent] ? requestedCurrent : Math.max(...Object.keys(loops).map(Number));
   const old = record(src.knowledge) ? src.knowledge : {};
-  const positions: KnowledgeSave['positions'] = {};
-  if (record(old.positions)) for (const [key, value] of Object.entries(old.positions).slice(0, 6)) {
-    if (record(value) && typeof value.x === 'number' && typeof value.y === 'number' && Number.isFinite(value.x) && Number.isFinite(value.y)) positions[key] = { x: value.x, y: value.y };
-  }
   return { version: 2, currentLoopId, lastConfirmedMs, loops, importedLegacy: src.importedLegacy === true,
     knowledge: normalizeKnowledge(old),
   };
