@@ -48,7 +48,8 @@ const DEFAULTS: Record<SpatialTextKind, Required<Pick<NarrativeTextPresentation,
 function defaultAnchor(block: Exclude<NarrativeBlock, { type: 'artifact' }>): NarrativeSpatialAnchor {
   if (block.type === 'narration') return 'center';
   if (block.type === 'monologue') return 'lower-left';
-  return block.speaker === 'protagonist' ? 'lower-left' : 'right';
+  if ('speaker' in block) return block.speaker === 'protagonist' ? 'lower-left' : 'right';
+  return 'center';
 }
 
 function splitIntoBeats(text: string): string[] {
