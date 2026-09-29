@@ -23,7 +23,12 @@ it('does not turn a presence-only world event into player knowledge before perce
   expect(save.loops[1].revealedIds).toContain('1:station-blackout');
   expect(visibleRecords(save, 1).map(x => x.id)).not.toContain('station-blackout');
   expect(attendPresenceRecord(save, 1, 'station-blackout', 1111)).toBe(true);
-  expect(visibleRecords(save, 1).map(x => x.id)).toContain('station-blackout');
+  expect(visibleRecords(save, 1).map(x => x.id)).not.toContain('station-blackout');
+  expect(save.loops[1].perceivedSceneIds).not.toContain('station-blackout');
+  expect((save.loops[1] as unknown as { attention?: { phase?: string; targetId?: string } }).attention).toMatchObject({
+    phase: 'shifting',
+    targetId: 'station-blackout',
+  });
   expect(visibleRecords(save, 1).some(x => x.id.includes('bulletin'))).toBe(false);
 
   save.loops[1].clock.pendingCriticalBoundary = undefined;
@@ -33,12 +38,13 @@ it('does not turn a presence-only world event into player knowledge before perce
   expect(visibleRecords(save, 1).some(x => x.id.includes('reporter'))).toBe(false);
 });
 
-it('attending a presence opportunity does not change world clock state', () => {
+it('attending a presence opportunity starts attention without changing world clock state', () => {
   const convergence = Math.ceil((1111 - 372) / 12 * MINUTE);
   const save = reconcilePlayer(normalizeSave(null, 0), convergence, definition, initial);
   const before = structuredClone(save.loops[1].clock);
   expect(attendPresenceRecord(save, 1, 'station-blackout', 1111)).toBe(true);
   expect(save.loops[1].clock).toEqual(before);
+  expect(save.loops[1].perceivedSceneIds).not.toContain('station-blackout');
 });
 
 it('stops offline reconciliation at the first critical boundary without creating a later loop', () => {
