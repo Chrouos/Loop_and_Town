@@ -6,7 +6,7 @@ import { activeLoop, replayLoop } from './runtime';
 import { projectPlayerNarrativeRecords } from './narrativeRecords';
 import { STORY_RECORDS, type PlayerNarrativeRecord } from './story';
 import type { PlayerStoryBundle } from '../types/playerStory';
-import { beginAttention } from './attention';
+import { advanceAttention, beginAttention, redirectAttention } from './attention';
 
 const DEFAULT_PRESENCE_WINDOW_MINUTES = 5;
 
@@ -55,13 +55,42 @@ export function attendPresenceRecord(
   recordId: string,
   minute: number,
   records?: PlayerNarrativeRecord[],
+  primaryTargetId?: string,
+  nowMs = save.lastConfirmedMs,
 ): boolean {
   const entry = save.loops[loop];
   if (!entry) return false;
   const candidate = availablePresenceRecords(save, loop, minute, records).find(record => record.id === recordId);
   if (!candidate) return false;
-  entry.attention = beginAttention(undefined, candidate.id, save.lastConfirmedMs);
+  entry.attention = entry.attention.phase === 'idle'
+    ? beginAttention(primaryTargetId, candidate.id, nowMs)
+    : redirectAttention(entry.attention, candidate.id, nowMs);
   return true;
+}
+
+export function settlePresenceAttention(
+  save: PlayerSave,
+  loop: number,
+  nowMs: number,
+  minute: number,
+  records?: PlayerNarrativeRecord[],
+): PlayerNarrativeRecord | undefined {
+  const entry = save.loops[loop];
+  if (!entry || entry.attention.phase === 'idle') return undefined;
+
+  const advanced = advanceAttention(entry.attention, nowMs);
+  entry.attention = advanced.state;
+  if (!advanced.completedTargetId) return undefined;
+
+  const candidate = recordSource(loop, records).find(record => record.id === advanced.completedTargetId);
+  if (!candidate || candidate.acquisition !== 'presence') return undefined;
+  if (!entry.revealedIds.includes(`${loop}:${candidate.id}`)) return undefined;
+  if (candidate.revealMinute < entry.clock.entryMinute) return undefined;
+  const until = candidate.availableUntilMinute ?? candidate.revealMinute + DEFAULT_PRESENCE_WINDOW_MINUTES;
+  if (minute < candidate.revealMinute || minute > until) return undefined;
+
+  if (!entry.perceivedSceneIds.includes(candidate.sceneId)) entry.perceivedSceneIds.push(candidate.sceneId);
+  return candidate;
 }
 
 function revealStatic(save: PlayerSave, loop: number, minute: number, definition: SimulationDefinition, initial: WorldState) {
@@ -100,11 +129,21 @@ export function reconcilePlayer(
   const safeNow = Math.max(nowMs, save.lastConfirmedMs);
   const loopId = save.currentLoopId;
   const loop = activeLoop(save);
+  const targetMinute = clockMinuteAt(loop.clock, safeNow);
+  const attentionRecords = story && loopId !== 1
+    ? projectPlayerNarrativeRecords(
+      story,
+      loopId,
+      replayLoop(story.simulation.definition, story.simulation.initialState, save, loopId, targetMinute).history,
+      targetMinute,
+    )
+    : undefined;
+  settlePresenceAttention(save, loopId, safeNow, targetMinute, attentionRecords);
+
   if (loop.clock.pendingCriticalBoundary) {
     save.lastConfirmedMs = safeNow;
     return save;
   }
-  const targetMinute = clockMinuteAt(loop.clock, safeNow);
   const bootstrap = loop.clock.mode === 'LIVE_SYNC'
     && loop.clock.lastProcessedMinute === LOOP_START_MINUTE
     && loop.clock.entryMinute > LOOP_START_MINUTE;
