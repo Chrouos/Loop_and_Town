@@ -9,6 +9,7 @@ it('creates a fresh v2 save with Loop 1 accelerated at 06:12', () => {
   expect(save.currentLoopId).toBe(1);
   expect(save.loops[1].clock.mode).toBe('ACCELERATED');
   expect(save.loops[1].clock.entryMinute).toBe(LOOP_START_MINUTE);
+  expect(save.loops[1].perceivedSceneIds).toEqual([]);
 });
 
 it('migrates a v1 save without manufacturing intermediate loops', () => {
@@ -23,6 +24,7 @@ it('migrates a v1 save without manufacturing intermediate loops', () => {
   expect(save.currentLoopId).toBe(1);
   expect(Object.keys(save.loops)).toEqual(['1']);
   expect(save.loops[1].actionIds).toEqual(['protect_wakaharu']);
+  expect(save.loops[1].perceivedSceneIds).toEqual([]);
   expect(save.loops[1].clock.anchor.scale).toBe(1);
   expect(save.loops[1].clock.anchor.simulationStartedMinute).toBe(1320);
 });
@@ -38,7 +40,7 @@ it('reads v2 before v1 storage and normalizes malformed v2 clock state', () => {
   expect(save.loops[1].clock.anchor.realStartedAtMs).toBe(2_000);
 });
 
-it('defaults missing player memory fields and rejects malformed entries', () => {
+it('defaults missing player memory and perception fields and rejects malformed entries', () => {
   const save = normalizeSave({
     version: 2,
     currentLoopId: 1,
@@ -53,11 +55,22 @@ it('defaults missing player memory fields and rejects malformed entries', () => 
     },
   }, 1_000);
 
+  expect(save.loops[1].perceivedSceneIds).toEqual([]);
   expect(save.loops[1].seenSceneIds).toEqual([]);
   expect(save.knowledge.characterInsights).toEqual([
     { id: 'insight-1', characterId: 'wakaharu', sourceLoop: 1, text: '他獨自活著。' },
   ]);
   expect(save.knowledge.discoveredEvidence).toEqual(['evidence-letter']);
+});
+
+it('deduplicates persisted perceived scene ids', () => {
+  const save = normalizeSave({
+    version: 2,
+    currentLoopId: 1,
+    loops: { 1: { actionIds: [], revealedIds: [], perceivedSceneIds: ['station-blackout', 'station-blackout'], sealed: false } },
+    knowledge: {},
+  }, 1_000);
+  expect(save.loops[1].perceivedSceneIds).toEqual(['station-blackout']);
 });
 
 it('caps player memory collections at 250 entries', () => {
