@@ -21,6 +21,7 @@ const canonical: { initialState: WorldState; definition: SimulationDefinition } 
   initialState: initial,
   definition: { actions: (yaml.load(actionsYaml) as SimulationDefinition).actions, events: [yaml.load(stationYaml), yaml.load(reporterYaml)] as SimulationDefinition['events'] },
 };
+const local = (hour: number, minute = 0) => new Date(2026, 8, 28, hour, minute, 0, 0).getTime();
 
 function realPlayerStory(): PlayerStoryBundle {
   const story = loadRealStory();
@@ -133,7 +134,7 @@ it('frames Loop 1 at the return train and does not ask for a mode', async () => 
 it('offers a locked mode choice only after a foreground reset', async () => {
   const storage = window.localStorage;
   storage.clear();
-  const now = 1_000;
+  const now = local(8);
   const save = normalizeSave(null, now);
   save.loops[1].clock.anchor.realStartedAtMs = now - ((1440 - 372) / 12) * MINUTE;
   save.loops[1].clock.lastProcessedMinute = 1440;
@@ -150,7 +151,7 @@ it('offers a locked mode choice only after a foreground reset', async () => {
 it('bootstraps a late Live Sync loop without exposing presence-only history', async () => {
   const storage = window.localStorage;
   storage.clear();
-  const entryAt = new Date('2026-09-28T21:40:00+08:00').getTime();
+  const entryAt = local(21, 40);
   const save = normalizeSave(null, entryAt);
   save.loops[1].sealed = true;
   createNextLoop(save, 'LIVE_SYNC', entryAt);
@@ -165,7 +166,7 @@ it('bootstraps a late Live Sync loop without exposing presence-only history', as
 it('disables Live Sync in the inactive early-morning gap but keeps accelerated mode', async () => {
   const storage = window.localStorage;
   storage.clear();
-  const now = new Date('2026-09-28T02:00:00+08:00').getTime();
+  const now = local(2);
   const save = normalizeSave(null, now);
   save.loops[1].clock.anchor.realStartedAtMs = now - ((1440 - 372) / 12) * MINUTE;
   save.loops[1].clock.lastProcessedMinute = 1440;
