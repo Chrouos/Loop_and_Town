@@ -12,13 +12,16 @@ export function beginAttention(
   primaryTargetId: string | undefined,
   targetId: string,
   nowMs: number,
+  observationMs = ATTENTION_OBSERVATION_MS,
 ): AttentionState {
+  const shiftEndsAtMs = nowMs + ATTENTION_SHIFT_MS;
   return {
     phase: 'shifting',
     primaryTargetId,
     targetId,
     startedAtMs: nowMs,
-    shiftEndsAtMs: nowMs + ATTENTION_SHIFT_MS,
+    shiftEndsAtMs,
+    observationEndsAtMs: shiftEndsAtMs + Math.max(1, observationMs),
   };
 }
 
@@ -26,8 +29,9 @@ export function redirectAttention(
   current: AttentionState,
   targetId: string,
   nowMs: number,
+  observationMs = ATTENTION_OBSERVATION_MS,
 ): AttentionState {
-  return beginAttention(current.primaryTargetId, targetId, nowMs);
+  return beginAttention(current.primaryTargetId, targetId, nowMs, observationMs);
 }
 
 export function advanceAttention(state: AttentionState, nowMs: number): AttentionAdvance {
