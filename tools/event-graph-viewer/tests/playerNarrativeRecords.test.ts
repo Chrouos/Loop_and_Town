@@ -69,7 +69,7 @@ describe('player narrative records', () => {
 
   it('does not project scenes before their authored minute or for a wrong source variant', () => {
     const bundle = playerBundle();
-    expect(projectPlayerNarrativeRecords(bundle, 2, historyFor('doctor_dies'), 480).map((record) => record.sceneId))
+    expect(projectPlayerNarrativeRecords(bundle, 2, historyFor('doctor_dies'), 900).map((record) => record.sceneId))
       .toEqual(['loop02_1420_reset_awareness']);
     expect(projectPlayerNarrativeRecords(bundle, 2, historyFor('wakaharu_dies'), 1439)
       .some((record) => record.sceneId === 'loop02_1831_doctor_death')).toBe(false);
@@ -81,7 +81,7 @@ describe('player narrative records', () => {
     save.loops[2] = emptyLoop(save.loops[1].clock);
     save.loops[2].revealedIds = ['2:loop02_1420_reset_awareness', '2:loop02_1610_wakaharu_alive'];
     save.loops[2].seenSceneIds = ['loop02_1420_reset_awareness'];
-    const records = projectPlayerNarrativeRecords(playerBundle(), 2, historyFor('doctor_dies'), 500);
+    const records = projectPlayerNarrativeRecords(playerBundle(), 2, historyFor('doctor_dies'), 1000);
 
     expect(visibleRecords(save, 2, records).map((record) => record.sceneId)).toEqual(['loop02_1610_wakaharu_alive']);
   });
@@ -91,7 +91,7 @@ describe('player narrative records', () => {
     const save = normalizeSave(null, 0);
     save.currentLoopId = 2;
     save.loops[2] = emptyLoop(save.loops[1].clock);
-    reconcilePlayer(save, 640_000, bundle.simulation.definition, bundle.simulation.initialState, bundle);
+    reconcilePlayer(save, Math.ceil((860 - 372) / 12) * 60_000, bundle.simulation.definition, bundle.simulation.initialState, bundle);
 
     expect(save.loops[2].revealedIds).toContain('2:loop02_1420_reset_awareness');
     expect(save.loops[2].revealedIds.some((id) => id.includes('loop01'))).toBe(false);

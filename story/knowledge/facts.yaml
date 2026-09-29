@@ -33,8 +33,8 @@ facts:
     summary: 18:31 與灰潮鎮的異常事件存在關聯。
   - id: fact_research_institute_connection
     summary: 舊研究所與林知夏死亡前的調查存在關聯。
-  - id: fact_memory_residue_exists
-    summary: 輪迴後可能存在短暫的記憶殘留現象。
+  - id: fact_zhixia_worldline_memory_exists
+    summary: 林知夏曾作為特殊記憶持有者，保留過其他世界線的資訊；這不是普通 NPC 的通用 Reset 規則。
   - id: fact_missing_evidence_exists
     summary: 五年前案件有一項未登錄進正式證物清單的證物。
   - id: fact_cafe_resident_chatter

@@ -1,44 +1,49 @@
+# Author-facing character consistency references.
+# These entries are NOT auto-granted player clues, lie detectors, or persistent NPC memory.
+# Player-facing use requires the protagonist to have actually perceived relevant behavior;
+# mechanically persistent use should be grounded in Captured Memory / scripted Memory Input.
+
 insights:
   - id: insight_yuan_keeps_fathers_things
     character_id: yuan
-    title: 予安不會主動丟掉父親留下的東西
+    title: 主角曾注意到予安很難丟掉父親留下的東西
     category: value
     source_loop: loop_03_no_death
-    learned_from: 與予安談到房仲與整理鐘錶店時，主角注意到他連壞掉的舊零件都留著。
+    learned_from: 與予安談到房仲與整理鐘錶店時，主角曾實際看見他連壞掉的舊零件都留著。
     retained_by: protagonist
-    reset_rule: 予安不記得上一輪談話；只有主角保留這份理解。
-    clue_use: 如果父親留下的物品突然不在原位，不能直接假設是予安自己丟掉；要查誰移動過它。
+    reset_rule: 予安不記得上一輪談話；只有主角可能記得自己曾經感知到的這段經驗。
+    clue_use: 作者可用來保持予安行為一致；若要成為 gameplay 輸入，必須先有對應 Perception / Captured Memory，不能自動排除其他可能性。
     presentation: 他嘴上說想把店賣掉，卻連父親留下的壞零件都沒有丟。
 
   - id: insight_yuan_formal_when_nervous
     character_id: yuan
-    title: 予安緊張時反而會突然說得很正式
+    title: 主角曾看過予安緊張時語氣變得不自然地正式
     category: tell
     source_loop: loop_02_doctor_dies
-    learned_from: 多次讓予安捲入調查後，主角發現他越緊張越會使用不自然的正式語氣。
+    learned_from: 主角在實際互動中曾多次感知到予安在壓力下改變說話方式。
     retained_by: protagonist
-    reset_rule: 行為傾向會重現，但予安不記得主角曾觀察過。
-    clue_use: 能幫主角分辨他是真的冷靜，還是在壓住害怕與後悔。
-    presentation: 他越客氣，通常越不安。
+    reset_rule: 予安不記得其他 Loop；他的性格傾向可能重現，但每次情境仍需重新判斷。
+    clue_use: 只能作為玩家可能注意的行為模式，不代表系統確認他正在隱瞞，也不能自動開啟正確答案。
+    presentation: ……他又突然說得很正式。
 
   - id: insight_wakaharu_camera_strap_lie
     character_id: wakaharu
-    title: 若晴說真正的謊時會反覆整理相機背帶
+    title: 主角曾在若晴承受壓力時看過她反覆整理相機背帶
     category: tell
     source_loop: loop_02_doctor_dies
-    learned_from: 主角陪若晴整理作品集與談離鎮計畫時，見過她在不同壓力下的反應。
+    learned_from: 主角陪若晴整理作品集與談離鎮計畫時，曾實際看見她在不同壓力下反覆整理相機背帶。
     retained_by: protagonist
-    reset_rule: 若晴不記得那些上一輪的談話；只有她穩定的習慣會再次出現。
-    clue_use: 當若晴否認知夏曾留下東西時，可作為追問方向，但不能單獨當成證明。
-    presentation: 她不是忘記。她在迴避。
+    reset_rule: 若晴不記得上一輪談話；只有行為傾向可能在相似情境再次出現。
+    clue_use: 可以成為 Memory Resonance 或玩家自行追問的理由，但不能等同「說謊」判定，不能自動產生矛盾或結論。
+    presentation: ……她又在整理相機背帶。
 
   - id: insight_doctor_never_states_unverified_guess
     character_id: doctor
-    title: 柏勳不會把沒有證據的推測說成事實
+    title: 主角曾注意到柏勳對正式紀錄非常保守
     category: value
     source_loop: loop_04_five_years_ago
-    learned_from: 主角比對柏勳五年前病歷與現在說法後，確認他寧可隱瞞，也不會把猜測寫進正式紀錄。
+    learned_from: 主角比對柏勳五年前病歷與現在說法時，曾感知到他傾向把未驗證推測排除在正式紀錄之外。
     retained_by: protagonist
-    reset_rule: 柏勳不保留其他 Loop 的互動，但他的程序導向人格保持一致。
-    clue_use: 如果柏勳明確說「我看過不同結果」，代表他手上一定有比口頭推測更硬的證據。
-    presentation: 他最麻煩的地方，也是最好用的地方：沒有證據的話，他不說。
+    reset_rule: 柏勳不保留其他 Loop 的互動；程序導向人格保持一致，但當前行為仍受這一輪情境影響。
+    clue_use: 可協助作者設計合理反應，也可成為玩家 hypothesis 的材料；不能自動證明柏勳手上一定存在某份證據。
+    presentation: 他對沒有驗證過的話，總是特別小心。

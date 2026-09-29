@@ -15,7 +15,7 @@ function raw(suffix: string): string {
 }
 
 describe('Loop 06 six letters', () => {
-  it('turns the six carrier experiments into playable narrative scenes without NPC memory residue', () => {
+  it('turns the carrier experiments into playable narrative scenes without NPC memory residue', () => {
     const document = yaml.load(raw('/narrative/loop_06_player.yaml')) as {
       scenes?: Array<{ id: string; blocks?: Array<{ text?: string }> }>;
     };
@@ -44,17 +44,27 @@ describe('Loop 06 six letters', () => {
     expect(text).not.toContain('Memory Residue');
   });
 
-  it('uses Character Insight to ask a better question, then requires objective evidence', () => {
+  it('uses a remembered character moment only as a hypothesis, then requires the repair record', () => {
     const dag = parseStoryDagText(raw('/events/loop_06_story_dag.yaml'));
-    const insightNode = dag.nodes.find((node) => node.id === 'L6_N06_character_insight');
-    const evidenceNode = dag.nodes.find((node) => node.id === 'L6_N07_repair_ledger');
+    const hypothesisNode = dag.nodes.find((node) => node.id === 'L6_N06_character_insight');
+    const recordNode = dag.nodes.find((node) => node.id === 'L6_N07_repair_ledger');
+    const narrative = yaml.load(raw('/narrative/loop_06_player.yaml')) as {
+      scenes?: Array<{ id: string; blocks?: Array<{ text?: string }> }>;
+    };
+    const scene = narrative.scenes?.find((item) => item.id === 'loop06_1510_insight_to_evidence');
+    const text = (scene?.blocks ?? []).map((block) => block.text ?? '').join('\n');
 
-    expect(insightNode?.detail.knowledgeChanges).toContain('insight_yuan_keeps_fathers_things');
-    expect(evidenceNode?.detail.knowledgeChanges).toContain('fact_zhixia_borrowed_audio_adapter');
+    expect(hypothesisNode?.title).toContain('假設');
+    expect(hypothesisNode?.detail.reason).toContain('不能自動判定');
+    expect(recordNode?.detail.knowledgeChanges).toContain('fact_zhixia_borrowed_audio_adapter');
+    expect(text).toContain('這只是我看過的另一個 Moment');
+    expect(text).toContain('不是「予安絕對不會丟」的答案');
+    expect(text).toContain('真正留下記錄的');
+
     expect(dag.edges.some((edge) =>
       edge.source === 'L6_N06_character_insight' &&
       edge.target === 'L6_N07_repair_ledger' &&
-      edge.label.includes('inspect repair ledger'),
+      edge.label.includes('alternate investigation'),
     )).toBe(true);
   });
 

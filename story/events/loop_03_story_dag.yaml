@@ -3,7 +3,7 @@ title: Loop 03｜沒有死者的世界線
 nodes:
   - id: L3_N00_third_awake
     title: 第三次在同一天醒來
-    time: "06:12"
+    time: "14:20"
     actor_ids: [protagonist]
     visibility: public
     detail:
@@ -18,7 +18,7 @@ nodes:
 
   - id: L3_N01_foreknowledge_frightens_wakaharu
     title: 預知反而讓若晴害怕
-    time: "07:32"
+    time: "15:40"
     actor_ids: [protagonist, wakaharu]
     visibility: public
     detail:
@@ -33,7 +33,7 @@ nodes:
 
   - id: L3_N02_yuan_notices_pattern
     title: 予安察覺主角知道得不合理地多
-    time: "08:22"
+    time: "16:30"
     actor_ids: [protagonist, yuan]
     visibility: public
     detail:
@@ -48,7 +48,7 @@ nodes:
 
   - id: L3_N03_doctor_asks_iteration
     title: 柏勳問「這是第幾次？」
-    time: "09:12"
+    time: "17:20"
     actor_ids: [protagonist, doctor]
     visibility: public
     detail:
@@ -63,7 +63,7 @@ nodes:
 
   - id: L3_N04_clear_known_people
     title: 主角清空所有已知高風險人物
-    time: "09:52"
+    time: "18:00"
     actor_ids: [protagonist, wakaharu, doctor, reporter, detective, yuan]
     visibility: public
     detail:
