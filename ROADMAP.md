@@ -279,7 +279,7 @@ M4 does not create persistent Memory.
 
 ## 8. M5 — Memory Capture
 
-Status: **Next runtime milestone**
+Status: **Implemented / verified**
 
 ```text
 Perception
@@ -303,9 +303,18 @@ Rules:
 - Memory cannot become clearer than original perception
 - no automatic importance ranking
 
+Delivered:
+
+- Perception-gated capture action
+- Capture occupies Attention while World Time continues
+- Persistent Memory stores the original perceived content only
+- Duplicate capture is prevented per loop and source scene
+
 ---
 
 ## 9. M6 — Memory Library + Investigation Wall
+
+Status: **Implemented / verified**
 
 ```text
 Memory Library = what protagonist remembers
@@ -322,6 +331,13 @@ Required:
 - no auto important clue state
 - layout / links / notes persist
 - scripted Memory Input where authored
+
+Delivered:
+
+- Captured Memory Library with explicit player placement
+- Freeform wall cards with persisted positions
+- Manual links and player notes persist independently
+- UI states explicitly avoid automatic contradiction, causality, or importance judgments
 
 ---
 
