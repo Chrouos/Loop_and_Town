@@ -21,6 +21,7 @@ import { recordById } from './story';
 import type { PlayerStoryBundle } from '../types/playerStory';
 import { projectPlayerPresentation } from './presentation/projectPlayerPresentation';
 import { PlayerSceneStage } from './ui/PlayerSceneStage';
+import { getAudioPreference, setAudioPreference } from './ui/audioPreferences';
 
 type LegacyStory = { definition: SimulationDefinition; initialState: WorldState };
 type Story = PlayerStoryBundle | LegacyStory;
@@ -53,6 +54,7 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
   const [exporting, setExporting] = useState(false);
   const [resetPresentationComplete, setResetPresentationComplete] = useState(false);
   const [modeCommitInFlight, setModeCommitInFlight] = useState(false);
+  const [audioEnabled, setAudioEnabled] = useState(() => getAudioPreference(storage));
   const [currentMs, setCurrentMs] = useState(() => now());
   const opener = useRef<HTMLButtonElement | null>(null);
 
@@ -209,7 +211,15 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
   return <div className="player-shell">
     <header className="player-header player-header--minimal"><WorldlineHud loop={clock.loop} time={displayMinute(clock.minute)} showTime={false} /><button className="player-utility-trigger" aria-label="開啟工具" onClick={e => showDrawer('tools', e.currentTarget)}>···</button></header>
     <main className={`player-stage ${resetPending && !resetPresentationComplete ? 'player-stage--cinematic' : 'player-stage--reading'}`}>
-      <PlayerSceneStage presentation={presentation} reducedMotion={prefersReducedMotion()}>
+      <PlayerSceneStage
+        presentation={presentation}
+        reducedMotion={prefersReducedMotion()}
+        audioEnabled={audioEnabled}
+        input={{
+          onAttend: opportunities[0] ? () => attend(opportunities[0].id) : undefined,
+          onCapture: lastPerceivedRecord && !lastMemory ? () => capture(lastPerceivedRecord.id) : undefined,
+        }}
+      >
         <SceneFrame className="scene-frame--flat player-presentation-frame">
         {error ? <p role="alert">無法讀取鎮上的紀錄：{error}</p> : !story ? <p>正在取出案卷……</p> : resetPending && !resetPresentationComplete ? <ResetTransitionScene reducedMotion={prefersReducedMotion()} onPresentationComplete={() => setResetPresentationComplete(true)} /> : resetPending ? <div className="opening mode-choice"><p>鐘聲落下，今天又回到可以重來的地方。</p><p>下一次進入灰潮鎮時，你要怎麼走進這一天？</p><button onClick={() => chooseMode('LIVE_SYNC')} disabled={modeCommitInFlight || !isLiveSyncAvailable(currentMs)}>跟著現在走<span> · {isLiveSyncAvailable(currentMs) ? '從此刻的鎮內時間進入' : '現在是 Live Sync 無法進入的時間'}</span></button><button onClick={() => chooseMode('ACCELERATED')} disabled={modeCommitInFlight}>回到記憶開始的地方<span> · 從 06:12 的返程列車開始</span></button>{note && <p className="inline-note" role="status">{note}</p>}</div> : !opened ? <OpeningScene label={entry.label} lines={entry.lines} onOpenLetter={() => openRecord('letter')} /> : <div className={`reading-scene attention-${loop.attention.phase}`} key={`${clock.loop}:${record?.id}`}>
         {opportunities.length > 0 && <div className="presence-opportunities" aria-label="周遭動靜">{opportunities.map(item => <button key={item.id} onClick={() => attend(item.id)} aria-label={presenceCueLabel(item.id)} aria-current={loop.attention.targetId === item.id ? 'true' : undefined}>{presenceCueLabel(item.id)}</button>)}</div>}
@@ -246,7 +256,7 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
     </main>
     {drawer && <div className="drawer-shade" onMouseDown={e => { if (e.target === e.currentTarget) setDrawer(null); }}><section className={`drawer ${drawer === 'board' ? 'wide' : ''}`} role="dialog" aria-modal="true" aria-label={drawer === 'tools' ? '工具' : drawer === 'case' ? '案卷' : drawer === 'board' ? '推理桌' : drawer === 'save' ? '存檔' : '世界線'}>
       <header><h2>{drawer === 'tools' ? '工具' : drawer === 'case' ? '案卷' : drawer === 'board' ? '推理桌' : drawer === 'save' ? '存檔' : '世界線歷史'}</h2><button autoFocus onClick={() => setDrawer(null)} aria-label="關閉">×</button></header>
-      {drawer === 'tools' && <div className="tool-menu"><button onClick={() => setDrawer('case')}>案卷 <i>{records.length}</i></button><button onClick={() => setDrawer('board')}>推理桌</button><button onClick={() => setDrawer('worldlines')}>世界線</button><button onClick={() => setDrawer('save')}>存檔</button></div>}
+      {drawer === 'tools' && <div className="tool-menu"><button onClick={() => setDrawer('case')}>案卷 <i>{records.length}</i></button><button onClick={() => setDrawer('board')}>推理桌</button><button onClick={() => setDrawer('worldlines')}>世界線</button><button onClick={() => setDrawer('save')}>存檔</button><button onClick={() => setAudioEnabled(setAudioPreference(storage, !audioEnabled))}>聲音提示 <i>{audioEnabled ? '開' : '關'}</i></button></div>}
       {drawer === 'case' && <div className="case-list">{records.map(item => <button key={item.id} onClick={() => openRecord(item.id)}><small>{item.source} · {item.obtainedAt}</small><strong>{item.title}</strong>{!save.knowledge.opened.includes(`${clock.loop}:${item.id}`) && <em>新</em>}</button>)}</div>}
       {drawer === 'board' && <EvidenceBoard save={save} onChange={commit} onNotice={setNote} />}
       {drawer === 'worldlines' && <WorldlineNotebook save={save} currentLoop={clock.loop} knownDiff={knownDiff} />}
