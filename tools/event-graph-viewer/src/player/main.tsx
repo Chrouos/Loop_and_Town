@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { PlayerApp } from './PlayerApp';
 import { PlayerEntryGate } from './PlayerEntryGate';
 import './player.css';
+import './perception.css';
 
 function prefersReducedMotion(): boolean {
   return typeof window !== 'undefined' && typeof window.matchMedia === 'function'
