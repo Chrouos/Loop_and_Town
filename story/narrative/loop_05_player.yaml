@@ -24,7 +24,7 @@ scenes:
         speaker: yuan
         text: 好久不見。妳不是下午才會到嗎？
       - type: narration
-        text: 昨晚他坐在我對面吃麵，知道我已經被困在同一天很多次。現在他只是五年沒見的老同學。
+        text: 昨晚他坐在我對面吃麵。現在他只是五年沒見的老同學。
       - type: monologue
         text: 他沒有忘記我。他只是從來沒有經歷過那些只有我記得的今天。
 
@@ -56,9 +56,9 @@ scenes:
       - type: narration
         text: 我忽然想起另一輪他談賣店時說過的話。嘴上說「反正都要清掉」，手卻把父親留下的每一個小零件重新分類。
       - type: monologue
-        text: 這不是物證。是我在一個已經不存在的今天裡，真的認識過他。
-      - type: narration
-        text: Character Insight unlocked：予安不會主動丟掉父親留下的東西。
+        text: 這不是答案。只是我真的看過他怎麼對待父親留下的東西。
+      - type: monologue
+        text: 如果我把這些記憶放在一起……他真的會隨手把那個外盒丟掉嗎？
 
   - id: loop05_1010_missing_case
     at: { day: 0, time: "10:10" }
@@ -69,16 +69,16 @@ scenes:
         text: 父親留下的錄音器外盒不在原位。予安第一反應是自己以前整理時可能丟掉了。
       - type: dialogue
         speaker: protagonist
-        text: 不會是你丟的。
+        text: 還有別人動過這個櫃子嗎？
       - type: dialogue
         speaker: yuan
-        text: 妳怎麼比我還確定？
+        text: 怎麼突然問這個？
       - type: narration
-        text: 我沒有辦法回答「因為另一個你告訴過我」。只能重新問誰曾經借過工具、誰有後門鑰匙、誰知道這個櫃子。
+        text: 我沒有把自己的猜測當成答案，只改查誰借過工具、誰有後門鑰匙、誰知道這個櫃子。
       - type: narration
         text: 最後一張舊維修單把方向指向林知夏。五年前，她曾借走同型錄音設備，歸還日期就在死亡前一天。
       - type: monologue
-        text: 人物理解不是答案，但它能讓我知道哪個假設不對。
+        text: 我只是換了一條查法。真正留下紀錄的，是這張維修單。
 
   - id: loop05_1230_yuan_questions_knowledge
     at: { day: 0, time: "12:30" }
@@ -87,12 +87,12 @@ scenes:
     blocks:
       - type: dialogue
         speaker: yuan
-        text: 妳知道鑰匙在哪、知道我不會丟我爸的東西，還知道我喝咖啡不加糖。
+        text: 妳知道鑰匙在哪，還知道我喝咖啡不加糖。
       - type: dialogue
         speaker: yuan
         text: 我們五年沒見。妳到底從哪裡知道這些？
       - type: narration
-        text: 我差點把所有 Loop 都說出來。最後只說，我查案查得比他想像中久。
+        text: 我差點把所有 Loop 都說出來。最後只說，我查這件事查得比他想像中久。
       - type: monologue
         text: 對我來說，我們已經一起查過很多次。對他來說，今天才是第一次。
 
@@ -109,12 +109,10 @@ scenes:
         text: 沒有。
       - type: narration
         text: 若晴一邊回答，一邊把相機背帶拉平，又折回去，再拉平。
-      - type: narration
-        text: 我在另一輪陪她整理作品集時看過這個動作。她緊張不一定會這樣，但真正想把話藏起來時會。
       - type: monologue
-        text: 她不是忘記。她在迴避。
+        text: ……她上次緊張時，也一直碰背帶。
       - type: narration
-        text: Character Insight 不是證明，所以我沒有拆穿她，只把問題換成「知夏有沒有叫妳替她保管東西」。
+        text: 這只能讓我想起另一個 Moment，不能證明她現在在說謊。我把問題換成「知夏有沒有叫妳替她保管東西」。
 
   - id: loop05_2010_friendship_only_one_remembers
     at: { day: 0, time: "20:10" }
