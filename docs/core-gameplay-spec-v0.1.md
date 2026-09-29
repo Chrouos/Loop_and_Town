@@ -1,701 +1,573 @@
 # Core Gameplay Spec v0.1
 
-> Status: Draft / latest confirmed gameplay rules take precedence
+> Status: Draft / confirmed design rules are canonical; implementation parameters remain tunable.
 >
-> Scope: Core player loop only. Story-specific reactions and chapter content are intentionally excluded.
+> Scope: Core player loop, interaction, attention, perception, memory, dialogue, and investigation behavior.
+>
+> Precedence rule: this document describes the current design only. Superseded discussion history is not normative. If an example conflicts with a rule, the rule wins and the example must be corrected.
 
-## 1. Core Principle
+---
+
+## 1. Core Fantasy
 
 遊戲不告訴玩家什麼是線索。
 
-玩家透過「記住什麼、忽略什麼、何時行動」，逐漸理解一個不會等待他的世界。
+玩家透過「注意什麼、錯過什麼、記住什麼、何時介入」，逐漸理解一個不會等待他的世界。
+
+玩家真正累積的不是角色等級，而是自己對這座小鎮、人物與不同 Worldline 的理解。
+
+核心感受：
+
+> 我記得一些這個世界已經忘記的事情。
+
+以及：
+
+> 這一次，我知道那個時間點會發生什麼。
+
+核心循環：
 
 ```text
-現實時間 / 世界持續運行
+World continuously moves
         ↓
-玩家一次只能處理一個主要行動
+Scene / Dialogue / Ambient / Opportunity
         ↓
-觀察 / 等待 / 被環境雜訊干擾
+Player Attention
         ↓
-決定是否中斷、忽略或繼續
+Perception
         ↓
-玩家自行保存 Memory
+Memory Capture
         ↓
-Memory Cards 跨輪迴累積
+Memory Library
         ↓
-在 Investigation Wall 自行建立關聯
+Investigation Wall
         ↓
-把特定 Memory 帶回事件 / 對話使用
+Player-created hypothesis
         ↓
-改變世界線
+Choice / Memory Input / Different Action
+        ↓
+Different Event / Worldline
+        ↓
+New World State
 ```
 
 ---
 
-## 2. World Never Waits
+## 2. Canonical Invariants
+
+以下規則優先於任何後續範例或 UI 實作細節。
+
+1. **World Never Waits**：世界時間持續流動，不因玩家猶豫、離線、閱讀或整理注意力而停止。
+2. **Single Main Action**：玩家同一時間只能親自執行一個主要 Action。
+3. **Single Focus**：任何時刻只能有一個主要 Attention Focus。
+4. **Faded ≠ Paused**：被淡化的內容仍然繼續發生。
+5. **Attention Shift Takes Time**：把注意力轉向另一處不是零時間 UI 切換。
+6. **Perception Boundary**：只有主角實際感知到的資訊，才能成為可記住的內容。
+7. **Memory Is Player-selected**：系統不替玩家決定什麼值得保存。
+8. **No Auto Deduction**：系統不自動標記重要、矛盾、因果或正確推理。
+9. **Finite Information**：同一時間、同一地點的事件集合有限，不因 Grinding 無限產生線索。
+10. **Loop Persistence Is Asymmetric**：主角側的 Memory / Investigation 持續；NPC 關係、NPC 記憶與該輪世界狀態不自動持續。
+
+---
+
+## 3. World Time — The World Never Waits
 
 世界時間不因玩家離線而停止。
 
-玩家 17:00 離開、20:00 回來，17:00–20:00 間原本會發生的事件仍然發生。
+例如玩家 17:00 離開、20:00 回來，17:00–20:00 間原本會發生的事件仍然發生。
 
-重要事件不應因為玩家沒有在線而自動等待玩家。
+重要事件不因玩家沒有在線而等待。
 
 玩家可能因此：
 
 - 錯過事件
 - 只看到事件結果
-- 從其他角色口中得知事件
-- 在下一輪利用記憶提前介入
+- 從 NPC 或環境得知後果
+- 在下一輪利用已掌握的 Memory 提前介入
 
-「錯過」是玩法的一部分，不是系統錯誤。
+「錯過」是 Gameplay，不是系統錯誤。
+
+### 3.1 Real time is not a spendable UI resource
+
+遊戲不應把時間主要表達成：
+
+```text
+翻報紙 → -45 秒
+```
+
+而是玩家真的經歷這 45 秒。
+
+```text
+走向病房
+   ↓
+注意到報紙
+   ↓
+停下來翻閱
+   ↓
+世界仍持續變化
+   ↓
+45 秒自然經過
+   ↓
+繼續原本行程
+```
+
+### 3.2 No narrative fast-forward
+
+重複對話、已知內容、文字顯示速度都不能偷偷改變 World Time。
+
+若 NPC 原本需要 2 秒說完一句話，那 2 秒仍然存在於世界中。
 
 ---
 
-## 3. Single Active Action
+## 4. Single Main Action
 
-玩家同一時間只能親自處理一個主要行動。
+玩家同一時間只能親自處理一個主要 Action，例如：
 
-例如：
-
-- 調查病歷
+- 前往某處
 - 跟蹤角色
-- 與 NPC 深入談話
-- 前往某個地點
-- 等待特定事件
 - 搜查房間
+- 調查文件
+- 與 NPC 深入談話
+- 等待特定事件
 
-當多個事件同時發生時，玩家仍只有一個主要 Action；但可透過 Elastic Attention 暫時偏離目前 Action 去感知短暫事件。這種短暫感知不等同於啟動第二個主要 Action。
+Main Action 表示主角當下真正正在做的事情。
 
-玩家可在合理情境下委託 NPC 處理另一件事情，但這不是獨立的「派遣系統」。
+短暫把 Attention 拉向別處，不等於啟動第二個 Main Action。
 
-委託必須由故事情境自然產生，例如：
+```text
+Main Action: 與護士談話
+        ↓
+短暫看向門口
+        ↓
+回到護士
+```
 
-- 玩家已掌握足夠資訊
+整段仍然只有一個 Main Action。
+
+### 4.1 Delegation
+
+玩家可在合理故事情境下請 NPC 處理另一件事情，但這不是獨立的 Idle Dispatch System。
+
+Delegation 必須自然來自情境，例如：
+
 - NPC 本來就會經過該地點
 - 玩家與 NPC 的關係足以提出要求
-- 玩家同時面臨兩個無法親自完成的行動
+- 玩家已掌握足夠資訊能說明要做什麼
+- 兩件事情同時發生，玩家不可能親自完成兩邊
+
+避免：
+
+```text
+選角色 → 選任務 → 等待 → 領獎勵
+```
 
 ---
 
-## 4. Ambient Narrative
+## 5. Scene-driven Interaction
 
-主要行動進行期間，畫面仍持續存在內容。
+主要互動應從場景本身自然產生，而不是依賴 Action List、Quest Panel 或任務選單。
+
+例如醫院走廊可能同時存在：
+
+- 護士
+- 病歷
+- 報紙
+- 窗戶
+- 飲水機
+- 遠處腳步聲
+- 一閃而過的人影
+
+玩家與世界互動後，結果可能只是 Attention / Observation，也可能進一步變成新的 Main Action。
+
+因此：
+
+> **Interactable ≠ Action。**
+
+看一眼門口通常只是 Attention Diversion；追出去才可能成為 True Interrupt 並改變 Main Action。
+
+### 5.1 Weak Affordance
+
+場景可以提供非常弱的可互動暗示，例如：
+
+- 游標些微變化
+- 微小視差
+- 細微動態
+- 很弱的空間聲音反應
+
+Weak Affordance 只表示「這裡可以互動」，不能表示「這裡很重要」。
+
+禁止用：
+
+- 發光線索
+- 驚嘆號
+- Quest Marker
+- 特殊顏色代表重要性
+- 系統主動高亮真相
+
+---
+
+## 6. Opportunity Window
+
+場景不是靜態互動地圖。
+
+物件、人物、聲音與互動機會可能只存在短暫時間。
+
+```text
+10:31:04  經過護理站，桌上有一份病歷
+10:31:11  護士回來，病歷被收走
+10:31:18  主角已離開護理站範圍
+```
+
+玩家可能：
+
+- Notice 到它但不進一步 Attend
+- Attend 並看清部分內容
+- 進一步互動
+- 忽略
+- 因 Attention 在其他地方而錯過
+- 因 Opportunity Window 已關閉而來不及
+
+Opportunity 不會為玩家停留。
+
+### 6.1 Interaction is not free
+
+任何互動都可能造成自然後果：
+
+- 真實時間經過
+- NPC 位置改變
+- 被 NPC 看見
+- 錯過其他事件
+- 改變後續世界狀態
+
+這些後果不需要全部顯示成 UI 數值。
+
+---
+
+## 7. Attention System
+
+Attention 不是獨立資源條。
+
+不要顯示：
+
+- Attention 70/100
+- Focus Bar
+- 鎖定框
+- 眼睛 Icon
+
+玩家直接透過游標 / 觸控與場景操作主角的當下感知方向。
+
+### 7.1 Single Focus Rule
+
+任何時刻只能有一個主要 Focus。
+
+當玩家 Hover 新目標時，Focus 轉向該目標；其他內容會被淡化。
+
+```text
+目前 Focus：護士
+
+                              「後來柏勳——」
+
+           ……喀。                  （較淡的 peripheral cue）
+
+                                         …………（遠處動靜）
+```
+
+玩家 Hover 門聲：
+
+```text
+                              「後來……」
+                              （淡化）
+
+           ……喀。
+           ↑ Focus
+
+                                         …………
+                                         （淡化）
+```
+
+這不是暫停其他事件，只是主角沒有把主要注意力放在它們上面。
+
+### 7.2 Hover → Notice / Focus
+
+Hover 表示主角把注意力偏向一個目標，開始 Notice 它。
+
+Hover 本身：
+
+- 只允許一個 Focus
+- 不切換 Main Action
+- 不停止 World Time
+- 不保證來得及取得完整資訊
+- 不會讓已經錯過的內容重新出現
+
+玩家快速把游標掃遍畫面，不會免費得到所有資訊。
+
+### 7.3 Click → Attend
+
+Click 表示主角真正投入感知該目標。
+
+這可能涉及：
+
+```text
+Notice source
+    ↓
+realize direction
+    ↓
+turn head / change listening direction
+    ↓
+focus eyes / body
+    ↓
+Observe
+```
+
+Attention Shift 是世界中的真實行為，因此需要時間。
+
+```text
+護士 ───────────────── 門
+ ↑                       ↑
+Current Focus           Click
+
+護士：「後來柏勳就——」
+
+        [主角正在轉頭]
+
+                         門關上。
+```
+
+玩家可能只看到門關上的最後一瞬間。
+
+### 7.4 Elastic Attention
+
+短暫 Observation 預設採 Elastic Attention。
+
+```text
+Original Main Action
+        ↓
+Hover / Notice
+        ↓
+Click / Attend
+        ↓
+Attention Shift
+        ↓
+Observe
+        ↓
+Observation ends naturally
+        ↓
+Auto Return
+        ↓
+Resume original Focus / Action
+```
+
+Observation 結束後，主角會自然把 Attention 拉回原本 Main Action。
+
+玩家不需要再點一次原目標。
+
+### 7.5 Attention Redirect is not True Interrupt
+
+如果 Observation 尚未結束，玩家可以 Click 另一個目標，把 Attention 改向別處。
+
+這稱為 **Attention Redirect**，不要和 Main Action 的 True Interrupt 混用。
+
+```text
+Observe Door
+    ↓
+Redirect Attention
+    ↓
+Attend Nurse
+```
+
+結果可能是：重新聽到護士，但沒有看清門後的人。
+
+### 7.6 True Interrupt
+
+只有當玩家真的放下目前 Main Action，才叫 True Interrupt，例如：
+
+- 離開談話現場
+- 追出去
+- 放下文件去做另一件事
+- 改走另一條路
+
+Action 可以自行定義：
+
+- 可直接恢復
+- 恢復時保留部分進度
+- 中斷後進度流失
+- 中斷即失敗
+- 某些階段不可中斷 Main Action
+
+「不可中斷 Main Action」不等於「完全不能短暫改變 Attention」。
+
+### 7.7 Faded does not mean paused
+
+最重要的底層規則之一：
+
+> **被淡化 ≠ 沒有發生。世界永遠不等待玩家。**
+
+玩家 Focus 門時：
+
+```text
+Foreground
+    ……喀。
+    門正在關上。
+
+Background / Faded
+                              護士：「他後來去了港口。」
+```
+
+護士仍然真的把那句話說完。
+
+玩家之後回到護士，不會重新播放「他後來去了港口」。
+
+### 7.8 Rapid scanning has natural cost
+
+```text
+────────────── Real Time ──────────────→
+
+護士    A────B────C────D
+門           喀───關上
+窗戶              人影──→消失
+```
+
+玩家快速 Focus：
+
+```text
+護士 → 門 → 窗戶 → 護士
+```
+
+可能得到的不是更多資訊，而是：
+
+> 每件事情都感知到一點，但沒有任何一件事情真正看完整。
+
+這就是 Attention 的成本，不需要額外扣除 Attention Point。
+
+---
+
+## 8. Ambient Narrative
+
+Main Action 進行期間，世界仍然持續產生內容。
 
 Ambient Narrative 可以包含：
 
 - 環境聲音
-- 主角雜念
-- NPC 訊息
+- NPC 閒聊
 - 無關日常
-- 世界正在發生的事件
-- 尚無法判斷的重要異常
+- 主角雜念
+- 世界事件
+- 尚無法判斷意義的異常
+- 短暫人影或物件
 
-系統不得用視覺效果直接告訴玩家「這是重要線索」。
+它們不是 Notification Feed。
 
-```text
-[正在翻閱舊病歷……]
+Ambient 應存在於場景與感知空間內，而不是固定右上角跳通知。
 
-沙沙——
+### 8.1 Ambient Presentation
 
-「這個名字好像在哪裡看過。」
+可使用：
 
-窗外開始下雨。
+- Fade in / Fade out 文字
+- Spatial Text
+- 圖像
+- Pixel Animation
+- 聲音
+- 微小震動
+- 視差
+- Blur / Focus
+- 短暫移動物件
 
-        嗚——嗚——
+重要與不重要資訊不能有固定不同的視覺語言。
 
-一輛救護車快速駛過。
+### 8.2 Ambient obeys Single Focus
 
-「……這個方向不是急診入口。」
-```
+多個事件可以同時存在，但不代表玩家能同時清楚讀取所有事件。
 
-雜訊可能真的毫無意義，也可能在數個 Loop 後才被理解。
+目前 Focus 之外的內容可以只以 peripheral cue、淡化文字、聲音方向或模糊動態存在。
 
----
-
-## 5. Interrupt and Attention Diversion
-
-需要區分「Attention 暫時偏離」與「真正中斷 Action」。
-
-### 5.1 Attention Diversion
-
-短暫注意 Ambient / Opportunity 時，預設使用 Elastic Attention：
-
-```text
-Original Action
-      ↓
-Attention Shift
-      ↓
-Observe
-      ↓
-Auto Return
-      ↓
-Resume Original Action
-```
-
-例如主角正在和護士談話，聽到門發出「……喀。」後轉頭看一眼。只要 Observation 自然結束，Attention 會回到護士；這不等同於終止整段談話。
-
-### 5.2 True Interrupt
-
-只有當玩家的介入需要真正放下目前 Action，例如離開房間、追出去、改做另一個主要行動，才視為 Interrupt。
-
-一般可恢復 Action 可以保存進度；例如調查病歷進行約 70% 時離開，之後可從接近原進度繼續。
-
-但 Action 可以自行定義：
-
-- 可直接繼續
-- 中斷後部分進度流失
-- 中斷即失敗
-- 特定階段不可中斷
-
-系統不必直接顯示代價。玩家應從情境理解「現在能不能放下這件事」。
-
+一旦 Hover 某一項，它成為唯一主要 Focus，其餘內容進一步退到背景，但仍持續變化。
 
 ---
 
-## 6. Missed Noise / Residual
+## 9. Perception Boundary
 
-玩家不需要注意到所有 Ambient Narrative。
+核心規則：
 
-錯過的重要事件可以只留下模糊的 Residual（殘留印象）。
+> **World Event ≠ Player Knowledge。**
+
+世界中發生某件事，不代表主角已經知道。
+
+資訊必須真的進入主角感知，才可能被記住。
+
+概念鏈：
+
+```text
+World Event
+    ↓
+Peripheral cue / Notice opportunity
+    ↓
+Attention
+    ↓
+Perception
+    ↓
+Memory Capture
+    ↓
+Persistent Memory
+```
+
+如果主角始終 Focus 護士、沒有真正看向窗戶，就不能事後得到清楚的「窗外人影」Memory。
+
+### 9.1 Perception fidelity
+
+Memory 不能比原始感知更清楚。
+
+若主角只看到：
+
+```text
+雨中的模糊人影
+```
+
+Memory 不可以事後變成：
+
+```text
+清楚的人臉 + 身分
+```
+
+### 9.2 Residual must still come from perception
+
+Residual（殘留印象）不能憑空知道未感知的 World Event。
+
+允許的是：主角雖然沒有完整 Attend，但真的聽到或感受到一個很弱的 sensory fragment。
 
 例如：
 
 ```text
 18:14  ——砰。
 
-玩家正在進行不可離開 / 不可切換 Main Action 的談話，
-且當下 Attention 沒有真正轉向聲音來源。
+主角仍在談話 Main Action。
+Attention 沒有轉向聲音來源，
+但撞擊聲本身進入了周邊聽覺。
 
 18:31
 
 「……剛才外面是不是有什麼聲音？」
 ```
 
-Residual 不需要告訴玩家真正發生了什麼。
+若主角連聲音都沒有實際聽到，就不應事後生成 Residual。
 
-玩家可能在下一輪主動等待 18:14，才第一次看清事件。
-
----
-
-## 7. Memory Cards
-
-遊戲不存在「系統認證的線索列表」。
-
-玩家可以透過 Memory Capture，主動讓主角記住自己當下真正感知到的 Moment，形成 Memory Card / Memory Record。
-
-Memory 可以來自：
-
-- Text：NPC 對話、文件文字、主角觀察
-- Visual：人影、動作、場景瞬間
-- Sound：撞擊聲、腳步聲、遠處談話
-- Composite Moment：同一瞬間實際感知到的文字、畫面與聲音組合
-- 玩家認為重要、但實際可能無關的資訊
-
-時間、地點、Loop、來源人物 / 場景等作為來源 metadata 保存。遊戲不得主動提示哪一個 Moment 值得 Capture，也不得補上主角當時沒有感知到的資訊。
-
-### 7.1 Persistence
-
-所有 Memory Cards 跨 Loop 保留。
-
-每張 Memory 應保留基本來源 metadata，例如：
-
-- Loop
-- 發生時間
-- 來源人物 / 場景
-- 當時實際 Capture 到的原始感知內容
-
-因此不同 Loop 的資訊可以並存，甚至互相矛盾。
-
-```text
-Loop 01｜若晴：「18:00 我還在店裡。」
-
-Loop 03｜17:52 看到若晴離開店裡。
-```
-
-系統不自動提示「矛盾」。
+Residual 只保留模糊感受，不替玩家揭露真正事件。
 
 ---
 
-## 8. Memory Library
+## 10. Spatial Typography / Spatial Dialogue
 
-Memory Cards 首先存在於可檢索的 Memory Library。
+文字不是傳統 Dialogue Box 的內容而已。
 
-Memory Library 的目標是「找到我記得的東西」，不是替玩家推理。
+文字位置本身可以傳達：
 
-允許提供中性的檢索工具，例如：
-
-- 搜尋
-- Loop 篩選
-- 時間篩選
-- 人物 / 場景 metadata 篩選
-
-不得提供：
-
-- 自動重要度
-- 自動矛盾偵測
-- 自動因果分類
-- 自動推理結論
-
----
-
-## 9. Investigation Wall
-
-Investigation Wall 是獨立於 Memory Library 的 Infinite Canvas（無邊界推理牆）。
-
-概念：
-
-> Memory Cards = 我記得什麼  
-> Investigation Wall = 我認為這些事情之間有什麼關係
-
-玩家從 Memory Library 將 Card 貼到 Wall。
-
-牆上的 Card 是原 Memory 的 Reference，不是複製資料。
-
-因此從牆上移除 Card，不會刪除原始 Memory。
-
-### 9.1 Core interactions
-
-v0.1 必須支援：
-
-- 自由擺放
-- 拖曳
-- 縮放 / 平移
-- Memory Card 貼上
-- Card 與 Card 自由連線
-- 玩家自行寫備註
-- 框選 / 群組
-
-連線沒有系統語意。
-
-玩家不需要選擇：
-
-- 因果
-- 矛盾
-- 同一人物
-- 時間關係
-
-只是一條玩家自己理解的線。
-
-```text
-[若晴：18:00 在店裡]
-          │
-          │
-[17:52 監視器畫面]
-          │
-      「說謊？」
-```
-
-「說謊？」只是玩家自己寫的備註，遊戲不判定它是否正確。
-
----
-
-## 10. Memory as Input
-
-特定 Dialogue / Event 可以接受特定 Memory 作為輸入。
-
-Memory Input 與重大 Choice 是兩種不同的玩家介入方式，不互相取代：
-
-- 一般對話由主角自然回答
-- 涉及主角意圖 / 行動方向 / Worldline 的時刻，可以出現少量重大 Choice
-- 當劇本節點允許時，玩家也可以從自己的 Memory Library / Wall 找出一段記憶帶回當下，形成不同於預設 Choice 的介入
-
-Memory Input 不應被理解成「所有對話都取消選項」，而是讓玩家能在特定時刻用自己實際累積的記憶改變談話。
-
-```text
-若晴：「我六點一直都在店裡。」
-
-Memory
-[17:52 監視器畫面]
-        ↓
-拖入當前對話
-        ↓
-觸發對應事件
-```
-
-底層不需要 LLM 判斷任意語意。
-
-Dialogue / Event 可以明確定義：
-
-```ts
-acceptedMemoryIds: ["memory_station_cctv_1752"]
-```
-
-只有設計好的 Memory 可以觸發該反應。
-
-### 10.1 Invalid Memory
-
-無關 Memory：
-
-- 無法 Drop
-- 回到原位置
-- v0.1 不產生代價
-
-這是 UI 試錯，不視為角色行動。
-
-### 10.2 Actual narrative action
-
-如果 Memory 成功觸發一個真正的質問 / 行動，後續劇情可以產生代價，例如 Trust 下降。
-
-代價屬於「角色行動」，不是拖曳操作失誤。
-
----
-
-## 11. Loop Persistence
-
-輪迴後：
-
-保留：
-
-- 玩家 Memory Cards
-- Investigation Wall 排版
-- 玩家連線
-- 玩家備註
-- 玩家對過去世界線的資訊
-
-不因輪迴自動保留：
-
-- NPC 對主角的關係
-- NPC 對上一輪事件的記憶
-- 已改變世界的狀態
-
-NPC 是否察覺主角知道不該知道的事情，屬於 Story / Narrative Rule，不是 Core Gameplay 必備規則。
-
----
-
-## 12. Design Guardrails
-
-Core Gameplay 應避免退化成：
-
-### Checklist adventure
-
-遊戲不主動標記：
-
-> 你發現了重要線索。
-
-### Dispatch idle game
-
-NPC 委託不是：
-
-> 選角色 → 選任務 → 等待 → 領獎勵。
-
-### Database management game
-
-Investigation Wall 不自動整理玩家的推理。
-
-### Brute-force dialogue inventory
-
-Memory 的目的不是讓玩家把所有 Card 依序塞進每個 NPC。
-
-v0.1 暫不對錯誤拖曳加入懲罰；若 playtest 出現大量 brute-force 行為，再另外設計限制。
-
----
-
-## 13. Player Fantasy
-
-最終希望玩家產生的感受不是：
-
-> 我把所有任務解完了。
-
-而是：
-
-> 我記得一些這個世界已經忘記的事情。
-
-以及：
-
-> 這一次，我知道 18:14 會發生什麼。
-
-玩家真正累積的不是角色等級，而是自己對這座小鎮的理解。
-
-
----
-
-## 14. Scene-driven Action System
-
-主要 Action 應盡可能由場景互動自然開始，而不是從 Action List 或任務選單開始。
-
-例如玩家位於醫院走廊時，場景本身可能包含：
-
-- 病歷
-- 窗戶
-- 報紙
-- 護士
-- 飲水機
-- 走廊盡頭的人影
-
-玩家直接與世界中的物件或人物互動，才自然進入對應 Action。
-
-場景中可互動的東西不代表一定重要，也不代表一定會產生線索。
-
-### 14.1 Weak Affordance
-
-可互動物件只提供非常弱的 Affordance（可互動暗示），例如：
-
-- 游標些微變化
-- 極輕微的 focus
-- 微小視差
-- 細微動態或聲音反應
-
-目的只是在避免 Pixel Hunting。
-
-系統不得透過高亮、發光、圖示等方式暗示「這個東西很重要」。
-
----
-
-## 15. Action Stream
-
-遊戲中的時間不是一個被 UI 扣除的資源。
-
-玩家做任何事情時，現實中的遊戲世界時間都持續流逝。
-
-例如玩家翻閱報紙 45 秒，不應顯示：
-
-```text
-翻報紙 → -45 秒
-```
-
-而是玩家真的經歷翻閱過程：
-
-```text
-走向病房
-   ↓
-看到報紙
-   ↓
-停下來翻閱
-   ↓
-讀到幾則可能完全無關的新聞
-   ↓
-世界自然經過約 45 秒
-   ↓
-重新接回走向病房
-```
-
-因此 Action 應視為持續流動的 Action Stream。
-
-短暫互動可以插入目前 Action，結束後再自然恢復原本 Action。
-
----
-
-## 16. Opportunity Window
-
-場景不是靜態互動地圖。
-
-玩家移動、等待或執行 Action 時，可互動內容可能只短暫存在。
-
-例如：
-
-```text
-10:31:04  經過護理站，桌上放著一份病歷
-10:31:11  護士回來，病歷被收走
-10:31:18  玩家已經走過護理站
-```
-
-這類短暫互動稱為 Opportunity Window。
-
-玩家可以：
-
-- 注意並互動
-- 看見但忽略
-- 完全沒有察覺
-- 因正在進行其他 Action 而錯過
-
-Opportunity 消失後，不應為了等待玩家而停留。
-
-### 16.1 Interaction is not free
-
-每次互動都可能對世界造成細微影響，例如：
-
-- 花費實際經過的時間
-- 得到資訊
-- 錯過另一件事情
-- 被某個 NPC 注意
-- 改變角色所在位置
-- 產生後續事件
-
-但系統不直接顯示這些隱藏效果。
-
-玩家需要自行理解自己的行動可能存在代價。
-
----
-
-## 17. Attention Shift
-
-玩家點擊短暫 Opportunity 時，不應跳出 Modal、任務頁或確認視窗。
-
-應透過 Attention Shift（注意力轉移）自然改變主角目前關注的事物。短暫 Observation 預設採 Elastic Attention，完成後自動回到原 Action；只有玩家進一步離開、追逐或改做另一個主要行動時，才形成真正 Interrupt。
-
-例如：
-
-```text
-主角正在走路
-    ↓
-「……窗外是不是有人？」
-    ↓ 玩家注意
-腳步逐漸放慢
-    ↓
-鏡頭 / 文字 / 聲音把注意力帶向窗戶
-    ↓
-觀察窗外
-    ↓
-得到或沒有得到資訊
-    ↓
-注意力自然回到原本方向
-    ↓
-重新開始腳步
-    ↓
-繼續原本 Action
-```
-
-底層可以是：
-
-```text
-Walking → Attention Shift → ObserveWindow → Auto Return → Resume Walking
-```
-
-但玩家不需要看見這些 State。
-
----
-
-## 18. Ambient Presentation
-
-Ambient Narrative 與 Opportunity 不應固定出現在單一 UI 區域。
-
-它們應像主角腦中、視野中、環境中的短暫雜訊。
-
-呈現可以包含：
-
-- Fade in / Fade out 文字
-- 不固定的畫面位置
-- 輕微不同的角度
-- 不同停留時間
-- 聲音
-- 圖像
-- Pixel Animation
-- 輕微畫面震動
-- 視覺 focus / blur
-- 短暫的人影或物件
-
-例如：
-
-```text
-                「……那個人是不是看了我一眼？」
-
-     沙沙——
-
-                              窗外似乎有人跑過
-
-「好像忘了什麼……」
-```
-
-有些內容可以互動，有些只是環境的一部分。
-
-重要與不重要的資訊不應有明顯不同的視覺語言。
-
----
-
-## 19. Immersive Interaction Principle
-
-能用世界本身表達的資訊，就不要額外建立 UI。
-
-世界層主要由以下元素構成：
-
-```text
-文字
-+ 場景
-+ 圖像
-+ 聲音
-+ 動態
-+ 震動
-        ↓
-玩家直接感受 / 操作
-```
-
-應盡量避免把體驗拆成：
-
-- Dialogue Box
-- Quest Panel
-- Action List
-- Notification
-- Progress Modal
-- Action Complete
-- 大量 HUD
-
-文字不是單純 UI 元件。
-
-文字本身可以是場景、意識、聲音與敘事的一部分。
-
-### 19.1 Two-layer interaction model
-
-遊戲可以明確區分兩個層次：
-
-```text
-World Layer
-文字 + 場景 + 圖像 + 聲音 + 動態
-        ↓
-體驗世界
-
-Memory Layer
-Memory Cards + Investigation Wall
-        ↓
-整理自己的記憶與推理
-```
-
-World Layer 追求沉浸與連續性。
-
-Memory Layer 才允許較明確的管理型介面，因為它代表玩家主動整理自己的思考。
-
----
-
-## 20. Text Presentation Direction
-
-文字呈現已不再是 Deferred 項目。v0.1 已確立以下方向，詳細規則見 §21–§36：
-
-- Spatial Typography：文字位置承擔方位與空間資訊
-- Spatial Dialogue：角色文字繼承角色在場景中的相對位置
-- Text Echo：舊句留下極淡殘影後自然消失
-- Rhythmic Text：依 Speech Rhythm 分段出現，不採固定逐字速度
-- Attention Presentation：單一 Focus，其他內容淡化但仍持續發生
-- Ambient Text：可在不同位置、角度與時間短暫出現
-- Memory Capture：玩家可抓住正在消失的 Perceived Moment
-
-仍未鎖死的是實作參數，例如具體字體、字級、Fade 秒數、Hold Duration、動畫曲線與各裝置輸入細節。這些應由 Prototype / Playtest 決定，而不是視為核心規則未定。
-
-核心原則仍是：
-
-> 文字屬於世界體驗的一部分，而不是被限制在傳統對話框中。
-
-
----
-
-## 21. Spatial Typography / Spatial Dialogue
-
-文字不只負責傳遞句子的語意。
-
-文字在畫面中的位置本身，也可以負責傳遞：
-
-- 說話者的相對方位
+- 說話者相對方位
 - 聲音來源
 - 人物距離
-- 注意力方向
 - 人物移動
-- 場景中的空間關係
+- Attention 方向
+- 場景空間關係
 
-因此遊戲應盡可能讓「文字的位置」取代部分額外旁白說明。
-
-### 21.1 Position can replace explanation
-
-傳統寫法可能需要：
-
-```text
-門那邊傳來聲響。
-
-護士從右邊向我問話：
-「你找誰？」
-
-我小聲回答：
-「……柏勳。」
-```
-
-Spatial Dialogue 可以直接呈現：
+例如：
 
 ```text
               ……喀。
@@ -705,75 +577,23 @@ Spatial Dialogue 可以直接呈現：
 
 
 「……柏勳。」
-
-
-                              「柏勳？」
 ```
-
-玩家透過畫面位置自然理解：
-
-- 中間偏上的「……喀。」來自另一個方向
-- 右側文字屬於護士
-- 左下文字屬於主角
-- 兩個聲音存在於同一個空間
 
 不需要額外顯示：
 
 ```text
 護士：
 主角：
-門那邊：
+門：
 ```
 
-只要空間關係足夠清楚，就應優先讓玩家自己感知。
+只要空間關係足夠清楚，就讓玩家自己理解。
 
-### 21.2 The screen is a stage
+### 10.1 Screen as stage
 
-每個畫面可以視為一個固定的文字舞台。
+文字位置繼承人物在場景中的位置。
 
-例如護士位於右上、主角位於左下：
-
-```text
-┌──────────────────────────────────────┐
-│                              護士    │
-│                         「你找誰？」 │
-│                                      │
-│                                      │
-│                                      │
-│ 「……柏勳。」                        │
-│ 我                                   │
-└──────────────────────────────────────┘
-```
-
-這不是傳統聊天紀錄。
-
-文字的位置繼承人物在當下場景中的相對位置。
-
-### 21.3 Dialogue replaces itself instead of stacking
-
-對話不應預設一直向下累積。
-
-上一句完成後，可以自然 Fade out，再讓下一句從人物目前的位置出現。
-
-例如：
-
-```text
-右上：
-
-「你找誰？」
-     ↓ fade out
-
-「柏勳？」
-     ↑ fade in
-```
-
-因此玩家閱讀的是「正在發生的當下」，而不是持續增加的對話紀錄。
-
-### 21.4 Position follows movement
-
-如果人物在場景中移動，後續文字位置也可以跟著改變。
-
-例如護士逐漸走近：
+如果護士逐漸靠近：
 
 ```text
 右上角     「你找誰？」
@@ -783,570 +603,695 @@ Spatial Dialogue 可以直接呈現：
 右下附近   「你認識他？」
 ```
 
-即使沒有完整角色動畫或立繪，玩家也可以從文字位置感受到：
+這是文字版 Blocking。
 
-> 她正在靠近我。
-
-這種呈現方式可視為文字版的 Blocking（舞台走位）。
-
-### 21.5 Spatial properties carry meaning
-
-目前確立的視覺語意方向：
+### 10.2 Spatial properties
 
 ```text
-位置       → 方位 / 說話者所在位置
+位置       → 方位 / 來源
 大小       → 距離 / 感知強度
-透明度     → 清晰程度 / 注意力
-出現速度   → 語氣 / 節奏
+透明度     → 清晰度 / Attention
+出現節奏   → 語氣 / Speech Rhythm
 輕微抖動   → 衝擊 / 不穩定
-Fade       → 注意力離開 / 句子退出當下
-位置移動   → 人物或聲音來源正在移動
+Fade       → Attention 離開 / 句子離開當下
+位置移動   → 人物或聲音來源移動
 ```
 
-這些規則應保持克制。
-
-系統的目的不是替每一句話增加特效，而是讓文字本身承擔原本需要 UI、旁白或立繪才能表達的空間資訊。
-
-### 21.6 Relationship with Ambient Narrative
-
-Spatial Typography 不只用於角色對話。
-
-Ambient Narrative 也可以使用相同空間：
-
-```text
-              ……喀。
-
-
-                              「你找誰？」
-
-
-「……柏勳。」
-```
-
-此時「……喀。」與護士的問話可以同時競爭玩家注意力。
-
-因此文字舞台同時也是 Opportunity 與 Attention Gameplay 的一部分。
-
-玩家需要自己決定：
-
-- 繼續注意正在說話的人
-- 注意另一個方向的聲音
-- 忽略它
-- 中斷目前 Attention 並轉向 Opportunity
-
-### 21.7 Exit behavior
-
-上一句文字退出時採用 Text Echo：先留下短暫、極淡的殘影，再逐漸消失。它不是 Chat History；完整規則見 §22。
+效果應保持克制，不能把每一句話都變成特效展示。
 
 ---
 
-## 22. Text Echo
+## 11. Text Echo
 
-Spatial Dialogue 的上一句不應立刻完全消失，也不應累積成 Chat History。文字說完後進入 Text Echo（文字殘響）：
+對話不應像 Chat History 一樣一路往下堆。
 
-    「你找誰？」
-         ↓
-    「你找誰？」（逐漸變淡）
+一句話完成後，文字進入 Text Echo：
+
+```text
+「你找誰？」
+     ↓
+「你找誰？」（逐漸變淡）
 
 「……柏勳。」
+```
 
-    「柏勳？」
+Text Echo 表示剛才的內容仍短暫停留在感知中，之後自然消失。
 
-越舊的文字越淡，最後自然消失。Text Echo 表達的是「剛剛發生的事情仍短暫停留在主角的感知與意識中」，不是聊天紀錄。不同內容可以有不同殘留時間，但不等同線索重要度；例如「他三年前就死了。」可以因心理衝擊多停留一些，而不是因為系統判定它是重要線索。
+不同內容可以因角色心理狀態有不同殘留時間，但：
 
-## 23. Rhythmic Text
+> Echo 長度不能代表「系統判定的重要程度」。
 
-文字不採固定逐字 Typewriter Speed，而依角色真正說話的節奏，以 Phrase / Beat 為單位出現。
+Text Echo 也是 Memory Capture 的主要入口之一。
 
-    「你……」
-        （短暫停頓）
-    「你怎麼會知道這件事？」
+---
 
-另一例：
+## 12. Rhythmic Text
 
-    「我不是——」
-        （停住）
-    「……算了。」
+文字不採固定 `30ms / character` 的 Typewriter Speed。
 
-劇本節奏接近 `Phrase → Pause → Phrase → Pause → Phrase`。Pause 期間仍是 World Time，聲音、人物動作、Ambient Narrative、Opportunity 都可以發生。若一句話需要 2 秒說完，那 2 秒真的存在於世界中：
+角色說話應依 Phrase / Beat / Pause 呈現。
 
-    13:42:10  「你……」
-    13:42:11  「你找誰？」
-    13:42:12  說完
+```text
+「你……」
+    （停頓）
+「你怎麼會知道這件事？」
+```
 
-玩家不能靠加速文字讓 NPC 在 0.5 秒內完成原本需要 2 秒的說話，否則會破壞 Real-time World。
+或：
 
-## 24. Repeated Dialogue and Attention Release
+```text
+「我不是——」
+    （停住）
+「……算了。」
+```
 
-輪迴後重新遇到已知內容時，不快轉 World Time。所謂 Skip 在 v0.1 不代表時間跳躍或略過事件；它更接近「我已經知道這段內容，因此讓它退到 Attention 背景」。為避免和傳統 VN 的時間快轉混淆，設計與 UI 上應優先稱為 **Attention Release**，而不是 Fast-forward。
+Speech Rhythm 就是 World Time 的一部分。
 
-    「柏勳那天確實有來……」      ← 已知主對話退到背景
+Pause 期間：
 
-          ……兩個護士正在小聲說話。
+- NPC 可以移動
+- Ambient Event 可以發生
+- Opportunity Window 可以關閉
+- 玩家可以轉移 Attention
 
-    「昨天 307 又……」
+---
 
-              ……藥不是已經停了嗎？
+## 13. Dialogue Is Continuous Gameplay
 
-    「後來他就離開了。」
+Dialogue 不是 Gameplay 的暫停區。
 
-主對話仍正常發生並消耗真實時間，只是玩家的 Attention 被釋放，可以注意同一時間原本就存在的其他資訊。
+一般台詞可以依主角既定性格自然回答，不需要每一句都要求玩家選 A/B/C。
 
-### 24.1 Information is finite
-
-重複場景不應因玩家反覆進入而無限生成新線索。同一時間、同一地點存在有限事件集合：
-
-    13:42:10 ～ 13:42:50 / 護理站
-    ├─ 主對話：護士說明柏勳來院時間
-    ├─ Ambient A：兩名護士談論 307 病房
-    ├─ Ambient B：推車經過
-    ├─ Ambient C：門發出「……喀。」
-    └─ Opportunity D：窗外短暫出現人影
-
-第一輪可能只聽主對話；第二輪注意到門聲；第三輪去聽 307 病房談話。全部探索後，這段時間就可能真的沒有更多內容。系統不為 Grinding 隨機製造情報。
-
-## 25. Memory Resonance
-
-再次經歷已知內容時，主角偶爾可以產生極短的內心記憶反應。這稱為 Memory Resonance（記憶共鳴）。
-
-    「柏勳那天確實有來……」
-
-          ……又是這句。
-          上次她也是這麼說的。
-
-若主角確實曾在另一輪感知到不同版本：
-
-    「柏勳那天確實有來……」
-
-          ……等等。
-          她上次說的是「沒有見過」。
-
-到這裡停止。系統不得繼續替玩家推論「她在說謊」「發現矛盾」「應該拿監視器質問她」。Memory Resonance 只表示主角想起自己確實經歷過的事情，不是 Hint System，也不保證有用。例如「最近真的很冷。」也可能引出「……她上次也抱怨過天氣。」
-
-## 26. Dialogue as Continuous Gameplay
-
-Dialogue 不是 Gameplay 的暫停區。一般故事對話由主角依既定性格自然回答，不需要每一句都要求玩家選 A / B / C：
-
+```text
                               「你找誰？」
 
-    「……柏勳。」
+「……柏勳。」
 
                               「柏勳？」
+```
 
-只有真正涉及主角意圖、行動方向、關係變化、風險承擔或 Worldline 分歧時，才需要明確 Choice。
+玩家在 Dialogue 中仍可：
 
-                              「你跟柏勳是什麼關係？」
+- 保持 Focus 在說話者
+- Hover 另一個 cue → Notice
+- Click → Attend / Observe
+- Capture 自己實際感知到的 Moment
+- 使用 Memory Input
+- 在重大時刻做 Choice
+- True Interrupt 對話 / 離開現場
 
-            ……
+### 13.1 Meaningful Choice only
 
-    「朋友。」
-    「我只是來找人的。」
-    「……」
+只有真正涉及下列內容時才需要明確 Choice：
 
-選項也應盡量存在於主角所在的 Spatial Area，而不是突然跳出傳統 A / B / C Menu。
+- 主角意圖
+- 行動方向
+- 關係變化
+- 風險承擔
+- Worldline 分歧
 
-### 26.1 Player activity during dialogue
+Choice 應盡量存在於主角 Spatial Area，而不是突然跳出傳統 Menu。
 
-一般對話自動回答不代表玩家只能看小說。對話期間世界持續發生：
+### 13.2 Choice and Memory Input are different
 
-                              「柏勳那天確實有來……」
+Choice 與 Memory Input 不互相取代。
 
-            ……喀。
+```text
+一般對話
+  → 主角自然回答
 
-    「我記得他大概六點左右——」
+重大決策
+  → Choice
 
-                        走廊有人經過。
-
-玩家可以繼續專注護士、Hover 門聲形成 Notice、Click 後 Attend / Observe、Capture 已實際感知到的 Moment、使用 Memory 介入、真正中斷對話或離開現場。Dialogue 的核心 Gameplay 是「我現在注意什麼、記住什麼、忽略什麼，以及什麼時候介入」。
-
-## 27. Memory Capture
-
-Memory 不透過傳統收藏按鈕取得。玩家主動抓住正在從當下消失的感知，稱為 Memory Capture。
-
-### 27.1 Capturing a spoken sentence
-
-一句話說完進入 Text Echo：
-
-    「我六點一直都在店裡。」
-             ↓
-    「我六點一直都在店裡。」（逐漸淡去）
-
-玩家若認為值得記住，可以在消失前 Hold：
-
-    「我六點一直都在店裡。」
-             ↑
-           HOLD
-
-呈現可以是 `Hold → 文字 Focus → 周圍感知稍降 → 文字凝固 → 輕微紙張/快門式感知聲 → 像從當下被抽出 → 成為 Memory`。不顯示「已加入收藏」或「發現重要線索」。
-
-### 27.2 Capture does not pause the world
-
-Memory Capture 也需要 Attention，世界不會停止：
-
-    「我六點一直都在店裡。」 ← 玩家正在 Capture
-
-                         ……喀。
-
-                              「後來柏勳就——」
-
-玩家可能因為記住上一句而漏掉下一句或 Ambient Event。記住什麼，本身就是時間與注意力選擇。Capture 不要求 Pixel-perfect Input；靠近可 Capture 的 Echo / Moment 時只給非常弱的 Focus，Hold 時長由 Playtest 決定。
-
-## 28. Memory captures perceived Moments, not only text
-
-Memory Capture 的核心不是收藏句子，而是「玩家主動決定讓主角記住某個自己真正感知到的 Moment」。Memory 至少可來自 Text / Visual / Sound / Composite Moment。
-
-### 28.1 Visual Memory example
-
-17:52，玩家真的轉頭看到窗外有人跑過：
-
-            雨中的窗戶
-
-                    ── 人影跑過 ──→
-
-        ……誰？
-
-Capture 後可形成：
-
-    17:52 · Loop 02 · 醫院
-    ┌────────────────────┐
-    │   模糊的雨中窗戶     │
-    │          → 人影      │
-    └────────────────────┘
-    「窗外有人跑過。」
-
-Memory 只保存主角當時真正看清楚的程度。若只看到模糊人影，不能事後神奇地得到清楚的臉。
-
-### 28.2 Sound Memory example
-
-    18:14
-
-              砰——
-
-若主角確實聽見並 Capture，可形成：
-
-    18:14 · Loop 03 · 醫院走廊
-    Sound Memory
-    「不明撞擊聲」
-
-### 28.3 Composite Moment example
-
-某些 Moment 同時包含畫面、聲音與文字：
-
-    18:14:03
-
-    護士：「後來柏勳——」
-
-                    砰——
-
-    右側病房門輕微震了一下。
-
-如果玩家的 Attention 足以真正感知整個瞬間，Capture 可保存為 Composite Moment；但不能補上玩家當時沒有感知到的資訊。
-
-## 29. Perception Boundary
-
-核心規則：**主角只能記住自己當下實際感知到的東西。**
-
-例如同一時間左側護士正在說話，右側窗外有人跑過。如果玩家始終把 Attention 放在護士身上、根本沒有轉頭，就不能事後 Capture「窗外人影」，Memory Library 也不能自動得到人影照片。World Event 與 Player Knowledge 是兩件不同的事。
-
-    World Event
-        ↓
-    Attention
-        ↓
-    Perception
-        ↓
-    Memory Capture
-        ↓
-    Memory
-
-只有真正通過 Perception 的內容，才可能成為主角 Memory。
-
-## 30. Attention → Memory → Investigation Gameplay Loop
-
-目前核心互動鏈：
-
-    World continuously moves
-            ↓
-    Opportunity / Dialogue / Ambient Event
-            ↓
-    Player Attention
-            ↓
-    Perception
-            ↓
-    Memory Capture
-            ↓
-    Memory Library
-            ↓
-    Investigation Wall
-            ↓
-    Player-created relationships / hypotheses
-            ↓
-    Memory Input in future situations
-            ↓
-    Different Action / Event / Worldline
-            ↓
-    New World State
-
-### 30.1 Full example
-
-    Loop 01
-    17:52 玩家在醫院 → 注意窗外 → 看到模糊人影 → Capture
-    Memory：「17:52 醫院窗外的人影」
-
-    Loop 02
-    得知：「柏勳 17:50 已經離開醫院。」 → Capture
-    將兩張 Memory 放到 Investigation Wall
-    玩家自己連線並寫：「同一個人？」
-
-    Loop 03
-    再次遇到相關 Dialogue Node
-    拖入「17:52 醫院窗外的人影」
-    主角用自己的記憶介入
-    → 新 Dialogue / Action / Worldline
-
-遊戲不需要顯示「恭喜，發現矛盾！」；真正的推理存在於玩家自己對 Memory 的選擇、整理與使用。
-
-## 31. Text & Attention System — Current Principles
-
-1. 文字是 World Layer 的一部分，不只是 UI。
-2. Spatial Typography 用位置傳達方位與人物空間。
-3. Dialogue 文字位置跟隨角色 Blocking。
-4. 新句取代舊句，不累積成傳統聊天紀錄。
-5. 舊句以 Text Echo 短暫留下，再自然消失。
-6. 文字依 Speech Rhythm 分段出現，而不是固定逐字速度。
-7. Speech / Pause 真正占用 World Time。
-8. Real-time World 不允許透過文字加速改變事件時間。
-9. 重複內容可以退到 Attention 背景，但世界不快轉。
-10. 同一時空的可探索資訊有限，不因 Grinding 無限生成。
-11. Memory Resonance 只喚起已知經驗，不替玩家做推理。
-12. Dialogue 期間 Gameplay 持續進行。
-13. 一般台詞由主角自然回答，重大意圖才要求玩家 Choice。
-14. Memory Capture 是主動抓住正在消失的 Perceived Moment。
-15. Capture 不暫停世界。
-16. Memory 可以是 Text / Visual / Sound / Composite Moment。
-17. 只能 Capture 主角真正感知過的內容。
-18. Attention → Perception → Memory 是核心因果鏈。
+特定可介入節點
+  → Memory Input
+```
 
 ---
 
-## 32. Attention Interaction Model
+## 14. Attention Release for Repeated Dialogue
 
-Attention 不應顯示為數值、Focus Bar、鎖定框或眼睛 Icon。玩家直接透過游標與世界互動，像是在操縱主角當下的感官。
+輪迴後再次遇到已知內容，不使用傳統 Fast-forward 改變世界速度。
 
-### 32.1 Hover → Notice / Focus
+已知對話可以使用 **Attention Release**：讓玩家降低對已知內容的視覺注意，而不是讓 NPC 加速說完。
 
-Hover 代表主角開始注意某個目標，但還沒有正式中斷目前 Action。任何時刻只能 Focus 一個目標。
+```text
+                              「柏勳那天確實有來……」
+                              （已知內容退到背景）
 
-例如：
+          ……兩個護士正在小聲說話。
+```
 
-                             護士：「後來柏勳——」
+世界時間照常。
 
-            ……喀。
+Attention Release 不代表玩家能同時完整讀取所有內容；**Single Focus Rule 仍然成立**。
 
-                                          窗外有人經過
+玩家仍必須決定要 Focus 哪一個事件。
 
-玩家 Hover「……喀。」後：
+### 14.1 Information is finite
 
-                             護士：「後來……」
-                                   （淡化）
+同一時間、同一地點具有有限事件集合。
 
-            ……喀。
-            ↑ 清晰
+```text
+13:42:10 ～ 13:42:50 / 護理站
+├─ 主對話
+├─ Ambient A：307 病房談話
+├─ Ambient B：推車經過
+├─ Ambient C：門發出聲音
+└─ Opportunity D：窗外短暫人影
+```
 
-                                          …………
-                                          （淡化）
+第一輪可能只聽主對話；下一輪轉向其他內容。
 
-其他內容不是消失，也不是暫停，而是因主角沒有專心感知而降低存在感。
+全部探索後，這段時間可能真的沒有更多資訊。
 
-### 32.2 Click → Attend
+系統不得為 Grinding 無限隨機製造線索。
 
-Click 代表主角真的把 Attention 轉向該目標。這不是瞬間 UI 切換，而是存在於 World Time 中的感知行為。
+---
 
-例如：
+## 15. Memory Capture
 
-    護士 ───────────────────── 門
-      ↑                         ↑
-    Current                  Click
-    Attention
+Memory 不是系統自動建立的線索列表。
 
-主角需要經歷：
+玩家主動決定：
 
-    聽見聲音
-       ↓
-    意識到來源
-       ↓
-    轉頭 / 改變聆聽方向
-       ↓
-    看向門
-       ↓
-    Observe
+> **我要讓主角記住這個自己真正感知到的 Moment。**
 
-這個 Attention Shift 可能只需要不到一秒，也可能因距離、角色狀態或正在執行的 Action 而更久，但它不是零時間。
+這稱為 Memory Capture。
 
-例如：
+### 15.1 Text Capture
 
-                             ……喀。
+一句話完成並進入 Text Echo：
 
-                    [玩家 Click]
+```text
+「我六點一直都在店裡。」
+          ↓ fade
+```
 
-    護士：「後來柏勳就——」
+玩家可 Hold 該 Echo：
 
-                    [主角正在轉頭]
+```text
+「我六點一直都在店裡。」
+          ↑
+        HOLD
+```
 
-                             門關上。
+感覺可以是：
 
-玩家可能因為晚了一點，最後只看到門關上的瞬間。
+```text
+Hold
+ → Target becomes Focus
+ → Other perception fades
+ → Text freezes briefly
+ → subtle sensory sound
+ → Moment is pulled out of the present
+ → Memory
+```
 
-## 33. Elastic Attention
+不顯示：
 
-Attention 是暫時偏離，而不是進入另一個永久模式。
+- 已加入收藏 ✓
+- 發現重要線索
+- Rare Clue
 
-預設流程：
+### 15.2 Capture obeys Single Focus
 
-    Original Action：聽護士說話
-             ↓
-          Hover
-             ↓
-          Notice
-             ↓
-          Click
-             ↓
-      Attention Shift
-             ↓
-          Observe
-             ↓
-    Observation 完成
-             ↓
-       Return Attention
-             ↓
-    Resume Original Action
+Capture 本身會占用 Attention。
 
-Observation 自然完成後，主角會自動把 Attention 拉回原本 Action。玩家不需要再次點擊原 Action。這種『被拉出去，再自然彈回』的行為稱為 Elastic Attention。
+當玩家 Hold 一段 Text Echo / Visual / Sound Moment 時，它成為主要 Focus，其餘內容淡化但持續發生。
 
-### 33.1 Interrupting an Observation
+```text
+玩家正在 Capture：
+「我六點一直都在店裡。」
 
-玩家可以在 Observation 尚未完成時，再 Click 其他目標來中斷。
+                              ……喀。
 
-例如玩家原本在看門：
+                              「後來柏勳就——」
+```
 
-            門正在慢慢打開……
+玩家可能因 Capture 上一句而漏掉下一句。
 
-    護士：「等等，柏勳那天其實——」
+Memory Capture 不暫停世界。
 
-玩家此時 Click 護士：
+### 15.3 Input tolerance
 
-    Observe Door
-         ↓
-      Interrupt
-         ↓
-    Attention Shift
-         ↓
-    Attend Nurse
+Capture 不應要求 Pixel-perfect Input。
 
-結果可能是玩家重新聽到護士，但沒有看到門後到底是誰。
+Hover / Hold 的實際命中範圍與 Hold Duration 由 Prototype / Playtest 決定。
 
-Attention 可以形成：
+這是 Implementation Parameter，不是核心玩法規則。
 
-    護士 → 門 → 窗外 → 護士
+---
 
-每一次轉移都是真實發生的感知行為，因此可能造成只看到一半、漏聽半句、或來不及看清楚。
+## 16. Memory Types
 
-## 34. Single Focus Rule
+Memory 保存的是 Perceived Moment，而不只是文字。
 
-任何時刻只能有一個主要 Focus。Hover 新目標就代表主角的注意力正在偏向新目標，因此其他感知內容應被淡化。
+至少支援：
 
-這條規則同時防止玩家用滑鼠快速掃過整個畫面來無成本取得所有資訊。
+- Text Memory
+- Visual Memory
+- Sound Memory
+- Composite Moment
 
-例如玩家快速掃：
+### 16.1 Visual Memory
 
-    護士 → 門 → 窗戶 → 護士
+```text
+17:52 · Loop 02 · 醫院
+┌────────────────────┐
+│  模糊的雨中窗戶      │
+│        → 人影        │
+└────────────────────┘
+```
 
-世界仍然按照原本時間持續：
+若當時只看到模糊人影，就只能保存模糊人影。
 
-    ────────────── Real Time ──────────────→
+### 16.2 Sound Memory
 
-    護士    A────B────C────D
-    門           喀───關上
-    窗戶              人影──→消失
+```text
+18:14 · Loop 03 · 醫院走廊
+Sound Memory
+「不明撞擊聲」
+```
 
-玩家掃到門時，護士仍在從 B 說到 C；掃到窗戶時，門仍然會關上；重新回到護士時，她可能已經說到 D。
+### 16.3 Composite Moment
 
-因此到處 Hover 的結果可能不是取得更多資訊，而是：
+Composite 只能組合主角在同一 Moment 真正感知到的元素。
 
-> 每件事情都感知到一點，但沒有任何一件事情真正看完整。
+它不能把同時發生、但主角沒有感知到的事件一起打包。
 
-## 35. Faded Does Not Mean Paused
+例如主角當時確實同時感知到：
 
-Attention System 的重要底層規則：
+```text
+護士：「後來柏勳——」
 
-> **被淡化 ≠ 沒有發生。世界永遠不等待玩家。**
+        砰——
 
-例如玩家正在 Focus 門：
+右側病房門在視野邊緣震了一下。
+```
 
-    Foreground
-        ……喀。
-        門正在打開。
+才可以形成包含這些元素的 Composite Moment。
 
-    Background / Faded
-        護士：「他後來去了港口。」
+---
 
-即使護士文字被淡化，她仍然真的把這句話說完。玩家稍後把 Attention 移回護士時，不會重新播放這句話。
+## 17. Memory Persistence Across Loops
 
-這也適用於：
+輪迴後，明確持續的是：
 
-- Dialogue
-- Ambient Narrative
-- Opportunity Window
-- NPC Movement
-- Environmental Sound
-- Visual Event
+- Captured Memory
+- Memory metadata
+- Investigation Wall 排版
+- 玩家建立的連線
+- 玩家備註
 
-除非特定事件本身具有持續狀態，否則錯過就是錯過。後續只能透過 Residual、下一輪、其他人物資訊或玩家自己的推理重新接近真相。
+不自動持續：
 
-## 36. Attention System Example
+- NPC 對主角的關係
+- NPC 對上一輪的記憶
+- NPC 人格上的「累積傷害」
+- 上一輪已改變的世界狀態
 
-完整例子：玩家正在醫院護理站與護士交談。
+只有主角側承受跨輪迴資訊累積。
 
-    13:42:10
+### 17.1 Captured Memory is the guaranteed persistent record
 
-                             護士：「我記得大概六點——」
+玩家可能在遊玩中自己記得很多事情，但 Core System 保證可檢索、可帶入未來節點的 diegetic record 是 Captured Memory。
 
-    13:42:12
+未 Capture 的內容：
 
-            ……喀。
+- 不會事後自動生成完整 Memory Card
+- 不會補回玩家當時沒看到的細節
+- 是否留下非常模糊的故事性印象，屬於 Residual / Narrative Rule
 
-                             護士：「柏勳那時候……」
+這避免 Memory Capture 被「系統其實全部都幫你記住」架空。
 
-    玩家 Hover「……喀。」
-    → 門聲變清晰
-    → 護士淡化，但仍繼續說
+---
 
-    13:42:13
+## 18. Memory Resonance
 
-    玩家 Click 門
-    → 主角開始轉頭
+再次經歷已知內容時，主角可以偶爾產生很短的內在反應。
 
-                             護士：「……去了港口。」
+```text
+「柏勳那天確實有來……」
 
-    13:42:14
+      ……又是這句。
+```
 
-            門正在關上。
-            玩家只看到一隻手離開門框。
+如果存在主角可合理回想的 persistent Memory：
 
-    13:42:16
+```text
+「柏勳那天確實有來……」
 
-    Observation 完成
-    → Elastic Attention 自動 Return
+      ……等等。
+      上次她說的是「沒有見過」。
+```
 
-    13:42:17
+到這裡停止。
 
-                             護士：「之後我就沒看到他了。」
+系統不得繼續說：
 
-此時玩家確實知道：
+- 她在說謊
+- 發現矛盾
+- 應該拿哪張 Memory 質問
+- 這是重要線索
 
-- 門在 13:42 左右有異常
-- 看到了離開門框的一隻手
-- 護士最後說「之後我就沒看到他了」
+Memory Resonance：
 
-但玩家可能沒有真正聽清楚被淡化期間的「去了港口」。
+- 不保證出現
+- 不保證有用
+- 不應依 hidden clue importance 觸發
+- 不能引用主角從未感知過的事件
+- 不能替玩家完成推理
 
-這不是系統扣除 Attention Point 的結果，而是玩家在同一段真實流動的時間裡選擇了自己的感知方向。
+---
+
+## 19. Memory Library
+
+Memory Library 的目的：
+
+> 找到「我記得什麼」。
+
+允許中性工具：
+
+- 搜尋
+- Loop 篩選
+- 時間篩選
+- 人物 metadata
+- 場景 metadata
+- Memory Type
+
+不得提供：
+
+- 自動重要度
+- 自動矛盾偵測
+- 自動因果分析
+- 自動正確答案
+- AI 自動整理真相
+
+不同 Loop 的 Memory 可以互相矛盾而並存。
+
+```text
+Loop 01｜若晴：「18:00 我還在店裡。」
+Loop 03｜17:52 看見若晴離開店附近。
+```
+
+系統不顯示「矛盾！」。
+
+---
+
+## 20. Investigation Wall
+
+Investigation Wall 是 Infinite Canvas。
+
+```text
+Memory Library     = 我記得什麼
+Investigation Wall = 我認為這些事情可能有什麼關係
+```
+
+Wall 上的 Memory 是原 Memory 的 Reference，不是資料複製。
+
+從 Wall 移除 Card，不會刪除 Memory Library 中的原 Memory。
+
+### 20.1 Required interactions
+
+v0.1 支援：
+
+- 自由擺放
+- Drag
+- Zoom / Pan
+- Memory Reference
+- Card-to-Card 自由連線
+- 玩家自行寫 Note
+- 框選 / Group
+
+連線沒有預設系統語意。
+
+不要要求玩家選：
+
+- 因果
+- 矛盾
+- 同一人物
+- 時間關係
+
+玩家可以自己寫：
+
+```text
+[若晴：18:00 還在店裡]
+          │
+          │
+[17:52 看見若晴離開]
+          │
+      「說謊？」
+```
+
+「說謊？」只是玩家 hypothesis，不是遊戲結論。
+
+---
+
+## 21. Memory as Input
+
+特定 Dialogue / Event 可以接受特定 Memory 作為介入。
+
+```text
+若晴：「我六點一直都在店裡。」
+
+Memory
+[17:52 看見她離開]
+        ↓
+帶入當前節點
+        ↓
+觸發對應 Narrative Action
+```
+
+v0.1 不需要 LLM 任意判斷語意。
+
+底層可以明確定義：
+
+```ts
+acceptedMemoryIds: ["memory_station_1752"]
+```
+
+### 21.1 Invalid Memory
+
+錯誤或無關 Memory：
+
+- 無法完成 Drop / Use
+- 回到原位置
+- 不產生 Trust 懲罰
+
+這只是 UI 試錯，不是角色真的做了某件蠢事。
+
+### 21.2 Successful Memory action can have consequences
+
+如果 Memory 成功觸發真正 Narrative Action，例如質問、揭露或改變行動，後續當然可以造成：
+
+- Trust 下降
+- NPC 防備
+- Worldline 改變
+- 新 Opportunity 出現 / 消失
+
+代價來自「角色真的做了這件事」，不是拖曳錯誤。
+
+---
+
+## 22. Immersive Interaction Principle
+
+能用世界本身表達的資訊，就不要額外建立 UI。
+
+World Layer：
+
+```text
+Text
++ Scene
++ Image
++ Sound
++ Motion
++ Vibration
+```
+
+應盡量避免：
+
+- Dialogue Box
+- Quest Panel
+- Action List
+- Notification Feed
+- Progress Modal
+- Action Complete Popup
+- 大量 HUD
+
+### 22.1 Two interaction layers
+
+```text
+World Layer
+Text + Scene + Image + Sound + Motion
+        ↓
+Live / perceive the world
+
+Memory Layer
+Memory Library + Investigation Wall
+        ↓
+Organize remembered information
+```
+
+World Layer 追求沉浸、時間連續與 Attention Gameplay。
+
+Memory Layer 才允許比較明確的管理型 UI，因為它代表主角主動整理記憶。
+
+---
+
+## 23. Design Guardrails
+
+### 23.1 No Checklist Adventure
+
+不要顯示：
+
+> 你發現了重要線索。
+
+### 23.2 No Clue Highlight Language
+
+線索與垃圾資訊使用相同設計語言。
+
+玩家甚至可以 Capture：
+
+> 最近真的好冷。
+
+它可能重要，也可能完全沒有用。
+
+### 23.3 No Database Auto-deduction
+
+Investigation Wall 不替玩家整理關係。
+
+### 23.4 No Brute-force Dialogue Inventory
+
+Memory Input 不是讓玩家把所有 Card 依序塞給每個 NPC。
+
+v0.1 暫不對 Invalid Memory 加懲罰；若 Playtest 顯示 brute-force 成為主流，再另行設計限制。
+
+### 23.5 No Infinite Clue Grinding
+
+重複進入相同時間與地點不能無限生成新情報。
+
+### 23.6 No Attention Cheat
+
+快速 Hover 全畫面不能凍結其他資訊，也不能把所有事件一次完整解讀。
+
+Single Focus + World Time 自然形成成本。
+
+---
+
+## 24. End-to-end Example
+
+玩家正在醫院護理站與護士交談。
+
+```text
+13:42:10
+
+                              護士：「我記得大概六點——」
+
+13:42:12
+
+           ……喀。      ← peripheral cue
+
+                              護士：「柏勳那時候……」
+```
+
+玩家 Hover 門聲：
+
+```text
+13:42:12.4
+
+                              護士：「柏勳那時候……」
+                              （淡化，但仍繼續說）
+
+           ……喀。
+           ↑ Focus
+```
+
+玩家 Click：
+
+```text
+13:42:13
+
+主角開始轉頭。
+
+                              護士：「……去了港口。」
+
+13:42:14
+
+           門正在關上。
+           只看到一隻手離開門框。
+```
+
+玩家沒有 Redirect，Observation 自然完成：
+
+```text
+13:42:16
+Elastic Attention → Auto Return
+
+13:42:17
+
+                              護士：「之後我就沒看到他了。」
+```
+
+玩家此時真的感知到：
+
+- 13:42 左右門口有動靜
+- 門關上的瞬間
+- 一隻手離開門框
+- 護士最後一句話
+
+玩家可能沒有真正聽清楚被淡化期間的：
+
+> 「去了港口。」
+
+世界不重播那句話。
+
+下一輪玩家可以選擇不要轉頭，而是專心聽護士；也可以更早 Focus 門口。
+
+這就是 Loop 的知識累積，而不是 Checklist 的任務累積。
+
+---
+
+## 25. Implementation Vocabulary
+
+為避免工程實作再次出現語意衝突，統一使用以下名詞：
+
+| Term | Meaning |
+|---|---|
+| Main Action | 主角當下唯一主要行動 |
+| Opportunity | 有時間窗的世界互動機會 |
+| Peripheral Cue | 尚未成為主要 Focus 的弱感知訊號 |
+| Hover / Notice | 把唯一 Focus 偏向某目標，不切 Main Action |
+| Click / Attend | 真正投入感知並開始 Observation |
+| Attention Shift | Focus 在世界內轉移，需要時間 |
+| Observation | 主角正在感知某目標的短暫過程 |
+| Elastic Attention | Observation 完成後自動回到原 Main Action |
+| Attention Redirect | Observation 途中改 Focus 到其他目標 |
+| True Interrupt | 真正放下 / 離開目前 Main Action |
+| Text Echo | 已說完文字留下的短暫淡化殘影 |
+| Attention Release | 已知內容降低視覺主導性，但 World Time 不加速 |
+| Perception | 主角實際取得到的感知資訊 |
+| Residual | 實際感知過但極模糊的殘留印象 |
+| Memory Capture | 玩家主動保存一個已 Perceive 的 Moment |
+| Memory | 跨 Loop 可檢索的 persistent remembered record |
+| Investigation Wall | 玩家自行建立關係與 hypothesis 的無邊界空間 |
+| Memory Input | 在設計好的 Narrative Node 使用特定 Memory 介入 |
+
+---
+
+## 26. Tunable, Not Yet Frozen
+
+以下屬於 Prototype / Playtest 參數，不應和核心玩法規則混在一起：
+
+- Hover 命中範圍
+- Hover 進入 Focus 的 debounce / delay
+- Attention Shift 的具體秒數
+- Hold Capture 時長
+- Text Echo Fade 秒數
+- Font / font size
+- Blur 強度
+- 音效音量
+- 動畫 easing
+- Mouse / touch / controller 的具體 mapping
+
+調整這些數值不能破壞 §2 Canonical Invariants。
