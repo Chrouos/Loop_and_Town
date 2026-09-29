@@ -92,31 +92,31 @@ nodes:
       narrative_refs: [loop06_1410_fifth_letter]
 
   - id: L6_N06_character_insight
-    title: Character Insight 指出「東西不是被丟掉」
+    title: 用人物 Memory 形成調查假設
     time: "15:10"
     actor_ids: [protagonist, yuan]
     visibility: public
     detail:
-      before: [予安認為父親留下的舊式音訊轉接器可能早已被自己清掉。]
-      after: [主角根據過去 Loop 對予安的理解，判斷「他自己丟掉」不是最值得優先相信的解釋。]
-      reason: 主角記得另一條世界線裡，予安連父親留下的壞零件都不肯直接丟棄。
+      before: [予安認為父親留下的舊式音訊轉接器可能早已被自己清掉；主角曾在其他 Loop 實際看過他保存父親遺物的行為。]
+      after: [玩家可以把過去真正感知過的人物 Moment 當成 hypothesis 的材料，選擇再查「是不是有人移動過櫃子」。]
+      reason: 人物 Memory 只提供一個值得追查的方向，不能自動判定予安絕對沒有丟東西。
       affected_characters: [protagonist, yuan]
-      delayed_effects: [主角改問「最後是誰移動過櫃子」，而不是把 Insight 當成事實判決。]
+      delayed_effects: [若玩家採用這個 hypothesis，會進一步檢查紙本維修簿。]
       knowledge_changes: [insight_yuan_keeps_fathers_things]
       relationship_changes: []
       narrative_refs: [loop06_1510_insight_to_evidence]
 
   - id: L6_N07_repair_ledger
-    title: 維修簿證實知夏借過音訊轉接器
+    title: 維修簿留下知夏借用音訊轉接器的紀錄
     time: "15:18"
     actor_ids: [protagonist, yuan, zhixia]
     visibility: public
     detail:
-      before: [Character Insight 只能說明「應該再查」，不能證明知夏做過什麼。]
-      after: [五年前維修簿留下客觀紀錄：知夏在死亡前一天借用並歸還舊式音訊轉接器。]
-      reason: 予安想起父親會把外借與維修設備重登紙本簿冊，兩人因此找到紀錄。
+      before: [人物 Memory 只讓玩家選擇另一條調查方向，尚不能證明任何人做過什麼。]
+      after: [五年前維修簿留下紀錄：知夏在死亡前一天借用並歸還舊式音訊轉接器。]
+      reason: 兩人沿著「還有誰動過設備」的問題找到父親留下的外借與維修紙本紀錄。
       affected_characters: [protagonist, yuan, zhixia]
-      delayed_effects: [第三封聲音實驗獲得獨立於主角記憶之外的客觀佐證。]
+      delayed_effects: [第三封聲音實驗獲得獨立於人物 hypothesis 的紀錄佐證。]
       knowledge_changes: [fact_zhixia_borrowed_audio_adapter]
       relationship_changes: []
       narrative_refs: [loop06_1510_insight_to_evidence]
@@ -129,7 +129,7 @@ nodes:
     detail:
       before: [前五種方法都有可指認的物件、紀錄或重建條件。]
       after: [主角理解第六種載體沒有物件；不被 Reset 清除記憶的人本身就是資訊載體。]
-      reason: 所有 NPC 都忘記上一輪，只有主角持續把事件與 Character Insight 帶到下一輪。
+      reason: 普通 NPC 都不記得上一輪；主角卻仍承受自己真正經歷過、以及主動 Capture 的跨 Loop 資訊。
       affected_characters: [protagonist, zhixia]
       delayed_effects: [主角理解知夏後期為何容易把人變成可預測變數：她獨自背著太多不存在的版本。]
       knowledge_changes: [carrier_06_memory_holder]
@@ -173,7 +173,7 @@ nodes:
     visibility: public
     detail:
       before: [主角已理解前六種資訊載體，但仍不知道第七封真正的技術目的。]
-      after: [信封內側出現新句子，明確指出第七次實驗的目標是把資訊交給下一個記憶持有者。]
+      after: [信封內側出現新句子，指出第七次實驗的目標是把資訊交給下一個記憶持有者。]
       reason: 主角完成前六種方法的重建，並在 18:31 收束點重新讀取第七封。
       affected_characters: [protagonist, zhixia]
       delayed_effects: [下一章問題變成「為什麼主角會成為接收者，以及知夏最後要交付什麼」。]
@@ -187,9 +187,9 @@ edges:
   - { id: L6_E02, source: L6_N02_library_card, target: L6_N03_sound_carrier, label: "test non-paper medium", visibility: public }
   - { id: L6_E03, source: L6_N03_sound_carrier, target: L6_N04_medical_record, label: "compare external record", visibility: public }
   - { id: L6_E04, source: L6_N04_medical_record, target: L6_N05_fifth_letter, label: "information can reconstruct", visibility: public }
-  - { id: L6_E05, source: L6_N05_fifth_letter, target: L6_N06_character_insight, label: "verify sound experiment", visibility: public }
-  - { id: L6_E06, source: L6_N06_character_insight, target: L6_N07_repair_ledger, label: "inspect repair ledger", visibility: public }
-  - { id: L6_E07, source: L6_N07_repair_ledger, target: L6_N08_sixth_carrier, label: "evidence confirms investigation path", visibility: public }
+  - { id: L6_E05, source: L6_N05_fifth_letter, target: L6_N06_character_insight, label: "recall perceived character pattern", visibility: public }
+  - { id: L6_E06, source: L6_N06_character_insight, target: L6_N07_repair_ledger, label: "choose alternate investigation", visibility: public }
+  - { id: L6_E07, source: L6_N07_repair_ledger, target: L6_N08_sixth_carrier, label: "record supports carrier investigation", visibility: public }
   - { id: L6_E08, source: L6_N08_sixth_carrier, target: L6_N09_why_seventh, label: "same holder is not enough", visibility: public }
   - { id: L6_E09, source: L6_N09_why_seventh, target: L6_N10_handoff_1803, label: "reframe 18:03 as handoff", visibility: public }
   - { id: L6_E10, source: L6_N10_handoff_1803, target: L6_N11_seventh_message, label: "18:31 read seventh carrier", visibility: public }
