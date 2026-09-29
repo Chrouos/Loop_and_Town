@@ -3,7 +3,7 @@ import { loadPlayerStoryBundle } from '../lib/loadPlayerStoryBundle';
 import type { SimulationDefinition, WorldState } from '../simulator/types';
 import { clockMinuteAt, displayMinute, isLiveSyncAvailable } from './clock';
 import { entryPresentation, entryWindowFor } from './entry';
-import { reconcilePlayer, visibleRecords } from './knowledge';
+import { attendPresenceRecord, availablePresenceRecords, reconcilePlayer, visibleRecords } from './knowledge';
 import { knownDiff, pinExcerpt } from './logic';
 import { normalizeSave, type ActionId, type PlayerSave } from './model';
 import { activeLoop, confirmAction, continuePendingBoundary, createNextLoop, replayLoop } from './runtime';
@@ -20,6 +20,11 @@ type Drawer = 'case' | 'board' | 'worldlines' | 'save' | null;
 
 function isPlayerStoryBundle(story: Story): story is PlayerStoryBundle {
   return 'narrativeDocuments' in story;
+}
+
+function presenceCueLabel(id: string): string {
+  if (id === 'station-blackout') return '……鐘聲？';
+  return '……剛才那邊？';
 }
 
 export function PlayerApp({ now = Date.now, storage = window.localStorage, loadStory = () => loadPlayerStoryBundle('story/manifests/loop_01.yaml') }: Props) {
@@ -83,10 +88,12 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
       clock.minute,
     )
     : undefined;
-  const records = visibleRecords(save, loopId, loopId === 1 ? undefined : playerRecords);
+  const recordSource = loopId === 1 ? undefined : playerRecords;
+  const records = visibleRecords(save, loopId, recordSource);
+  const opportunities = availablePresenceRecords(save, loopId, clock.minute, recordSource);
   const opened = loopId !== 1 || save.knowledge.opened.includes(`${loopId}:letter`) || save.knowledge.opened.includes('letter');
-  const record = records.find(x => x.id === selected) ?? playerRecords?.find(x => x.id === selected) ?? records[0];
-  const incoming = records.filter(item => item.revealMinute > 0 && !save.knowledge.opened.includes(`${loopId}:${item.id}`));
+  const record = records.find(x => x.id === selected) ?? records[0];
+  const incoming = records.filter(item => item.acquisition !== 'presence' && item.revealMinute > 0 && !save.knowledge.opened.includes(`${loopId}:${item.id}`));
   const hasAction = (id: ActionId) => loop.actionIds.includes(id);
   const canAct = clock.minute < 1100;
   const next = clock.minute < 1100 ? '18:20 前，你還能改變今晚的行程' : clock.minute < 1111 ? '18:31，舊車站' : clock.minute < 1120 ? '等候鎮上的通報' : clock.minute < 1280 ? '21:20，予安說會再聯絡' : '午夜，日期會回到今天';
@@ -119,6 +126,12 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
     }
     commit(nextSave); setSelected(id); setDrawer(null);
   }
+  function attend(id: string) {
+    const nextSave = normalizeSave(save, now());
+    if (!attendPresenceRecord(nextSave, loopId, id, clock.minute, recordSource)) return;
+    commit(nextSave);
+    setSelected(id);
+  }
   function pin(ref: string) {
     try { const nextSave = normalizeSave(save, now()); pinExcerpt(nextSave, ref); commit(nextSave); setNote('已放在推理桌上。'); }
     catch (e) { setNote(e instanceof Error ? e.message : String(e)); }
@@ -133,6 +146,7 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
     <header className="player-header"><div className="wordmark">灰潮鎮 <span>／ 第七封信</span></div><div className="header-actions"><span className="town-time">第 {clock.loop} 次 · 鎮內 {displayMinute(clock.minute)}</span><button onClick={e => showDrawer('case', e.currentTarget)}>案卷 <i>{records.length}</i></button><button onClick={e => showDrawer('board', e.currentTarget)}>推理桌</button><button onClick={e => showDrawer('worldlines', e.currentTarget)}>世界線</button><button onClick={e => showDrawer('save', e.currentTarget)}>存檔</button></div></header>
     <main className="player-stage">
       {error ? <p role="alert">無法讀取鎮上的紀錄：{error}</p> : !story ? <p>正在取出案卷……</p> : resetPending ? <div className="opening mode-choice"><p>鐘聲落下，今天又回到可以重來的地方。</p><p>下一次進入灰潮鎮時，你要怎麼走進這一天？</p><button onClick={() => chooseMode('LIVE_SYNC')} disabled={!isLiveSyncAvailable(currentMs)}>跟著現在走<span> · {isLiveSyncAvailable(currentMs) ? '從此刻的鎮內時間進入' : '現在是 Live Sync 無法進入的時間'}</span></button><button onClick={() => chooseMode('ACCELERATED')}>回到記憶開始的地方<span> · 從 06:12 的返程列車開始</span></button>{note && <p className="inline-note" role="status">{note}</p>}</div> : !opened ? <div className="opening"><p>返程列車在灰潮鎮的月台緩緩停下。</p><p>現在是灰潮鎮的{entry.label}，你手裡還握著那封不該出現的信。</p>{entry.lines.map(line => <p key={line}>{line}</p>)}<button className="envelope-button" onClick={() => openRecord('letter')} aria-label="拆開信封，讀姊姊的信"><span className="envelope" aria-hidden="true"><span className="envelope-flap"/><span className="envelope-name">林知夏　寄</span></span><span className="envelope-action">拆開信封</span></button></div> : <div className="reading-scene" key={`${clock.loop}:${record?.id}`}>
+        {opportunities.length > 0 && <div className="presence-opportunities" aria-label="周遭動靜">{opportunities.map(item => <button key={item.id} onClick={() => attend(item.id)} aria-label={presenceCueLabel(item.id)}>{presenceCueLabel(item.id)}</button>)}</div>}
         {incoming.length > 0 && <div className="incoming-records" aria-label="新消息"><p>鎮上有新消息</p>{incoming.map(item => <button key={item.id} onClick={() => openRecord(item.id)}>閱讀新消息：{item.title}</button>)}</div>}
         <div className="document-top"><span>第 {clock.loop} 次今天</span><span>{record?.source}　／　{record?.formedAt}</span></div>
         <h1>{record?.title}</h1>
