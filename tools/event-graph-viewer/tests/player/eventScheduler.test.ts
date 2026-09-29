@@ -16,7 +16,7 @@ const initialState: WorldState = { clock: { day: 0, time: '06:12' }, flags: { co
 const loop = () => emptyLoop(createLoopClock('ACCELERATED', 0));
 
 describe('anchored event scheduler', () => {
-  it('finds critical boundaries in chronological order', () => {
+  it('still exposes canonical boundaries for author/runtime lifecycle inspection', () => {
     expect(firstCriticalBoundary(LOOP_START_MINUTE, 1300)).toMatchObject({ id: 'convergence', minute: 1111 });
     expect(firstCriticalBoundary(1120, 1440)).toMatchObject({ id: 'bell', minute: 1439 });
     expect(firstCriticalBoundary(1439, 1440)).toMatchObject({ id: 'reset', minute: 1440 });
@@ -30,42 +30,42 @@ describe('anchored event scheduler', () => {
     expect(result.simulation.history.map(item => item.eventId)).toContain('convergence');
   });
 
-  it('OFFLINE stops at Convergence and marks it pending', () => {
+  it('OFFLINE does not stop at Convergence', () => {
     const result = advanceLoop({ definition, initialState, loop: loop(), fromMinute: LOOP_START_MINUTE, targetMinute: 1300, intent: 'OFFLINE' });
-    expect(result.reachedMinute).toBe(1111);
-    expect(result.pendingBoundary).toBe('convergence');
+    expect(result.reachedMinute).toBe(1300);
+    expect(result.pendingBoundary).toBeUndefined();
     expect(result.simulation.state.flags).toEqual({ convergence: true, bell: false });
+    expect(result.simulation.history.map(item => item.eventId)).toContain('convergence');
   });
 
-  it('OFFLINE stops at Bell, then at Reset, without creating another loop', () => {
-    const atBell = advanceLoop({ definition, initialState, loop: loop(), fromMinute: 1120, targetMinute: 1440, intent: 'OFFLINE' });
-    expect(atBell.reachedMinute).toBe(1439);
-    expect(atBell.pendingBoundary).toBe('bell');
-
-    const atReset = advanceLoop({ definition, initialState, loop: loop(), fromMinute: 1439, targetMinute: 4 * 1440, intent: 'OFFLINE' });
-    expect(atReset.reachedMinute).toBe(1440);
-    expect(atReset.pendingBoundary).toBe('reset');
+  it('OFFLINE crosses Bell and only stops at the Reset lifecycle boundary', () => {
+    const result = advanceLoop({ definition, initialState, loop: loop(), fromMinute: 1120, targetMinute: 4 * 1440, intent: 'OFFLINE' });
+    expect(result.reachedMinute).toBe(1440);
+    expect(result.pendingBoundary).toBe('reset');
+    expect(result.simulation.state.flags).toEqual({ convergence: true, bell: true });
+    expect(result.simulation.history.map(item => item.eventId)).toContain('bell');
   });
 
-  it('FOREGROUND consumes a pending boundary exactly once', () => {
+  it('FOREGROUND only consumes the pending Reset lifecycle boundary', () => {
     const pendingLoop = loop();
-    pendingLoop.clock.pendingCriticalBoundary = 'convergence';
-    const result = advanceLoop({ definition, initialState, loop: pendingLoop, fromMinute: 1111, targetMinute: 1400, intent: 'FOREGROUND' });
-    expect(result.reachedMinute).toBe(1111);
+    pendingLoop.clock.lastProcessedMinute = 1440;
+    pendingLoop.clock.pendingCriticalBoundary = 'reset';
+    const result = advanceLoop({ definition, initialState, loop: pendingLoop, fromMinute: 1440, targetMinute: 1440, intent: 'FOREGROUND' });
+    expect(result.reachedMinute).toBe(1440);
     expect(result.pendingBoundary).toBeUndefined();
   });
 
-  it('BOOTSTRAP crosses an earlier boundary to reach a late entry point', () => {
+  it('BOOTSTRAP crosses Convergence to reach a late entry point', () => {
     const result = advanceLoop({ definition, initialState, loop: loop(), fromMinute: LOOP_START_MINUTE, targetMinute: 21 * 60 + 40, intent: 'BOOTSTRAP' });
     expect(result.reachedMinute).toBe(1300);
     expect(result.pendingBoundary).toBeUndefined();
     expect(result.simulation.state.flags).toEqual({ convergence: true, bell: false });
   });
 
-  it('BOOTSTRAP leaves a boundary at the exact entry minute pending', () => {
+  it('BOOTSTRAP at the exact Convergence minute processes the event instead of waiting for foreground', () => {
     const result = advanceLoop({ definition, initialState, loop: loop(), fromMinute: LOOP_START_MINUTE, targetMinute: 1111, intent: 'BOOTSTRAP' });
     expect(result.reachedMinute).toBe(1111);
-    expect(result.pendingBoundary).toBe('convergence');
-    expect(result.simulation.state.flags).toEqual({ convergence: false, bell: false });
+    expect(result.pendingBoundary).toBeUndefined();
+    expect(result.simulation.state.flags).toEqual({ convergence: true, bell: false });
   });
 });
