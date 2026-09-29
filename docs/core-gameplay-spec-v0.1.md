@@ -1,6 +1,6 @@
 # Core Gameplay Spec v0.1
 
-> Status: Draft / gameplay rules frozen from design discussion
+> Status: Draft / latest confirmed gameplay rules take precedence
 >
 > Scope: Core player loop only. Story-specific reactions and chapter content are intentionally excluded.
 
@@ -64,7 +64,7 @@ Memory Cards 跨輪迴累積
 - 等待特定事件
 - 搜查房間
 
-當多個事件同時發生時，玩家必須選擇把自己的注意力放在哪裡。
+當多個事件同時發生時，玩家仍只有一個主要 Action；但可透過 Elastic Attention 暫時偏離目前 Action 去感知短暫事件。這種短暫感知不等同於啟動第二個主要 Action。
 
 玩家可在合理情境下委託 NPC 處理另一件事情，但這不是獨立的「派遣系統」。
 
@@ -112,45 +112,43 @@ Ambient Narrative 可以包含：
 
 ---
 
-## 5. Interrupt
+## 5. Interrupt and Attention Diversion
 
-部分 Ambient Narrative 可以被玩家注意或互動。
+需要區分「Attention 暫時偏離」與「真正中斷 Action」。
 
-玩家可以選擇：
+### 5.1 Attention Diversion
+
+短暫注意 Ambient / Opportunity 時，預設使用 Elastic Attention：
 
 ```text
-繼續目前行動
-      │
-      └── 注意到某個異常
-                 ↓
-             中斷行動
+Original Action
+      ↓
+Attention Shift
+      ↓
+Observe
+      ↓
+Auto Return
+      ↓
+Resume Original Action
 ```
 
-### 5.1 Default behavior
+例如主角正在和護士談話，聽到門發出「……喀。」後轉頭看一眼。只要 Observation 自然結束，Attention 會回到護士；這不等同於終止整段談話。
 
-一般可中斷 Action：
+### 5.2 True Interrupt
 
-- 保存目前進度
-- 例如 70% 中斷，之後從約 70% 繼續
+只有當玩家的介入需要真正放下目前 Action，例如離開房間、追出去、改做另一個主要行動，才視為 Interrupt。
 
-### 5.2 Action-specific behavior
+一般可恢復 Action 可以保存進度；例如調查病歷進行約 70% 時離開，之後可從接近原進度繼續。
 
-中斷規則由 Action 自己定義。
+但 Action 可以自行定義：
 
-可能包括：
-
-- 可隨時繼續
+- 可直接繼續
 - 中斷後部分進度流失
 - 中斷即失敗
-- 特定時間點不可中斷
+- 特定階段不可中斷
 
-系統不應總是直接標示代價。
+系統不必直接顯示代價。玩家應從情境理解「現在能不能放下這件事」。
 
-玩家應從情境判斷：
-
-> 這件事情現在能不能放下？
-
-每次選擇後面都可能存在代價。
 
 ---
 
@@ -182,19 +180,17 @@ Residual 不需要告訴玩家真正發生了什麼。
 
 遊戲不存在「系統認證的線索列表」。
 
-玩家可以主動保存自己認為值得記住的內容，形成 Memory Card。
+玩家可以透過 Memory Capture，主動讓主角記住自己當下真正感知到的 Moment，形成 Memory Card / Memory Record。
 
-可保存內容可以包含：
+Memory 可以來自：
 
-- NPC 對話
-- 主角觀察
-- 時間
-- 地點
-- Ambient Narrative
-- 文件內容
-- 玩家認為重要、但實際無關的資訊
+- Text：NPC 對話、文件文字、主角觀察
+- Visual：人影、動作、場景瞬間
+- Sound：撞擊聲、腳步聲、遠處談話
+- Composite Moment：同一瞬間實際感知到的文字、畫面與聲音組合
+- 玩家認為重要、但實際可能無關的資訊
 
-遊戲不得主動提示哪一句值得保存。
+時間、地點、Loop、來源人物 / 場景等作為來源 metadata 保存。遊戲不得主動提示哪一個 Moment 值得 Capture，也不得補上主角當時沒有感知到的資訊。
 
 ### 7.1 Persistence
 
@@ -205,7 +201,7 @@ Residual 不需要告訴玩家真正發生了什麼。
 - Loop
 - 發生時間
 - 來源人物 / 場景
-- 原始內容
+- 當時實際 Capture 到的原始感知內容
 
 因此不同 Loop 的資訊可以並存，甚至互相矛盾。
 
@@ -518,7 +514,7 @@ Opportunity 消失後，不應為了等待玩家而停留。
 
 玩家點擊短暫 Opportunity 時，不應跳出 Modal、任務頁或確認視窗。
 
-應透過 Attention Shift（注意力轉移）自然改變主角目前關注的事物。
+應透過 Attention Shift（注意力轉移）自然改變主角目前關注的事物。短暫 Observation 預設採 Elastic Attention，完成後自動回到原 Action；只有玩家進一步離開、追逐或改做另一個主要行動時，才形成真正 Interrupt。
 
 例如：
 
@@ -545,7 +541,7 @@ Opportunity 消失後，不應為了等待玩家而停留。
 底層可以是：
 
 ```text
-Walking → Pause → ObserveWindow → Resume Walking
+Walking → Attention Shift → ObserveWindow → Auto Return → Resume Walking
 ```
 
 但玩家不需要看見這些 State。
@@ -642,24 +638,23 @@ Memory Layer 才允許較明確的管理型介面，因為它代表玩家主動�
 
 ---
 
-## 20. Deferred: Text Presentation
+## 20. Text Presentation Direction
 
-文字是遊戲最主要的資訊與沉浸媒介，但具體的文字呈現方式尚未在 v0.1 定案。
+文字呈現已不再是 Deferred 項目。v0.1 已確立以下方向，詳細規則見 §21–§36：
 
-後續需獨立設計：
+- Spatial Typography：文字位置承擔方位與空間資訊
+- Spatial Dialogue：角色文字繼承角色在場景中的相對位置
+- Text Echo：舊句留下極淡殘影後自然消失
+- Rhythmic Text：依 Speech Rhythm 分段出現，不採固定逐字速度
+- Attention Presentation：單一 Focus，其他內容淡化但仍持續發生
+- Ambient Text：可在不同位置、角度與時間短暫出現
+- Memory Capture：玩家可抓住正在消失的 Perceived Moment
 
-- 文字如何進場 / 離場
-- 打字速度
-- 位置與排版
-- Dialogue 與 Thought 的差異
-- Ambient Text 的生命週期
-- 可互動文字的 Weak Affordance
-- 多段文字同時存在時的視覺層級
-- 文字、聲音、圖片、震動之間的同步
+仍未鎖死的是實作參數，例如具體字體、字級、Fade 秒數、Hold Duration、動畫曲線與各裝置輸入細節。這些應由 Prototype / Playtest 決定，而不是視為核心規則未定。
 
-本 Spec 目前只確立：
+核心原則仍是：
 
-> 文字應屬於世界體驗的一部分，而不是被限制在傳統對話框中。
+> 文字屬於世界體驗的一部分，而不是被限制在傳統對話框中。
 
 
 ---
@@ -832,13 +827,9 @@ Ambient Narrative 也可以使用相同空間：
 - 忽略它
 - 中斷目前 Attention 並轉向 Opportunity
 
-### 21.7 Current open question
+### 21.7 Exit behavior
 
-尚未定案：
-
-> 上一句文字退出後，應完全消失，還是留下短暫、極淡的殘影？
-
-這會影響閱讀節奏、記憶感與畫面資訊密度，需後續獨立討論。
+上一句文字退出時採用 Text Echo：先留下短暫、極淡的殘影，再逐漸消失。它不是 Chat History；完整規則見 §22。
 
 ---
 
@@ -959,7 +950,7 @@ Dialogue 不是 Gameplay 的暫停區。一般故事對話由主角依既定性�
 
                         走廊有人經過。
 
-玩家可以繼續專注護士、注意門聲、看經過的人、Capture 某一句話、使用 Memory 介入、中斷對話或離開現場。Dialogue 的核心 Gameplay 是「我現在注意什麼、記住什麼、忽略什麼，以及什麼時候介入」。
+玩家可以繼續專注護士、Hover 門聲形成 Notice、Click 後 Attend / Observe、Capture 已實際感知到的 Moment、使用 Memory 介入、真正中斷對話或離開現場。Dialogue 的核心 Gameplay 是「我現在注意什麼、記住什麼、忽略什麼，以及什麼時候介入」。
 
 ## 27. Memory Capture
 
