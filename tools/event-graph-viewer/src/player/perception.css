@@ -14,14 +14,31 @@
 }
 
 .presence-opportunities button:hover,
-.presence-opportunities button:focus-visible {
+.presence-opportunities button:focus-visible,
+.presence-opportunities button[aria-current='true'] {
   color: #d8ddd3;
   opacity: 1;
   transform: translateX(2px);
 }
 
+.reading-scene > :not(.presence-opportunities) {
+  transition: opacity .22s ease, filter .22s ease;
+}
+
+.reading-scene.attention-shifting > :not(.presence-opportunities),
+.reading-scene.attention-observing > :not(.presence-opportunities) {
+  opacity: .34;
+  filter: blur(.25px);
+}
+
+.reading-scene.attention-observing .presence-opportunities button:not([aria-current='true']),
+.reading-scene.attention-shifting .presence-opportunities button:not([aria-current='true']) {
+  opacity: .28;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .presence-opportunities button {
+  .presence-opportunities button,
+  .reading-scene > :not(.presence-opportunities) {
     transition: none;
   }
 }
