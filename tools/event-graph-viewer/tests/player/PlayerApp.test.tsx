@@ -7,7 +7,8 @@ import { emptyLoop, normalizeSave } from '../../src/player/model';
 import { readSave, SAVE_KEY } from '../../src/player/storage';
 import { createNextLoop } from '../../src/player/runtime';
 import { MINUTE } from '../../src/player/clock';
-import { ATTENTION_OBSERVATION_MS, ATTENTION_SHIFT_MS } from '../../src/player/attention';
+import { ATTENTION_SHIFT_MS } from '../../src/player/attention';
+import { recordById } from '../../src/player/story';
 import type { SimulationDefinition, WorldState } from '../../src/simulator/types';
 import initialYaml from '../../../../story/world/day_01_initial.yaml?raw';
 import actionsYaml from '../../../../story/actions/day_01_actions.yaml?raw';
@@ -104,7 +105,7 @@ it('shows a character response in the scene immediately after confirming a choic
   expect(readSave(storage, 1000).loops[1].actionIds).toEqual(['protect_wakaharu', 'stop_doctor']);
 });
 
-it('requires completed Attention Shift and Observation before a presence opportunity becomes readable knowledge', async () => {
+it('plays rhythmic observation during Attend and auto returns only after the scene finishes', async () => {
   const storage = window.localStorage;
   storage.clear();
   let current = 1000;
@@ -116,20 +117,25 @@ it('requires completed Attention Shift and Observation before a presence opportu
   fireEvent(document, new Event('visibilitychange'));
 
   expect(screen.queryByText(/停電只有幾秒/)).toBeNull();
-  expect(screen.queryByRole('button', { name: /閱讀新消息：車站的燈/ })).toBeNull();
   const cue = await screen.findByRole('button', { name: '……鐘聲？' });
   await user.click(cue);
-
-  expect(screen.queryByText(/停電只有幾秒/)).toBeNull();
-  expect(readSave(storage, current).loops[1].perceivedSceneIds).not.toContain('station-blackout');
   expect(readSave(storage, current).loops[1].attention.phase).toBe('shifting');
+  expect(readSave(storage, current).loops[1].perceivedSceneIds).not.toContain('station-blackout');
 
-  current += ATTENTION_SHIFT_MS + ATTENTION_OBSERVATION_MS;
+  current += ATTENTION_SHIFT_MS;
   fireEvent(document, new Event('visibilitychange'));
 
+  expect(readSave(storage, current).loops[1].attention.phase).toBe('observing');
   expect(await screen.findByText(/停電只有幾秒/)).toBeDefined();
+  expect(readSave(storage, current).loops[1].perceivedSceneIds).not.toContain('station-blackout');
+
+  const observationMs = recordById('station-blackout')?.spatialScript?.totalDurationMs ?? 0;
+  current += observationMs;
+  fireEvent(document, new Event('visibilitychange'));
+
   expect(readSave(storage, current).loops[1].perceivedSceneIds).toContain('station-blackout');
   expect(readSave(storage, current).loops[1].attention.phase).toBe('idle');
+  expect(screen.getByText('回來一趟。')).toBeDefined();
 });
 
 it('frames Loop 1 at the return train and does not ask for a mode', async () => {
