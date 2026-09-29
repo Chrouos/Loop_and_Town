@@ -92,7 +92,12 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
   const records = visibleRecords(save, loopId, recordSource);
   const opportunities = availablePresenceRecords(save, loopId, clock.minute, recordSource);
   const opened = loopId !== 1 || save.knowledge.opened.includes(`${loopId}:letter`) || save.knowledge.opened.includes('letter');
-  const record = records.find(x => x.id === selected) ?? records[0];
+  const selectedProjectedRecord = recordSource?.find(item => (
+    item.id === selected
+    && loop.revealedIds.includes(`${loopId}:${item.id}`)
+    && (item.acquisition !== 'presence' || loop.perceivedSceneIds.includes(item.sceneId))
+  ));
+  const record = records.find(x => x.id === selected) ?? selectedProjectedRecord ?? records[0];
   const incoming = records.filter(item => item.acquisition !== 'presence' && item.revealMinute > 0 && !save.knowledge.opened.includes(`${loopId}:${item.id}`));
   const hasAction = (id: ActionId) => loop.actionIds.includes(id);
   const canAct = clock.minute < 1100;
