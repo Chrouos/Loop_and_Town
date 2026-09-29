@@ -104,6 +104,16 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
   const next = clock.minute < 1100 ? '18:20 前，你還能改變今晚的行程' : clock.minute < 1111 ? '18:31，舊車站' : clock.minute < 1120 ? '等候鎮上的通報' : clock.minute < 1280 ? '21:20，予安說會再聯絡' : '午夜，日期會回到今天';
   const resetPending = loop.clock.pendingCriticalBoundary === 'reset';
 
+  useEffect(() => {
+    if (!story || loop.attention.phase === 'idle') return;
+    const deadline = loop.attention.phase === 'shifting'
+      ? loop.attention.shiftEndsAtMs
+      : loop.attention.observationEndsAtMs;
+    if (deadline === undefined) return;
+    const timer = window.setTimeout(() => refresh(story), Math.max(0, deadline - now()) + 1);
+    return () => window.clearTimeout(timer);
+  }, [story, loop.attention.phase, loop.attention.shiftEndsAtMs, loop.attention.observationEndsAtMs, refresh, now]);
+
   function showDrawer(value: Drawer, target?: HTMLButtonElement) { opener.current = target ?? null; setDrawer(value); setNote(''); }
   function choose(id: ActionId) {
     try { const nextSave = normalizeSave(save, now()); confirmAction(nextSave, id, now()); commit(nextSave); setNote(id === 'protect_wakaharu' ? '你答應在若晴出門前陪她留在家裡。' : '你請予安先到醫院，設法留住陳柏勳。'); }
@@ -133,7 +143,7 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
   }
   function attend(id: string) {
     const nextSave = normalizeSave(save, now());
-    if (!attendPresenceRecord(nextSave, loopId, id, clock.minute, recordSource)) return;
+    if (!attendPresenceRecord(nextSave, loopId, id, clock.minute, recordSource, record?.id, now())) return;
     commit(nextSave);
     setSelected(id);
   }
@@ -150,8 +160,8 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
   return <div className="player-shell">
     <header className="player-header"><div className="wordmark">灰潮鎮 <span>／ 第七封信</span></div><div className="header-actions"><span className="town-time">第 {clock.loop} 次 · 鎮內 {displayMinute(clock.minute)}</span><button onClick={e => showDrawer('case', e.currentTarget)}>案卷 <i>{records.length}</i></button><button onClick={e => showDrawer('board', e.currentTarget)}>推理桌</button><button onClick={e => showDrawer('worldlines', e.currentTarget)}>世界線</button><button onClick={e => showDrawer('save', e.currentTarget)}>存檔</button></div></header>
     <main className="player-stage">
-      {error ? <p role="alert">無法讀取鎮上的紀錄：{error}</p> : !story ? <p>正在取出案卷……</p> : resetPending ? <div className="opening mode-choice"><p>鐘聲落下，今天又回到可以重來的地方。</p><p>下一次進入灰潮鎮時，你要怎麼走進這一天？</p><button onClick={() => chooseMode('LIVE_SYNC')} disabled={!isLiveSyncAvailable(currentMs)}>跟著現在走<span> · {isLiveSyncAvailable(currentMs) ? '從此刻的鎮內時間進入' : '現在是 Live Sync 無法進入的時間'}</span></button><button onClick={() => chooseMode('ACCELERATED')}>回到記憶開始的地方<span> · 從 06:12 的返程列車開始</span></button>{note && <p className="inline-note" role="status">{note}</p>}</div> : !opened ? <div className="opening"><p>返程列車在灰潮鎮的月台緩緩停下。</p><p>現在是灰潮鎮的{entry.label}，你手裡還握著那封不該出現的信。</p>{entry.lines.map(line => <p key={line}>{line}</p>)}<button className="envelope-button" onClick={() => openRecord('letter')} aria-label="拆開信封，讀姊姊的信"><span className="envelope" aria-hidden="true"><span className="envelope-flap"/><span className="envelope-name">林知夏　寄</span></span><span className="envelope-action">拆開信封</span></button></div> : <div className="reading-scene" key={`${clock.loop}:${record?.id}`}>
-        {opportunities.length > 0 && <div className="presence-opportunities" aria-label="周遭動靜">{opportunities.map(item => <button key={item.id} onClick={() => attend(item.id)} aria-label={presenceCueLabel(item.id)}>{presenceCueLabel(item.id)}</button>)}</div>}
+      {error ? <p role="alert">無法讀取鎮上的紀錄：{error}</p> : !story ? <p>正在取出案卷……</p> : resetPending ? <div className="opening mode-choice"><p>鐘聲落下，今天又回到可以重來的地方。</p><p>下一次進入灰潮鎮時，你要怎麼走進這一天？</p><button onClick={() => chooseMode('LIVE_SYNC')} disabled={!isLiveSyncAvailable(currentMs)}>跟著現在走<span> · {isLiveSyncAvailable(currentMs) ? '從此刻的鎮內時間進入' : '現在是 Live Sync 無法進入的時間'}</span></button><button onClick={() => chooseMode('ACCELERATED')}>回到記憶開始的地方<span> · 從 06:12 的返程列車開始</span></button>{note && <p className="inline-note" role="status">{note}</p>}</div> : !opened ? <div className="opening"><p>返程列車在灰潮鎮的月台緩緩停下。</p><p>現在是灰潮鎮的{entry.label}，你手裡還握著那封不該出現的信。</p>{entry.lines.map(line => <p key={line}>{line}</p>)}<button className="envelope-button" onClick={() => openRecord('letter')} aria-label="拆開信封，讀姊姊的信"><span className="envelope" aria-hidden="true"><span className="envelope-flap"/><span className="envelope-name">林知夏　寄</span></span><span className="envelope-action">拆開信封</span></button></div> : <div className={`reading-scene attention-${loop.attention.phase}`} key={`${clock.loop}:${record?.id}`}>
+        {opportunities.length > 0 && <div className="presence-opportunities" aria-label="周遭動靜">{opportunities.map(item => <button key={item.id} onClick={() => attend(item.id)} aria-label={presenceCueLabel(item.id)} aria-current={loop.attention.targetId === item.id ? 'true' : undefined}>{presenceCueLabel(item.id)}</button>)}</div>}
         {incoming.length > 0 && <div className="incoming-records" aria-label="新消息"><p>鎮上有新消息</p>{incoming.map(item => <button key={item.id} onClick={() => openRecord(item.id)}>閱讀新消息：{item.title}</button>)}</div>}
         <div className="document-top"><span>第 {clock.loop} 次今天</span><span>{record?.source}　／　{record?.formedAt}</span></div>
         <h1>{record?.title}</h1>
