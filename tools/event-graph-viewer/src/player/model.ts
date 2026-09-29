@@ -18,7 +18,15 @@ export type CharacterInsight = {
   sourceLoop: number;
   text: string;
 };
-export type LoopSave = { actionIds: ActionId[]; revealedIds: string[]; seenSceneIds: string[]; sealed: boolean; clock: LoopClockState; history: LoopHistoryEntry[] };
+export type LoopSave = {
+  actionIds: ActionId[];
+  revealedIds: string[];
+  perceivedSceneIds: string[];
+  seenSceneIds: string[];
+  sealed: boolean;
+  clock: LoopClockState;
+  history: LoopHistoryEntry[];
+};
 export type KnowledgeSave = {
   opened: string[];
   pins: string[];
@@ -58,6 +66,7 @@ const emptyHistory = (value: unknown): LoopHistoryEntry[] => Array.isArray(value
 export const emptyLoop = (clock: LoopClockState = createLoopClock('ACCELERATED', 0)): LoopSave => ({
   actionIds: [],
   revealedIds: [],
+  perceivedSceneIds: [],
   seenSceneIds: [],
   sealed: false,
   clock,
@@ -101,6 +110,7 @@ function normalizeLoop(value: unknown, nowMs: number, fallbackClock?: LoopClockS
   return {
     actionIds: [...new Set(strings(src.actionIds).filter(action))],
     revealedIds: [...new Set(strings(src.revealedIds))],
+    perceivedSceneIds: [...new Set(strings(src.perceivedSceneIds))],
     seenSceneIds: [...new Set(strings(src.seenSceneIds))],
     sealed: src.sealed === true,
     clock: normalizeClock(src.clock, nowMs) ?? fallbackClock ?? createLoopClock('ACCELERATED', nowMs),
