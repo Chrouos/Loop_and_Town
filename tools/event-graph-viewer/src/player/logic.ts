@@ -42,6 +42,32 @@ export function unpinExcerpt(save: PlayerSave, ref: string): PlayerSave {
   return save;
 }
 
+export function addMemoryToWall(save: PlayerSave, memoryId: string): PlayerSave {
+  if (!save.knowledge.memories.some(memory => memory.id === memoryId)) throw new Error('這段記憶還沒有被捕捉。');
+  if (!save.knowledge.wallRefs.includes(memoryId)) save.knowledge.wallRefs.push(memoryId);
+  return save;
+}
+
+export function removeWallRef(save: PlayerSave, ref: string): PlayerSave {
+  save.knowledge.wallRefs = save.knowledge.wallRefs.filter(item => item !== ref);
+  save.knowledge.connections = save.knowledge.connections.filter(key => !key.split('#')[0].split('|').includes(ref));
+  delete save.knowledge.positions[ref];
+  return save;
+}
+
+export function connectWallRefs(save: PlayerSave, first: string, second: string): PlayerSave {
+  if (first === second || !save.knowledge.wallRefs.includes(first) || !save.knowledge.wallRefs.includes(second)) return save;
+  const key = [first, second].sort().join('|');
+  if (!save.knowledge.connections.includes(key)) save.knowledge.connections.push(key);
+  return save;
+}
+
+export function addPlayerNote(save: PlayerSave, text: string): PlayerSave {
+  const trimmed = text.trim();
+  if (trimmed) save.knowledge.notes.push({ source: 'player', text: trimmed });
+  return save;
+}
+
 export function judgeLink(save: PlayerSave, first: string, second: string, claimId: string): { save: PlayerSave; feedback: string } {
   if (first === second || !save.knowledge.pins.includes(first) || !save.knowledge.pins.includes(second)) return { save, feedback: '請選桌上兩段不同的文字。' };
   const key = pairKey(first, second);

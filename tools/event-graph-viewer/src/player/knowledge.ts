@@ -1,7 +1,7 @@
 import type { SimulationDefinition, WorldState } from '../simulator/types';
 import { clockMinuteAt, LOOP_START_MINUTE, realTimestampForSimulationMinute } from './clock';
 import { advanceLoop } from './eventScheduler';
-import { emptyLoop, type LoopHistoryEntry, type PlayerSave } from './model';
+import { emptyLoop, type LoopHistoryEntry, type MemoryKind, type PlayerSave, type PersistentMemory } from './model';
 import { activeLoop, replayLoop } from './runtime';
 import { projectPlayerNarrativeRecords } from './narrativeRecords';
 import { STORY_RECORDS, type PlayerNarrativeRecord } from './story';
@@ -9,6 +9,7 @@ import type { PlayerStoryBundle } from '../types/playerStory';
 import { ATTENTION_OBSERVATION_MS, advanceAttention, beginAttention, redirectAttention } from './attention';
 
 const DEFAULT_PRESENCE_WINDOW_MINUTES = 5;
+export const MEMORY_CAPTURE_MS = 1_200;
 
 function staticRecords(loop: number): PlayerNarrativeRecord[] {
   return STORY_RECORDS.map((record) => ({ ...record, sceneId: record.id, loopId: loop }));
@@ -69,6 +70,66 @@ export function attendPresenceRecord(
   return true;
 }
 
+function memoryId(loop: number, recordId: string): string {
+  return `memory:${loop}:${recordId}`;
+}
+
+export function beginMemoryCapture(
+  save: PlayerSave,
+  loop: number,
+  recordId: string,
+  minute: number,
+  records?: PlayerNarrativeRecord[],
+  nowMs = save.lastConfirmedMs,
+): boolean {
+  const entry = save.loops[loop];
+  if (!entry || entry.attention.phase !== 'idle' || entry.capture) return false;
+  const candidate = recordSource(loop, records).find(record => record.id === recordId);
+  if (!candidate || !entry.perceivedSceneIds.includes(candidate.sceneId)) return false;
+  if (save.knowledge.memories.some(memory => memory.id === memoryId(loop, recordId))) return false;
+  entry.capture = { recordId, startedAtMs: nowMs, endsAtMs: nowMs + MEMORY_CAPTURE_MS };
+  entry.attention = beginAttention(undefined, `capture:${recordId}`, nowMs, MEMORY_CAPTURE_MS);
+  return true;
+}
+
+function memoryKind(record: PlayerNarrativeRecord): MemoryKind {
+  return record.spatialScript ? 'composite' : 'text';
+}
+
+function settleMemoryCapture(
+  save: PlayerSave,
+  loop: number,
+  nowMs: number,
+  minute: number,
+  records?: PlayerNarrativeRecord[],
+): PersistentMemory | undefined {
+  const entry = save.loops[loop];
+  if (!entry?.capture) return undefined;
+  const capture = entry.capture;
+  const advanced = advanceAttention(entry.attention, nowMs);
+  entry.attention = advanced.state;
+  if (advanced.completedTargetId !== `capture:${capture.recordId}`) return undefined;
+  const candidate = recordSource(loop, records).find(record => record.id === capture.recordId);
+  if (!candidate || !entry.perceivedSceneIds.includes(candidate.sceneId)) {
+    entry.capture = undefined;
+    return undefined;
+  }
+  const memory: PersistentMemory = {
+    id: memoryId(loop, candidate.id),
+    sourceLoop: loop,
+    sourceRecordId: candidate.id,
+    sourceSceneId: candidate.sceneId,
+    capturedAtMinute: minute,
+    capturedAtMs: nowMs,
+    kind: memoryKind(candidate),
+    title: candidate.title,
+    content: [...candidate.body],
+  };
+  if (!save.knowledge.memories.some(item => item.id === memory.id)) save.knowledge.memories.push(memory);
+  entry.capture = undefined;
+  return memory;
+}
+
 export function settlePresenceAttention(
   save: PlayerSave,
   loop: number,
@@ -91,6 +152,7 @@ export function settlePresenceAttention(
   if (minute < candidate.revealMinute || minute > until) return undefined;
 
   if (!entry.perceivedSceneIds.includes(candidate.sceneId)) entry.perceivedSceneIds.push(candidate.sceneId);
+  entry.lastPerceivedRecordId = candidate.id;
   return candidate;
 }
 
@@ -139,6 +201,7 @@ export function reconcilePlayer(
       targetMinute,
     )
     : undefined;
+  settleMemoryCapture(save, loopId, safeNow, targetMinute, attentionRecords);
   settlePresenceAttention(save, loopId, safeNow, targetMinute, attentionRecords);
 
   // Reset is the only lifecycle boundary that may wait for the next-loop

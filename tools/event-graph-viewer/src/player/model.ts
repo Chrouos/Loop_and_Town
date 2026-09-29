@@ -27,24 +27,45 @@ export type AttentionState = {
   shiftEndsAtMs?: number;
   observationEndsAtMs?: number;
 };
+export type MemoryCaptureState = {
+  recordId: string;
+  startedAtMs: number;
+  endsAtMs: number;
+};
 export type LoopSave = {
   actionIds: ActionId[];
   revealedIds: string[];
   perceivedSceneIds: string[];
   seenSceneIds: string[];
   attention: AttentionState;
+  capture?: MemoryCaptureState;
+  lastPerceivedRecordId?: string;
   sealed: boolean;
   clock: LoopClockState;
   history: LoopHistoryEntry[];
 };
+export type MemoryKind = 'text' | 'visual' | 'sound' | 'composite';
+export type PersistentMemory = {
+  id: string;
+  sourceLoop: number;
+  sourceRecordId: string;
+  sourceSceneId: string;
+  capturedAtMinute: number;
+  capturedAtMs: number;
+  kind: MemoryKind;
+  title: string;
+  content: string[];
+};
 export type KnowledgeSave = {
   opened: string[];
   pins: string[];
+  wallRefs: string[];
   positions: Record<string, { x: number; y: number }>;
   connections: string[];
   notes: Array<{ source: 'legacy' | 'player'; text: string }>;
   characterInsights: CharacterInsight[];
   discoveredEvidence: string[];
+  memories: PersistentMemory[];
 };
 export type PlayerSave = {
   version: 2;
@@ -132,6 +153,11 @@ function normalizeAttention(value: unknown): AttentionState {
   };
 }
 
+function normalizeCapture(value: unknown): MemoryCaptureState | undefined {
+  if (!record(value) || typeof value.recordId !== 'string' || !finite(value.startedAtMs) || !finite(value.endsAtMs)) return undefined;
+  return { recordId: value.recordId, startedAtMs: value.startedAtMs, endsAtMs: Math.max(value.startedAtMs, value.endsAtMs) };
+}
+
 function normalizeLoop(value: unknown, nowMs: number, fallbackClock?: LoopClockState): LoopSave {
   const src = record(value) ? value : {};
   return {
@@ -140,6 +166,8 @@ function normalizeLoop(value: unknown, nowMs: number, fallbackClock?: LoopClockS
     perceivedSceneIds: [...new Set(strings(src.perceivedSceneIds))],
     seenSceneIds: [...new Set(strings(src.seenSceneIds))],
     attention: normalizeAttention(src.attention),
+    capture: normalizeCapture(src.capture),
+    lastPerceivedRecordId: typeof src.lastPerceivedRecordId === 'string' ? src.lastPerceivedRecordId : undefined,
     sealed: src.sealed === true,
     clock: normalizeClock(src.clock, nowMs) ?? fallbackClock ?? createLoopClock('ACCELERATED', nowMs),
     history: emptyHistory(src.history),
@@ -194,12 +222,13 @@ function normalizeV1(src: Record<string, unknown>, nowMs: number): PlayerSave {
 
 function normalizeKnowledge(old: Record<string, unknown>): KnowledgeSave {
   const positions: KnowledgeSave['positions'] = {};
-  if (record(old.positions)) for (const [key, value] of Object.entries(old.positions).slice(0, 6)) {
+  if (record(old.positions)) for (const [key, value] of Object.entries(old.positions).slice(0, 500)) {
     if (record(value) && finite(value.x) && finite(value.y)) positions[key] = { x: value.x, y: value.y };
   }
   return {
     opened: strings(old.opened),
     pins: strings(old.pins).slice(0, 6),
+    wallRefs: strings(old.wallRefs).slice(0, 500),
     connections: strings(old.connections),
     positions,
     notes: Array.isArray(old.notes) ? old.notes.filter((n): n is { source: 'legacy' | 'player'; text: string } => record(n) && (n.source === 'legacy' || n.source === 'player') && typeof n.text === 'string').slice(0, 40) : [],
@@ -216,5 +245,32 @@ function normalizeKnowledge(old: Record<string, unknown>): KnowledgeSave {
       }).filter((item): item is CharacterInsight => item !== undefined).slice(0, 250)
       : [],
     discoveredEvidence: strings(old.discoveredEvidence),
+    memories: Array.isArray(old.memories)
+      ? old.memories.filter(record).map((item): PersistentMemory | undefined => {
+        const kind = item.kind === 'text' || item.kind === 'visual' || item.kind === 'sound' || item.kind === 'composite' ? item.kind : undefined;
+        if (
+          typeof item.id !== 'string'
+          || !Number.isSafeInteger(item.sourceLoop)
+          || (item.sourceLoop as number) < 1
+          || typeof item.sourceRecordId !== 'string'
+          || typeof item.sourceSceneId !== 'string'
+          || !finite(item.capturedAtMinute)
+          || !finite(item.capturedAtMs)
+          || !kind
+          || typeof item.title !== 'string'
+        ) return undefined;
+        return {
+          id: item.id,
+          sourceLoop: item.sourceLoop as number,
+          sourceRecordId: item.sourceRecordId,
+          sourceSceneId: item.sourceSceneId,
+          capturedAtMinute: item.capturedAtMinute as number,
+          capturedAtMs: item.capturedAtMs as number,
+          kind,
+          title: item.title,
+          content: strings(item.content).slice(0, 30),
+        };
+      }).filter((item): item is PersistentMemory => item !== undefined).slice(0, 500)
+      : [],
   };
 }

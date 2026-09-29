@@ -3,7 +3,7 @@ import { loadPlayerStoryBundle } from '../lib/loadPlayerStoryBundle';
 import type { SimulationDefinition, WorldState } from '../simulator/types';
 import { clockMinuteAt, displayMinute, isLiveSyncAvailable } from './clock';
 import { entryPresentation, entryWindowFor } from './entry';
-import { reconcilePlayer, visibleRecords } from './knowledge';
+import { attendPresenceRecord, availablePresenceRecords, beginMemoryCapture, reconcilePlayer, visibleRecords } from './knowledge';
 import { knownDiff, pinExcerpt } from './logic';
 import { normalizeSave, type ActionId, type PlayerSave } from './model';
 import { activeLoop, confirmAction, continuePendingBoundary, createNextLoop, replayLoop } from './runtime';
@@ -15,7 +15,9 @@ import { DialogueScene } from './scenes/DialogueScene';
 import { OpeningScene } from './scenes/OpeningScene';
 import { SceneFrame } from './ui/SceneFrame';
 import { WorldlineHud } from './ui/WorldlineHud';
+import { SpatialTextLayer } from './SpatialTextLayer';
 import { markPlayerNarrativeSeen, projectPlayerNarrativeRecords } from './narrativeRecords';
+import { recordById } from './story';
 import type { PlayerStoryBundle } from '../types/playerStory';
 
 type LegacyStory = { definition: SimulationDefinition; initialState: WorldState };
@@ -31,6 +33,11 @@ function prefersReducedMotion(): boolean {
   return typeof window !== 'undefined' && typeof window.matchMedia === 'function'
     ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
     : false;
+}
+
+function presenceCueLabel(id: string): string {
+  if (id === 'station-blackout') return '……鐘聲？';
+  return '……剛才那邊？';
 }
 
 export function PlayerApp({ now = Date.now, storage = window.localStorage, loadStory = () => loadPlayerStoryBundle('story/manifests/loop_01.yaml') }: Props) {
@@ -96,10 +103,29 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
       clock.minute,
     )
     : undefined;
-  const records = visibleRecords(save, loopId, loopId === 1 ? undefined : playerRecords);
+  const recordSource = loopId === 1 ? undefined : playerRecords;
+  const records = visibleRecords(save, loopId, recordSource);
+  const opportunities = availablePresenceRecords(save, loopId, clock.minute, recordSource);
   const opened = loopId !== 1 || save.knowledge.opened.includes(`${loopId}:letter`) || save.knowledge.opened.includes('letter');
-  const record = records.find(x => x.id === selected) ?? playerRecords?.find(x => x.id === selected) ?? records[0];
-  const incoming = records.filter(item => item.revealMinute > 0 && !save.knowledge.opened.includes(`${loopId}:${item.id}`));
+  const selectedProjectedRecord = recordSource?.find(item => (
+    item.id === selected
+    && loop.revealedIds.includes(`${loopId}:${item.id}`)
+    && (item.acquisition !== 'presence' || loop.perceivedSceneIds.includes(item.sceneId))
+  ));
+  const record = records.find(x => x.id === selected) ?? selectedProjectedRecord ?? records[0];
+  const attentionRecord = loop.attention.targetId
+    ? (recordSource?.find(item => item.id === loop.attention.targetId) ?? recordById(loop.attention.targetId))
+    : undefined;
+  const observingSpatialRecord = loop.attention.phase === 'observing' && attentionRecord?.spatialScript
+    ? attentionRecord
+    : undefined;
+  const lastPerceivedRecord = loop.lastPerceivedRecordId
+    ? (recordSource?.find(item => item.id === loop.lastPerceivedRecordId) ?? recordById(loop.lastPerceivedRecordId))
+    : undefined;
+  const lastMemory = lastPerceivedRecord
+    ? save.knowledge.memories.find(memory => memory.id === `memory:${loopId}:${lastPerceivedRecord.id}`)
+    : undefined;
+  const incoming = records.filter(item => item.acquisition !== 'presence' && item.revealMinute > 0 && !save.knowledge.opened.includes(`${loopId}:${item.id}`));
   const hasAction = (id: ActionId) => loop.actionIds.includes(id);
   const canAct = clock.minute < 1100;
   const next = clock.minute < 1100 ? '18:20 前，你還能改變今晚的行程' : clock.minute < 1111 ? '18:31，舊車站' : clock.minute < 1120 ? '等候鎮上的通報' : clock.minute < 1280 ? '21:20，予安說會再聯絡' : '午夜，日期會回到今天';
@@ -108,6 +134,16 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
   useEffect(() => {
     if (!resetPending) setResetPresentationComplete(false);
   }, [resetPending]);
+
+  useEffect(() => {
+    if (!story || loop.attention.phase === 'idle') return;
+    const deadline = loop.attention.phase === 'shifting'
+      ? loop.attention.shiftEndsAtMs
+      : loop.attention.observationEndsAtMs;
+    if (deadline === undefined) return;
+    const timer = window.setTimeout(() => refresh(story), Math.max(0, deadline - now()) + 1);
+    return () => window.clearTimeout(timer);
+  }, [story, loop.attention.phase, loop.attention.shiftEndsAtMs, loop.attention.observationEndsAtMs, refresh, now]);
 
   function showDrawer(value: Drawer, target?: HTMLButtonElement) { opener.current = target ?? null; setDrawer(value); setNote(''); }
   function choose(id: ActionId) {
@@ -139,6 +175,16 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
     }
     commit(nextSave); setSelected(id); setDrawer(null);
   }
+  function attend(id: string) {
+    const nextSave = normalizeSave(save, now());
+    if (!attendPresenceRecord(nextSave, loopId, id, clock.minute, recordSource, record?.id, now())) return;
+    commit(nextSave);
+  }
+  function capture(id: string) {
+    const nextSave = normalizeSave(save, now());
+    if (!beginMemoryCapture(nextSave, loopId, id, clock.minute, recordSource, now())) return;
+    commit(nextSave);
+  }
   function pin(ref: string) {
     try { const nextSave = normalizeSave(save, now()); pinExcerpt(nextSave, ref); commit(nextSave); setNote('已放在推理桌上。'); }
     catch (e) { setNote(e instanceof Error ? e.message : String(e)); }
@@ -153,12 +199,18 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
     <header className="player-header player-header--minimal"><WorldlineHud loop={clock.loop} time={displayMinute(clock.minute)} /><button className="player-utility-trigger" aria-label="開啟工具" onClick={e => showDrawer('tools', e.currentTarget)}>···</button></header>
     <main className={`player-stage ${resetPending && !resetPresentationComplete ? 'player-stage--cinematic' : 'player-stage--reading'}`}>
       <SceneFrame className="scene-frame--flat player-presentation-frame">
-        {error ? <p role="alert">無法讀取鎮上的紀錄：{error}</p> : !story ? <p>正在取出案卷……</p> : resetPending && !resetPresentationComplete ? <ResetTransitionScene reducedMotion={prefersReducedMotion()} onPresentationComplete={() => setResetPresentationComplete(true)} /> : resetPending ? <div className="opening mode-choice"><p>鐘聲落下，今天又回到可以重來的地方。</p><p>下一次進入灰潮鎮時，你要怎麼走進這一天？</p><button onClick={() => chooseMode('LIVE_SYNC')} disabled={modeCommitInFlight || !isLiveSyncAvailable(currentMs)}>跟著現在走<span> · {isLiveSyncAvailable(currentMs) ? '從此刻的鎮內時間進入' : '現在是 Live Sync 無法進入的時間'}</span></button><button onClick={() => chooseMode('ACCELERATED')} disabled={modeCommitInFlight}>回到記憶開始的地方<span> · 從 06:12 的返程列車開始</span></button>{note && <p className="inline-note" role="status">{note}</p>}</div> : !opened ? <OpeningScene label={entry.label} lines={entry.lines} onOpenLetter={() => openRecord('letter')} /> : <div className="reading-scene" key={`${clock.loop}:${record?.id}`}>
+        {error ? <p role="alert">無法讀取鎮上的紀錄：{error}</p> : !story ? <p>正在取出案卷……</p> : resetPending && !resetPresentationComplete ? <ResetTransitionScene reducedMotion={prefersReducedMotion()} onPresentationComplete={() => setResetPresentationComplete(true)} /> : resetPending ? <div className="opening mode-choice"><p>鐘聲落下，今天又回到可以重來的地方。</p><p>下一次進入灰潮鎮時，你要怎麼走進這一天？</p><button onClick={() => chooseMode('LIVE_SYNC')} disabled={modeCommitInFlight || !isLiveSyncAvailable(currentMs)}>跟著現在走<span> · {isLiveSyncAvailable(currentMs) ? '從此刻的鎮內時間進入' : '現在是 Live Sync 無法進入的時間'}</span></button><button onClick={() => chooseMode('ACCELERATED')} disabled={modeCommitInFlight}>回到記憶開始的地方<span> · 從 06:12 的返程列車開始</span></button>{note && <p className="inline-note" role="status">{note}</p>}</div> : !opened ? <OpeningScene label={entry.label} lines={entry.lines} onOpenLetter={() => openRecord('letter')} /> : <div className={`reading-scene attention-${loop.attention.phase}`} key={`${clock.loop}:${record?.id}`}>
+        {opportunities.length > 0 && <div className="presence-opportunities" aria-label="周遭動靜">{opportunities.map(item => <button key={item.id} onClick={() => attend(item.id)} aria-label={presenceCueLabel(item.id)} aria-current={loop.attention.targetId === item.id ? 'true' : undefined}>{presenceCueLabel(item.id)}</button>)}</div>}
+        {loop.capture && <div className="memory-capture-status" role="status"><p>你正在把剛才的感覺留下來……</p></div>}
+        {!loop.capture && lastPerceivedRecord && !lastMemory && <div className="memory-capture-prompt" role="status"><p>剛才那一幕還留在你心裡。</p><button onClick={() => capture(lastPerceivedRecord.id)}>捕捉這段記憶</button></div>}
+        {!loop.capture && lastMemory && <div className="memory-capture-status" role="status"><p>已將「{lastMemory.title}」收進持久記憶。</p></div>}
         {incoming.length > 0 && <div className="incoming-records" aria-label="新消息"><p>鎮上有新消息</p>{incoming.map(item => <button key={item.id} onClick={() => openRecord(item.id)}>閱讀新消息：{item.title}</button>)}</div>}
-        <div className="document-top"><span>第 {clock.loop} 次今天</span><span>{record?.source}　／　{record?.formedAt}</span></div>
-        <h1>{record?.title}</h1>
-        <div className="document-lines">{record?.body.map((line, i) => <p key={i}>{line}</p>)}</div>
-        {record?.excerpts.length ? <div className="excerpts"><span>留下你認為重要的句子</span>{record.excerpts.map(part => <button key={part.id} onClick={() => pin(`${record.id}:${part.id}`)}>{part.text}<span>＋</span></button>)}</div> : null}
+        {observingSpatialRecord ? <SpatialTextLayer script={observingSpatialRecord.spatialScript!} now={now} /> : record?.spatialScript && record.acquisition === 'presence' ? <SpatialTextLayer script={record.spatialScript} now={now} /> : <>
+          <div className="document-top"><span>第 {clock.loop} 次今天</span><span>{record?.source}　／　{record?.formedAt}</span></div>
+          <h1>{record?.title}</h1>
+          <div className="document-lines">{record?.body.map((line, i) => <p key={i}>{line}</p>)}</div>
+          {record?.excerpts.length ? <div className="excerpts"><span>留下你認為重要的句子</span>{record.excerpts.map(part => <button key={part.id} onClick={() => pin(`${record.id}:${part.id}`)}>{part.text}<span>＋</span></button>)}</div> : null}
+        </>}
         {record?.id === 'letter' && records.some(x => x.id === 'yu-an-message') && <div className="decisions"><p>手機震了一下。予安留了話。</p><button onClick={() => openRecord('yu-an-message')}>讀予安的留言</button></div>}
         {record?.id === 'yu-an-message' && canAct ? <DialogueScene
           speaker="予安"

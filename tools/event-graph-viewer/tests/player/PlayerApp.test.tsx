@@ -139,6 +139,33 @@ it('plays rhythmic observation during Attend and auto returns only after the sce
   expect(screen.getByText('回來一趟。')).toBeDefined();
 });
 
+it('captures only the perceived moment and persists it after capture focus completes', async () => {
+  const storage = window.localStorage;
+  storage.clear();
+  let current = 1000;
+  const now = () => current;
+  render(<PlayerApp now={now} storage={storage} loadStory={async () => canonical} />);
+  const user = userEvent.setup();
+  await user.click(await screen.findByRole('button', { name: /拆開信封/ }));
+  current += Math.ceil((1111 - 372) / 12) * MINUTE;
+  fireEvent(document, new Event('visibilitychange'));
+  await user.click(await screen.findByRole('button', { name: '……鐘聲？' }));
+  current += ATTENTION_SHIFT_MS;
+  fireEvent(document, new Event('visibilitychange'));
+  const observationMs = recordById('station-blackout')?.spatialScript?.totalDurationMs ?? 0;
+  current += observationMs;
+  fireEvent(document, new Event('visibilitychange'));
+
+  await user.click(await screen.findByRole('button', { name: '捕捉這段記憶' }));
+  expect(screen.getByText('你正在把剛才的感覺留下來……')).toBeDefined();
+  expect(readSave(storage, current).knowledge.memories).toHaveLength(0);
+  current += ATTENTION_SHIFT_MS + 1_200;
+  fireEvent(document, new Event('visibilitychange'));
+
+  expect(await screen.findByText(/已將「車站的燈」收進持久記憶/)).toBeDefined();
+  expect(readSave(storage, current).knowledge.memories).toHaveLength(1);
+});
+
 it('frames Loop 1 at the return train and does not ask for a mode', async () => {
   const storage = window.localStorage;
   storage.clear();
