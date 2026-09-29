@@ -109,10 +109,34 @@ export type NarrativeObservationRule = {
   persistence?: ObservationPersistence;
 };
 
+export type NarrativeSpatialAnchor =
+  | 'upper-left'
+  | 'upper-right'
+  | 'left'
+  | 'center'
+  | 'right'
+  | 'lower-left'
+  | 'lower-right';
+
+/**
+ * Optional author control for M4 presentation.
+ *
+ * `beats` are semantic speech/narration chunks. The runtime reveals a whole
+ * beat at once; it never treats this as a per-character typewriter speed.
+ */
+export type NarrativeTextPresentation = {
+  anchor?: NarrativeSpatialAnchor;
+  beats?: string[];
+  beatMs?: number;
+  pauseAfterMs?: number;
+  echoMs?: number;
+};
+
 export type NarrativeTextBlock = {
   type: 'narration' | 'monologue';
   text: string;
   factId?: string;
+  presentation?: NarrativeTextPresentation;
 };
 
 export type NarrativeDialogueBlock = {
@@ -120,6 +144,7 @@ export type NarrativeDialogueBlock = {
   speaker: string;
   text: string;
   factId?: string;
+  presentation?: NarrativeTextPresentation;
 };
 
 export type NarrativeArtifactBlock = {
