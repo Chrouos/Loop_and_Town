@@ -115,7 +115,7 @@ it('requires Attend before a presence opportunity becomes readable knowledge', a
 
   expect(screen.queryByText(/停電只有幾秒/)).toBeNull();
   expect(screen.queryByRole('button', { name: /閱讀新消息：車站的燈/ })).toBeNull();
-  const cue = await screen.findByRole('button', { name: /鐘聲/ });
+  const cue = await screen.findByRole('button', { name: '……鐘聲？' });
   await user.click(cue);
 
   expect(screen.getByText(/停電只有幾秒/)).toBeDefined();
