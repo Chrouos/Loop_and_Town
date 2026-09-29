@@ -30,20 +30,22 @@ it('real 17:00 first boot enters Loop 1 at 06:12 and ten real minutes become 120
   expect(clockMinuteAt(activeLoop(save).clock, start + 10 * MINUTE)).toBe(492);
 });
 
-it('offline catch-up stops at Convergence and never creates a later loop', () => {
+it('offline catch-up crosses Convergence and stops only at the Reset lifecycle without creating a later loop', () => {
   const save = normalizeSave(null, 0);
   const result = reconcilePlayer(save, 4 * 60 * 60_000, definition, initial);
   expect(result.currentLoopId).toBe(1);
-  expect(result.loops[1].clock.lastProcessedMinute).toBe(1111);
-  expect(result.loops[1].clock.pendingCriticalBoundary).toBe('convergence');
+  expect(result.loops[1].clock.lastProcessedMinute).toBe(1440);
+  expect(result.loops[1].clock.pendingCriticalBoundary).toBe('reset');
+  expect(result.loops[1].history.some(item => item.eventId === 'evt_1831_station')).toBe(true);
   expect(result.loops[2]).toBeUndefined();
 });
 
-it('does not process events after a pending boundary until foreground continuation', () => {
+it('a later reconciliation never rewinds or waits at Convergence once the world has progressed to Reset', () => {
   const first = reconcilePlayer(normalizeSave(null, 0), 4 * 60 * 60_000, definition, initial);
   const historyLength = first.loops[1].history.length;
   const later = reconcilePlayer(first, 8 * 60 * 60_000, definition, initial);
-  expect(later.loops[1].clock.pendingCriticalBoundary).toBe('convergence');
+  expect(later.loops[1].clock.pendingCriticalBoundary).toBe('reset');
+  expect(later.loops[1].clock.lastProcessedMinute).toBe(1440);
   expect(later.loops[1].history.length).toBe(historyLength);
 });
 
