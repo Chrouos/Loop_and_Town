@@ -140,10 +140,15 @@ export function reconcilePlayer(
     : undefined;
   settlePresenceAttention(save, loopId, safeNow, targetMinute, attentionRecords);
 
-  if (loop.clock.pendingCriticalBoundary) {
+  // Reset is the only lifecycle boundary that may wait for the next-loop
+  // transaction. Legacy saves may still contain convergence/bell pending
+  // markers from the old foreground-wait model; clear them and catch up.
+  if (loop.clock.pendingCriticalBoundary === 'reset') {
     save.lastConfirmedMs = safeNow;
     return save;
   }
+  if (loop.clock.pendingCriticalBoundary) loop.clock.pendingCriticalBoundary = undefined;
+
   const bootstrap = loop.clock.mode === 'LIVE_SYNC'
     && loop.clock.lastProcessedMinute === LOOP_START_MINUTE
     && loop.clock.entryMinute > LOOP_START_MINUTE;
@@ -155,7 +160,6 @@ export function reconcilePlayer(
     targetMinute,
     intent: bootstrap ? 'BOOTSTRAP' : 'OFFLINE',
   });
-  const existingPending = loop.clock.pendingCriticalBoundary;
   const history: LoopHistoryEntry[] = result.simulation.history.map((item, index) => ({
     sequence: loop.history.length + index,
     simulationMinute: item.absoluteMinute ?? item.minute,
@@ -173,7 +177,7 @@ export function reconcilePlayer(
     if (!seen.has(key)) { loop.history.push(item); seen.add(key); }
   }
   loop.clock.lastProcessedMinute = result.reachedMinute;
-  loop.clock.pendingCriticalBoundary = result.pendingBoundary ?? existingPending;
+  loop.clock.pendingCriticalBoundary = result.pendingBoundary;
   if (story) revealNarrative(save, loopId, result.reachedMinute, result.simulation.history, story);
   if (!story || loopId === 1) revealStatic(save, loopId, result.reachedMinute, definition, initial);
   save.lastConfirmedMs = safeNow;
