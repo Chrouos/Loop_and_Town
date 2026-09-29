@@ -44,11 +44,6 @@
   pointer-events: none;
 }
 
-.reading-scene.attention-shifting .spatial-text-stage,
-.reading-scene.attention-observing .spatial-text-stage {
-  opacity: .58;
-}
-
 @media (max-width: 720px) {
   .spatial-text-stage { min-height: 230px; }
   .spatial-phrase { max-width: 76%; }
