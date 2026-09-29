@@ -4,8 +4,9 @@ import { advanceLoop } from './eventScheduler';
 import { emptyLoop, type LoopHistoryEntry, type PlayerSave } from './model';
 import { activeLoop, replayLoop } from './runtime';
 import { projectPlayerNarrativeRecords } from './narrativeRecords';
-import { STORY_RECORDS, type PlayerNarrativeRecord, type VisibleRecord } from './story';
+import { STORY_RECORDS, type PlayerNarrativeRecord } from './story';
 import type { PlayerStoryBundle } from '../types/playerStory';
+import { beginAttention } from './attention';
 
 const DEFAULT_PRESENCE_WINDOW_MINUTES = 5;
 
@@ -59,7 +60,7 @@ export function attendPresenceRecord(
   if (!entry) return false;
   const candidate = availablePresenceRecords(save, loop, minute, records).find(record => record.id === recordId);
   if (!candidate) return false;
-  if (!entry.perceivedSceneIds.includes(candidate.sceneId)) entry.perceivedSceneIds.push(candidate.sceneId);
+  entry.attention = beginAttention(undefined, candidate.id, save.lastConfirmedMs);
   return true;
 }
 
