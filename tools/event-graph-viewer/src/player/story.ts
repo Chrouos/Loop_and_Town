@@ -9,6 +9,7 @@ export type VisibleRecord = {
   body: string[];
   excerpts: Array<{ id: string; text: string }>;
   revealMinute: number;
+  availableUntilMinute?: number;
   acquisition: RecordAcquisition;
   matches: (history: WorldlineHistoryEntry[]) => boolean;
 };
@@ -34,7 +35,7 @@ export const STORY_RECORDS: VisibleRecord[] = [
   { id: 'old-death', title: '五年前的事故摘要', source: '家中保存的舊案影本', formedAt: '五年前', obtainedAt: '打開案卷時', revealMinute: 0, acquisition: 'persistent', matches: always,
     body: ['姓名：林知夏。', '地點：舊車站附近。', '結案記載：意外。', '這張紙沒有記下當時誰先到場。'],
     excerpts: [{ id: 'death', text: '林知夏的死亡記載距今五年。' }, { id: 'verdict', text: '舊案以意外結案。' }] },
-  { id: 'station-blackout', title: '車站的燈', source: '你當時聽見的聲音', formedAt: '18:31', obtainedAt: '18:31', revealMinute: 1111, acquisition: 'presence', matches: history => history.some(x => x.kind === 'event' && x.eventId === 'evt_1831_station'),
+  { id: 'station-blackout', title: '車站的燈', source: '你當時聽見的聲音', formedAt: '18:31', obtainedAt: '18:31', revealMinute: 1111, availableUntilMinute: 1119, acquisition: 'presence', matches: history => history.some(x => x.kind === 'event' && x.eventId === 'evt_1831_station'),
     body: ['舊車站那一帶忽然暗了。', '停電只有幾秒。遠處傳來一聲鐘響。', '你還不知道月台上發生了什麼。'], excerpts: [{ id: 'time', text: '18:31，車站停電，鐘響了一聲。' }] },
   { id: 'station-bulletin-wakaharu', title: '車站通報', source: '鎮內公告', formedAt: '18:40', obtainedAt: '18:40', revealMinute: 1120, acquisition: 'message', matches: variant('wakaharu_dies'),
     body: ['舊車站發現許若晴死亡。', '18:31 是現場異常發生的時間；通報沒有提供精確死亡時間。'], excerpts: [{ id: 'victim', text: '舊車站發現許若晴死亡；18:31 並非醫療推定的死亡時間。' }] },
