@@ -11,6 +11,7 @@ import stationYaml from '../../../../story/events/day_01_1831.yaml?raw';
 import reporterYaml from '../../../../story/events/day_01_2114.yaml?raw';
 const initial = { ...(yaml.load(initialYaml) as WorldState), clock: { day: 0, time: '06:12' } };
 const definition = { actions: (yaml.load(actionsYaml) as { actions: ActionDefinition[] }).actions, events: [yaml.load(stationYaml), yaml.load(reporterYaml)] as EventDefinition[] };
+const local = (hour: number, minute = 0) => new Date(2026, 8, 28, hour, minute, 0, 0).getTime();
 
 it('does not turn a presence-only world event into player knowledge before perception', () => {
   const convergence = Math.ceil((1111 - 372) / 12 * MINUTE);
@@ -49,7 +50,7 @@ it('stops offline reconciliation at the first critical boundary without creating
 });
 
 it('keeps late Live Sync pre-entry history internal without revealing presence-only evidence', () => {
-  const entryAt = new Date('2026-09-28T21:40:00+08:00').getTime();
+  const entryAt = local(21, 40);
   const save = normalizeSave(null, entryAt);
   save.loops[1].sealed = true;
   const next = createNextLoop(save, 'LIVE_SYNC', entryAt);
