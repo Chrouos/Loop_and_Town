@@ -10,6 +10,7 @@ import { activeLoop, confirmAction, continuePendingBoundary, createNextLoop, rep
 import { LEGACY_KEY, exportSave, importLegacy, readSave, writeSave } from './storage';
 import { EvidenceBoard } from './EvidenceBoard';
 import { WorldlineNotebook } from './WorldlineNotebook';
+import { SpatialTextLayer } from './SpatialTextLayer';
 import { markPlayerNarrativeSeen, projectPlayerNarrativeRecords } from './narrativeRecords';
 import type { PlayerStoryBundle } from '../types/playerStory';
 
@@ -163,10 +164,12 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
       {error ? <p role="alert">無法讀取鎮上的紀錄：{error}</p> : !story ? <p>正在取出案卷……</p> : resetPending ? <div className="opening mode-choice"><p>鐘聲落下，今天又回到可以重來的地方。</p><p>下一次進入灰潮鎮時，你要怎麼走進這一天？</p><button onClick={() => chooseMode('LIVE_SYNC')} disabled={!isLiveSyncAvailable(currentMs)}>跟著現在走<span> · {isLiveSyncAvailable(currentMs) ? '從此刻的鎮內時間進入' : '現在是 Live Sync 無法進入的時間'}</span></button><button onClick={() => chooseMode('ACCELERATED')}>回到記憶開始的地方<span> · 從 06:12 的返程列車開始</span></button>{note && <p className="inline-note" role="status">{note}</p>}</div> : !opened ? <div className="opening"><p>返程列車在灰潮鎮的月台緩緩停下。</p><p>現在是灰潮鎮的{entry.label}，你手裡還握著那封不該出現的信。</p>{entry.lines.map(line => <p key={line}>{line}</p>)}<button className="envelope-button" onClick={() => openRecord('letter')} aria-label="拆開信封，讀姊姊的信"><span className="envelope" aria-hidden="true"><span className="envelope-flap"/><span className="envelope-name">林知夏　寄</span></span><span className="envelope-action">拆開信封</span></button></div> : <div className={`reading-scene attention-${loop.attention.phase}`} key={`${clock.loop}:${record?.id}`}>
         {opportunities.length > 0 && <div className="presence-opportunities" aria-label="周遭動靜">{opportunities.map(item => <button key={item.id} onClick={() => attend(item.id)} aria-label={presenceCueLabel(item.id)} aria-current={loop.attention.targetId === item.id ? 'true' : undefined}>{presenceCueLabel(item.id)}</button>)}</div>}
         {incoming.length > 0 && <div className="incoming-records" aria-label="新消息"><p>鎮上有新消息</p>{incoming.map(item => <button key={item.id} onClick={() => openRecord(item.id)}>閱讀新消息：{item.title}</button>)}</div>}
-        <div className="document-top"><span>第 {clock.loop} 次今天</span><span>{record?.source}　／　{record?.formedAt}</span></div>
-        <h1>{record?.title}</h1>
-        <div className="document-lines">{record?.body.map((line, i) => <p key={i}>{line}</p>)}</div>
-        {record?.excerpts.length ? <div className="excerpts"><span>留下你認為重要的句子</span>{record.excerpts.map(part => <button key={part.id} onClick={() => pin(`${record.id}:${part.id}`)}>{part.text}<span>＋</span></button>)}</div> : null}
+        {record?.spatialScript && record.acquisition === 'presence' ? <SpatialTextLayer script={record.spatialScript} now={now} /> : <>
+          <div className="document-top"><span>第 {clock.loop} 次今天</span><span>{record?.source}　／　{record?.formedAt}</span></div>
+          <h1>{record?.title}</h1>
+          <div className="document-lines">{record?.body.map((line, i) => <p key={i}>{line}</p>)}</div>
+          {record?.excerpts.length ? <div className="excerpts"><span>留下你認為重要的句子</span>{record.excerpts.map(part => <button key={part.id} onClick={() => pin(`${record.id}:${part.id}`)}>{part.text}<span>＋</span></button>)}</div> : null}
+        </>}
         {record?.id === 'letter' && records.some(x => x.id === 'yu-an-message') && <div className="decisions"><p>手機震了一下。予安留了話。</p><button onClick={() => openRecord('yu-an-message')}>讀予安的留言</button></div>}
         {record?.id === 'yu-an-message' && canAct ? <div className="decisions"><p>18:20 前，你可以答應陪若晴，也可以請予安去醫院。現在還沒有人知道今晚會怎樣。</p><button disabled={hasAction('protect_wakaharu')} onClick={() => choose('protect_wakaharu')}>{hasAction('protect_wakaharu') ? '已和若晴約好' : '保護若晴，陪她留在家裡'}</button><button disabled={hasAction('stop_doctor')} onClick={() => choose('stop_doctor')}>{hasAction('stop_doctor') ? '予安已答應去醫院' : '請予安幫忙攔住醫生'}</button></div> : null}
         {record?.id === 'yu-an-message' && (hasAction('protect_wakaharu') || hasAction('stop_doctor')) && <div className="choice-replies" aria-label="今晚的回覆">
