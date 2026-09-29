@@ -5,7 +5,6 @@ export const CONVERGENCE_MINUTE = 18 * 60 + 31;
 export const BELL_MINUTE = 23 * 60 + 59;
 export const RESET_MINUTE = 24 * 60;
 export const DEFAULT_ACCELERATED_SCALE = 12;
-export const WORLD_TIME_ZONE = 'Asia/Taipei';
 
 export type TimeMode = 'ACCELERATED' | 'LIVE_SYNC';
 
@@ -25,19 +24,9 @@ export type LoopClockState = {
   pendingCriticalBoundary?: CriticalBoundaryId;
 };
 
-const worldClockFormatter = new Intl.DateTimeFormat('en-GB', {
-  timeZone: WORLD_TIME_ZONE,
-  hour: '2-digit',
-  minute: '2-digit',
-  hourCycle: 'h23',
-});
-
 export function localMinuteOfDay(nowMs: number): number {
-  const parts = worldClockFormatter.formatToParts(new Date(nowMs));
-  const hour = Number(parts.find((part) => part.type === 'hour')?.value);
-  const minute = Number(parts.find((part) => part.type === 'minute')?.value);
-  if (!Number.isFinite(hour) || !Number.isFinite(minute)) throw new Error(`Unable to resolve world time: ${nowMs}`);
-  return hour * 60 + minute;
+  const date = new Date(nowMs);
+  return date.getHours() * 60 + date.getMinutes();
 }
 
 export function isLiveSyncAvailable(nowMs: number): boolean {
@@ -51,7 +40,7 @@ export function createLoopClock(
 ): LoopClockState {
   if (!Number.isFinite(nowMs) || nowMs < 0) throw new Error(`Invalid real timestamp: ${nowMs}`);
   if (mode === 'LIVE_SYNC' && !isLiveSyncAvailable(nowMs)) {
-    throw new Error('LIVE_SYNC is unavailable before 06:12 world time.');
+    throw new Error('LIVE_SYNC is unavailable before 06:12 local time.');
   }
 
   const entryMinute = mode === 'LIVE_SYNC' ? localMinuteOfDay(nowMs) : LOOP_START_MINUTE;
