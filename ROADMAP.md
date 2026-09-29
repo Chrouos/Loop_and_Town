@@ -2,106 +2,70 @@
 
 > Updated: 2026-09-29
 >
-> Purpose: this is the **developer-facing execution map**. It does not replace gameplay/story specs. When roadmap wording overlaps gameplay rules, `docs/core-gameplay-spec-v0.1.md` is the source of truth.
+> Developer execution map. Gameplay semantics always defer to `docs/core-gameplay-spec-v0.1.md`.
 
 ## 0. Project direction
 
-Loop_and_Town is a real-world-linked idle visual novel / loop mystery game.
-
-The implementation should preserve these canonical ideas:
-
 ```text
-World keeps moving
-    ↓
-Opportunity / Dialogue / Ambient Event
-    ↓
+World continuously moves
+        ↓
+Opportunity / Dialogue / Ambient
+        ↓
 Attention
-    ↓
+        ↓
 Perception
-    ↓
+        ↓
 optional Memory Capture
-    ↓
+        ↓
 Memory Library
-    ↓
+        ↓
 Investigation Wall
-    ↓
+        ↓
 Player hypothesis / Memory Input
-    ↓
+        ↓
 Different Action / Event / Worldline
 ```
 
-Author causal truth and Player knowledge are separate systems.
-
 ```text
-Author Event Graph / Causal Timeline ≠ Player Investigation Wall
+Author causal truth ≠ Player Investigation Wall
 ```
 
 ---
 
-## 1. Current PR dependency map
+## 1. PR dependency map
 
 ```text
-                    ┌──────────────────────────────┐
-                    │ #20 Core Gameplay Spec v0.1 │
-                    │ canonical gameplay contract │
-                    └──────────────┬───────────────┘
-                                   │
-                   ┌───────────────┼────────────────┐
-                   │               │                │
-                   ▼               ▼                ▼
-        #19 Player UI Spec   #16 Story / Canon   #21 Player Runtime
-        presentation rules   DAG + relationships  migration
-                                   │
-                                   ▼
-                         #18 Author Workbench
-                         causal/debug tooling
+                    #20 Core Gameplay
+                   /        |         \
+                  /         |          \
+        #19 Player UI   #16 Story     #21 Player Runtime
+                            |
+                            v
+                     #18 Author Workbench
 ```
 
-### Merge recommendation
-
-The required foundation order is:
-
-```text
-#20 → #19 → #16
-```
-
-After #16 is merged, Player Runtime and Author Tooling are independent tracks:
-
-```text
-Player track: #21 → Attention → Text → Memory → Investigation
-Author track: #18 → Workbench refinement
-```
-
-If a single linear merge order is preferred:
+Recommended linear merge order:
 
 ```text
 #20 → #19 → #16 → #21 → #18
 ```
 
-Reason: stabilize gameplay rules first, then Player presentation contract, then canonical story data, then migrate the actual Player runtime. Author Workbench is useful but should not block Player gameplay implementation.
+After each base merge:
 
-### Stacked PR rule
-
-After a base PR is merged:
-
-1. retarget/rebase dependent PRs onto latest `main`
-2. resolve conflicts using the newest Core Gameplay rules
-3. run fresh tests + build on the new HEAD
-4. only then mark the dependent PR ready
-
-Do not treat an older green workflow run as valid after its base changes.
+1. rebase / retarget child PR
+2. resolve overlap using latest Core Gameplay
+3. run fresh full tests + build
+4. only then mark ready
 
 ---
 
-## 2. Milestone M0 — Canonical design baseline
+## 2. M0 — Canonical design baseline
 
-**Goal:** remove competing gameplay definitions before further runtime work.
-
-### PR #20 — Core Gameplay Spec v0.1
+### #20 Core Gameplay Spec
 
 Status: **Ready / merge first**
 
-Defines:
+Owns:
 
 - World Never Waits
 - Single Main Action
@@ -109,189 +73,202 @@ Defines:
 - Elastic Attention
 - Perception Boundary
 - Memory Capture
-- Loop persistence rules
+- Asymmetric Loop Persistence
 - Spatial Typography / Rhythmic Text / Text Echo
 - Dialogue as continuous gameplay
-- Attention Release
-- finite information
-- Investigation Wall semantics
+- Investigation Wall
 
-**Done when:** merged to `main` and treated as gameplay source of truth.
+Also owns documentation precedence through `docs/README.md`.
 
-### PR #19 — Player Immersive UI v0.2
+### #19 Player Immersive UI Spec
 
-Status: **Documentation-only, merge after #20**
+Status: **Documentation contract / merge after #20**
 
-Translates Core Gameplay into Player-facing presentation architecture.
-
-**Done when:** rebased against merged #20, checked for contradictory older UI assumptions, then merged.
+Translates gameplay rules into Player presentation architecture.
 
 ---
 
-## 3. Milestone M1 — Story / world foundation
+## 3. M1 — Story / world foundation
 
-### PR #16 — Main Story / Canon / DAG / Relationship
+### #16 Main Story / Canon / DAG / Relationship
 
-Status: **Large draft; must rebase and reverify before merge**
+Status: **Draft; active reconciliation**
 
 Owns:
 
-- Chapter 0 → Final story canon
+- Chapter 0 → Final
 - Character Bible
 - Story DAG / Worldline data
 - Relationship state
-- Player narrative records
-- loop-specific story data
+- Story Canon memory / time
+- Event Graph author contract
 
-Rules that must remain true:
+Must preserve:
 
 ```text
 World Event ≠ Player Knowledge
-NPC ordinary memory resets across loops
-Captured protagonist Memory may persist
-Zhixia cross-worldline memory is a story exception, not a generic NPC system
+Normal NPC prior-loop memory resets
+Captured Memory may persist
+Zhixia memory is a story-specific exception
+Author causal truth never auto-becomes Player deduction
 ```
 
-**Done when:**
+Merge gate:
 
-- rebased onto latest `main`
-- merge conflicts resolved with #20 taking precedence
-- fresh full test/build green
-- story acceptance tests still pass
+- rebase latest main
+- no regression of newer Canon docs
+- fresh tests/build green
 
 ---
 
-## 4. Milestone M2 — Player runtime semantic migration
+## 4. M2 — Perception Boundary runtime
 
-### PR #21 — Perception Boundary
+### #21 Slice 1
 
-Status: **Draft / active runtime migration**
-
-Delivered slice:
+Status: **Implemented / verified in Draft PR**
 
 ```text
 World Event
 → Opportunity
 → Attend
 → Perception
-→ Player-visible content
 ```
 
-Current runtime guarantees:
+Delivered:
 
-- presence event is not automatically Player Knowledge
-- Opportunity windows are finite
-- `perceivedSceneIds` is loop-local
-- Attend does not pause or rewrite World Time
-- missed Live Sync history does not leak presence information
-
-Before merge:
-
-- rebase onto merged #16/main
-- rerun full tests + build
-- confirm Story data projection still obeys Perception Boundary
+- loop-local `perceivedSceneIds`
+- finite Opportunity windows
+- presence event does not auto-become Player Knowledge
+- missed Live Sync history stays hidden
 
 ---
 
-## 5. Milestone M3 — Elastic Attention runtime
+## 5. M3 — Single Focus + Elastic Attention
 
-**Next active development slice.**
+### #21 Slice 2
 
-Target state machine:
-
-```text
-Main Action
-   ↓
-Peripheral Cue
-   ↓
-Hover / Notice
-   ↓
-Single Focus
-   ↓
-Click / Attend
-   ↓
-Attention Shift (real time)
-   ↓
-Observe
-   ↓
-Auto Return
-```
-
-Redirect:
+Status: **Implemented / verified**
 
 ```text
-Observe A
-   ↓
-Attention Redirect
-   ↓
-Observe B
+Primary Focus
+→ Click / Attend
+→ Attention Shift
+→ Observation
+→ Perception
+→ Auto Return
 ```
 
-True interruption:
+Delivered prototype values:
 
-```text
-Main Action
-   ↓
-True Interrupt
-   ↓
-New Main Action
-```
+- Shift: `650ms`
+- Observation: `900ms`
 
-Implementation requirements:
+Rules now protected by tests:
 
-- one Primary Focus only
-- Hover changes surface focus but does not freeze anything
-- Attention Shift has actual elapsed time
-- faded information continues progressing
-- Observation can finish naturally and auto-return
-- redirect is distinct from abandoning Main Action
-- tests must prove events can be partially/missed while shifting focus
-
-**Done when:** runtime state + PlayerApp integration + acceptance tests are green.
+- Click ≠ instant perception
+- only one active focus
+- Redirect replaces prior target
+- Observation must complete before Perception
+- World Time does not pause
 
 ---
 
-## 6. Milestone M4 — Immersive text runtime
+## 6. M3.5 — World Never Waits boundary migration
 
-Build only after Attention semantics are stable.
+**Must be completed before M4 is considered semantically stable.**
+
+The documentation audit found a remaining legacy runtime assumption:
+
+```text
+18:31 / 23:59 critical boundary
+→ offline catch-up stops
+→ waits for foreground resume
+```
+
+This violates current Core Gameplay:
+
+```text
+Important event arrives
+Player offline / reading / focused elsewhere
+→ event still happens
+```
+
+Required migration:
+
+- 18:31 must not wait for foreground resume
+- 23:59 Bell must not wait for foreground resume
+- Attention / Dialogue / Reading never freeze these boundaries
+- Player may miss them and only perceive aftermath
+- Author Worldline History may contain them without exposing them as Player Knowledge
+- remove / narrow `pendingCriticalBoundary` semantics that currently pause ordinary world progression
+
+### 00:00 special case
+
+00:00 is a Loop lifecycle boundary and needs an explicit runtime contract.
+
+Do **not** infer that 18:31 / 23:59 can pause just because 00:00 may require new-loop initialization.
+
+The chosen 00:00 implementation must preserve:
+
+```text
+previous Loop events actually happened
+NPC / World State resets according to Canon
+Player Knowledge still obeys Perception / Capture
+```
+
+**Done when:** returning after being offline across 18:31 / 23:59 produces deterministic Author history without pretending the player witnessed those events.
+
+---
+
+## 7. M4 — Immersive Text Runtime
+
+**Next presentation slice after M3.5.**
 
 ### Spatial Typography
 
-- text position carries speaker / direction / distance
-- dialogue does not behave like a chat history
-- text follows character blocking
+- screen acts as stage
+- position represents speaker / direction / distance
+- dialogue does not stack like chat history
+- text can follow character blocking
 
 ### Rhythmic Text
 
-- Phrase / Beat / Pause based speech
-- no fixed `30ms per character` typewriter as the canonical system
-- speech duration consumes World Time
+- Phrase / Beat / Pause
+- no fixed per-character typewriter as canonical model
+- speech rhythm occupies real elapsed time
+- World Time continues during speech
 
 ### Text Echo
 
-- previous line leaves a faint temporary residue
-- residue is not chat history
-- echo duration represents perception / emotional weight, not clue importance
+- prior phrase leaves faint temporary residue
+- not a chat history
+- duration may express rhythm / psychological weight
+- never expresses clue importance
 
-**Done when:** repeated dialogue, ambient text, and spatial dialogue all use the same presentation layer.
+Target presentation chain:
+
+```text
+Phrase appears in spatial position
+→ Beat / Pause
+→ next Phrase
+→ previous Phrase becomes Text Echo
+→ Echo fades
+```
+
+M4 does not implement Memory Capture yet.
 
 ---
 
-## 7. Milestone M5 — Memory Capture
-
-Target chain:
+## 8. M5 — Memory Capture
 
 ```text
 Perception
-   ↓
-Hold / Capture
-   ↓
-Captured Moment
-   ↓
-Persistent Memory
+→ Hold / Capture
+→ Captured Moment
+→ Persistent Memory
 ```
 
-Supported Memory types:
+Memory types:
 
 - Text
 - Visual
@@ -301,67 +278,60 @@ Supported Memory types:
 Rules:
 
 - only perceived information can be captured
+- Capture occupies Focus
 - Capture does not pause World Time
-- Capture itself occupies Focus
 - Memory cannot become clearer than original perception
-- no system ranking of importance
-
-**Done when:** captured Memories persist across Loop reset while ordinary scene perception does not.
+- no automatic importance ranking
 
 ---
 
-## 8. Milestone M6 — Memory Library + Investigation Wall
-
-Replace old evidence semantics with the canonical distinction:
+## 9. M6 — Memory Library + Investigation Wall
 
 ```text
-Memory Library = what the protagonist remembers
-Investigation Wall = what the player thinks is related
+Memory Library = what protagonist remembers
+Investigation Wall = what player thinks is related
 ```
 
 Required:
 
-- infinite/freeform board
-- drag Memory references onto board
-- player-authored notes / links / groups
-- no auto contradiction detector
+- freeform / infinite board
+- drag Memory references
+- player notes / links / groups
+- no auto contradiction
 - no auto causal edge
-- no auto “important clue” state
-- layout / links / notes persist across loops
-
-Then add **Memory Input** for explicitly authored narrative nodes.
+- no auto important clue state
+- layout / links / notes persist
+- scripted Memory Input where authored
 
 ---
 
-## 9. Milestone M7 — Real-time world productionization
+## 10. M7 — Real-time world productionization
 
-Consolidate current anchored timeline implementation with final gameplay semantics.
+Consolidate time architecture after World Never Waits migration.
 
 Required:
 
-- Loop 1 canonical 06:12 onboarding
-- Loop 2+ Accelerated / Live Sync entry modes
-- Live Sync uses player's real local clock
-- offline catch-up
-- no silent future-loop consumption
-- dialogue / reading / attention / choices never create hidden time pause
-- critical boundaries remain deterministic
+- Loop 1 canonical 06:12
+- Loop 2+ Accelerated / Live Sync entry model
+- Live Sync uses player device local clock
+- deterministic offline catch-up
+- temporary Opportunities can be missed
+- no hidden foreground clock pause
+- 18:31 / 23:59 continue while Player absent
+- explicit 00:00 lifecycle contract
 
-Add tests for:
+Tests:
 
-- returning after hours offline
-- entering before / after a temporary Opportunity
-- missing an event while focused elsewhere
-- convergence while Player is occupied
-- reset boundaries
+- return after hours offline
+- enter before / after an Opportunity
+- miss event while focused elsewhere
+- Convergence while occupied / offline
+- Bell while reading
+- Reset boundary behavior
 
 ---
 
-## 10. Milestone M8 — Story integration across loops
-
-Once Player mechanics are stable, migrate all story chapters through the real runtime instead of validating only Author DAG data.
-
-Order:
+## 11. M8 — Story integration across loops
 
 ```text
 Loop 01 vertical slice
@@ -372,103 +342,88 @@ Loop 01 vertical slice
 → Final
 ```
 
-Each Loop must validate:
+Each Loop validates:
 
-- story causality
-- Player Perception opportunities
+- Story causality
+- Perception opportunities
 - Capturable Moments
-- missed information paths
-- meaningful Choices
-- Memory Input nodes
-- NPC reset behavior
+- missed paths
+- Meaningful Choice
+- Memory Input
+- NPC reset
 - Worldline consequence
 
 ---
 
-## 11. Author tooling track
+## 12. Author tooling track
 
-### PR #18 — Causal Timeline Workbench
-
-This track is independent after #16 is merged.
+### #18 Causal Timeline Workbench
 
 Purpose:
 
 - inspect causal truth
 - compare Worldlines
 - inspect downstream effects
-- debug hidden conditions / convergence inputs
+- debug hidden conditions / convergence
 
 Boundary:
 
 ```text
-Author truth may know the answer.
-Player UI may not inherit that answer automatically.
+Author tool may know the answer.
+Player UI may not inherit it automatically.
 ```
-
-**Done when:** rebased onto merged #16, tests/build are fresh green, and no Author-only causal data leaks into Player components.
 
 ---
 
-## 12. Milestone M9 — Presentation / game-feel polish
+## 13. M9 — Game-feel polish
 
-Only after the semantic runtime is stable:
+Only after semantic runtime is stable:
 
 - scene-first Player UI
 - pixel / animated environment treatment
 - fade in / fade out
 - spatial sound
 - parallax / subtle motion
-- waiting-state ambient life
-- reduced-motion accessibility
-- mobile / touch Attention mappings
-- controller mapping if needed
-
-Avoid polishing temporary Web UI that is scheduled to be replaced.
+- ambient waiting states
+- reduced motion
+- touch / controller mappings
 
 ---
 
-## 13. Merge gate
-
-A PR can be merged only when all applicable checks are true:
+## 14. Merge gate
 
 ```text
-[ ] follows Core Gameplay source of truth
-[ ] rebased / retargeted to current main
-[ ] no unresolved overlap with newer design
-[ ] fresh tests green on current HEAD
-[ ] production build green on current HEAD
-[ ] story/runtime acceptance tests green where applicable
-[ ] Player-facing code does not leak Author truth
+[ ] follows Core Gameplay
+[ ] rebased to latest main
+[ ] docs do not regress newer Canon
+[ ] fresh tests green
+[ ] production build green
+[ ] Player code does not leak Author truth
 [ ] no generic NPC cross-loop memory residue
 [ ] no automatic clue importance / causal inference
-[ ] PR description reflects the actual final implementation
+[ ] World Never Waits still holds
+[ ] PR description matches implementation
 ```
-
-For stacked PRs, merge the base first, then refresh the child PR before merging it.
 
 ---
 
-## 14. Immediate queue
-
-Current recommended execution queue:
+## 15. Immediate queue
 
 ```text
-1. Merge #20 — Core Gameplay
-2. Rebase + merge #19 — Player UI contract
-3. Rebase/fix/verify #16 — Story + Canon
+1. Merge #20 — Core Gameplay + documentation precedence
+2. Rebase + merge #19 — Player presentation contract
+3. Rebase/fix/verify #16 — Story / Canon / Event Graph
 4. Rebase #21 on latest main
-5. Finish #21 runtime slices:
-   5.1 Perception Boundary ✓
-   5.2 Single Focus + Elastic Attention
-   5.3 Spatial / Rhythmic Text
-   5.4 Memory Capture
-   5.5 Investigation semantic migration
-6. Rebase + verify #18 — Author Workbench
-7. Run Loop 01 end-to-end vertical slice
-8. Expand real runtime through Loop 02 → Final
-9. Game-feel / visual polish
+5. #21 M3.5 — remove foreground-waiting critical boundary behavior
+6. #21 M4 — Spatial Typography + Rhythmic Text + Text Echo
+7. M5 — Memory Capture
+8. M6 — Investigation semantic migration
+9. Rebase + verify #18 — Author Workbench
+10. Loop 01 end-to-end vertical slice
+11. Loop 02 → Final runtime integration
+12. Game-feel polish
 ```
 
-The guiding development rule is:
+Guiding rule:
 
-> **Implement semantic gameplay correctness before presentation polish.**
+> **Gameplay semantic correctness comes before presentation polish.**
