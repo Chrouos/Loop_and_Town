@@ -161,9 +161,10 @@ Primary Focus
 Delivered prototype values:
 
 - Shift: `650ms`
-- Observation: `900ms`
+- generic Observation fallback: `900ms`
+- authored Spatial/Rhythmic scenes may extend Observation to their real presentation duration
 
-Rules now protected by tests:
+Rules protected by tests:
 
 - Click ≠ instant perception
 - only one active focus
@@ -175,9 +176,9 @@ Rules now protected by tests:
 
 ## 6. M3.5 — World Never Waits boundary migration
 
-**Must be completed before M4 is considered semantically stable.**
+Status: **Implemented / verified in #21**
 
-The documentation audit found a remaining legacy runtime assumption:
+Legacy behavior removed:
 
 ```text
 18:31 / 23:59 critical boundary
@@ -185,81 +186,100 @@ The documentation audit found a remaining legacy runtime assumption:
 → waits for foreground resume
 ```
 
-This violates current Core Gameplay:
+Current runtime contract:
 
 ```text
-Important event arrives
-Player offline / reading / focused elsewhere
-→ event still happens
+18:31 Convergence → happens while offline
+23:59 Bell        → happens while offline
+00:00 Reset       → Loop lifecycle boundary
 ```
 
-Required migration:
+Delivered:
 
-- 18:31 must not wait for foreground resume
-- 23:59 Bell must not wait for foreground resume
-- Attention / Dialogue / Reading never freeze these boundaries
-- Player may miss them and only perceive aftermath
-- Author Worldline History may contain them without exposing them as Player Knowledge
-- remove / narrow `pendingCriticalBoundary` semantics that currently pause ordinary world progression
+- OFFLINE / BOOTSTRAP crosses 18:31
+- OFFLINE / BOOTSTRAP crosses 23:59
+- Attention / Dialogue / Reading do not freeze these boundaries
+- Author Worldline History may contain missed events without exposing them as Player Knowledge
+- legacy `convergence` / `bell` pending states migrate forward
+- `pendingCriticalBoundary` is now narrowed to the 00:00 Reset lifecycle transaction
 
 ### 00:00 special case
 
-00:00 is a Loop lifecycle boundary and needs an explicit runtime contract.
+00:00 remains an explicit Loop lifecycle boundary because creating the next Loop is a separate transaction.
 
-Do **not** infer that 18:31 / 23:59 can pause just because 00:00 may require new-loop initialization.
-
-The chosen 00:00 implementation must preserve:
-
-```text
-previous Loop events actually happened
-NPC / World State resets according to Canon
-Player Knowledge still obeys Perception / Capture
-```
-
-**Done when:** returning after being offline across 18:31 / 23:59 produces deterministic Author history without pretending the player witnessed those events.
+This does not imply any earlier Story Event may wait for foreground.
 
 ---
 
 ## 7. M4 — Immersive Text Runtime
 
-**Next presentation slice after M3.5.**
+Status: **Implemented / verified vertical slice in #21**
 
 ### Spatial Typography
 
+Delivered:
+
 - screen acts as stage
-- position represents speaker / direction / distance
-- dialogue does not stack like chat history
-- text can follow character blocking
+- spatial anchors represent speaker / direction
+- protagonist defaults lower-left
+- other dialogue defaults right
+- narration defaults center
+- author can override anchor in Narrative data
 
 ### Rhythmic Text
 
-- Phrase / Beat / Pause
+Delivered:
+
+- semantic Phrase / Beat / Pause model
+- whole beats reveal at once
 - no fixed per-character typewriter as canonical model
-- speech rhythm occupies real elapsed time
-- World Time continues during speech
+- rhythm occupies real elapsed time
+- authored script duration participates in Attention Observation duration
 
 ### Text Echo
 
-- prior phrase leaves faint temporary residue
-- not a chat history
-- duration may express rhythm / psychological weight
-- never expresses clue importance
+Delivered:
 
-Target presentation chain:
+- prior phrase becomes a faint temporary echo
+- Echo expires instead of building a chat history
+- Echo duration is presentation rhythm, never clue importance
+
+Current presentation chain:
 
 ```text
-Phrase appears in spatial position
-→ Beat / Pause
-→ next Phrase
+Original context
+→ Attend
+→ Attention Shift
+→ Spatial Observation begins
+→ Phrase / Beat / Pause
 → previous Phrase becomes Text Echo
-→ Echo fades
+→ Observation completes
+→ Perception recorded
+→ Elastic Auto Return to original context
 ```
 
-M4 does not implement Memory Capture yet.
+First vertical slice: `18:31 station-blackout`.
+
+Artifacts / phone messages remain document-like for now; M4 intentionally does not force every surface into spatial floating text.
+
+Verification baseline at #21 HEAD `9908f708d4f0f8c3be57d57131058653fce6cd94`:
+
+```text
+83 / 83 test files passed
+360 / 360 tests passed
+TypeScript PASS
+Vite build PASS
+Event Graph Viewer SUCCESS
+Deploy SUCCESS
+```
+
+M4 does not create persistent Memory.
 
 ---
 
 ## 8. M5 — Memory Capture
+
+Status: **Next runtime milestone**
 
 ```text
 Perception
@@ -414,14 +434,13 @@ Only after semantic runtime is stable:
 2. Rebase + merge #19 — Player presentation contract
 3. Rebase/fix/verify #16 — Story / Canon / Event Graph
 4. Rebase #21 on latest main
-5. #21 M3.5 — remove foreground-waiting critical boundary behavior
-6. #21 M4 — Spatial Typography + Rhythmic Text + Text Echo
-7. M5 — Memory Capture
-8. M6 — Investigation semantic migration
-9. Rebase + verify #18 — Author Workbench
-10. Loop 01 end-to-end vertical slice
-11. Loop 02 → Final runtime integration
-12. Game-feel polish
+5. Re-run #21 verification after rebase
+6. M5 — Memory Capture
+7. M6 — Investigation semantic migration
+8. Rebase + verify #18 — Author Workbench
+9. Loop 01 end-to-end vertical slice
+10. Loop 02 → Final runtime integration
+11. Game-feel polish
 ```
 
 Guiding rule:
