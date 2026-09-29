@@ -29,6 +29,7 @@ describe('the player adapter shares canonical story rules', () => {
     save.knowledge.discoveredEvidence = ['doctor-route'];
     save.loops[1].actionIds = ['protect_wakaharu'];
     save.loops[1].revealedIds = ['1:old-record'];
+    save.loops[1].perceivedSceneIds = ['loop01_presence'];
     save.loops[1].seenSceneIds = ['loop01_scene'];
     save.loops[1].clock.pendingCriticalBoundary = 'reset';
     const anchorBefore = save.loops[1].clock.anchor;
@@ -39,8 +40,10 @@ describe('the player adapter shares canonical story rules', () => {
     expect(next.loops[1].clock.anchor).toEqual(anchorBefore);
     expect(next.knowledge.characterInsights).toEqual([{ id: 'wakaharu-alive', characterId: 'wakaharu', sourceLoop: 1, text: '若春仍活著。' }]);
     expect(next.knowledge.discoveredEvidence).toEqual(['doctor-route']);
+    expect(next.loops[1].perceivedSceneIds).toEqual(['loop01_presence']);
     expect(next.loops[2].actionIds).toEqual([]);
     expect(next.loops[2].revealedIds).toEqual([]);
+    expect(next.loops[2].perceivedSceneIds).toEqual([]);
     expect(next.loops[2].seenSceneIds).toEqual([]);
     expect(next.loops[2].clock.pendingCriticalBoundary).toBeUndefined();
     expect(next.loops[2].sealed).toBe(false);
