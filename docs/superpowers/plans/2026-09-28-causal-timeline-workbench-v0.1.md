@@ -1,5 +1,9 @@
 # Causal Timeline Workbench v0.1 Implementation Plan
 
+> Gameplay authority: `docs/core-gameplay-spec-v0.1.md` is the canonical source of truth. This plan defines Author / Debug tooling only and must not redefine Player Perception, Memory Capture, or Investigation Wall behavior.
+>
+> Reconciliation status: implemented on the latest `main` line after replaying the valid PR #18 commits. The original stacked PR branch is historical and must not be merged over the canonical docs.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Replace the default full-DAG Event Graph reading experience with a time-oriented Causal Timeline Workbench that lets an author follow one worldline, focus on a causal chain, inspect narrative meaning, and compare several worldlines without exposing runtime field noise by default.
