@@ -70,7 +70,7 @@ function recordForScene(scene: NarrativeSceneDefinition): PlayerNarrativeRecord 
 
 export function projectPlayerNarrativeRecords(
   bundle: PlayerStoryBundle,
-  loopId: number,
+  loopId: number | 'final',
   history: WorldlineHistoryEntry[] | LoopHistoryEntry[],
   minute: number,
 ): PlayerNarrativeRecord[] {
