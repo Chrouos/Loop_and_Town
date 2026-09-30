@@ -2,6 +2,9 @@
 
 這份文件定義角色作為「人」的基準：過去、現在生活、私人目標、恐懼、秘密、與主線的關係。
 
+> Player-facing 人物理解必須遵守 `Attention → Perception → optional Memory Capture → player hypothesis`。
+> Author 可以知道角色穩定習慣，但系統不能因此替玩家判定說謊、矛盾或正確推理。
+
 ---
 
 # 主角｜林知夏的妹妹
@@ -11,9 +14,11 @@
 - 缺點：容易把「查清真相」變成替自己減輕罪惡感
 - 成長：從只想救姊姊，變成願意把其他人的人生視為同等重要
 
-她是目前唯一保留跨 Loop 記憶的人。
+在目前 10 月 3 日 Hard Reset 中，她是唯一會自然保留跨 Loop 主觀記憶的人。
 
 這代表她保留的不只是案件資料，也包括上一輪才建立的友誼、共同經歷與對角色的理解。
+
+可被系統保證檢索、放到 Investigation Wall、作為 Memory Input 的 persistent gameplay record，仍以玩家主動 Captured Memory 為準。
 
 ```text
 愧疚
@@ -37,11 +42,13 @@
 
 - 對妹妹保護慾很強
 - 習慣自己扛問題，不相信別人能承受全部真相
-- 接觸研究所舊資料後逐漸成為世界線記憶持有者
+- 接觸研究所舊資料後逐漸成為五年前 Soft Rewrite 的特殊記憶持有者
 - 一開始相信存在「所有人都活下來」的正解
 - 後期開始接受世界線只能做取捨
 
 她真正被累積的不是人格污染，而是太多只有自己記得的死亡、友誼與選擇。
+
+這是 Story-specific exception，不代表一般 NPC 擁有 cross-loop memory residue。
 
 ## 關係
 
@@ -76,7 +83,9 @@
 - 嘴上說想清掉父親留下的雜物，實際上幾乎什麼都捨不得丟
 - 喝咖啡不加糖
 
-這些習慣可以成為 Character Insight，但不是超能力或絕對證據。
+這些是 Author 端的穩定人物設定。
+
+玩家只有在實際相處、Perceive / Capture 到相關 Moment 後，才有材料形成自己的 Character Insight / hypothesis。
 
 ## 五年前
 
@@ -149,7 +158,9 @@
 
 若晴真正想把話藏起來時，常會反覆整理相機背帶。
 
-這是玩家可以跨 Loop 學到的 Character Insight，但只能作為追問方向，不能單獨證明她說謊。
+這是 Author 端的人物一致性設定。
+
+玩家若跨 Loop 實際觀察過類似行為，可以自己形成「她緊張時可能會整理背帶」的理解；系統不能直接把當下動作翻譯成「她正在說謊」。
 
 ## 今天
 
@@ -182,7 +193,9 @@
 - 不願把推測說成事實
 - 習慣用「保護病患」合理化資訊封鎖
 
-這也可以成為 Character Insight：如果柏勳明確把某件異常說成事實，代表他手上通常已經有比口頭猜測更硬的依據。
+Author 端可以把這些特徵當成角色一致性約束。
+
+玩家若多次實際 Perceive / Capture 到柏勳只在有硬證據時下定論，可以把它當成自己的判讀素材，但不能由系統直接推成「他現在說的必然是真的」。
 
 ## 五年前
 
@@ -279,19 +292,41 @@
 
 # Character Insight 規則
 
-Character Insight 是主角跨 Loop 累積的「人物理解」。
+Character Insight 不是獨立的 Player-facing 解鎖系統。
+
+它比較接近：
+
+> 主角透過多次真實相處與觀察累積的人物理解，再由玩家自己形成 hypothesis。
+
+Canonical flow：
 
 ```text
+角色行為 / Dialogue
+→ Player Attention
+→ Perception
+→ optional Memory Capture
+→ Memory Library / Investigation Wall
+→ 玩家自己的 Note / hypothesis
+→ 可能採取不同問法或行動
+```
+
 可以：
-- 幫助排除不符合角色習慣的假設
-- 解鎖新的問法或調查方向
-- 讓玩家更早預測一個人可能做什麼
+
+- 成為玩家判斷下一步的素材
+- 讓玩家自己懷疑某個假設是否符合角色習慣
+- 在劇本明確設計的 Narrative Node 中作為 Memory Input
+- 形成很弱的 Memory Resonance
 
 不可以：
+
+- 系統自動排除假設
+- 系統自動解鎖「正確問法」
 - 當成客觀證據
 - 直接顯示「說謊率」
+- 自動標記矛盾、嫌疑或正確因果
 - 取代角色本人當下的選擇
-```
+
+Author 可以使用 Character Insight metadata 維持角色一致性，但不能把 Author Truth 直接投影成 Player Knowledge。
 
 核心倫理：
 
@@ -308,5 +343,6 @@ Character Insight 是主角跨 Loop 累積的「人物理解」。
 3. 他最怕失去什麼
 4. 這件事和主線無關時，他仍然會不會做
 5. 玩家介入後，改變的是他的行動，還是只是替劇情按下一個 Trigger
+6. Player 是否真的 Perceive 過形成判斷所需的素材
 
 如果第 4 題答案是否，代表這個角色仍然只是劇情工具。
