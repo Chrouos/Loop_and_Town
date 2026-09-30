@@ -42,6 +42,7 @@ Historical dated plan / spec
 
 ## 2. Story Canon
 
+- `story-canon-background.md`：灰潮鎮社會背景、研究所原始目的、18:31 與故事核心反轉
 - `story-canon-memory.md`
 - `story-canon-time.md`
 - `character-bible.md`
