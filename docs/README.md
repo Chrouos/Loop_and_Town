@@ -42,6 +42,8 @@ Historical dated plan / spec
 
 ## 2. Story Canon
 
+- `story-canon-background.md`：灰潮鎮社會背景、研究所原始目的、18:31 與故事核心反轉
+- `story-canon-return-and-reactivation.md`：主角返鄉原因、地方更新、五年後系統重新連線與「不要回來」警告信
 - `story-canon-memory.md`
 - `story-canon-time.md`
 - `character-bible.md`
