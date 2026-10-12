@@ -65,7 +65,7 @@ Hard Reset
 
 目前**不固定**：
 
-- 主角成為 Anchor / Reference 的精確技術原因
+- 主角形成 Fixed Anchor Lock 的底層工程鏈（高層原因：Pivot Repeat Bug，已定案）
 - 警告信的精確投遞機制
 - 警告信是否具有任何跨世界線動態修改能力
 - 00:00 Hard Reset 的最終停止條件
@@ -155,7 +155,7 @@ Story Time 不因玩家：
 - 媒介中時間順序錯位的紀錄
 - 知夏保留上一個 Reality State 的主觀資訊
 
-但知夏為什麼能記得、她與研究系統的 Observer / Reference 關係如何形成，目前仍需後續細化。
+知夏因高 Causal Influence、重複選成 Pivot 與 Repeat Prevention 失效，被鎖定為 Fixed Anchor / Persistent Reference，因此能保留跨 Rewrite 記憶。這個高層原因已定案；仍 TBD 的是具體演算法、同步與工程事故。
 
 不能把它抽象成一般 NPC 的 `memory_residue`。
 

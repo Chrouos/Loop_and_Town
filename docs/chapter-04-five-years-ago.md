@@ -3,7 +3,7 @@
 > Status：Active story structure。
 >
 > 本章揭露「五年前不是單純事故」，以及研究計畫真正的原始用途。
-> Anchor / Reference、第一個 Rewrite 的精確物理機制、知夏最後如何停止當年 Rewrite 仍屬 TBD，不在本章自行定案。
+> Fixed Anchor 的高層因果（Pivot Repeat Bug → Persistent Reference Lock）已由 `story-canon-rewrite-anchor.md` 定案；灰潮鎮五年前重大異常的精確事故鏈、知夏如何停止 Rewrite 仍 TBD。
 
 這一章不是單純解說背景。
 
@@ -213,7 +213,7 @@ Recommendation / Controlled Write-back
 
 ---
 
-# 第一個真正異常｜Simulation 與 Reality 對不上
+# 知夏第一次可追查的異常｜Simulation 與 Reality 對不上
 
 研究後期開始從 Prediction 走向 Intervention。
 
@@ -412,9 +412,9 @@ Variant
 
 以下必須保留到後續 Canon：
 
-1. 第一個 Reality Write-back 如何物理發生
-2. 知夏如何成為特殊記憶持有者
-3. Anchor / Reference 是否存在，以及精確定義
+1. 灰潮鎮五年前 18:31 重大 Rewrite 異常的精確物理／系統鏈（不是全世界第一次 Rewrite）
+2. 知夏被再次選為 Pivot 與 Repeat Prevention 失效的具體工程過程
+3. Persistent Reference Lock 如何在底層保存主觀狀態（高層 Anchor 因果已定案）
 4. 五年前 Rewrite 如何被再次觸發
 5. 知夏死亡前如何停止／中止當年的危險系統
 6. 為什麼五年後形成的是 `00:00 → 06:12` Hard Reset

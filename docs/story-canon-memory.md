@@ -227,22 +227,23 @@ NPC 人格可跨 Loop 保持一致，例如：
 
 目前 Story Canon 允許知夏曾經是上一個「特殊記憶持有者」。
 
-但她為什麼能保留 Soft Rewrite 前後資訊，仍需由後續 Anchor / Observer / Reference 機制定案。
-
-目前只能固定：
+高層原因已由 `story-canon-rewrite-anchor.md` 定案：**Pivot Repeat Bug → Persistent Reference Lock → Fixed Anchor**。
 
 ```text
 Normal NPC
-→ Reset / Rewrite 後不自然保留另一條 Worldline 的完整主觀記憶
+→ Reset / Rewrite 後不保留上一 Reality 的完整主觀記憶
+
+Rare Rewrite-sensitive person
+→ 可能出現微弱 Rewrite Echo，但不是完整記憶
 
 Zhixia
-→ 五年前曾保留跨 Rewrite 資訊
-→ Story-specific exceptional mechanism
+→ 五年前成為 Fixed Anchor，保留 Soft Rewrite 主觀記憶
 
 Protagonist
-→ 現在 Hard Reset 中保留跨 Loop 主觀記憶
-→ precise mechanism TBD
+→ 五年後因同類 Bug 成為 Fixed Anchor，保留 Hard Reset 記憶
 ```
+
+底層選擇演算法、Reference Lock 與同步／Recovery 實作仍 TBD，不代表 Anchor 存在與否未定案。
 
 不能把知夏的例外抽象成一般 `memory_residue` 數值。
 

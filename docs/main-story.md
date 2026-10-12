@@ -5,6 +5,8 @@
 > Gameplay interaction、Perception、Memory 與 Investigation 規則以 `docs/core-gameplay-spec-v0.1.md` 為準。
 >
 > 主角返鄉與系統重啟背景以 `docs/story-canon-return-and-reactivation.md` 為準。
+>
+> Rewrite / Pivot / Fixed Anchor 的高層因果，以 `docs/story-canon-rewrite-anchor.md` 為準。
 
 人物細節見 `docs/character-bible.md`，人物關係見 `docs/relationship-map.md`。
 
@@ -317,7 +319,7 @@ Canonical flow：
 
 但以下仍不能在本章自行硬補：
 
-- 知夏成為 Anchor / Reference 的精確機制
+- 知夏 Fixed Anchor Lock 的底層同步／工程失效過程（高層原因已定案）
 - 她如何主動觸發每一次 Rewrite
 - 她死亡與五年前 Loop 停止的完整技術因果
 - 主角與知夏之間是否存在同一個 Reference Session

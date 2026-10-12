@@ -2,7 +2,7 @@
 
 > Status：Final thematic direction confirmed；Hard Reset stop mechanism and exact physical shutdown path remain TBD。
 >
-> 本文件定義最終章「要解決什麼問題」，但不提前假裝尚未設計完成的 Anchor / Reference / Synchronization 細節已經有答案。
+> 本文件定義最終章「要解決什麼問題」。Fixed Anchor 的高層成因已由 `story-canon-rewrite-anchor.md` 定案；本章不假裝 Synchronization 事故、Recovery 判定與停止 Write-back 的實體路徑已有答案。
 
 Final 的核心不是打倒某個幕後黑手，也不是找出哪一個人應該死亡。
 
@@ -433,12 +433,12 @@ Anchor 死亡
 
 在 Final 可以真正鎖死前，至少需要回答：
 
-1. 五年前第一次 Reality Write-back 的物理／系統鏈
-2. 知夏如何保留被 Rewrite Reality 的資訊
-3. 主角為什麼能保留 Hard Reset 記憶
+1. 五年前灰潮鎮重大 Write-back 異常的物理／系統鏈（不是全世界第一次 Rewrite）
+2. 知夏 Pivot Repeat / Reference Lock 的底層工程鏈（高層已定案）
+3. 主角 Fixed Anchor 保留跨 Hard Reset 記憶的底層實作（高層已定案）
 4. 五年前知夏實際切斷了什麼，讓系統沉寂五年
 5. 五年後地方更新具體重新接回了什麼
-6. 主角與 Reference / Observer 條件到底有什麼關係
+6. 五年後主角如何被選為 Pivot，以及 Repeat Prevention 為何再次失效
 7. 00:00 為什麼會回到 06:12
 8. 系統什麼條件下判定需要繼續 Correction
 9. Ending C 怎麼讓該條件永久失效，而不是只暫停一次

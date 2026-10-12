@@ -158,16 +158,16 @@ vs
 
 可以保留的 Mystery 是：
 
-> 庭安明明記得自己處理掉某份資料，後來卻又看見內容高度相似、來源卻不同的版本。
+> 在目前可查的歷史中，庭安曾處理掉某份資料，卻又找到內容相似、來源不同的版本。
 
 可能解釋包括：
 
 - 另一份備份
 - Rewrite 後的不同物件歷史
 - 研究 Snapshot 重建
-- 庭安自己的記憶與當前世界資料不一致
+- 若庭安曾有模糊 Rewrite Echo，必須另有證據；不能直接假定她記得完整上一個 Reality
 
-在 Anchor / Rewrite mechanics 定案以前，不宣布是哪一種。
+在媒介保留與 Rewrite 的細部機制定案以前，不宣布是哪一種。
 
 ---
 
@@ -209,7 +209,7 @@ Perception
 
 > 這裡只在描述功能。
 >
-> 為什麼知夏／主角能做到，仍屬 Anchor / Observer / Reference TBD。
+> 知夏與主角記得跨 Rewrite 主觀經歷的高層原因已定案：各自成為 Fixed Anchor / Persistent Reference。只有底層同步細節仍 TBD；這不證明信件也是跨線媒介。
 
 ---
 
@@ -350,10 +350,10 @@ Loop A → Loop B
 
 # 後續可重新定案的項目
 
-等 Anchor / transmission mechanics 完成後，可以再決定：
+等媒介異常 / transmission mechanics 完成後，可以再決定（Anchor 的高層因果已定案）：
 
 - 是否真的存在知夏刻意設計的六次媒介實驗
-- 哪些媒介是自然 Residual，哪些是人工測試
+- 哪些媒介呈現 Rewrite 資料不一致／可能的 Rewrite Echo，哪些只是人工測試或備份
 - `18:03` 是否為真正跨線通訊
 - 開場實體信是否透過 Watchdog / Snapshot / Rewrite / 其他機制送達
 - 「第七封信」最終是字面上的第七個實驗，還是只保留作為作品名稱與象徵

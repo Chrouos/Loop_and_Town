@@ -243,21 +243,22 @@
 
 這本身仍不是超自然研究。
 
-真正的事故發生在某次同步實驗之後：
+但 Reality Rewrite 並非灰潮鎮第一次發生：其他 Pilot Site 早已可能成功進行微幅 Correction；成功同時覆寫記憶、感測資料與歷史紀錄，讓研究團隊誤判成 `False Positive` 或資料不穩定。
+
+灰潮鎮五年前的重大異常則是：
 
 ```text
-預測
-→ 模擬
-→ 現實干預
-→ 系統同步異常
-→ 模擬結果與現實狀態開始互相污染
+Prediction / Simulation
+→ Intervention / Synchronization
+→ 18:31 Causal Convergence
+→ Pivot Repeat Prevention 失效 + 低機率重複選中
+→ 知夏形成 Fixed Anchor
+→ 有人持續記得被覆寫的 Reality
 ```
 
-從此「可能發生的結果」不再只是模型中的可能性。
+所以這是**知夏第一次得以追查到 Rewrite 真相的起點**，不是全世界 Rewrite 的起點。
 
-部分資訊、狀態與因果開始留下不應存在於當前世界線的痕跡。
-
-這才是 Worldline Rewrite / Residual Information 的起點。
+跨 Reality 的模糊感知稱為 `Rewrite Echo`，而同輪周邊感知才叫 Core Gameplay 的 `Residual`；媒介差異與精確物理機制仍待定案。
 
 ---
 
@@ -281,7 +282,7 @@
 
 目前 Canon 只固定：
 
-> 18:31 是多個系統與人類決策第一次被同步綁成同一個因果節點的時間。
+> 對灰潮鎮這次重大事故而言，18:31 是多個系統與人類決策高度同步並收束於同一個因果節點的時間。
 
 後來世界線每次被大幅改寫時，因果都會重新在這個節點附近收束。
 
@@ -293,7 +294,7 @@
 18:31 = Causal Convergence
 ```
 
-午夜 Hard Reset 則是後續世界修正完成的結果。
+五年後 00:00 的 Hard Reset 是當輪 Correction 尚未滿足 Recovery 條件，Rollback 回 06:12 `Last Clean Causal State`；精確失敗判定仍 TBD。
 
 ---
 

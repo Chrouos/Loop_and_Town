@@ -1,6 +1,6 @@
 # Chapter 7｜林知夏
 
-> Status：Story structure active；Anchor / Reference / warning-letter transport / five-years-ago Loop stop mechanism remain TBD。
+> Status：Story structure active；Fixed Anchor 的高層因果已定案（`story-canon-rewrite-anchor.md`）；只有精確工程機制、warning-letter transport 與五年前停止 Rewrite 的方法仍 TBD。
 >
 > 本章負責回答「林知夏變成了什麼樣的人」，不是提前把尚未定案的時空機制全部解釋完。
 
@@ -463,9 +463,9 @@ Chapter 7 不直接給 Ending 答案。
 
 # 本章仍待後續 Canon 解決
 
-1. 五年前第一個 Reality Rewrite 的完整事故鏈
-2. 知夏如何成為特殊記憶持有者
-3. 主角為什麼能保留現在 Hard Reset 的記憶
+1. 五年前灰潮鎮重大 Rewrite 異常的完整事故鏈（不是全世界第一次 Rewrite）
+2. 知夏 Pivot Repeat / Reference Lock 的具體工程過程（高層因果已定案）
+3. 主角 Fixed Anchor 如何跨 Hard Reset 保存主觀狀態的底層細節
 4. 五年前知夏如何停止當年的 Rewrite
 5. 知夏死亡與停止之間的精確先後因果
 6. 五年後系統重新取得 Reality Write-back 條件的完整技術鏈

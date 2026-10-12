@@ -157,20 +157,28 @@ Reference / Observer Records
 
 ```text
 舊系統重新連線
-+
-五年前與 Reality Write-back 有關的 Reference / Observer 條件重新成立
 ↓
 Correction / Rewrite 再次具備執行條件
+↓
+主角於 06:12 已包含在 Bounded Causal Graph 的 Prediction Horizon
+↓
+因果影響力提高，被選為 Pivot
+↓
+低機率重複命中 + Repeat Prevention 失效
+↓
+形成新的 Fixed Anchor
 ```
 
-主角與這個 Reference 條件的確有特殊關係，但**具體技術機制仍是 TBD**。
+主角是五年後因 Pivot Repeat Bug 才形成 Fixed Anchor，**不要求她五年前已經是 Reference Subject**；Reference 指的是 Lock 後的 Persistent Reference。
 
-目前只固定：
+目前固定：
 
-- 她不是因為「林家血統」而觸發 Loop
-- 系統不應愚蠢地把妹妹辨識成「復活的林知夏」
-- 若使用 Reference Subject 概念，主角應是五年前事故中真正參與過該閉環的人，而不是五年後臨時被挑中
-- Anchor / Reference 只用來解釋跨 Rewrite 的觀測或同步條件，不自帶「必須死亡」規則
+- 她不是因為林家血統才觸發 Loop
+- 系統不會錯認主角是復活的知夏
+- 主角在列車上已能被納入 06:12 的 Causal Baseline
+- Pivot 由因果影響力與機率選中，正常會輪替；Repeat Prevention 失效後才可能變成 Fixed Anchor
+- Anchor 不自帶必須死亡的規則
+- 具體 Pivot Selection / 同步故障 / Recovery 判定仍 TBD
 
 ---
 
@@ -319,9 +327,9 @@ Correction / Rewrite 再次具備執行條件
 
 以下內容刻意不在本文件鎖死：
 
-1. 五年前主角如何成為 Reference Subject / Observer
-2. 知夏為何能保留 Rewrite 前後記憶
-3. 主角五年後第一次 Hard Reset 後為何能保留記憶
+1. 五年前知夏 Pivot Repeat / Reference Lock 的精確工程故障鏈
+2. 五年後同類 Bug 如何在主角身上再次出現的底層同步原因
+3. Fixed Anchor 跨 Hard Reset 保留主觀狀態的底層實作
 4. 五年前知夏實際切斷哪一個實體 / 軟體 Synchronization Path
 5. 五年後哪一個具體公共工程重新接回舊系統
 6. 「不要回來」這封信的精確投遞機制，以及是否來自 Watchdog / 延遲觸發

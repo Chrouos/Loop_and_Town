@@ -114,7 +114,7 @@
 - 對妹妹保護慾很強
 - 原本真心支持妹妹離開灰潮鎮、去都市生活
 - 習慣自己扛問題，不相信別人能承受全部真相
-- 接觸研究所舊資料後逐漸成為五年前 Soft Rewrite 的特殊記憶持有者
+- 因高 Causal Influence、Pivot 重複命中與 Repeat Prevention 失效，成為五年前 Fixed Anchor，保留跨 Soft Rewrite 記憶
 - 一開始相信存在「所有人都活下來」的正解
 - 後期開始接受世界線只能做取捨
 
