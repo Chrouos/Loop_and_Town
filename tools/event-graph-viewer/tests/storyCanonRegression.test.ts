@@ -27,10 +27,10 @@ describe('PR #24 Story Canon regression guards', () => {
 
     const story = loadRealStory();
     const scenes = new Map(story.narrative.scenes.map((item) => [item.id, item]));
-    expect(scenes.get('prologue_arrival')?.at.time).toBe('06:12');
-    expect(scenes.get('prologue_letter_discovery')?.at.time).toBe('06:14');
+    expect(scenes.get('prologue_arrival')?.at).toEqual({ day: 0, time: '06:12' });
+    expect(scenes.get('prologue_letter_discovery')?.at).toEqual({ day: 0, time: '06:14' });
     expect(scenes.get('prologue_letter_discovery')?.requiresLocation).toBeUndefined();
-    expect(scenes.get('prologue_yuan_reunion')?.at.time).toBe('07:40');
+    expect(scenes.get('prologue_yuan_reunion')?.at).toEqual({ day: 0, time: '07:40' });
     expect(STORY_RECORDS.find((item) => item.id === 'letter')?.body).toEqual(['不要回來。', '姊']);
   });
 
