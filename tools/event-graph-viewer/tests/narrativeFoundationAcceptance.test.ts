@@ -46,15 +46,16 @@ it('advances rest_and_read in world minutes and ignores hidden movement', () => 
   expect(completed.remainingMinutes).toBe(0);
 });
 
-it('discovers the impossible letter from the mail activity after returning home', () => {
+it('rediscovers the warning letter aboard the train', () => {
   const story = loadRealStory();
   const scenes = story.narrative.scenes;
   const home = scenes.find((scene) => scene.id === 'prologue_old_house')!;
   const letter = scenes.find((scene) => scene.id === 'prologue_letter_discovery')!;
   const artifact = story.narrative.artifacts.find((item) => item.id === 'zhixia_letter')!;
   expect(home.requiresLocation).toBe('old_house');
-  expect(letter.requiresLocation).toBe('old_house');
-  expect(letter.afterActivityId).toBe('sort_mail');
+  expect(letter.requiresLocation).toBeUndefined();
+  expect(letter.afterActivityId).toBeUndefined();
+  expect(letter.at).toEqual({ day: 0, time: '06:14' });
   expect(toAbsoluteMinute(artifact.formedAt)).toBeLessThan(14 * 60 + 20);
 });
 

@@ -53,7 +53,7 @@ describe('Loop 07 Lin Zhixia', () => {
     const decline = dag.nodes.find((node) => node.id === 'L7_N11_yuan_declines');
     const convergence = dag.nodes.find((node) => node.id === 'L7_N12_collective_1831');
 
-    expect(choice?.detail.after.join('\n')).toContain('予安自己決定');
+    expect(choice?.detail.after.join('\n')).toContain('予安選擇');
     expect(answer).toBeDefined();
     expect(decline).toBeDefined();
     expect(convergence?.time).toBe('18:31');

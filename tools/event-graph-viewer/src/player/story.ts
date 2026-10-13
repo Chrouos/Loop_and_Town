@@ -46,9 +46,9 @@ const stationBlackoutSpatial = compileSpatialScript([
 ]);
 
 export const STORY_RECORDS: VisibleRecord[] = [
-  { id: 'letter', title: '第七封信', source: '林知夏（信封署名）', formedAt: '郵戳：昨天', obtainedAt: '回到灰潮鎮時', revealMinute: 0, acquisition: 'persistent', matches: always,
-    body: ['回來一趟。', '我知道你會先看信封，才肯相信裡面的字。', '這一次，先別來找我。', '如果午夜的鐘聲響起，就代表又失敗了。', '姊'],
-    excerpts: [{ id: 'postmark', text: '郵戳是昨天的；署名是林知夏。' }, { id: 'warning', text: '如果午夜的鐘聲響起，就代表又失敗了。' }] },
+  { id: 'letter', title: '第七封信', source: '林知夏（信封署名）', formedAt: '郵戳：昨天', obtainedAt: '在返鄉列車上取出時', revealMinute: 0, acquisition: 'persistent', matches: always,
+    body: ['不要回來。', '姊'],
+    excerpts: [{ id: 'postmark', text: '郵戳是昨天的；署名是林知夏。' }, { id: 'warning', text: '不要回來。' }] },
   { id: 'yu-an-message', title: '予安的留言', source: '周予安／手機留言', formedAt: '18:00', obtainedAt: '18:00', revealMinute: 1080, acquisition: 'message', matches: always,
     body: ['我剛才在店門口碰到若晴。她說今晚要去舊車站，手裡拿著妳姊留下的信封。', '醫院的陳柏勳也問過她幾點會到。她看起來不想自己去。', '妳若想陪她，我可以先去醫院問問陳柏勳。18:20 前告訴我。'],
     excerpts: [{ id: 'plan', text: '若晴說今晚要去舊車站。' }, { id: 'doctor', text: '陳柏勳問過若晴幾點會到。' }] },

@@ -66,7 +66,8 @@ describe('relationship-driven Final', () => {
 
     const text = scenes.flatMap((scene) => scene.blocks ?? []).map((block) => block.text ?? '').join('\n');
     expect(text).toContain('我不能再替他們選');
-    expect(text).toContain('我只能決定，我自己願意承擔什麼');
+    expect(text).toContain('問題是如何解除系統改寫現實的權限');
+    expect(text).toContain('Prediction / Simulation');
     expect(text).not.toContain('True Ending');
     expect(text).not.toContain('Good Ending');
     expect(text).not.toContain('Bad Ending');

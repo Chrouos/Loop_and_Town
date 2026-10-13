@@ -17,7 +17,7 @@ import reporterYaml from '../../../../story/events/day_01_2114.yaml?raw';
 import { loadRealStory } from '../helpers/loadRealStory';
 import type { PlayerStoryBundle } from '../../src/types/playerStory';
 
-const initial: WorldState = { clock: { day: 0, time: '06:12' }, characters: { wakaharu: { location: 'old_station', status: 'alive' }, doctor: { location: 'old_station', status: 'alive' }, reporter: { location: 'hotel', status: 'alive' } }, world: { anomaly_1831_observed: false }, flags: { player_protected_wakaharu: false, player_stopped_doctor: false } };
+const initial: WorldState = { clock: { day: 0, time: '06:12' }, characters: { wakaharu: { location: 'old_station', status: 'alive' }, doctor: { location: 'old_station', status: 'alive' }, reporter: { location: 'hotel', status: 'alive' } }, world: { anomaly_1831_observed: false, station_handoff_completed: true, doctor_maintenance_exposed: false }, flags: { player_protected_wakaharu: false, player_stopped_doctor: false } };
 const definition: SimulationDefinition = { actions: [], events: [] };
 const canonical: { initialState: WorldState; definition: SimulationDefinition } = {
   initialState: initial,
@@ -61,7 +61,7 @@ it('opens the envelope and records a deliberate action before the deadline', asy
   render(<PlayerApp now={() => current} storage={storage} loadStory={async () => ({ definition, initialState: initial })} />);
   const user = userEvent.setup();
   await user.click(await screen.findByRole('button', { name: /拆開信封/ }));
-  expect(screen.getByText('回來一趟。')).toBeDefined();
+  expect(screen.getByText('不要回來。')).toBeDefined();
   expect(screen.queryByRole('button', { name: /保護若晴/ })).toBeNull();
   current += Math.ceil((1080 - 372) / 12) * MINUTE;
   fireEvent(document, new Event('visibilitychange'));
@@ -136,7 +136,7 @@ it('plays rhythmic observation during Attend and auto returns only after the sce
 
   expect(readSave(storage, current).loops[1].perceivedSceneIds).toContain('station-blackout');
   expect(readSave(storage, current).loops[1].attention.phase).toBe('idle');
-  expect(screen.getByText('回來一趟。')).toBeDefined();
+  expect(screen.getByText('不要回來。')).toBeDefined();
 });
 
 it('captures only the perceived moment and persists it after capture focus completes', async () => {

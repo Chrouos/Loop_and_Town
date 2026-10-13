@@ -75,16 +75,16 @@ describe('App', () => {
     expect(screen.getByText('Loop 05｜只有我記得')).toBeTruthy();
   });
 
-  it('loads Loop 06 and exposes the seventh-letter handoff', async () => {
+  it('loads Loop 06 without confirming seventh-letter transmission', async () => {
     stubRealStoryFetch();
     render(<App />);
 
     const selector = await screen.findByLabelText('Loop / Worldline');
     fireEvent.change(selector, { target: { value: 'loop_06_six_letters' } });
-    expect(await screen.findByText('第七封新增「是讓妳收到」')).toBeTruthy();
-    fireEvent.click(screen.getByText('第七封新增「是讓妳收到」'));
-    expect(await screen.findByText('第七個不是讓我記得。')).toBeTruthy();
-    expect(screen.getByText('是讓妳收到。')).toBeTruthy();
+    expect(await screen.findByText('18:31 信件內容沒有改變')).toBeTruthy();
+    fireEvent.click(screen.getByText('18:31 信件內容沒有改變'));
+    expect(await screen.findByText('18:31，我再次拿起那封署名知夏的信，紙上仍然只有「不要回來」。')).toBeTruthy();
+    expect(screen.getByText('沒有新增字，也沒有知夏的即時回覆。鎮上卻傳來短暫的供電異常聲。')).toBeTruthy();
     expect(screen.getByText('Loop 06｜前六封信・資訊交接')).toBeTruthy();
   });
 
@@ -100,13 +100,13 @@ describe('App', () => {
     expect(screen.getByText('Loop 07｜林知夏・予安接電話')).toBeTruthy();
 
     fireEvent.change(selector, { target: { value: 'loop_07_yuan_declines' } });
-    fireEvent.click(await screen.findByText('予安自己拒接 17:58 的電話'));
-    expect(await screen.findByText(/今天不接，是我知道它可能改變很多事/)).toBeTruthy();
+    fireEvent.click(await screen.findByText('予安自己決定延後仲介電話'));
+    expect(await screen.findByText(/予安讓電話停止震動，傳訊息給仲介約明天再談/)).toBeTruthy();
     expect(screen.getByText('Loop 07｜林知夏・予安不接電話')).toBeTruthy();
 
-    fireEvent.click(screen.getByText('第七封要求共同承擔，而不是選誰活'));
-    expect(await screen.findByText('這次不要選誰活。')).toBeTruthy();
-    expect(screen.getByText('選你們願意一起承擔什麼。')).toBeTruthy();
+    fireEvent.click(screen.getByText('主角不再替大家選擇'));
+    expect(await screen.findByText('18:31 的電力異常仍然到來，但大家都知道自己正在承擔什麼。')).toBeTruthy();
+    expect(screen.getByText('這次不要由我選誰活。我想把風險交還給真正要承擔的人。')).toBeTruthy();
   });
 
   it('loads all three Final paths after NPC-owned decisions reconverge', async () => {
@@ -117,8 +117,8 @@ describe('App', () => {
     fireEvent.change(selector, { target: { value: 'ending_a_tomorrow' } });
     expect(selector.value).toBe('ending_a_tomorrow');
     expect(await screen.findByText('18:31 各自選擇在同一個 Convergence 合流')).toBeTruthy();
-    fireEvent.click(screen.getByText('18:03 第七封交接通道再次開啟'));
-    expect(await screen.findByText('我不能再替他們選。我只能決定，我自己願意承擔什麼。')).toBeTruthy();
+    fireEvent.click(screen.getByText('18:03 查核 Write-back 同步資料'));
+    expect(await screen.findByText('18:03，我們比對當年通聯紀錄與同步資料。紀錄方向仍有矛盾，但沒有信紙即時回覆，也沒有已證明的跨線交接。')).toBeTruthy();
 
     fireEvent.change(selector, { target: { value: 'ending_b_once_more' } });
     expect(selector.value).toBe('ending_b_once_more');
@@ -126,9 +126,9 @@ describe('App', () => {
 
     fireEvent.change(selector, { target: { value: 'ending_c_forget_me' } });
     expect(selector.value).toBe('ending_c_forget_me');
-    fireEvent.click(await screen.findByText('Ending C｜忘記我', { selector: 'strong' }));
-    expect(await screen.findByText('……原本哪個？')).toBeTruthy();
-    expect(screen.getByText('沒事。我重新問一次。妳喝什麼？')).toBeTruthy();
+    fireEvent.click(await screen.findByText('Ending C｜停止改寫', { selector: 'strong' }));
+    expect(await screen.findByText('真正要切斷的是自主 Reality Write-back 的執行權，保留 Prediction / Simulation，不是刪除我的記憶。')).toBeTruthy();
+    expect(screen.getByText('我依然記得那些不再存在的昨天，但我不再用它們替眼前的人做選擇。')).toBeTruthy();
   });
 
   it('opens Character Graph and exposes visibility modes without leaking author relationships by default', async () => {
