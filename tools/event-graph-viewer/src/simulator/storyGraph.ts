@@ -8,6 +8,7 @@ export function collectWrittenPaths(effects: Effect[]): string[] {
   for (const effect of effects) {
     if ('set' in effect) paths.add(effect.set.path);
     else if ('add_flag' in effect) paths.add(effect.add_flag);
+    else if ('correction' in effect) paths.add('correction');
   }
   return [...paths].sort();
 }
@@ -49,6 +50,7 @@ function effectDetails(effects: Effect[]): string[] {
   return effects.map((effect) => {
     if ('set' in effect) return `${effect.set.path} = ${String(effect.set.value)}`;
     if ('add_flag' in effect) return `${effect.add_flag} = true`;
+    if ('correction' in effect) return `correction: ${effect.correction.op}`;
     return `emit ${effect.emit_event.event_id}`;
   });
 }
