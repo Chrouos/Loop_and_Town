@@ -40,7 +40,7 @@
 ## 時間與記憶
 
 ```text
-10/3 06:12  Last Clean Causal State
+10/3 06:12  Last Clean Causal State（未封存時的 Retry 路線）
 → 當日 Prediction / Intervention / Correction
 → 18:31  Causal Convergence（不是固定死亡）
 → 23:59  鐘聲 / Recovery 最後階段

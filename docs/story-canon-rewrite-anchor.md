@@ -844,6 +844,8 @@ Digital Twin 本來就必須處理：
 
 # 20. 目前的 Hard Reset 高層方向
 
+> 以下是未經 Forward Seal 結案的**預設 Retry 路線**。依 `story-canon-mechanism.md`，Ending A 一次性 Seal、Ending C 永久 Writer 隔離與 Seal 可以讓當輪真正前進。
+
 五年後系統進入異常 Recovery / Correction Mode。
 
 高層流程：

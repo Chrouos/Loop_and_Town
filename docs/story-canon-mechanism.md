@@ -2,6 +2,8 @@
 
 > **Status：Active Mechanism Canon（敘事／系統高層因果已定案；Runtime 尚未實作）**
 >
+> Ending A、C 的 `00:01` 為設計驗收目標，不代表既有故事模擬器已能執行該狀態。
+>
 > 本文件承接 `story-canon-rewrite-anchor.md` 的 Reality Rewrite、Causal Pivot、Fixed Anchor，不重新解釋血緣、記憶或物理本質。
 >
 > 此處的 Sync Epoch、Lease、Bridge、Forward Seal 是**小說世界內系統的概念介面**，不是宣稱現實電腦技術能改寫真實世界。設備型號、Reality State Coupling 的物理原理、底層演算法仍為 TBD。

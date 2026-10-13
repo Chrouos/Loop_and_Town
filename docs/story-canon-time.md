@@ -31,7 +31,7 @@
 → Hard Reset 啟動
 ```
 
-目前 10 月 3 日的 canonical loop：
+目前 10 月 3 日的 **未結案／未完成 Forward Seal** 的 canonical Retry 路線（Ending A、C 例外見 `story-canon-mechanism.md`）：
 
 ```text
 10 月 3 日 06:12
@@ -59,7 +59,7 @@ Hard Reset
 - Hard Reset canonical checkpoint：**10 月 3 日 06:12**
 - 18:31 不是 Reset，也不是固定死亡時間
 - 18:31 是 Causal Convergence Point
-- 00:00 是該輪 World State Reset boundary
+- 00:00 是該輪 World State **Rollback 或 Forward** 的裁決邊界；僅未結案且 Writer 仍授權時 Hard Reset
 - 一般 NPC 不保留上一輪記憶
 - NPC Personality / values / stable habits 維持角色一致性
 - 主角自然保留跨 Loop 的主觀經歷
@@ -305,6 +305,8 @@ Production Story Canon 已遷移為：
 ---
 
 # Author Rule
+
+下方是一般未封存 Correction Session 的 Retry 路線；Ending A／C 的有效 Forward Seal 應走到 10/4，不能強制經過 Reset。
 
 新增 Story DAG / Narrative 時遵守：
 
