@@ -4,11 +4,11 @@ paths:
     visibility: public
     node_ids:
       - N00_arrival_graytide
+      - N00_letter_discovered
+      - N00_yuan_reunion
       - N00_shopkeeper_mistake
       - N00_correct_shopkeeper
-      - N00_yuan_reunion
       - N00_old_house
-      - N00_letter_discovered
       - N00_search_zhixia_room
       - N00_find_watch
       - N00_find_wakaharu_photo
@@ -56,9 +56,9 @@ paths:
     visibility: public
     node_ids:
       - N00_loop02_reset_awareness
+      - N00_letter_discovered
       - N00_yuan_reunion
       - N00_old_house
-      - N00_letter_discovered
       - N00_search_zhixia_room
       - N00_find_wakaharu_photo
       - N01_wakaharu_photography
@@ -80,8 +80,8 @@ paths:
       - N29_midnight_reset
     edge_ids:
       - E00_loop02_resume
-      - E00_04
       - E00_05
+      - E00_loop02_yuan_to_house
       - E00_06
       - E00_07c
       - E00_09a
@@ -109,8 +109,8 @@ paths:
     visibility: author
     node_ids:
       - N00_arrival_graytide
-      - N00_old_house
       - N00_letter_discovered
+      - N00_old_house
       - N00_search_zhixia_room
       - N00_find_research_photo
       - N13_show_letter_to_reporter
@@ -125,7 +125,8 @@ paths:
       - N28_impossible_bell
       - N29_midnight_reset
     edge_ids:
-      - E00_05
+      - E00_01
+      - E00_author_letter_to_house
       - E00_06
       - E00_07b
       - E00_09c
