@@ -330,10 +330,10 @@ Correction / Rewrite 再次具備執行條件
 1. 五年前知夏 Pivot Repeat / Reference Lock 的精確工程故障鏈
 2. 五年後同類 Bug 如何在主角身上再次出現的底層同步原因
 3. Fixed Anchor 跨 Hard Reset 保留主觀狀態的底層實作
-4. 五年前知夏實際切斷哪一個實體 / 軟體 Synchronization Path
-5. 五年後哪一個具體公共工程重新接回舊系統
+4. 五年前知夏隔離灰潮鎮主 Write-back 同步聯結的確切設備、操作與死亡先後（高層因果見 `story-canon-mechanism.md`）
+5. 五年後防災備援／舊站通訊讓 Recovery Bridge 重獲權限的確切工程和實體接口（高層因果已定案）
 6. 「不要回來」這封信的精確投遞機制，以及是否來自 Watchdog / 延遲觸發
-7. 18:31 的完整 Cascade Failure 鏈
+7. 18:31 Cross-Epoch Feedback Mismatch → 未結案 Correction 的底層物理／工程鏈（高層流程見 `story-canon-mechanism.md`）
 
 這些後續可以細化，但不能推翻已確定的高層因果：
 

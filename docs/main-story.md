@@ -7,6 +7,8 @@
 > 主角返鄉與系統重啟背景以 `docs/story-canon-return-and-reactivation.md` 為準。
 >
 > Rewrite / Pivot / Fixed Anchor 的高層因果，以 `docs/story-canon-rewrite-anchor.md` 為準。
+>
+> 18:31 Cascade、午夜 Recovery 與 Ending A／B／C 的機制，以 `docs/story-canon-mechanism.md` 為準。
 
 人物細節見 `docs/character-bible.md`，人物關係見 `docs/relationship-map.md`。
 
@@ -365,6 +367,6 @@ Ending C 的高層方向是：
 
 > **停止 Reality Optimization / Write-back，而不是找到一條最完美的排列。**
 
-Ending A / C 的精確 Hard Reset Stop Mechanism 仍需後續定案。
+Ending 的高層機制已定案：A 使用一次性 Forward Seal 結束當輪，但 Writer 仍可能在未來重新作動；B 未結案而 Retry；C 完成主／備援 Writer 權限撤銷、Epoch Fencing、外部隔離驗證與 Forward Seal，使灰潮鎮本地自主 Write-back 長期失去權限。底層設備與 Runtime 尚待實作，詳見 `docs/story-canon-mechanism.md`。
 
 詳細見 `docs/final-1831.md`。

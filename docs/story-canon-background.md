@@ -294,7 +294,7 @@ Prediction / Simulation
 18:31 = Causal Convergence
 ```
 
-五年後 00:00 的 Hard Reset 是當輪 Correction 尚未滿足 Recovery 條件，Rollback 回 06:12 `Last Clean Causal State`；精確失敗判定仍 TBD。
+五年後 00:00 的 Hard Reset 是 18:31 後的 Feedback Mismatch／Pending Correction 未得到有效 Forward Seal，且 Writer 仍有權，使 Recovery Retry 回 06:12 `Last Clean Causal State`。高層失敗原因已由 `story-canon-mechanism.md` 定案；只有底層閾值、設備細節仍 TBD。
 
 ---
 

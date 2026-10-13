@@ -70,7 +70,7 @@ Real-world Data → Prediction → Simulation → Intervention
 
 - 五年前知夏成為 Fixed Anchor，得以追查被 Rewrite 的 Reality。
 - 五年後主角因同類 Bug 成為 Fixed Anchor，並非血緣繼承，也不是系統把她認成知夏。
-- `Anchor death ≠ Loop stop`；失敗判定、物理事故鏈、警告信來源與關閉 Write-back 方法仍 TBD。
+- `Anchor death ≠ Loop stop`；18:31 Feedback Mismatch、未結案 Session、00:00 Retry 與 Ending C 的雙路隔離＋Forward Seal 已有高層機制（`story-canon-mechanism.md`）；實體設備、數值閾值、信件來源與 Runtime 仍 TBD。
 
 ## 核心人物
 

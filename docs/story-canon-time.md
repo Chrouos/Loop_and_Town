@@ -5,6 +5,8 @@
 > Player interaction 與 Attention / Perception 規則以 `docs/core-gameplay-spec-v0.1.md` 為最高優先。
 >
 > 主角返鄉原因與五年後地方更新見 `docs/story-canon-return-and-reactivation.md`。
+>
+> 18:31 Cascade、23:59 Recovery 判定與 Ending A／B／C 的高層路徑見 `docs/story-canon-mechanism.md`。
 
 ---
 
@@ -68,8 +70,8 @@ Hard Reset
 - 主角形成 Fixed Anchor Lock 的底層工程鏈（高層原因：Pivot Repeat Bug，已定案）
 - 警告信的精確投遞機制
 - 警告信是否具有任何跨世界線動態修改能力
-- 00:00 Hard Reset 的最終停止條件
-- Ending A / C 為什麼能永久停止 Hard Reset
+- 00:00 Recovery 判定的底層數值與 Sync Epoch、具體設備實作
+- Ending A 的一次性 Forward Seal、Ending C 的永久雙路隔離／Forward Seal 如何在 Runtime 與現場操作中實現（高層條件已定案）
 
 ---
 
@@ -163,6 +165,8 @@ Story Time 不因玩家：
 
 # 18:31 Canon
 
+> 高層故障路徑已定案：舊站／防災同步窗口匯聚 Forecast、Observed Reality 與跨 Epoch Confirmation；邊界污染導致重複 Feedback Mismatch。死亡取決於人物自身路線與設備暴露，不是系統挑選死者。詳細見 `story-canon-mechanism.md`。
+
 ```text
 18:31 ≠ 世界要求一個人死亡
 18:31 ≠ Reset
@@ -227,7 +231,7 @@ Hard Reset trigger
 
 > 這一輪到底死了誰？
 
-答案尚未完全鎖定，不能由章節作者自行補成「Anchor 必須死亡」或「一定要有一名死者」。
+高層答案已由 `story-canon-mechanism.md` 鎖定：18:31 後若有 Feedback Mismatch／Pending Correction，Session 到 23:59 仍未結案，且 Writer 仍授權、沒有可信的 Forward Seal，便會在 00:00 Recovery Retry。底層閾值仍 TBD；不能補成「Anchor 必須死亡」或「一定要有一名死者」。
 
 ---
 

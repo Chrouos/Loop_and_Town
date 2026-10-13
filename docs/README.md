@@ -44,6 +44,7 @@ Historical dated plan / spec
 
 - `story-canon-background.md`：灰潮鎮社會背景、研究所原始目的、18:31 與故事核心反轉
 - `story-canon-rewrite-anchor.md`：**Reality Rewrite、Causal Pivot 與 Fixed Anchor 的最新高層機制**
+- `story-canon-mechanism.md`：**18:31 Cascade、00:00 Recovery、Ending A／B／C 的高層因果機制；Runtime 尚待實作**
 - `story-canon-return-and-reactivation.md`：主角返鄉原因、地方更新、五年後系統重新連線與「不要回來」警告信
 - `story-canon-memory.md`
 - `story-canon-time.md`
@@ -56,6 +57,8 @@ Historical dated plan / spec
 Story Canon 可以定義人物、事件與特殊劇情例外，但不能重新定義 Core Gameplay。
 
 若其他 active 故事文件把 Anchor 的存在或記憶保留原因整體標成 TBD，以 `story-canon-rewrite-anchor.md` 已鎖定的 `Pivot Repeat Bug → Persistent Reference Lock → Fixed Anchor` 為準；只有工程／演算法細節仍 TBD。
+
+18:31 的跨 Epoch Feedback Mismatch、未結案 Correction、00:00 Recovery Retry，以及 Ending C 的雙路隔離／Epoch Fencing／Forward Seal，現在已由 `story-canon-mechanism.md` 高層定案；不能再將整套 Recovery / Shutdown 原因標作 TBD。底層物理、設備與 Runtime 仍待完成。
 
 `Residual`（當輪微弱感知）與 `Rewrite Echo`（跨 Reality 的模糊感知）不可混用。
 

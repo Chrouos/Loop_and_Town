@@ -891,6 +891,8 @@ Loop = Anchor 活著所以世界必須重來
 
 # 21. 18:31 的目前定位
 
+> Mechanism update：跨 Epoch Feedback Mismatch、未結案 Correction、午夜 Retry 的高層因果已在 `story-canon-mechanism.md` 定案；本節舊版的「只鎖抽象方向」僅適用底層設備／物理。
+
 Reality Write-back 的具體工程故障不需要現在寫死到 sensor / timestamp 細節。
 
 目前只鎖：
@@ -997,10 +999,10 @@ Reality State Coupling
 - 為什麼五年後舊系統重新上線後 repeat bug 再度出現的最底層技術原因
 - 知夏最後如何從「尋找 Perfect Worldline」走到停止五年前 Rewrite
 - 知夏當年具體切斷的是哪一層 Reality Write-back path
-- 五年後 00:00 Correction 判定「失敗」的精確條件
+- 五年後 00:00 Recovery 判定的數值／閾值實作（未結案 Session + Writer 授權 + 缺少 Forward Seal 的高層條件已由 `story-canon-mechanism.md` 定案）
 - 23:59 鐘聲與 Recovery 的精確設備／歷史來源
 - `不要回來` 警告信如何在知夏死後五年被投遞
-- Ending C 具體如何永久停用 Reality Write-back 而保留 Prediction / Simulation
+- Ending C 雙路 Write-back 隔離／Epoch Fencing／獨立驗證／Forward Seal 的具體設備與 Runtime 實作（高層步驟已由 `story-canon-mechanism.md` 定案）
 
 ---
 
