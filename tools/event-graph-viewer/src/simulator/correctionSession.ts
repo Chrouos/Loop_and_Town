@@ -126,10 +126,8 @@ export function reduceCorrection(before: CorrectionSession, command: CorrectionC
       requireGate(informedParticipation() && s.bridgesIdentified && !s.primaryWriteAuthority && !s.recoveryWriteAuthority
         && s.epochFenced && s.isolationVerified, 'permanent seal needs verified dual bridge isolation');
       s.phase = 'FORWARD_SEALED'; s.sealMode = 'PERMANENT'; s.pendingCorrection = false; break;
-    default: {
-      const impossible: never = command;
-      throw new Error('Unknown command: ' + JSON.stringify(impossible));
-    }
+    default:
+      throw new Error('Unsupported correction command: ' + command.op);
   }
   return s;
 }
