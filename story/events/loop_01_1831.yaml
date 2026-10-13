@@ -12,6 +12,7 @@ variants:
     effects:
       - set: { path: characters.wakaharu.status, value: dead }
       - add_flag: world.anomaly_1831_observed
+      - correction: { op: converge }
   - id: doctor_dies
     priority: 90
     when:
@@ -21,8 +22,10 @@ variants:
     effects:
       - set: { path: characters.doctor.status, value: dead }
       - add_flag: world.anomaly_1831_observed
+      - correction: { op: converge }
   - id: no_death
     priority: 0
     fallback: true
     effects:
       - add_flag: world.anomaly_1831_observed
+      - correction: { op: converge }

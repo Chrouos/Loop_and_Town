@@ -1,4 +1,5 @@
 import { hasPath } from './state';
+import { validateCorrectionCommand } from './correctionSession';
 import { parseTime, toAbsoluteMinute } from './time';
 import type { ActionDefinition, Condition, Effect, SimulationDefinition, StoryTimeInput, WorldState } from './types';
 
@@ -44,6 +45,11 @@ function validateEffects(effects: unknown, state: WorldState, eventIds: Set<stri
     if (operations.length !== 1) throw new Error(`Effect must contain exactly one operation for ${owner}`);
 
     const operation = operations[0];
+    if (operation === 'correction') {
+      if (!hasPath(state, 'correction')) throw new Error('CorrectionSession not configured');
+      validateCorrectionCommand(effect.correction);
+      continue;
+    }
     if (operation === 'set') {
       const set = effect.set;
       if (!isRecord(set) || !hasOnlyKeys(set, ['path', 'value']) || typeof set.path !== 'string' || !Object.hasOwn(set, 'value')) {

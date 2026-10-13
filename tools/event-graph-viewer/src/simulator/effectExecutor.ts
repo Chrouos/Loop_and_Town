@@ -1,4 +1,5 @@
 import { setPath } from './state';
+import { executeCorrectionCommand } from './correctionSession';
 import { toAbsoluteMinute } from './time';
 import type { Effect, ResolverContext, StateChange } from './types';
 
@@ -6,6 +7,10 @@ export function executeEffects(context: ResolverContext, effects: Effect[]): Sta
   const changes: StateChange[] = [];
 
   for (const effect of effects) {
+    if ('correction' in effect) {
+      changes.push(executeCorrectionCommand(context.state, effect.correction));
+      continue;
+    }
     if ('set' in effect) {
       changes.push(setPath(context.state, effect.set.path, effect.set.value));
       continue;

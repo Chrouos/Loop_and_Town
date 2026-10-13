@@ -8,3 +8,4 @@ variants:
     fallback: true
     effects:
       - add_flag: flags.loop_ended
+      - correction: { op: adjudicate }

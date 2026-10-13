@@ -40,3 +40,19 @@ flags:
   midnight_bells_heard: false
   loop_ended: false
   wakaharu_life_continues: false
+correction:
+  phase: OPEN
+  feedbackMismatch: false
+  pendingCorrection: false
+  primaryWriteAuthority: true
+  recoveryWriteAuthority: true
+  bridgesIdentified: false
+  epochFenced: false
+  isolationVerified: false
+  riskDisclosed: false
+  evidence: []
+  choices: {}
+  sealMode: NONE
+  finalCheckDone: false
+  outcome: PENDING
+  nextCheckpoint: null
