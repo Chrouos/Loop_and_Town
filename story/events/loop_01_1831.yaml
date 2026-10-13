@@ -16,7 +16,7 @@ variants:
     priority: 90
     when:
       all:
-        - { path: characters.doctor.location, op: eq, value: old_station }
+        - { path: characters.doctor.location, op: eq, value: maintenance_tunnel }
         - { path: world.doctor_maintenance_exposed, op: eq, value: true }
     effects:
       - set: { path: characters.doctor.status, value: dead }

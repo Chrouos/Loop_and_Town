@@ -11,14 +11,13 @@ variants:
         - { path: characters.doctor.location, op: eq, value: old_station }
     effects:
       - add_flag: world.station_handoff_completed
-  - id: doctor_maintenance_exposed
+  - id: doctor_no_recipient
     priority: 80
     when:
       all:
         - { path: characters.wakaharu.route, op: eq, value: home }
         - { path: characters.doctor.location, op: eq, value: old_station }
-    effects:
-      - add_flag: world.doctor_maintenance_exposed
+    effects: []
   - id: wakaharu_unattended_exposed
     priority: 70
     when:

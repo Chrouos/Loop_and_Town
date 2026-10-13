@@ -54,10 +54,10 @@ nodes:
     detail:
       before: [錄音器看起來只是未登錄的五年前現場紀錄。]
       after: [主角確認 18:28 錄音中存在志遠聲音，但正式紀錄顯示他 18:42 才到場。]
-      reason: 某些資訊能在它真正發生之前被殘留到另一條世界線。
+      reason: 錄音時間碼和官方到場紀錄互相矛盾；目前無法排除紀錄錯誤或 Rewrite Echo。
       affected_characters: [protagonist, detective]
-      delayed_effects: [「世界線殘留」不再只是人的記憶，也可能存在於聲音與媒介。]
-      knowledge_changes: [future_information_can_appear_early]
+      delayed_effects: [主角開始調查媒介是否會留下 Rewrite Echo，但不把跨線聲音傳輸當成已證實事實。]
+      knowledge_changes: [recorder_timestamp_conflict_unresolved]
       relationship_changes: []
       narrative_refs: [loop04_1020_future_voice]
 
@@ -161,8 +161,8 @@ nodes:
       after: [主角發現知夏手寫筆記卻把同一分鐘記成「收到」。]
       reason: 通話紀錄可能同樣受到世界線殘留污染，讓資訊方向本身失真。
       affected_characters: [protagonist, zhixia]
-      delayed_effects: [18:03 將在後續與 17:58 未來來電、第七封信共同指向雙向跨線資訊。]
-      knowledge_changes: [unknown_call_direction_is_contaminated]
+      delayed_effects: [後續比對 18:03 通聯、17:58 未接電話和警告信來源；尚不能確認雙向跨線傳輸。]
+      knowledge_changes: [unknown_call_direction_unresolved]
       relationship_changes: []
       narrative_refs: [loop04_1803_unknown_call]
 

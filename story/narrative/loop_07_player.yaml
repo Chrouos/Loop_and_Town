@@ -36,12 +36,12 @@ scenes:
       - type: narration
         text: 五年前的那一輪，姊第一次真正把我留在灰潮鎮。我們沒有爭吵，甚至一起吃了晚餐。
       - type: narration
-        text: 18:31 前後，舊站供電異常、街區號誌失效，一輛車偏離道路。我死了。不是謀殺，也不是世界指定誰必須死，只是一條被改寫過的因果鏈把我放進了那個位置。
+        text: 筆記只有我、18:31、死亡，沒有足以重建事故的完整紀錄。我不知道那條 Worldline 的自己具體怎麼死，只知道姊姊確實看過那個結果。
       - type: dialogue
         speaker: reporter
         text: 那是她開始變的那一輪。
       - type: monologue
-        text: 她不是第一次救不了我。她是第一次成功把我留下，然後看著那個選擇殺死我。
+        text: 她曾經成功讓我留下，卻在同一條 Worldline 看見我死亡。那不是任何人應該替別人決定人生的理由。
 
   - id: loop07_1040_designed_argument
     at: { day: 0, time: "10:40" }
