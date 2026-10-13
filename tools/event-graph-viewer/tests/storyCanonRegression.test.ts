@@ -89,7 +89,10 @@ describe('PR #24 Story Canon regression guards', () => {
           return node!;
         });
         for (const id of path.edgeIds) expect(edgeIds.has(id), path.id + ': missing ' + id).toBe(true);
-        const minute = (time: string) => time === '00:00' ? 24 * 60 : Number(time.slice(0, 2)) * 60 + Number(time.slice(3));
+        const minute = (time: string | undefined) => {
+          if (!time) throw new Error('Graph node lacks a time value');
+          return time === '00:00' ? 24 * 60 : Number(time.slice(0, 2)) * 60 + Number(time.slice(3));
+        };
         for (let j = 1; j < selected.length; j++) {
           expect(minute(selected[j].time), path.id + ': reverse order ' + selected[j-1].id + ' → ' + selected[j].id).toBeGreaterThanOrEqual(minute(selected[j-1].time));
         }
