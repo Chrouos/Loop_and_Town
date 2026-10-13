@@ -2,7 +2,7 @@ id: loop_07_story_dag
 title: Loop 07｜林知夏
 nodes:
   - id: L7_N00_final_question
-    title: 第七封改問「我最後選了誰」
+    title: 警告信與知夏的最後決定
     time: "06:12"
     actor_ids: [protagonist, zhixia]
     visibility: public

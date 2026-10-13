@@ -10,7 +10,7 @@ choices:
 
   - id: arrival_convenience_store
     scene_id: prologue_yuan_reunion
-    label: 去便利商店買水
+    label: 抵達後去便利商店買水
     effects:
       - type: start-activity
         activity_id: visit_convenience_store
