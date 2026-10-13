@@ -148,6 +148,90 @@ nodes:
       knowledge_changes: []
       relationship_changes: []
       narrative_refs: []
+  - id: F_N09_seal_one_time
+    title: Ending A｜一次性結案
+    time: "23:50"
+    actor_ids: [protagonist, doctor, yuan]
+    visibility: author
+    detail:
+      before: ["需有獨立證據及人物當輪知情決定"]
+      after: ["接受今天已發生的現實並完成合法的一次性 Forward Seal；未來仍可能再受 Writer 影響。"]
+      reason: "Mechanism Canon G1–G5；Author truth，不等於 Player 已知"
+      affected_characters: [protagonist, doctor, yuan]
+      delayed_effects: []
+      knowledge_changes: []
+      relationship_changes: []
+      narrative_refs: []
+  - id: F_N11_g1_bridges
+    title: G1｜辨識主與備援 Bridge
+    time: "18:45"
+    actor_ids: [reporter, yuan, protagonist]
+    visibility: author
+    detail:
+      before: ["需有獨立證據及人物當輪知情決定"]
+      after: ["確認 Forecast、Observed、Writer 的分界，以及 Primary 和 Recovery 同時存在。"]
+      reason: "Mechanism Canon G1–G5；Author truth，不等於 Player 已知"
+      affected_characters: [reporter, yuan, protagonist]
+      delayed_effects: []
+      knowledge_changes: []
+      relationship_changes: []
+      narrative_refs: []
+  - id: F_N11_g2_disarm
+    title: G2｜撤銷雙路 Write-back
+    time: "18:47"
+    actor_ids: [yuan, doctor, protagonist]
+    visibility: author
+    detail:
+      before: ["需有獨立證據及人物當輪知情決定"]
+      after: ["角色經風險說明與自主選擇後，撤銷 Primary 及 Recovery 的自動 Writer 權限。"]
+      reason: "Mechanism Canon G1–G5；Author truth，不等於 Player 已知"
+      affected_characters: [yuan, doctor, protagonist]
+      delayed_effects: []
+      knowledge_changes: []
+      relationship_changes: []
+      narrative_refs: []
+  - id: F_N11_g3_fence
+    title: G3｜Epoch Fencing
+    time: "18:48"
+    actor_ids: [detective, yuan]
+    visibility: author
+    detail:
+      before: ["需有獨立證據及人物當輪知情決定"]
+      after: ["拒絕舊 Sync Epoch／Lease 再次取得自動寫入授權。"]
+      reason: "Mechanism Canon G1–G5；Author truth，不等於 Player 已知"
+      affected_characters: [detective, yuan]
+      delayed_effects: []
+      knowledge_changes: []
+      relationship_changes: []
+      narrative_refs: []
+  - id: F_N11_g4_verify
+    title: G4｜獨立驗證隔離
+    time: "18:49"
+    actor_ids: [detective, reporter, doctor]
+    visibility: author
+    detail:
+      before: ["需有獨立證據及人物當輪知情決定"]
+      after: ["以不同保管來源證實兩路沒有有效 Rewrite Ack，而非只相信 UI。"]
+      reason: "Mechanism Canon G1–G5；Author truth，不等於 Player 已知"
+      affected_characters: [detective, reporter, doctor]
+      delayed_effects: []
+      knowledge_changes: []
+      relationship_changes: []
+      narrative_refs: []
+  - id: F_N11_g5_seal
+    title: G5｜封存當前 Reality
+    time: "23:50"
+    actor_ids: [protagonist, yuan]
+    visibility: author
+    detail:
+      before: ["需有獨立證據及人物當輪知情決定"]
+      after: ["只有兩路關閉且隔離驗證成功，才能以 Forward Seal 接受這個不完美的今天。"]
+      reason: "Mechanism Canon G1–G5；Author truth，不等於 Player 已知"
+      affected_characters: [protagonist, yuan]
+      delayed_effects: []
+      knowledge_changes: []
+      relationship_changes: []
+      narrative_refs: []
   - id: F_N09_ending_a
     title: Ending A｜明天
     time: "23:59"
@@ -204,6 +288,12 @@ edges:
   - { id: F_E02e, source: F_N06_yuan_decides, target: F_N06b_handoff_open, label: "own contribution", visibility: public }
   - { id: F_E03, source: F_N06b_handoff_open, target: F_N07_collective_1831, label: "18:31", visibility: public }
   - { id: F_E04, source: F_N07_collective_1831, target: F_N08_protagonist_choice, label: "only choose self", visibility: public }
-  - { id: F_E05a, source: F_N08_protagonist_choice, target: F_N09_ending_a, label: "accept one world", visibility: public }
+  - { id: F_E05a, source: F_N08_protagonist_choice, target: F_N09_seal_one_time, label: "accept one world", visibility: public }
+  - { id: F_E06a, source: F_N09_seal_one_time, target: F_N09_ending_a, label: "one-time Forward Seal", visibility: author }
   - { id: F_E05b, source: F_N08_protagonist_choice, target: F_N10_ending_b, label: "continue loop", visibility: public }
-  - { id: F_E05c, source: F_N08_protagonist_choice, target: F_N11_ending_c, label: "revoke autonomous write-back", visibility: public }
+  - { id: F_E05c, source: F_N08_protagonist_choice, target: F_N11_g1_bridges, label: "revoke autonomous write-back", visibility: public }
+  - { id: F_E06c, source: F_N11_g1_bridges, target: F_N11_g2_disarm, label: "G2 dual disarm", visibility: author }
+  - { id: F_E07c, source: F_N11_g2_disarm, target: F_N11_g3_fence, label: "G3 fence", visibility: author }
+  - { id: F_E08c, source: F_N11_g3_fence, target: F_N11_g4_verify, label: "G4 verify", visibility: author }
+  - { id: F_E09c, source: F_N11_g4_verify, target: F_N11_g5_seal, label: "G5 forward seal", visibility: author }
+  - { id: F_E10c, source: F_N11_g5_seal, target: F_N11_ending_c, label: "permanent local disarm", visibility: author }
