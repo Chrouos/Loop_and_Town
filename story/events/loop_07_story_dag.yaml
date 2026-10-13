@@ -120,7 +120,7 @@ nodes:
       relationship_changes: []
       narrative_refs: [loop07_1620_letter_reply]
   - id: L7_N09_yuan_choice
-    title: 17:58 主角不替予安接電話
+    title: 17:58 主角尊重予安自行決定
     time: "17:58"
     actor_ids: [protagonist, yuan]
     visibility: public
@@ -134,7 +134,7 @@ nodes:
       relationship_changes: [yuan.agency_respected +1]
       narrative_refs: [loop07_1758_yuan_choice]
   - id: L7_N10_yuan_answers
-    title: 予安自己接起 17:58 的電話
+    title: 予安選擇接聽仲介來電
     time: "17:58"
     actor_ids: [protagonist, yuan]
     visibility: public
@@ -148,7 +148,7 @@ nodes:
       relationship_changes: []
       narrative_refs: [loop07_1758_yuan_answers]
   - id: L7_N11_yuan_declines
-    title: 予安自己拒接 17:58 的電話
+    title: 予安選擇延後仲介來電
     time: "17:58"
     actor_ids: [protagonist, yuan]
     visibility: public

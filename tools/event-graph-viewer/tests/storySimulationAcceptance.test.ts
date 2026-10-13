@@ -61,3 +61,10 @@ it('is deterministic for the same named worldline', () => {
   expect(JSON.stringify(first.fullHistory)).toBe(JSON.stringify(second.fullHistory));
   expect(first.state).toEqual(second.state);
 });
+
+it('WL-04 resolves doctor-exposure through the 18:06 handoff event', () => {
+  const result = simulateNamedWorldline(loadRealStory(), 'WL-04');
+  const handoff = result.fullHistory.find(entry => entry.kind === 'event' && entry.eventId === 'evt_1805_envelope_handoff');
+  const station = result.fullHistory.find(entry => entry.kind === 'event' && entry.eventId === 'evt_1831_station');
+  expect({handoff: handoff?.variantId, station: station?.variantId, doctor: result.state.characters.doctor, wakaharu: result.state.characters.wakaharu, world: result.state.world}).toEqual(expect.objectContaining({handoff: 'doctor_maintenance_exposed', station: 'doctor_dies'}));
+});

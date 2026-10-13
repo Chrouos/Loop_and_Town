@@ -81,8 +81,8 @@ describe('App', () => {
 
     const selector = await screen.findByLabelText('Loop / Worldline');
     fireEvent.change(selector, { target: { value: 'loop_06_six_letters' } });
-    expect(await screen.findByText('18:31 信件內容沒有改變')).toBeTruthy();
-    fireEvent.click(screen.getByText('18:31 信件內容沒有改變'));
+    expect(await screen.findByText('18:31 警告信仍未變字')).toBeTruthy();
+    fireEvent.click(screen.getByText('18:31 警告信仍未變字'));
     expect(await screen.findByText('18:31，我再次拿起那封署名知夏的信，紙上仍然只有「不要回來」。')).toBeTruthy();
     expect(screen.getByText('沒有新增字，也沒有知夏的即時回覆。鎮上卻傳來短暫的供電異常聲。')).toBeTruthy();
     expect(screen.getByText('Loop 06｜前六封信・資訊交接')).toBeTruthy();
@@ -100,7 +100,7 @@ describe('App', () => {
     expect(screen.getByText('Loop 07｜林知夏・予安接電話')).toBeTruthy();
 
     fireEvent.change(selector, { target: { value: 'loop_07_yuan_declines' } });
-    fireEvent.click(await screen.findByText('予安自己決定延後仲介電話'));
+    fireEvent.click(await screen.findByText('予安選擇延後仲介來電'));
     expect(await screen.findByText(/予安讓電話停止震動，傳訊息給仲介約明天再談/)).toBeTruthy();
     expect(screen.getByText('Loop 07｜林知夏・予安不接電話')).toBeTruthy();
 
