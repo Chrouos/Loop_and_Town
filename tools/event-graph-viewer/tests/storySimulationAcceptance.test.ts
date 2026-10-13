@@ -62,9 +62,17 @@ it('is deterministic for the same named worldline', () => {
   expect(first.state).toEqual(second.state);
 });
 
-it('WL-04 resolves doctor-exposure through the 18:06 handoff event', () => {
+it('WL-04 passes through the 18:12 return route and 18:24 maintenance exposure', () => {
   const result = simulateNamedWorldline(loadRealStory(), 'WL-04');
   const handoff = result.fullHistory.find(entry => entry.kind === 'event' && entry.eventId === 'evt_1805_envelope_handoff');
   const station = result.fullHistory.find(entry => entry.kind === 'event' && entry.eventId === 'evt_1831_station');
-  expect({handoff: handoff?.variantId, station: station?.variantId, doctor: (result.state.characters as Record<string, unknown>).doctor, wakaharu: (result.state.characters as Record<string, unknown>).wakaharu, world: result.state.world}).toEqual(expect.objectContaining({handoff: 'doctor_maintenance_exposed', station: 'doctor_dies'}));
+  const route = result.fullHistory.find(entry => entry.kind === 'schedule' && entry.scheduleEntryId === 'doctor_leave_station_via_maintenance');
+  const exposure = result.fullHistory.find(entry => entry.kind === 'schedule' && entry.scheduleEntryId === 'doctor_enter_maintenance');
+  expect(handoff?.variantId).toBe('doctor_no_recipient');
+  expect(route?.scheduleStatus).toBe('applied');
+  expect(exposure?.scheduleStatus).toBe('applied');
+  expect(route?.absoluteMinute).toBe(18 * 60 + 12);
+  expect(exposure?.absoluteMinute).toBe(18 * 60 + 24);
+  expect(station?.variantId).toBe('doctor_dies');
+  expect((result.state.characters as Record<string, any>).doctor.location).toBe('maintenance_tunnel');
 });

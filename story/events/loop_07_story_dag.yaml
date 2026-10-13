@@ -38,7 +38,7 @@ nodes:
     detail:
       before: [主角以為知夏死亡前半年突然冷淡，只是關係惡化。]
       after: [主角知道知夏曾成功把自己留在灰潮鎮，但那條世界線的主角於 18:31 死亡。]
-      reason: 知夏工作筆記留下「世界線 31／主角：死亡／18:31」，庭安補足當時事故鏈。]
+      reason: 知夏工作筆記留下「世界線 31／主角：死亡／18:31」，具體事故鏈仍無法獨立確認。]
       affected_characters: [protagonist, zhixia]
       delayed_effects: [知夏之後不再嘗試讓妹妹留下，而開始設法讓她離開。]
       knowledge_changes: [Worldline 31 中主角於 18:31 死亡。]

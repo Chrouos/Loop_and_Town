@@ -32,7 +32,7 @@ it('18:31 chooses doctor only when Wakaharu is absent and falls back to no_death
   const doctorState = {
     characters: {
       wakaharu: { location: 'home', status: 'alive' },
-      doctor: { location: 'old_station', status: 'alive' },
+      doctor: { location: 'maintenance_tunnel', status: 'alive' },
     },
     world: { anomaly_1831_observed: false, station_handoff_completed: false, doctor_maintenance_exposed: true },
   };

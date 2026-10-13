@@ -12,8 +12,8 @@ paths:
       - N00_search_zhixia_room
       - N00_find_watch
       - N00_find_wakaharu_photo
-      - N00_assign_yuan_postoffice
       - N01_wakaharu_photography
+      - N00_assign_yuan_postoffice
       - N02_wakaharu_opens_up
       - N03_station_plan_known
       - N16_baseline_handoff

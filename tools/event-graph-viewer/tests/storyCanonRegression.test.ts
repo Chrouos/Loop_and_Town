@@ -43,12 +43,16 @@ describe('PR #24 Story Canon regression guards', () => {
     };
     expect(handoff.variants.find((v) => v.id === 'envelope_handoff')?.effects)
       .toContainEqual({ add_flag: 'world.station_handoff_completed' });
-    expect(handoff.variants.find((v) => v.id === 'doctor_maintenance_exposed')?.effects)
-      .toContainEqual({ add_flag: 'world.doctor_maintenance_exposed' });
+    expect(handoff.variants.find((v) => v.id === 'doctor_no_recipient')?.effects).toEqual([]);
+    const doctorSchedule = yaml.load(raw('schedules/doctor.yaml')) as { entries: Array<{ id: string; at: { day: number; time: string }; effects: unknown[] }> };
+    const maintenance = doctorSchedule.entries.find((entry) => entry.id === 'doctor_enter_maintenance');
+    expect(maintenance?.at).toEqual({ day: 0, time: '18:24' });
+    expect(maintenance?.effects).toContainEqual({ add_flag: 'world.doctor_maintenance_exposed' });
     const wakaharu = station.variants.find((v) => v.id === 'wakaharu_dies');
     const doctor = station.variants.find((v) => v.id === 'doctor_dies');
     expect(wakaharu?.when?.all?.map((c) => c.path)).toContain('world.station_handoff_completed');
     expect(doctor?.when?.all?.map((c) => c.path)).toContain('world.doctor_maintenance_exposed');
+    expect(doctor?.when?.all).toContainEqual({ path: 'characters.doctor.location', op: 'eq', value: 'maintenance_tunnel' });
     expect(station.variants.some((v) => v.id === 'no_death')).toBe(true);
   });
 
@@ -58,6 +62,10 @@ describe('PR #24 Story Canon regression guards', () => {
       worldline_paths: string[];
     };
     expect(manifest.story_dags.length).toBe(manifest.worldline_paths.length);
+    const allSceneIds = new Set(['narrative/loop_01_player.yaml', ...['02','03','04','05','06','07'].map(n => 'narrative/loop_' + n + '_player.yaml'), 'narrative/final_player.yaml'].flatMap(file => {
+      const parsed = yaml.load(raw(file)) as { scenes?: Array<{ id: string }> };
+      return (parsed.scenes ?? []).map(scene => scene.id);
+    }));
     for (let i = 0; i < manifest.story_dags.length; i++) {
       const graph = parseStoryDagText(raw(manifest.story_dags[i]));
       const paths = parseStoryWorldlinePathsText(raw(manifest.worldline_paths[i]));
@@ -65,13 +73,26 @@ describe('PR #24 Story Canon regression guards', () => {
       const edgeIds = new Set(graph.edges.map((e) => e.id));
       expect(nodeIds.size).toBe(graph.nodes.length);
       expect(edgeIds.size).toBe(graph.edges.length);
+      for (const node of graph.nodes) {
+        for (const sceneId of node.detail.narrativeRefs ?? []) {
+          expect(allSceneIds.has(sceneId), node.id + ': missing narrative ' + sceneId).toBe(true);
+        }
+      }
       for (const edge of graph.edges) {
         expect(nodeIds.has(edge.source), edge.id + ': unknown source').toBe(true);
         expect(nodeIds.has(edge.target), edge.id + ': unknown target').toBe(true);
       }
       for (const path of paths) {
-        for (const id of path.nodeIds) expect(nodeIds.has(id), path.id + ': missing ' + id).toBe(true);
+        const selected = path.nodeIds.map(id => {
+          const node = graph.nodes.find(n => n.id === id);
+          expect(node, path.id + ': missing ' + id).toBeDefined();
+          return node!;
+        });
         for (const id of path.edgeIds) expect(edgeIds.has(id), path.id + ': missing ' + id).toBe(true);
+        const minute = (time: string) => time === '00:00' ? 24 * 60 : Number(time.slice(0, 2)) * 60 + Number(time.slice(3));
+        for (let j = 1; j < selected.length; j++) {
+          expect(minute(selected[j].time), path.id + ': reverse order ' + selected[j-1].id + ' → ' + selected[j].id).toBeGreaterThanOrEqual(minute(selected[j-1].time));
+        }
       }
     }
   });
@@ -88,5 +109,7 @@ describe('PR #24 Story Canon regression guards', () => {
     expect(final).toContain('Reality Write-back');
     expect(final).toContain('Prediction / Simulation');
     expect(final).not.toContain('我切斷第六與第七載體的交接');
+    expect(raw('narrative/loop_07_player.yaml')).not.toContain('一輛車偏離道路');
+    expect(raw('events/loop_04_story_dag.yaml')).not.toContain('17:58 未來來電');
   });
 });
