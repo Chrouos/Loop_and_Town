@@ -15,6 +15,8 @@ characters:
 
 world:
   anomaly_1831_observed: false
+  station_handoff_completed: true # isolated demo begins after handoff
+  doctor_maintenance_exposed: false
 
 flags:
   player_protected_wakaharu: false

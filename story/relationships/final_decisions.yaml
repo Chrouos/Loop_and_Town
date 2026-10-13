@@ -37,7 +37,7 @@ decisions:
         contribution: 拒絕把唯一原件帶進危險區，只提供複本與已驗證的時間點。
 
   - character_id: reporter
-    question: 是否公開五年前研究所紀錄，讓鎮外也留下不可被單一世界線抹除的副本？
+    question: 是否公開五年前研究所紀錄，讓鎮外獨立保存可交叉查證的研究副本？
     values: [揭露真相, 對知夏的責任, 不再替當事人決定]
     outcomes:
       - id: reporter_publishes_archive

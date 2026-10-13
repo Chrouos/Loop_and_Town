@@ -26,6 +26,8 @@ relationships:
 
 world:
   anomaly_1831_observed: false
+  station_handoff_completed: false
+  doctor_maintenance_exposed: false
 
 flags:
   yuan_sent_to_post_office: false

@@ -62,7 +62,7 @@ paths:
       - F_E05b
 
   - id: ending_c_forget_me
-    label: Ending C｜忘記我
+    label: Ending C｜停止改寫
     visibility: public
     node_ids:
       - F_N00_full_truth

@@ -107,20 +107,19 @@ nodes:
       narrative_refs: []
 
   - id: F_N06b_handoff_open
-    title: 18:03 第七封交接通道再次開啟
+    title: 18:03 查核 Write-back 同步資料
     time: "18:03"
     actor_ids: [protagonist, zhixia]
     visibility: public
     detail:
       before: [五個 NPC 已做出自己的風險決定。]
-      after: [第七封把問題留給主角：不是替別人選，而是決定自己如何處理跨 Loop 記憶。]
-      reason: 知夏留下的最後教訓是停止單人最佳化。
+      after: ["警告信沒有出現跨線通訊；眾人查核舊系統與現實控制層之間的連線"]
+      reason: "通聯方向矛盾不足以證實跨線傳輸"
       affected_characters: [protagonist, zhixia]
-      delayed_effects: [18:31 後主角將在三種自我承擔方式之間選擇。]
-      knowledge_changes: [Final choice belongs only to protagonist memory carrier.]
+      delayed_effects: ["18:31 前須揭露實際隔離風險與未知"]
+      knowledge_changes: ["Prediction / Simulation 必須與自主 Write-back 分離"]
       relationship_changes: []
       narrative_refs: [final_1803_handoff_open]
-
   - id: F_N07_collective_1831
     title: 18:31 各自選擇在同一個 Convergence 合流
     time: "18:31"
@@ -131,11 +130,10 @@ nodes:
       after: [世界不再只有主角的一份決策；留下與離開都成為被承認的選擇。]
       reason: Final 把「共同承擔」定義為共享真相與決策權，而不是要求所有人站在同一位置。]
       affected_characters: [protagonist, yuan, wakaharu, doctor, reporter, detective]
-      delayed_effects: [主角最後只能選擇自己的記憶與輪迴要如何延續。]
+      delayed_effects: ["接下來要面對的是系統 Write-back 權限，而不是主角記憶的取捨"]
       knowledge_changes: [共同決策不要求一致答案。]
       relationship_changes: []
       narrative_refs: [final_1831_convergence]
-
   - id: F_N08_protagonist_choice
     title: 主角只決定自己願意承擔什麼
     time: "18:32"
@@ -143,14 +141,13 @@ nodes:
     visibility: public
     detail:
       before: [NPC 的去留與貢獻已經由他們自己決定。]
-      after: [主角在接受單一世界、繼續輪迴、放下跨 Loop 記憶之間做選擇。]
-      reason: 主角最後的權力只剩對自己的記憶持有者身分負責。
+      after: ["主角考慮接受現實、再次 Retry 或與眾人合作停用自主 Write-back"]
+      reason: "心境改變或刪除記憶不會直接停止 Hard Reset"
       affected_characters: [protagonist]
-      delayed_effects: [產生三個不標示優劣的 Ending。]
+      delayed_effects: ["A/C 的精確停用機制待 Mechanism Canon 確認；B 保留 Retry"]
       knowledge_changes: []
       relationship_changes: []
       narrative_refs: []
-
   - id: F_N09_ending_a
     title: Ending A｜明天
     time: "23:59"
@@ -158,14 +155,13 @@ nodes:
     visibility: public
     detail:
       before: [主角可以繼續要求世界重算，尋找更完美的結果。]
-      after: [她接受這個不完美但由所有人共同決定的世界作為新的現實。]
+      after: ["主角接受不完美的世界，但停止 Reset 必須另外完成並確認 Write-back 隔離"]
       reason: 不再用「還能更好」否定眼前已經存在的人生。]
       affected_characters: [protagonist, yuan, wakaharu, doctor, reporter, detective]
-      delayed_effects: [00:00 之後時間首次繼續到 00:01。]
+      delayed_effects: ["未通過實際安全隔離，不能因主角接受就宣稱 00:01"]
       knowledge_changes: []
       relationship_changes: []
       narrative_refs: [final_a_tomorrow]
-
   - id: F_N10_ending_b
     title: Ending B｜再一次
     time: "23:59"
@@ -173,29 +169,27 @@ nodes:
     visibility: public
     detail:
       before: [主角知道下一輪所有 NPC 的當前關係狀態都會重置。]
-      after: [她仍選擇保留交接並再次進入 06:12。]
-      reason: 她還不能接受停止尋找其他可能。]
+      after: ["主角未停用 Write-back，00:00 Rollback 回 06:12"]
+      reason: "Correction / Recovery Retry 不依賴信件跨線交接"
       affected_characters: [protagonist]
       delayed_effects: [下一輪 Trust、Closeness、Respect、Pressure 歸零，只有主角記得。]
       knowledge_changes: []
       relationship_changes: []
       narrative_refs: [final_b_once_more]
-
   - id: F_N11_ending_c
-    title: Ending C｜忘記我
+    title: Ending C｜停止改寫
     time: "23:59"
     actor_ids: [protagonist, yuan]
     visibility: public
     detail:
       before: [跨 Loop 關係只由主角一人背負。]
-      after: [主角切斷第六與第七載體，不再把不存在世界線的記憶帶往未來。]
-      reason: 她選擇讓真正發生的關係從兩個人都能記住的今天重新開始。]
+      after: ["停用 autonomous Reality Write-back 並保留 Prediction、Simulation 與主角的跨線記憶"]
+      reason: "唯有真正失去改寫現實的執行權才能停止 Recovery Retry"
       affected_characters: [protagonist, yuan]
-      delayed_effects: [日期前進；不存在世界線的私人記憶不再由主角承載。]
+      delayed_effects: ["永久停止鏈仍待 Mechanism Canon 驗證，不能以刪記憶替代"]
       knowledge_changes: []
       relationship_changes: []
       narrative_refs: [final_c_forget_me]
-
 edges:
   - { id: F_E00, source: F_N00_full_truth, target: F_N01_everyone_chooses, label: "share truth", visibility: public }
   - { id: F_E01a, source: F_N01_everyone_chooses, target: F_N02_wakaharu_decides, label: "agency: wakaharu", visibility: public }

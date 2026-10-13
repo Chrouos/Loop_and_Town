@@ -9,7 +9,16 @@ variants:
       all:
         - { path: characters.wakaharu.location, op: eq, value: old_station }
         - { path: characters.doctor.location, op: eq, value: old_station }
-    effects: []
+    effects:
+      - add_flag: world.station_handoff_completed
+  - id: doctor_maintenance_exposed
+    priority: 80
+    when:
+      all:
+        - { path: characters.wakaharu.route, op: eq, value: home }
+        - { path: characters.doctor.location, op: eq, value: old_station }
+    effects:
+      - add_flag: world.doctor_maintenance_exposed
   - id: no_handoff
     priority: 0
     fallback: true

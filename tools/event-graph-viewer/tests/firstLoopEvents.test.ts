@@ -21,7 +21,7 @@ it('18:31 chooses Wakaharu first when she is at the station', () => {
       wakaharu: { location: 'old_station', status: 'alive' },
       doctor: { location: 'old_station', status: 'alive' },
     },
-    world: { anomaly_1831_observed: false },
+    world: { anomaly_1831_observed: false, station_handoff_completed: true, doctor_maintenance_exposed: false },
   };
   expect(resolveEvent(context(state), event).variantId).toBe('wakaharu_dies');
   expect(state.characters.wakaharu.status).toBe('dead');
@@ -34,7 +34,7 @@ it('18:31 chooses doctor only when Wakaharu is absent and falls back to no_death
       wakaharu: { location: 'home', status: 'alive' },
       doctor: { location: 'old_station', status: 'alive' },
     },
-    world: { anomaly_1831_observed: false },
+    world: { anomaly_1831_observed: false, station_handoff_completed: false, doctor_maintenance_exposed: true },
   };
   expect(resolveEvent(context(doctorState), event).variantId).toBe('doctor_dies');
 
@@ -43,7 +43,7 @@ it('18:31 chooses doctor only when Wakaharu is absent and falls back to no_death
       wakaharu: { location: 'home', status: 'alive' },
       doctor: { location: 'hospital', status: 'alive' },
     },
-    world: { anomaly_1831_observed: false },
+    world: { anomaly_1831_observed: false, station_handoff_completed: false, doctor_maintenance_exposed: false },
   };
   expect(resolveEvent(context(safeState), event).variantId).toBe('no_death');
   expect(safeState.world.anomaly_1831_observed).toBe(true);
