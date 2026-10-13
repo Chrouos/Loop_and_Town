@@ -85,7 +85,7 @@ describe('App', () => {
     fireEvent.click(screen.getByText('18:31 警告信仍未變字'));
     expect(await screen.findByText('18:31，我再次拿起那封署名知夏的信，紙上仍然只有「不要回來」。')).toBeTruthy();
     expect(screen.getByText('沒有新增字，也沒有知夏的即時回覆。鎮上卻傳來短暫的供電異常聲。')).toBeTruthy();
-    expect(screen.getByText('Loop 06｜前六封信・資訊交接')).toBeTruthy();
+    expect(screen.getByText('Loop 06｜前六份紀錄・來源調查')).toBeTruthy();
   });
 
   it('loads both Loop 07 Yuan-agency branches and reconverges on collective burden', async () => {
