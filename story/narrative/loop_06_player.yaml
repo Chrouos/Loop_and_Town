@@ -5,95 +5,69 @@ scenes:
     participants: [protagonist]
     blocks:
       - type: narration
-        text: 第六次在 06:12 睜開眼時，我沒有先確認今天誰會死。我把筆記本翻到新的一頁，只寫了一個問題：姊到底用過幾種方式，把資訊留到不存在的明天？
+        text: "06:12，我在返鄉列車醒來。這次要比對的是資料來源，而不是先宣告前六封和第七封是一套成功實驗。"
       - type: narration
-        text: 回到老家後，我把目前知道的東西依序排在地板上：手寫紙條、圖書館借閱卡、志遠藏起來的錄音、柏勳的病歷、庭安燒過的信，以及那封五年後才抵達我手上的第七封信。
+        text: "我列出紙條、借閱卡、錄音、病歷、抄本和出發前收到的警告信。"
       - type: monologue
-        text: 如果這些不是七個謎語，而是七次實驗呢？
-      - type: monologue
-        text: 只有我記得昨天。但姊五年前，也曾經是那個只有自己記得的人。
-
+        text: "我把『七封』當作暫時分類，而不是正確答案。"
   - id: loop06_0830_first_note
     at: { day: 0, time: "08:30" }
     kind: narration
     participants: [protagonist, zhixia]
     blocks:
       - type: narration
-        text: 我重新翻知夏房間裡那本地方誌。以前被我當成普通備忘的紙條，現在只剩一句話值得看。
-      - type: dialogue
-        speaker: zhixia
-        text: 第一個成功留下來的是手寫。
+        text: "地方誌裡夾著手寫紙條，另一份影印本的日期卻不一致。"
       - type: narration
-        text: 紙條沒有收件人，也沒有要寄出去。它比較像實驗紀錄：先確認墨水與紙能不能在世界線被改寫後仍然存在。
+        text: "紙可能被改過，也可能只是抄寫錯誤。它能否跨 Reality Rewrite 保存，沒有證據。"
       - type: monologue
-        text: 第一封不是信。第一封是測試結果。
-
+        text: "先記錄版本與來源。"
   - id: loop06_0940_library_card
     at: { day: 0, time: "09:40" }
     kind: narration
     participants: [protagonist, zhixia]
     blocks:
       - type: narration
-        text: 圖書館封存的舊借閱卡還在。知夏最後幾個月借過的地方史資料裡，有一張卡背面留下鉛筆字。
-      - type: dialogue
-        speaker: zhixia
-        text: 第二個成功留下來的是被別人保管的紙。
+        text: "圖書館借閱卡有第三方登錄時間，但與知夏私人筆記有出入。"
       - type: narration
-        text: 第一封放在自己房間。第二封進了公共系統。她不是只測材質，也在測資訊被誰保管，會不會改變它留下來的機率。
+        text: "外部紀錄可以被交叉查證，不代表能免疫世界線改寫。"
       - type: monologue
-        text: 私人記憶會消失，私人房間會被改寫。那就把東西交給不認識實驗的人保管。
-
+        text: "我需要的不只是紙，而是能核實的保管歷史。"
   - id: loop06_1100_sound_carrier
     at: { day: 0, time: "11:00" }
     kind: dialogue
     participants: [protagonist, detective, zhixia]
     blocks:
       - type: narration
-        text: 我回警局找志遠，把那台未登錄錄音器從頭聽了一遍。這次我不追「這次不是若晴」，也不追未來志遠的聲音，只找知夏刻意留下的句子。
-      - type: dialogue
-        speaker: zhixia
-        text: 第三個，聲音可以留下來，但時間會亂掉。
-      - type: dialogue
-        speaker: protagonist
-        text: 所以未來的聲音提前出現在五年前，不是另一件怪事。那就是這次實驗的一部分。
+        text: "志遠給我聽未登錄錄音器，錄音時間與舊案報告並不一致。"
       - type: dialogue
         speaker: detective
-        text: 妳姊把我們當成收音機嗎？
+        text: "我只確定這台設備在現場，不能把時間錯位當成已證實的跨線聲音傳輸。"
       - type: monologue
-        text: 不是。她是在確認聲音能不能穿過被改寫的時間順序。
-
+        text: "可能是設備異常，也可能還有別的資料被改寫。"
   - id: loop06_1230_medical_record
     at: { day: 0, time: "12:30" }
     kind: dialogue
     participants: [protagonist, doctor, zhixia]
     blocks:
       - type: narration
-        text: 柏勳把七份知夏病歷重新攤開。我以前只看診斷與日期，今天才注意到其中一頁背面極淡的筆跡。
-      - type: dialogue
-        speaker: zhixia
-        text: 第四個，別人記錄的「我」比我自己更穩定。
+        text: "柏勳拿出知夏生前病歷，幾次描述的時間與別處事故紀錄對不上。"
       - type: dialogue
         speaker: doctor
-        text: 這不是我寫的。但這張紙五年前一直在我手上。
-      - type: narration
-        text: 知夏開始把自己放進別人的制度裡：醫院、警局、借閱紀錄。只要紀錄的人不是她自己，世界線就必須同時改寫更多地方，才有辦法讓內容完全消失。
-
+        text: "這些是當時確實記下的症狀，不是跨世界線實驗證明。"
+      - type: monologue
+        text: "這些原始紀錄能用來查核，不能直接證明一套傳輸架構。"
   - id: loop06_1410_fifth_letter
     at: { day: 0, time: "14:10" }
     kind: dialogue
     participants: [protagonist, reporter, zhixia]
     blocks:
       - type: narration
-        text: 庭安終於把第五封說完整。五年前她和知夏決裂後，在研究所桌上看到一張摺好的紙。
-      - type: dialogue
-        speaker: zhixia
-        text: 第五個，如果妳看到這張，代表我最後還是沒能讓妳忘記。
+        text: "庭安拿出當年燒毀原件後留下的內容抄本。"
       - type: dialogue
         speaker: reporter
-        text: 我燒了。第二次看到又燒。第三次我沒燒，因為我開始怕不是紙回來了，是某個條件每次都重新把它放在那裡。
-      - type: narration
-        text: 第五封和前四個不一樣。它不是單純保存同一個物件，而像是一條因果規則：只要世界線走到某個狀態，那句話就會再次被生成。
-
+        text: "我確實燒過信，但後來看見相似內容並不等於同一張紙回來了。"
+      - type: monologue
+        text: "備份、轉記或 Rewrite 異常，現在都不能排除。"
   - id: loop06_1510_insight_to_evidence
     at: { day: 0, time: "15:10" }
     kind: dialogue
@@ -125,61 +99,41 @@ scenes:
     participants: [protagonist, zhixia]
     blocks:
       - type: narration
-        text: 五種方法都有東西可指：紙、公共紀錄、聲音、他人檔案、會被條件重建的資訊。第六格卻一直是空的。
+        text: "若晴不記得自己曾死去，予安也不記得我們上一輪的晚飯。"
       - type: narration
-        text: 我把今天以前每一輪的記憶翻回去。若晴不記得她曾經死過。柏勳不記得自己曾死在維修通道。予安不記得我們曾經一起吃過晚飯。
+        text: "我卻記得，知夏五年前也記得。Fixed Anchor 的主觀記憶並非普通紙張能複製的功能。"
       - type: monologue
-        text: 可是我知道。
-      - type: narration
-        text: 知夏世界線紀錄封底有兩句以前毫無意義的字。
-      - type: dialogue
-        speaker: zhixia
-        text: 第六個，不是留下來。是有人帶過去。
-      - type: monologue
-        text: 第六封沒有藏在任何地方。記憶持有者本人，就是第六種載體。
-      - type: monologue
-        text: 關係沒有留下，昨天沒有留下。只有我記得。
-
+        text: "我不能把自己記得，誤當作信件已能跨線傳輸。"
   - id: loop06_1740_why_seventh
     at: { day: 0, time: "17:40" }
     kind: narration
     participants: [protagonist, zhixia]
     blocks:
       - type: narration
-        text: 如果第六種方法已經能把資訊帶過世界線，那知夏為什麼還要做第七次？答案其實很簡單，也最難接受。
+        text: "知夏已死五年，信卻在我出發前抵達，郵戳是昨天。"
       - type: narration
-        text: 第六種只能讓同一個記憶持有者，把資訊從自己的上一輪帶到下一輪。可知夏已經死了五年。
+        text: "我一直叫它第七封，但前面六種來源也可能只是不同紀錄。"
       - type: monologue
-        text: 第六封可以做到「我帶給下一個我」。第七封必須做到「姊帶給五年後的我」。
-
+        text: "投遞方法還沒有答案，不能先把假設當技術。"
   - id: loop06_1803_handoff_point
     at: { day: 0, time: "18:03" }
     kind: narration
     participants: [protagonist, zhixia]
     blocks:
       - type: narration
-        text: 我重新把五年前死亡日的通話紀錄排好：17:41 庭安，17:52 柏勳，17:58 予安，18:03 未知，18:31 知夏死亡。
+        text: "五年前通聯紀錄把 18:03 註記為撥出，知夏筆記卻寫著「收到」。"
       - type: narration
-        text: 電信紀錄把 18:03 記成知夏撥出；知夏自己的筆記卻只寫兩個字：收到。
+        text: "沒有發話方向的獨立證據，這也可能只是登錄或同步異常。"
       - type: monologue
-        text: 如果兩份紀錄都沒有寫錯，那 18:03 可能不是一般意義上的打進或打出。它更像一次交接測試。
-      - type: narration
-        text: 我第一次不再問那通電話另一端是誰，而是問：它把哪個時間的人，接到了哪個時間的人？
-
+        text: "我還不能把它直接叫成跨線交接。"
   - id: loop06_1831_seventh_message
     at: { day: 0, time: "18:31" }
     kind: narration
     participants: [protagonist, zhixia]
     blocks:
       - type: narration
-        text: 18:31，我沒有去車站。我坐在知夏房間，面前只放著第七封信和寫著六種載體的筆記。
+        text: "18:31，我再次拿起那封署名知夏的信，紙上仍然只有「不要回來」。"
       - type: narration
-        text: 信封沒有移動。當我再次翻開內側時，那裡多了兩行之前不存在的字。
-      - type: dialogue
-        speaker: zhixia
-        text: 第七個不是讓我記得。
-      - type: dialogue
-        speaker: zhixia
-        text: 是讓妳收到。
+        text: "沒有新增字，也沒有知夏的即時回覆。鎮上卻傳來短暫的供電異常聲。"
       - type: monologue
-        text: 姊不是想讓自己的記憶永遠活著。她是在做一個能把資訊交給下一個記憶持有者的東西。
+        text: "我要繼續追查姊最後做出的選擇，而不是等待信來告訴我答案。"
