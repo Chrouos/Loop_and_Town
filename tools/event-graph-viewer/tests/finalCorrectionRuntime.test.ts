@@ -4,6 +4,7 @@ import raw from '../../../story/mechanism/final_runtime.yaml?raw';
 import finalGraph from '../../../story/events/final_story_dag.yaml?raw';
 import { createSimulation, simulate } from '../src/simulator/simulator';
 import { initialCorrectionSession, type CorrectionSession } from '../src/simulator/correctionSession';
+import { materializeRecoveryBoundary } from '../src/simulator/recoveryBoundary';
 import type { SimulationDefinition, WorldState } from '../src/simulator/types';
 
 const fixture = yaml.load(raw) as {
@@ -82,6 +83,48 @@ describe('Executable CorrectionSession + authored Final outcomes', () => {
     test.applyAction('ledger'); test.applyAction('route'); test.applyAction('bridges');
     expect(() => test.applyAction('doctor_yes')).toThrow('Correction gate failed');
     expect(test.getState().correction).toMatchObject({choices:{}});
+  });
+
+  it('materializes a Retry to baseline without leaking lost NPC relationships or erasing player memory', () => {
+    const { result } = run('ending_b_once_more');
+    const memory = { capturedFacts: ['wakaharu_loves_photography'], personalEvents: ['shared_dinner'] };
+    const before = structuredClone(result.state);
+    const resolved = materializeRecoveryBoundary(result.state, fixture.initial_state, memory);
+    expect(resolved.outcome).toBe('RETRY');
+    expect(resolved.nextWorldState).toEqual(fixture.initial_state);
+    expect(resolved.nextCheckpoint).toBe('10/3 06:12');
+    expect(resolved.persistentPlayerState).toEqual(memory);
+    expect(result.state).toEqual(before);
+    resolved.persistentPlayerState.capturedFacts.push('local_edit');
+    expect(memory.capturedFacts).not.toContain('local_edit');
+  });
+
+  it('A / C advance to next day, but only C permanently disarms the Writer', () => {
+    for (const [id, expectedMode] of [
+      ['ending_a_tomorrow','ONE_TIME'], ['ending_c_forget_me','PERMANENT'],
+    ] as const) {
+      const {result} = run(id);
+      const boundary = materializeRecoveryBoundary(result.state, fixture.initial_state, {notes:['I remember']});
+      expect(boundary.outcome).toBe('FORWARD');
+      expect(boundary.nextCheckpoint).toBe('10/4 00:01');
+      expect(boundary.nextWorldState.clock).toEqual({day:1,time:'00:01'});
+      expect((boundary.nextWorldState.correction as CorrectionSession).sealMode).toBe(expectedMode);
+      expect(boundary.persistentPlayerState.notes).toContain('I remember');
+    }
+  });
+
+  it('failing to seal after both revocations enters a safety hold instead of claiming victory', () => {
+    const {result,session} = run('both_bridges_cut_no_seal');
+    expect(session).toMatchObject({phase:'SAFETY_HOLD',outcome:'SAFETY_HOLD',
+      primaryWriteAuthority:false,recoveryWriteAuthority:false,nextCheckpoint:null});
+    const boundary = materializeRecoveryBoundary(result.state, fixture.initial_state, {facts:['retained']});
+    expect(boundary.outcome).toBe('SAFETY_HOLD');
+    expect(boundary.nextWorldState.clock).toEqual({day:1,time:'00:00'});
+  });
+
+  it('refuses a next-state snapshot before midnight adjudication', () => {
+    expect(() => materializeRecoveryBoundary(fixture.initial_state, fixture.initial_state, {}))
+      .toThrow('Cannot transition before 00:00 adjudication');
   });
 
   it('the baseline session matches the story fixture and can be cloned safely', () => {

@@ -1,5 +1,7 @@
 import { expect, it } from 'vitest';
 import { simulateNamedWorldline } from '../src/simulator/storySimulation';
+import { materializeRecoveryBoundary } from '../src/simulator/recoveryBoundary';
+import type { CorrectionSession } from '../src/simulator/correctionSession';
 import { loadRealStory } from './helpers/loadRealStory';
 
 it.each([
@@ -76,3 +78,14 @@ it('WL-04 passes through the 18:12 return route and 18:24 maintenance exposure',
   expect(station?.variantId).toBe('doctor_dies');
   expect((result.state.characters as Record<string, any>).doctor.location).toBe('maintenance_tunnel');
 });
+it('the live Loop 01 simulator adjudicates no-death WL-06 to 06:12 without losing external Captured Memory', () => {
+  const story = loadRealStory();
+  const result = simulateNamedWorldline(story, 'WL-06');
+  const correction = result.state.correction as CorrectionSession;
+  expect(correction).toMatchObject({phase:'RETRY', outcome:'RETRY', nextCheckpoint:'10/3 06:12'});
+  const persistent = {capturedFacts:['station_route_observed']};
+  const boundary = materializeRecoveryBoundary(result.state, story.initialState, persistent);
+  expect(boundary.nextWorldState).toEqual(story.initialState);
+  expect(boundary.persistentPlayerState).toEqual(persistent);
+});
+

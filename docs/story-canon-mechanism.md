@@ -2,7 +2,7 @@
 
 > **Status：Active Mechanism Canon（敘事／系統高層因果已定案；Runtime 尚未實作）**
 >
-> Ending A、C 的 `00:01` 為設計驗收目標，不代表既有故事模擬器已能執行該狀態。
+> Ending A、C 已有可執行的 Author Final Simulator 情境，並有 00:00 Outcome / Next-State Snapshot；但 Player UI、角色證據採集介面與完整環境切換仍待接線，不可直接宣稱最終章已可遊玩。
 >
 > 本文件承接 `story-canon-rewrite-anchor.md` 的 Reality Rewrite、Causal Pivot、Fixed Anchor，不重新解釋血緣、記憶或物理本質。
 >
@@ -285,7 +285,7 @@ Ending C 的可達性應受多條 **Evidence / Consent / Causal Preparation** �
 
 ## 10. Implementation Boundary（本 PR 先定案機制，不聲稱 Runtime 已完成）
 
-現有 `story/**/*.yaml` / Viewer 可播放原本輪次、示範不同 Failure Path；本文件**不是**已經落地的完整 Recovery Runtime。
+現有 `story/**/*.yaml` / Viewer 可播放原本輪次、示範不同 Failure Path；現在 `correctionSession.ts` 已實作 G1–G5 核心狀態轉移，`recoveryBoundary.ts` 可以依 00:00 Outcome 產生下一段 World-State Snapshot，並由 `story/mechanism/final_runtime.yaml` 驗證 A／B／C 與隔離失敗。**這仍不是玩家 UI 已完成的完整 Final Runtime**。
 
 後續實作需有明確 State / Transition 而非文字設定：
 

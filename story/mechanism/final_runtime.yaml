@@ -194,3 +194,17 @@ cases:
       - wakaharu_no
       - identify
       - cut_primary
+  - id: both_bridges_cut_no_seal
+    graph_ref: F_N11_ending_c
+    action_ids:
+      - ledger
+      - route
+      - bridges
+      - check
+      - brief
+      - doctor_yes
+      - yuan_yes
+      - identify
+      - cut_primary
+      - cut_backup
+
