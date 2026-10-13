@@ -3,7 +3,7 @@ title: Loop 03｜沒有死者的世界線
 nodes:
   - id: L3_N00_third_awake
     title: 第三次在同一天醒來
-    time: "14:20"
+    time: "06:12"
     actor_ids: [protagonist]
     visibility: public
     detail:

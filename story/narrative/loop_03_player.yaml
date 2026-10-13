@@ -1,6 +1,6 @@
 scenes:
   - id: loop03_1420_third_awake
-    at: { day: 0, time: "14:20" }
+    at: { day: 0, time: "06:12" }
     kind: narration
     participants: [protagonist]
     blocks:

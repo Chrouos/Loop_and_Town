@@ -5,14 +5,45 @@ scenes:
     participants: [protagonist]
     blocks:
       - type: narration
-        text: 火車停穩時，我才發現灰潮鎮的月台比記憶裡窄了一點。
+        text: 我在返鄉列車的震動裡醒來，窗外天色剛亮。手機顯示 10 月 3 日，06:12。
       - type: monologue
         text: 五年沒回來，連風的味道都像變了。
       - type: monologue
         text: 這次只是回來整理房子。把該丟的丟掉，把該簽的簽完，就走。
 
+  - id: prologue_letter_discovery
+    at: { day: 0, time: "06:14" }
+    kind: artifact
+    participants: [protagonist]
+    artifact_id: zhixia_letter
+    blocks:
+      - type: narration
+        text: 我的外套口袋裡壓著出發前收到的信。那時我已經買好車票、約好房仲。
+      - type: narration
+        text: 郵戳是昨天。
+      - type: narration
+        text: 我原本只覺得奇怪，直到看見寄件人那一欄。
+      - type: monologue
+        text: 林知夏。
+      - type: monologue
+        text: ……不可能。姊姊死了五年。
+        factId: fact_zhixia_dead_five_years
+
+  - id: prologue_letter_opened
+    at: { day: 0, time: "06:16" }
+    kind: artifact
+    participants: [protagonist]
+    requiresFacts: [fact_zhixia_letter_received]
+    artifact_id: zhixia_letter
+    blocks:
+      - type: artifact
+        artifactId: zhixia_letter
+      - type: monologue
+        text: 紙上只寫著「不要回來」。我沒有立刻把信收回去。
+      - type: monologue
+        text: 郵戳是昨天。我又看了一遍，還是昨天。
   - id: prologue_after_coffee
-    at: { day: 0, time: "07:28" }
+    at: { day: 0, time: "07:48" }
     kind: narration
     participants: [protagonist]
     requiresFacts: [fact_cafe_resident_chatter]
@@ -23,7 +54,7 @@ scenes:
         text: 我沒有插話。紙杯拿到手之後，才重新把行李拉桿拉起來。
 
   - id: prologue_after_store
-    at: { day: 0, time: "07:26" }
+    at: { day: 0, time: "07:50" }
     kind: narration
     participants: [protagonist]
     requiresFacts: [fact_shopkeeper_mistook_protagonist_for_zhixia]
@@ -40,10 +71,9 @@ scenes:
     availableUntil: { day: 0, time: "08:30" }
     kind: dialogue
     participants: [protagonist, yuan]
-    requiresLocation: old_house
     blocks:
       - type: narration
-        text: 我還在跟門鎖較勁時，巷口有人叫了我的名字。
+        text: 火車停穩，我拖著行李走出月台，聽見有人在出口叫我的名字。
       - type: narration
         text: 周予安。高中同學，也是我離開灰潮鎮後少數還偶爾聯絡的人。
       - type: dialogue
@@ -66,7 +96,7 @@ scenes:
       - type: narration
         text: 老家的門比我記得的更難開。鎖轉了兩次，才發出一聲乾澀的喀噠。
       - type: narration
-        text: 我把行李靠在玄關，先把所有窗戶推開。灰塵被風吹起來，在午後的光裡慢慢打轉。
+        text: 我把行李靠在玄關，先把所有窗戶推開。灰塵被風吹起來，在清晨的光裡慢慢打轉。
       - type: narration
         text: 書架上還有姊姊留下的書。灰很多，但排列方式一點都沒變。
 
@@ -94,41 +124,6 @@ scenes:
       - type: monologue
         text: 還是做點事吧。
 
-  - id: prologue_letter_discovery
-    at: { day: 0, time: "09:00" }
-    kind: artifact
-    participants: [protagonist]
-    requiresLocation: old_house
-    afterActivityId: sort_mail
-    artifact_id: zhixia_letter
-    blocks:
-      - type: narration
-        text: 最下面壓著一封沒有寄件地址的信。
-      - type: narration
-        text: 郵戳是昨天。
-      - type: narration
-        text: 我原本只覺得奇怪，直到看見寄件人那一欄。
-      - type: monologue
-        text: 林知夏。
-      - type: monologue
-        text: ……不可能。姊姊死了五年。
-        factId: fact_zhixia_dead_five_years
-
-  - id: prologue_letter_opened
-    at: { day: 0, time: "09:02" }
-    kind: artifact
-    participants: [protagonist]
-    requiresLocation: old_house
-    requiresFacts: [fact_zhixia_letter_received]
-    artifact_id: zhixia_letter
-    blocks:
-      - type: artifact
-        artifactId: zhixia_letter
-      - type: monologue
-        text: 我沒有立刻把信放下。
-      - type: monologue
-        text: 郵戳是昨天。我又看了一遍，還是昨天。
-
   - id: scene_after_letter
     at: { day: 0, time: "09:10" }
     kind: transition
@@ -137,7 +132,7 @@ scenes:
     requiresFacts: [fact_zhixia_letter_received]
     blocks:
       - type: narration
-        text: 我把信放在桌上。這已經不是能當作惡作劇丟掉的東西了。
+        text: 我從外套口袋拿出那封信，放在桌上。這已經不是能當作惡作劇丟掉的東西了。
       - type: monologue
         text: 如果不是有人在拿姊姊開玩笑，就一定有哪裡留下了紀錄。
 
@@ -623,9 +618,9 @@ scenes:
         speaker: yuan
         text: 五年前就拆了。上面現在根本沒有鐘。
       - type: narration
-        text: 第二聲響起。我把桌上的信翻到最後一行。
+        text: 第二聲響起。我想到早上在車上讀過的警告信。
       - type: narration
-        text: 如果午夜鐘聲響起，就代表又失敗了。
+        text: 信上只寫著「不要回來」，並沒有告訴我如何面對這個時刻。
       - type: narration
         text: 第十二聲落下時，廚房的燈熄了。
 
@@ -639,13 +634,13 @@ scenes:
       - type: narration
         text: 黑暗沒有持續很久。
       - type: narration
-        text: 車輪壓過鐵軌接縫的震動先回來，接著是午後斜進車廂的光。
+        text: 車輪壓過鐵軌接縫的震動先回來，接著是清晨斜進車廂的光。
       - type: narration
         text: 行李箱好好地躺在頭頂的置物架。手機裡沒有若晴的訊息，沒有警局的通話紀錄，也沒有今天拍下的照片。
       - type: narration
         text: 只有外套口袋裡的信還在。
       - type: narration
-        text: 這是第幾次了？
+        text: 這不就是今天早上嗎？
       - type: narration
         text: 車內廣播在同一秒響起。
       - type: narration

@@ -2,14 +2,14 @@ id: loop_04_story_dag
 title: Loop 04｜五年前
 nodes:
   - id: L4_N00_hard_reset_0612
-    title: 06:12 成為正式重置起點
+    title: 06:12 再次醒在返鄉列車
     time: "06:12"
     actor_ids: [protagonist]
     visibility: public
     detail:
-      before: [主角前三輪都在下午才真正開始行動，因此誤以為 14:20 是循環起點。]
-      after: [主角確認世界其實在清晨 06:12 就已回到 10 月 3 日。]
-      reason: 第三輪午夜重置後，她第一次在列車尚未進鎮時就保持完整意識。
+      before: [此前主角即使以下午作為調查切入點，當日仍從列車上的 06:12 同一個 checkpoint 開始。]
+      after: [主角再次在 10 月 3 日 06:12 的列車上醒來，利用完整早晨重建舊案。]
+      reason: 每一輪的 06:12 都是 Last Clean Causal State；本輪改變的是她決定提前調查。
       affected_characters: [protagonist]
       delayed_effects: [上午調查時間被打開，主角可以直接追查五年前的舊案。]
       knowledge_changes: [hard_reset_checkpoint_0612]

@@ -3,7 +3,7 @@ title: Day 01 因果 DAG
 nodes:
   - id: N00_arrival_graytide
     title: 主角回到灰潮鎮
-    time: "14:20"
+    time: "06:12"
     actor_ids: [protagonist]
     visibility: public
     detail:
@@ -18,7 +18,7 @@ nodes:
 
   - id: N00_loop02_reset_awareness
     title: 第二次在返鄉列車上醒來
-    time: "14:20"
+    time: "06:12"
     actor_ids: [protagonist]
     visibility: public
     detail:

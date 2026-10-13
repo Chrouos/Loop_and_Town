@@ -12,9 +12,9 @@ it('starts as ordinary life before the impossible letter', () => {
   expect(scenes.find((scene) => scene.id === 'prologue_arrival')?.at).toEqual({ day: 0, time: '06:12' });
   expect(scenes.find((scene) => scene.id === 'prologue_yuan_reunion')?.at).toEqual({ day: 0, time: '07:40' });
   const letter = scenes.find((scene) => scene.id === 'prologue_letter_discovery');
-  expect(letter?.requiresLocation).toBe('old_house');
-  expect(letter?.afterActivityId).toBe('sort_mail');
-  expect(sceneIndex('prologue_letter_discovery')).toBeGreaterThan(sceneIndex('prologue_old_house'));
+  expect(letter?.at).toEqual({ day: 0, time: '06:14' });
+  expect(letter?.requiresLocation).toBeUndefined();
+  expect(sceneIndex('prologue_letter_discovery')).toBeLessThan(sceneIndex('prologue_old_house'));
 });
 
 it('keeps mystery terminology out of pre-letter scenes', () => {
@@ -39,7 +39,8 @@ it('introduces Yuan as an old friend before shorthand references', () => {
 it('loads the letter as an artifact without preselected evidence excerpts', () => {
   const artifact = loadRealStory().narrative.artifacts.find((item) => item.id === 'zhixia_letter');
   expect(artifact?.kind).toBe('letter');
-  expect(artifact?.content).toContain('如果午夜的鐘聲響起，就代表又失敗了。');
+  expect(artifact?.content).toContain('不要回來。');
+  expect(artifact?.content.join('\n')).not.toContain('如果午夜');
   expect(artifact && 'excerpts' in artifact).toBe(false);
 });
 

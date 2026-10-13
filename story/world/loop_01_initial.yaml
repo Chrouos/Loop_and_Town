@@ -17,7 +17,7 @@ characters:
     status: available
     route: normal
   yuan:
-    location: with_player
+    location: clock_shop
     assignment: normal
 
 relationships:

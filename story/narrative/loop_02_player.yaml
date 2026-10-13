@@ -1,6 +1,6 @@
 scenes:
   - id: loop02_1420_reset_awareness
-    at: { day: 0, time: "14:20" }
+    at: { day: 0, time: "06:12" }
     kind: narration
     participants: [protagonist]
     blocks:
