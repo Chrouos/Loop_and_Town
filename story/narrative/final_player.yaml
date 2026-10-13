@@ -59,7 +59,7 @@ scenes:
       - type: narration
         text: "光是接受並不能讓 00:00 停止 Reset；只有另行確認 Reality Write-back 已被隔離，才可能真正進入明天。"
       - type: narration
-        text: "Ending A 的最終停止鏈仍待 Mechanism Canon 驗證，不能把心境轉變直接當成系統指令。"
+        text: "必須完成一次性 Forward Seal，這個今天才可能向前。我接受它的不完美，但 Writer 仍可能在未來再次改寫現實。"
   - id: final_b_once_more
     at: { day: 1, time: "06:12" }
     kind: narration
@@ -84,6 +84,6 @@ scenes:
       - type: narration
         text: "真正要切斷的是自主 Reality Write-back 的執行權，保留 Prediction / Simulation，不是刪除我的記憶。"
       - type: narration
-        text: "在參與者理解風險且確認隔離生效後，00:00 才能向前；精確的永久停止鏈仍待 Mechanism Canon 定案。"
+        text: "我們必須辨識主橋與備援橋、撤銷雙路改寫權限、Fence 舊 Epoch，並以獨立證據驗證隔離有效。最後 Forward Seal 才能讓 00:00 真正向前；現場怎麼做到，仍需要完整驗證。"
       - type: monologue
         text: "我依然記得那些不再存在的昨天，但我不再用它們替眼前的人做選擇。"

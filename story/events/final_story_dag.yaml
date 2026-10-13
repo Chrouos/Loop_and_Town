@@ -144,7 +144,7 @@ nodes:
       after: ["主角考慮接受現實、再次 Retry 或與眾人合作停用自主 Write-back"]
       reason: "心境改變或刪除記憶不會直接停止 Hard Reset"
       affected_characters: [protagonist]
-      delayed_effects: ["A/C 的精確停用機制待 Mechanism Canon 確認；B 保留 Retry"]
+      delayed_effects: ["A 需合法一次性 Forward Seal；C 需 G1–G5 的永久隔離＋Forward Seal；B 未封存會 Retry"]
       knowledge_changes: []
       relationship_changes: []
       narrative_refs: []
@@ -158,7 +158,7 @@ nodes:
       after: ["主角接受不完美的世界，但停止 Reset 必須另外完成並確認 Write-back 隔離"]
       reason: 不再用「還能更好」否定眼前已經存在的人生。]
       affected_characters: [protagonist, yuan, wakaharu, doctor, reporter, detective]
-      delayed_effects: ["未通過實際安全隔離，不能因主角接受就宣稱 00:01"]
+      delayed_effects: ["一次性 Forward Seal 可使當輪前進，但 Writer 未永久撤銷，仍存在未來自主 Correction 風險"]
       knowledge_changes: []
       relationship_changes: []
       narrative_refs: [final_a_tomorrow]
@@ -184,9 +184,9 @@ nodes:
     detail:
       before: [跨 Loop 關係只由主角一人背負。]
       after: ["停用 autonomous Reality Write-back 並保留 Prediction、Simulation 與主角的跨線記憶"]
-      reason: "唯有真正失去改寫現實的執行權才能停止 Recovery Retry"
+      reason: "永久停止本地自主 Reality Write-back 需雙路權限撤銷與有效 Forward Seal，而非刪除 Anchor 記憶"
       affected_characters: [protagonist, yuan]
-      delayed_effects: ["永久停止鏈仍待 Mechanism Canon 驗證，不能以刪記憶替代"]
+      delayed_effects: ["需同時驗證 Primary／Recovery Bridge 撤銷、Epoch Fencing、外部 Isolation 與 Forward Seal；Runtime 尚未實作"]
       knowledge_changes: []
       relationship_changes: []
       narrative_refs: [final_c_forget_me]
@@ -206,4 +206,4 @@ edges:
   - { id: F_E04, source: F_N07_collective_1831, target: F_N08_protagonist_choice, label: "only choose self", visibility: public }
   - { id: F_E05a, source: F_N08_protagonist_choice, target: F_N09_ending_a, label: "accept one world", visibility: public }
   - { id: F_E05b, source: F_N08_protagonist_choice, target: F_N10_ending_b, label: "continue loop", visibility: public }
-  - { id: F_E05c, source: F_N08_protagonist_choice, target: F_N11_ending_c, label: "release cross-loop memory", visibility: public }
+  - { id: F_E05c, source: F_N08_protagonist_choice, target: F_N11_ending_c, label: "revoke autonomous write-back", visibility: public }

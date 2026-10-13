@@ -1,8 +1,8 @@
 # Final｜18:31
 
-> Status：Final thematic direction confirmed；Hard Reset stop mechanism and exact physical shutdown path remain TBD。
+> Status：Final thematic direction + high-level Recovery / Shutdown Mechanism confirmed；設備與可玩 Runtime 尚未完成。
 >
-> 本文件定義最終章「要解決什麼問題」。Fixed Anchor 的高層成因已由 `story-canon-rewrite-anchor.md` 定案；本章不假裝 Synchronization 事故、Recovery 判定與停止 Write-back 的實體路徑已有答案。
+> 本文件定義最終章「要解決什麼問題」。Fixed Anchor 由 `story-canon-rewrite-anchor.md` 定義，18:31 Cascade、00:00 Recovery、Ending C 的高層執行機制見 `story-canon-mechanism.md`。底層物理、設備操作及 Runtime 仍待實作。
 
 Final 的核心不是打倒某個幕後黑手，也不是找出哪一個人應該死亡。
 
@@ -93,7 +93,7 @@ Final 不能再退回：
 
 > **即使某一輪結果看起來很好，只要 Reality Correction / Write-back 還在運作，系統仍可能把現實視為尚未完成的 Optimization。**
 
-「系統到底如何判定要 Reset」的完整演算法仍待後續 Mechanism Spec 鎖定。
+高層判定已定案：**未結案 Correction Session + 仍有效的 Write-back 權限 + 未通過 Forward Seal → 00:00 Recovery Retry**。底層演算法仍待實作與驗證，詳見 `story-canon-mechanism.md`。
 
 ---
 
@@ -249,7 +249,7 @@ X automatic Rewrite
 
 > 上述是 Final 所需的角色功能方向，不代表具體設備、斷線方法已定案。
 
-真正的物理／軟體 shutdown chain 仍需後續 18:31 Mechanism Spec。
+Ending C 在高層需要 G1–G5：辨識 Primary／Recovery Bridge → 撤銷雙路自動改寫權限 → Epoch Fencing → 外部核驗 → Forward Seal。確切設備、角色如何分工操作與 Runtime Transition 尚需下一階段實作，詳見 `story-canon-mechanism.md`。
 
 ---
 
@@ -287,7 +287,8 @@ Ending A 可以保留為另一種主題回答：
 
 ```text
 Story intent：confirmed
-Hard Reset 為什麼因此永久停止：TBD
+當輪進入 10/4：一次性合法 Forward Seal
+長期狀態：Writer 尚未被永久撤銷，因此不是根治
 ```
 
 也就是 Ending A 現在不能直接寫成 Runtime Rule：
@@ -297,7 +298,7 @@ Hard Reset 為什麼因此永久停止：TBD
 → 系統自動停止
 ```
 
-如果最終 Mechanism 發現需要實際切斷 Reality Write-back，Ending A 的具體事件也必須跟著調整。
+Ending A 必須有一次性合法的 Forward Seal，才可以在午夜進入 10/4；不必像 Ending C 一樣永久撤銷所有本地 Writer 權限。因此它選擇了不可逆的今天，卻沒有替灰潮鎮解決未來的自主 Correction 風險。主角說「我接受」本身不是系統指令。
 
 ---
 
@@ -346,9 +347,9 @@ Ending C 是目前最完整的世界觀方向。
 第一次真正進入 10 月 4 日
 ```
 
-但最後兩步的精確 Hard Reset Stop Mechanism 仍需在 Mechanism Canon 完成後驗證。
+最後兩步已具備高層機制：先完成本地雙路 Writer Isolation、Epoch Fencing 和獨立核驗，再使用 Forward Seal 讓當輪真實狀態被接受並繼續前進。
 
-不能只因主題漂亮就假設技術上必然成立。
+**尚未實作**的是對應的設備操作、可驗證紀錄與 Runtime State Transition。不能只靠一行對白或「0 deaths」就宣告成功。
 
 ---
 
@@ -429,7 +430,7 @@ Anchor 死亡
 
 ---
 
-# 後續 Mechanism Spec 必須回答
+# 後續 Mechanism 實作及開放問題
 
 在 Final 可以真正鎖死前，至少需要回答：
 
@@ -444,4 +445,4 @@ Anchor 死亡
 9. Ending C 怎麼讓該條件永久失效，而不是只暫停一次
 10. 警告信如何在知夏死後五年被寄出
 
-在這十項完成以前，Final 保留主題方向，不假裝機制已完整。
+上列第 4、5、7、8、9 項已有 `story-canon-mechanism.md` 的**高層因果答案**；設備規格、數值判定、信件來源、知夏死亡細節與實際 Runtime 尚未完成。此章需待相應 Worldline／Recovery 狀態與玩家可獲得的證據實作後，才能稱為完整可玩的 Final。
