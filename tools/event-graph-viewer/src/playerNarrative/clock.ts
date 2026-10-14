@@ -8,7 +8,6 @@ export function formatStoryMinute(value: number): string {
 }
 
 export function currentStoryMinute(session: PlayerSessionV3, nowMs: number): number {
-  if (session.foregroundFreeze) return session.foregroundFreeze.frozenMinute;
   const elapsed = Math.max(0, nowMs - session.lastSyncedRealTimeMs);
   return session.storyMinuteAtLastSync + Math.floor(elapsed / REAL_MINUTE_MS);
 }
@@ -24,6 +23,6 @@ export function freezeForeground(session: PlayerSessionV3, sceneId: string, nowM
 }
 
 export function resumeWorld(session: PlayerSessionV3, nowMs: number): PlayerSessionV3 {
-  const minute = session.foregroundFreeze?.frozenMinute ?? currentStoryMinute(session, nowMs);
+  const minute = currentStoryMinute(session, nowMs);
   return { ...session, storyMinuteAtLastSync: minute, lastSyncedRealTimeMs: nowMs, foregroundFreeze: null };
 }

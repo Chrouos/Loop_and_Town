@@ -151,3 +151,10 @@ Roadmap 決定目前實作順序與 PR dependency，但不能改寫 Gameplay Can
 ```
 
 只要其中一題有疑問，先回到 `core-gameplay-spec-v0.1.md`。
+## Player Runtime authority (P0)
+
+- **Playable source of truth:** `src/player/PlayerApp.tsx` and `src/player/{runtime,clock,model,knowledge}` via `player.html`. It already supports single-focus Attention and player-selected Memory Capture.
+- **Legacy experimental renderer:** `src/playerNarrative/` remains for narrative component compatibility, but is **not** a second clock or canonical save owner. Its foreground scene state cannot pause world time; newly initialized sessions begin at 06:12 on the inbound train. Historic v2/v3 sessions preserve their progressed minute.
+- **Mechanism simulator:** `src/simulator/correctionSession.ts` and `recoveryBoundary.ts` own author truth; no CorrectionSession internals become player knowledge without observed/captured sources.
+- Player Save v2 remains the durable owner of Captured Memory and Investigation Wall. Legacy narrative Save v3 is not silently combined or reset into it; optional import requires an explicit migration and user intent.
+- P1–P4 implementation follows this canonical path; do not implement two competing midnight transitions.
