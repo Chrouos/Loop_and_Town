@@ -194,12 +194,12 @@ export function reconcilePlayer(
   const loop = activeLoop(save);
   const targetMinute = clockMinuteAt(loop.clock, safeNow);
   const attentionRecords = story && loopId !== 1
-    ? projectPlayerNarrativeRecords(
+    ? [...staticPlayerRecords(loopId), ...projectPlayerNarrativeRecords(
       story,
       loopId,
       replayLoop(story.simulation.definition, story.simulation.initialState, save, loopId, targetMinute).history,
       targetMinute,
-    )
+    )]
     : undefined;
   settleMemoryCapture(save, loopId, safeNow, targetMinute, attentionRecords);
   settlePresenceAttention(save, loopId, safeNow, targetMinute, attentionRecords);
