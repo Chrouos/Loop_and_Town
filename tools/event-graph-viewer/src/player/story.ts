@@ -46,6 +46,19 @@ const stationBlackoutSpatial = compileSpatialScript([
 ]);
 
 export const STORY_RECORDS: VisibleRecord[] = [
+  { id: 'signal-ledger', title: '舊站同步影像', source: '控制室外側螢幕／自行目視', formedAt: '17:33', obtainedAt: '17:33–17:42', revealMinute: 1053, availableUntilMinute: 1062, acquisition: 'presence',
+    matches: always, body: ['顯示器左邊的 Target State 比右邊的 Observed State 早了一個 Epoch。', '時間碼有一段重疊，卻沒有人承認把模擬數據寫進現實。'],
+    excerpts: [{ id: 'epoch', text: 'Target 和 Observed 被標為不同 Sync Epoch。' }] },
+  { id: 'backup-relay', title: '舊站維修銘牌', source: '維修門外側／自行目視', formedAt: '17:48', obtainedAt: '17:48–17:57', revealMinute: 1068, availableUntilMinute: 1077, acquisition: 'presence',
+    matches: always, body: ['維修銘牌列出兩條輸出：PRIMARY / RECOVERY。', 'RECOVERY 有獨立回傳路徑；沒有任何標誌能證明它目前仍可改寫現實。'],
+    excerpts: [{ id: 'bridge', text: '舊站有 PRIMARY 和 RECOVERY 兩條獨立回傳路徑。' }] },
+  { id: 'track-damage', title: '維修通道的痕跡', source: '舊站外路面／自行目視', formedAt: '18:14', obtainedAt: '18:14–18:23', revealMinute: 1094, availableUntilMinute: 1103, acquisition: 'presence',
+    matches: always, body: ['主通道後方有新近施工留下的輪痕。', '醫療人員若從這裡繞行，可能在 18:31 接近暴露區域。'],
+    excerpts: [{ id: 'risk', text: '維修路線可能讓人暴露於站區異常。' }] },
+  { id: 'external-ack', title: '獨立監測紀錄', source: '志遠保全的獨立紀錄器／自行目視', formedAt: '18:50', obtainedAt: '18:50–18:59', revealMinute: 1130, availableUntilMinute: 1139, acquisition: 'presence',
+    matches: always, body: ['獨立紀錄顯示設備回覆並不等於寫入權限已消失。', '若在斷線後再讀取它，才可能知道兩條 Bridge 是否真的失效。'],
+    excerpts: [{ id: 'verify', text: '需要以獨立紀錄確認兩路寫入權限是否真的失效。' }] },
+
   { id: 'letter', title: '第七封信', source: '林知夏（信封署名）', formedAt: '郵戳：昨天', obtainedAt: '在返鄉列車上取出時', revealMinute: 0, acquisition: 'persistent', matches: always,
     body: ['不要回來。', '姊'],
     excerpts: [{ id: 'postmark', text: '郵戳是昨天的；署名是林知夏。' }, { id: 'warning', text: '不要回來。' }] },
@@ -68,3 +81,6 @@ export const STORY_RECORDS: VisibleRecord[] = [
 ];
 
 export const recordById = (id: string) => STORY_RECORDS.find(record => record.id === id);
+
+export const staticPlayerRecords = (loop: number): PlayerNarrativeRecord[] =>
+  STORY_RECORDS.map(record => ({ ...record, sceneId: record.id, loopId: loop }));

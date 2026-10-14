@@ -17,7 +17,7 @@ import { SceneFrame } from './ui/SceneFrame';
 import { WorldlineHud } from './ui/WorldlineHud';
 import { SpatialTextLayer } from './SpatialTextLayer';
 import { markPlayerNarrativeSeen, projectPlayerNarrativeRecords } from './narrativeRecords';
-import { recordById } from './story';
+import { recordById, staticPlayerRecords } from './story';
 import type { PlayerStoryBundle } from '../types/playerStory';
 import { projectPlayerPresentation } from './presentation/projectPlayerPresentation';
 import { PlayerSceneStage } from './ui/PlayerSceneStage';
@@ -40,6 +40,10 @@ function prefersReducedMotion(): boolean {
 
 function presenceCueLabel(id: string): string {
   if (id === 'station-blackout') return '……鐘聲？';
+  if (id === 'signal-ledger') return '……螢幕的數字？';
+  if (id === 'backup-relay') return '……門邊的銘牌？';
+  if (id === 'track-damage') return '……路面的新痕？';
+  if (id === 'external-ack') return '……閃爍的紀錄器？';
   return '……剛才那邊？';
 }
 
@@ -107,7 +111,8 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
       clock.minute,
     )
     : undefined;
-  const recordSource = loopId === 1 ? undefined : playerRecords;
+  // Real-world cues and authored scenes coexist in every loop; neither grants automatic perception.
+  const recordSource = loopId === 1 ? undefined : [...staticPlayerRecords(loopId), ...(playerRecords ?? [])];
   const records = visibleRecords(save, loopId, recordSource);
   const opportunities = availablePresenceRecords(save, loopId, clock.minute, recordSource);
   const opened = loopId !== 1 || save.knowledge.opened.includes(`${loopId}:letter`) || save.knowledge.opened.includes('letter');
