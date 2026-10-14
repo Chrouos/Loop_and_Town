@@ -1,17 +1,21 @@
 name: Event Graph Viewer
 
 on:
-  push:
-    branches:
-      - feature/event-graph-viewer-v0.1
-    paths:
-      - 'tools/event-graph-viewer/**'
-      - 'story/**'
-      - '.github/workflows/event-graph-viewer.yml'
   pull_request:
     paths:
       - 'tools/event-graph-viewer/**'
       - 'story/**'
+      - 'docs/**'
+      - '.github/workflows/event-graph-viewer.yml'
+      - '.github/workflows/deploy-event-graph-viewer.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: verify-event-graph-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   verify-viewer:
@@ -20,15 +24,23 @@ jobs:
       run:
         working-directory: tools/event-graph-viewer
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Setup Node
+        uses: actions/setup-node@v7
         with:
           node-version: 22
-      - name: Install dependencies
-        run: npm install
+          cache: npm
+          cache-dependency-path: tools/event-graph-viewer/package-lock.json
+      - name: Install locked dependencies
+        run: npm ci
       - name: Sync story data
         run: npm run sync-story
       - name: Run tests
         run: npm test
       - name: Build viewer
         run: npm run build
+      - name: Verify both entry points
+        run: |
+          test -s dist/index.html
+          test -s dist/player.html
