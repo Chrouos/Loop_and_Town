@@ -63,12 +63,19 @@ export function getCorrectionSession(state: WorldState): CorrectionSession {
   return value;
 }
 
+/** A technical operator plus an independent safety/evidence reviewer, not an NPC head-count. */
+export function hasQualifiedParticipants(session: CorrectionSession): boolean {
+  return session.riskDisclosed
+    && session.choices.yuan === 'participate'
+    && (session.choices.doctor === 'participate' || session.choices.detective === 'participate');
+}
+
 export function reduceCorrection(before: CorrectionSession, command: CorrectionCommand): CorrectionSession {
   const s = structuredClone(before);
   const requireGate = (ok: boolean, reason: string) => { if (!ok) throw new Error('Correction gate failed: ' + reason); };
   const recorded = (id: EvidenceId) => s.evidence.some(e => e.id === id);
   const distinctSources = () => new Set(s.evidence.map(e => e.source)).size;
-  const informedParticipation = () => s.riskDisclosed && Object.values(s.choices).filter(x => x === 'participate').length >= 2;
+  const informedParticipation = () => hasQualifiedParticipants(s);
 
   if (command.op === 'converge') {
     requireGate(s.phase === 'OPEN', 'convergence already recorded');

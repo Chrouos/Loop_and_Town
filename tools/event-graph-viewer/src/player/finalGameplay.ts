@@ -1,4 +1,4 @@
-import { initialCorrectionSession, reduceCorrection, type CorrectionCommand, type CorrectionSession } from '../simulator/correctionSession';
+import { hasQualifiedParticipants, initialCorrectionSession, reduceCorrection, type CorrectionCommand, type CorrectionSession } from '../simulator/correctionSession';
 import type { WorldState } from '../simulator/types';
 import type { PlayerSave } from './model';
 import { isAtOldStation } from './stationTravel';
@@ -73,6 +73,9 @@ export function finalStepReason(save: PlayerSave, world: WorldState, minute: num
   if(session.phase!=='UNRESOLVED') return '這一輪的結案選擇已經作出。';
   if(step==='trace_mismatch') return null;
   if(!session.bridgesIdentified) return '還需要先向在場的人解釋證據。';
+  if(step==='invite_yuan' && stateOf(world,'yuan').cooperation === 'decline') return '予安已經明確拒絕參與這次操作。';
+  if(step==='invite_doctor' && stateOf(world,'doctor').cooperation === 'decline') return '柏勳拒絕參與，他的決定必須受到尊重。';
+  if(step==='invite_detective' && stateOf(world,'detective').cooperation === 'decline') return '志遠沒有同意提供現場安全查核。';
   if(step==='invite_yuan' && (stateOf(world,'yuan').assignment!=='inspect_backup' ||
       (world.world as Record<string,unknown>).backup_inspection_completed!==true))
     return '予安有自己的行程，無法從別處被強制叫回來。';
@@ -81,8 +84,8 @@ export function finalStepReason(save: PlayerSave, world: WorldState, minute: num
   if(step==='invite_detective' && !memory(save,'external-ack')) return '尚未親自保存志遠的獨立紀錄。';
   if(step==='verify_isolation' && !memory(save,'external-ack')) return '缺少另一個獨立來源，不能只相信操作介面。';
   if(['close_primary','close_recovery','fence_epoch','verify_isolation','seal_once','seal_permanent'].includes(step)
-    && Object.values(session.choices).filter(choice=>choice==='participate').length<2)
-    return '至少需要有相應能力的人願意安全協作，不能替他們決定。';
+    && !hasQualifiedParticipants(session))
+    return '需要予安負責接口操作，並由柏勳或志遠進行獨立安全查核；不是湊滿兩個人就夠。';
   if(step==='seal_permanent' && !session.isolationVerified) return '兩條寫入路徑尚未完成獨立驗證。';
   if(step==='seal_once' && !session.riskDisclosed) return '還沒有把風險說明清楚。';
   try { let proposed=session; for(const c of commandsFor(step)) proposed=reduceCorrection(proposed,c); }

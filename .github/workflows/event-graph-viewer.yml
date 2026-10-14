@@ -44,3 +44,11 @@ jobs:
         run: |
           test -s dist/index.html
           test -s dist/player.html
+      - name: Archive PR preview build
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: loop-town-preview-${{ github.event.pull_request.number }}
+          path: tools/event-graph-viewer/dist
+          if-no-files-found: error
+          retention-days: 7

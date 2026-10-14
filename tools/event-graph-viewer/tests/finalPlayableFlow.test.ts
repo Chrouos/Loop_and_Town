@@ -51,6 +51,18 @@ describe('P4: real PlayerSave-backed Final transitions',()=>{
    (world.characters as Record<string,Record<string,unknown>>).doctor.route='old_station';
    expect(finalStepReason(save,world,1132,'invite_doctor')).toContain('醫院');
  });
+ it('a named NPC may decline and the protagonist cannot override the decision',()=>{
+   const {save,world}=fixture();
+   step(save,world,[['trace_mismatch',1131]]);
+   (world.characters as Record<string,Record<string,unknown>).yuan.cooperation='decline';
+   expect(finalStepReason(save,world,1132,'invite_yuan')).toContain('拒絕');
+   expect(()=>applyFinalStep(save,world,1132,'invite_yuan')).toThrow(/拒絕/);
+ });
+ it('two willing people without technical capacity cannot operate either writer',()=>{
+   const {save,world}=fixture();
+   step(save,world,[['trace_mismatch',1131],['invite_doctor',1132],['invite_detective',1133]]);
+   expect(finalStepReason(save,world,1134,'close_primary')).toContain('予安');
+ });
  it('B retries when the player never secures an effective Forward Seal',()=>{
    const {save}=fixture();
    expect(finalCorrection(save,1440)).toMatchObject({outcome:'RETRY',nextCheckpoint:'10/3 06:12'});

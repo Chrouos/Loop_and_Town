@@ -28,6 +28,7 @@ describe('GitHub Actions CI/CD separation', () => {
     expect(paths).toContain('tools/event-graph-viewer/**');
     expect(verify.permissions).toEqual({ contents: 'read' });
     expect(verify.concurrency?.['cancel-in-progress']).toBe(true);
+    expect(steps(verify, 'verify-viewer').some(s => s.uses?.includes('upload-artifact'))).toBe(true);
     expect(steps(verify, 'verify-viewer').some(s => s.run === 'npm ci')).toBe(true);
     expect(steps(verify, 'verify-viewer').some(s => s.run === 'npm test')).toBe(true);
     expect(steps(verify, 'verify-viewer').some(s => s.run === 'npm run build')).toBe(true);

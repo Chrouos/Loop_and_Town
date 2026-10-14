@@ -35,7 +35,7 @@ Missed clues cannot be recovered retroactively from player History or the Author
 - At 18:26, Yuan inspects only if **requested** and actually present near the station area. The event is a schedule entry, not a guaranteed reward.
 - If a prior independent post-office assignment takes Yuan away, his inspection cannot happen. The displayed response reflects the resulting World History.
 - An actual inspection may confirm the interface but is **not consent to disable it**.
-- For later author-side Final intervention, participation checks use each candidate's route, alive status, provenance and current information. The protagonist cannot remotely force a character onto a dangerous route.
+- For later author-side Final intervention, participation checks use each candidate's route, alive status, provenance and current information. The protagonist cannot remotely force a character onto a dangerous route. Explicit `cooperation: decline` in NPC world state is respected. Disarmament requires **Yuan's technical participation plus Doctor or Detective as independent safety reviewer**; two unrelated consents are insufficient.
 
 ## P4｜Play from observed evidence to A/B/C
 
