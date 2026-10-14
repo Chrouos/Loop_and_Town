@@ -3,7 +3,7 @@ import type { StateChange, WorldState } from './types';
 
 // Author truth. Do not expose it as the player's automatically discovered knowledge.
 export type EvidenceId = 'ledger_conflict' | 'bridge_map' | 'route_exposure' | 'independent_check';
-export type ActorId = 'wakaharu' | 'doctor' | 'reporter' | 'detective' | 'yuan';
+export type ActorId = 'wakaharu' | 'doctor' | 'reporter' | 'detective' | 'yuan' | 'protagonist';
 export type CorrectionSession = {
   phase: 'OPEN' | 'UNRESOLVED' | 'FORWARD_SEALED' | 'RETRY' | 'SAFETY_HOLD';
   feedbackMismatch: boolean;
@@ -31,7 +31,7 @@ const ops = ['converge', 'record_evidence', 'record_choice', 'disclose_risk', 'i
   'revoke_primary', 'revoke_recovery', 'fence_epoch', 'verify_isolation',
   'seal_one_time', 'seal_permanent', 'final_check', 'adjudicate'];
 const evidenceIds = ['ledger_conflict', 'bridge_map', 'route_exposure', 'independent_check'];
-const actors = ['wakaharu', 'doctor', 'reporter', 'detective', 'yuan'];
+const actors = ['wakaharu', 'doctor', 'reporter', 'detective', 'yuan', 'protagonist'];
 
 export function initialCorrectionSession(): CorrectionSession {
   return {
