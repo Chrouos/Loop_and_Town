@@ -37,9 +37,9 @@ describe('Loop 06 six letters', () => {
     ]) expect(ids.has(id), `missing ${id}`).toBe(true);
 
     const text = scenes.flatMap((scene) => scene.blocks ?? []).map((block) => block.text ?? '').join('\n');
-    expect(text).toContain('不是讓我記得');
-    expect(text).toContain('是讓妳收到');
-    expect(text).toContain('只有我記得');
+    expect(text).toContain('不要回來');
+    expect(text).toContain('Fixed Anchor');
+    expect(text).not.toContain('是讓妳收到');
     expect(text).not.toContain('予安想起上一輪');
     expect(text).not.toContain('Memory Residue');
   });

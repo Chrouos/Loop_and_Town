@@ -7,6 +7,7 @@ import warningText from '../../../story/events/loop_01_1818.yaml?raw';
 import bellsText from '../../../story/events/loop_01_2359.yaml?raw';
 import endText from '../../../story/events/loop_01_end.yaml?raw';
 import { resolveEvent } from '../src/simulator/eventResolver';
+import { initialCorrectionSession } from '../src/simulator/correctionSession';
 import type { EventDefinition, WorldState } from '../src/simulator/types';
 
 const parse = (text: string) => yaml.load(text) as EventDefinition;
@@ -21,7 +22,8 @@ it('18:31 chooses Wakaharu first when she is at the station', () => {
       wakaharu: { location: 'old_station', status: 'alive' },
       doctor: { location: 'old_station', status: 'alive' },
     },
-    world: { anomaly_1831_observed: false },
+    world: { anomaly_1831_observed: false, station_handoff_completed: true, doctor_maintenance_exposed: false },
+    correction: initialCorrectionSession(),
   };
   expect(resolveEvent(context(state), event).variantId).toBe('wakaharu_dies');
   expect(state.characters.wakaharu.status).toBe('dead');
@@ -32,9 +34,10 @@ it('18:31 chooses doctor only when Wakaharu is absent and falls back to no_death
   const doctorState = {
     characters: {
       wakaharu: { location: 'home', status: 'alive' },
-      doctor: { location: 'old_station', status: 'alive' },
+      doctor: { location: 'maintenance_tunnel', status: 'alive' },
     },
-    world: { anomaly_1831_observed: false },
+    world: { anomaly_1831_observed: false, station_handoff_completed: false, doctor_maintenance_exposed: true },
+    correction: initialCorrectionSession(),
   };
   expect(resolveEvent(context(doctorState), event).variantId).toBe('doctor_dies');
 
@@ -43,7 +46,8 @@ it('18:31 chooses doctor only when Wakaharu is absent and falls back to no_death
       wakaharu: { location: 'home', status: 'alive' },
       doctor: { location: 'hospital', status: 'alive' },
     },
-    world: { anomaly_1831_observed: false },
+    world: { anomaly_1831_observed: false, station_handoff_completed: false, doctor_maintenance_exposed: false },
+    correction: initialCorrectionSession(),
   };
   expect(resolveEvent(context(safeState), event).variantId).toBe('no_death');
   expect(safeState.world.anomaly_1831_observed).toBe(true);

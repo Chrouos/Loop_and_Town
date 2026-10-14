@@ -91,3 +91,18 @@ export function knownDiff(save: PlayerSave, leftLoop: number, rightLoop: number)
   const left = outcome(save, leftLoop), right = outcome(save, rightLoop);
   return { left, right, candidateInvariant: left !== '尚未查到' && right !== '尚未查到' ? '兩份紀錄都指向 18:31；還不能證明每一輪都如此。' : null };
 }
+
+// This is an explicit PLAYER hypothesis after capturing and connecting two sources;
+// simply being near an event or watching the Author Graph does not grant it.
+export const BRIDGE_HYPOTHESIS = 'primary_recovery_both_active';
+export function submitBridgeHypothesis(save: PlayerSave): PlayerSave {
+  const captured = save.knowledge.memories;
+  const first = captured.filter(m => m.sourceRecordId === 'signal-ledger' && save.knowledge.wallRefs.includes(m.id));
+  const second = captured.filter(m => m.sourceRecordId === 'backup-relay' && save.knowledge.wallRefs.includes(m.id));
+  const connected = first.some(a => second.some(b =>
+    save.knowledge.connections.some(key => key.split('#')[0] === [a.id,b.id].sort().join('|'))));
+  if (!connected) throw new Error('必須親自記下兩種來源，並在推理牆連線。');
+  if (!save.knowledge.discoveredEvidence.includes(BRIDGE_HYPOTHESIS))
+    save.knowledge.discoveredEvidence.push(BRIDGE_HYPOTHESIS);
+  return save;
+}

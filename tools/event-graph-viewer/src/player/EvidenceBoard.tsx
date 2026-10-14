@@ -1,5 +1,5 @@
 import { useState, type PointerEvent as ReactPointerEvent } from 'react';
-import { addMemoryToWall, addPlayerNote, connectWallRefs, removeWallRef, unpinExcerpt } from './logic';
+import { addMemoryToWall, addPlayerNote, connectWallRefs, removeWallRef, unpinExcerpt, submitBridgeHypothesis, BRIDGE_HYPOTHESIS } from './logic';
 import { normalizeSave, type PlayerSave } from './model';
 import { recordById } from './story';
 
@@ -104,6 +104,7 @@ export function EvidenceBoard({ save, onChange, onNotice }: Props) {
       <button onClick={addNote}>新增註記</button>
       {save.knowledge.notes.filter(note => note.source === 'player').map((note, index) => <p key={`${index}:${note.text}`}>{note.text}</p>)}
     </section>
+    {!!save.knowledge.connections.length && <section className="bridge-hypothesis"><p>看起來像是兩個不同時刻的訊號，但究竟有沒有共用同一條寫入路徑？</p><button type="button" disabled={save.knowledge.discoveredEvidence.includes(BRIDGE_HYPOTHESIS)} onClick={() => { try { const next = submitBridgeHypothesis(normalizeSave(save,save.lastConfirmedMs)); onChange(next); onNotice('你提出了備援寫入假說。需要在當輪實際查證。'); } catch(e) { setFeedback(e instanceof Error ? e.message : String(e)); } }}>提出假說：主路之外可能還有備援</button></section>}
     {!!save.knowledge.connections.length && <section className="board-connections"><h3>玩家連線</h3><p>連線只是你的思考痕跡，不是系統判定的矛盾或因果。</p>{save.knowledge.connections.map(connection => <p key={connection}>{connection.split('#')[0].split('|').map(refLabel).join(' ↔ ')}</p>)}</section>}
   </div>;
 }

@@ -1,0 +1,210 @@
+# Author-side Final runtime fixture. No player auto-knowledge or automatic NPC consent.
+# Final chapter graph references are metadata; simulation transitions use effects below.
+initial_state:
+  clock: { day: 0, time: "18:30" }
+  anchor: { memoryRetained: true }
+  services: { predictionEnabled: true, simulationEnabled: true }
+  correction:
+    phase: OPEN
+    feedbackMismatch: false
+    pendingCorrection: false
+    primaryWriteAuthority: true
+    recoveryWriteAuthority: true
+    bridgesIdentified: false
+    epochFenced: false
+    isolationVerified: false
+    riskDisclosed: false
+    evidence: []
+    choices: {}
+    sealMode: NONE
+    finalCheckDone: false
+    outcome: PENDING
+    nextCheckpoint: null
+definition:
+  loop:
+    id: final_mechanism_session
+    range:
+      start: { day: 0, time: "18:30" }
+      end: { day: 1, time: "00:00" }
+  actions:
+    - id: ledger
+      at: { day: 0, time: "18:35" }
+      label: "ledger"
+      visibility: hidden
+      effects:
+        - correction: { op: record_evidence, id: ledger_conflict, source: reporter }
+    - id: route
+      at: { day: 0, time: "18:36" }
+      label: "route"
+      visibility: hidden
+      effects:
+        - correction: { op: record_evidence, id: route_exposure, source: doctor }
+    - id: bridges
+      at: { day: 0, time: "18:37" }
+      label: "bridges"
+      visibility: hidden
+      effects:
+        - correction: { op: record_evidence, id: bridge_map, source: yuan }
+    - id: check
+      at: { day: 0, time: "18:38" }
+      label: "check"
+      visibility: hidden
+      effects:
+        - correction: { op: record_evidence, id: independent_check, source: detective }
+    - id: brief
+      at: { day: 0, time: "18:40" }
+      label: "brief"
+      visibility: hidden
+      effects:
+        - correction: { op: disclose_risk }
+    - id: doctor_yes
+      at: { day: 0, time: "18:41" }
+      label: "doctor_yes"
+      visibility: hidden
+      effects:
+        - correction: { op: record_choice, actor: doctor, choice: participate }
+    - id: yuan_yes
+      at: { day: 0, time: "18:42" }
+      label: "yuan_yes"
+      visibility: hidden
+      effects:
+        - correction: { op: record_choice, actor: yuan, choice: participate }
+    - id: wakaharu_no
+      at: { day: 0, time: "18:43" }
+      label: "wakaharu_no"
+      visibility: hidden
+      effects:
+        - correction: { op: record_choice, actor: wakaharu, choice: decline }
+    - id: identify
+      at: { day: 0, time: "18:45" }
+      label: "identify"
+      visibility: hidden
+      effects:
+        - correction: { op: identify_bridges }
+    - id: cut_primary
+      at: { day: 0, time: "18:46" }
+      label: "cut_primary"
+      visibility: hidden
+      effects:
+        - correction: { op: revoke_primary }
+    - id: cut_backup
+      at: { day: 0, time: "18:47" }
+      label: "cut_backup"
+      visibility: hidden
+      effects:
+        - correction: { op: revoke_recovery }
+    - id: fence
+      at: { day: 0, time: "18:48" }
+      label: "fence"
+      visibility: hidden
+      effects:
+        - correction: { op: fence_epoch }
+    - id: verify
+      at: { day: 0, time: "18:49" }
+      label: "verify"
+      visibility: hidden
+      effects:
+        - correction: { op: verify_isolation }
+    - id: seal_a
+      at: { day: 0, time: "23:50" }
+      label: "seal_a"
+      visibility: hidden
+      effects:
+        - correction: { op: seal_one_time }
+    - id: seal_c
+      at: { day: 0, time: "23:50" }
+      label: "seal_c"
+      visibility: hidden
+      effects:
+        - correction: { op: seal_permanent }
+  events:
+    - id: final_convergence
+      title: "final_convergence"
+      at: { day: 0, time: "18:31" }
+      visibility: hidden
+      variants:
+        - id: resolved
+          priority: 0
+          fallback: true
+          effects:
+            - correction: { op: converge }
+    - id: final_recovery_check
+      title: "final_recovery_check"
+      at: { day: 0, time: "23:59" }
+      visibility: hidden
+      variants:
+        - id: resolved
+          priority: 0
+          fallback: true
+          effects:
+            - correction: { op: final_check }
+    - id: final_midnight
+      title: "final_midnight"
+      at: { day: 1, time: "00:00" }
+      visibility: hidden
+      variants:
+        - id: resolved
+          priority: 0
+          fallback: true
+          effects:
+            - correction: { op: adjudicate }
+cases:
+  - id: ending_a_tomorrow
+    graph_ref: F_N09_ending_a
+    action_ids:
+      - ledger
+      - route
+      - bridges
+      - check
+      - brief
+      - doctor_yes
+      - yuan_yes
+      - wakaharu_no
+      - seal_a
+  - id: ending_b_once_more
+    graph_ref: F_N10_ending_b
+    action_ids: []
+  - id: ending_c_forget_me
+    graph_ref: F_N11_ending_c
+    action_ids:
+      - ledger
+      - route
+      - bridges
+      - check
+      - brief
+      - doctor_yes
+      - yuan_yes
+      - wakaharu_no
+      - identify
+      - cut_primary
+      - cut_backup
+      - fence
+      - verify
+      - seal_c
+  - id: incomplete_primary_only
+    graph_ref: F_N11_ending_c
+    action_ids:
+      - ledger
+      - route
+      - bridges
+      - check
+      - brief
+      - doctor_yes
+      - yuan_yes
+      - wakaharu_no
+      - identify
+      - cut_primary
+  - id: both_bridges_cut_no_seal
+    graph_ref: F_N11_ending_c
+    action_ids:
+      - ledger
+      - route
+      - bridges
+      - check
+      - brief
+      - doctor_yes
+      - yuan_yes
+      - identify
+      - cut_primary
+      - cut_backup
+

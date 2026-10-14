@@ -1,6 +1,6 @@
 choices:
   - id: arrival_coffee
-    scene_id: prologue_arrival
+    scene_id: prologue_yuan_reunion
     label: 先去買杯咖啡
     effects:
       - type: start-activity
@@ -9,8 +9,8 @@ choices:
         fact_id: fact_cafe_resident_chatter
 
   - id: arrival_convenience_store
-    scene_id: prologue_arrival
-    label: 去便利商店買水
+    scene_id: prologue_yuan_reunion
+    label: 抵達後去便利商店買水
     effects:
       - type: start-activity
         activity_id: visit_convenience_store
@@ -18,7 +18,7 @@ choices:
         fact_id: fact_shopkeeper_mistook_protagonist_for_zhixia
 
   - id: arrival_home_direct
-    scene_id: prologue_arrival
+    scene_id: prologue_yuan_reunion
     label: 直接回家
     effects:
       - type: travel

@@ -7,9 +7,9 @@ variants:
   - id: wakaharu_dies
     priority: 100
     when:
-      path: characters.wakaharu.location
-      op: eq
-      value: old_station
+      all:
+        - { path: characters.wakaharu.location, op: eq, value: old_station }
+        - { path: world.station_handoff_completed, op: eq, value: true }
     effects:
       - set:
           path: characters.wakaharu.status
@@ -24,9 +24,9 @@ variants:
   - id: doctor_dies
     priority: 90
     when:
-      path: characters.doctor.location
-      op: eq
-      value: old_station
+      all:
+        - { path: characters.doctor.location, op: eq, value: old_station }
+        - { path: world.doctor_maintenance_exposed, op: eq, value: true }
     effects:
       - set:
           path: characters.doctor.status
@@ -40,4 +40,5 @@ variants:
 
 notes:
   - "18:31 是事件本體，不是某個角色的固定死亡時間。"
-  - "wakaharu_dies 會在 163 分鐘後觸發 21:14 記者失蹤事件。"
+  - "若晴死亡以交付完成的現場路徑為前因；柏勳死亡以交付失敗後進維修通道為前因。"
+  - "legacy isolated scenario：wakaharu_dies 會在 163 分鐘後觸發 21:14 記者失蹤。"

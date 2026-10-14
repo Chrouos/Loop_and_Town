@@ -65,8 +65,9 @@ describe('relationship-driven Final', () => {
     ]) expect(ids.has(id), `missing ${id}`).toBe(true);
 
     const text = scenes.flatMap((scene) => scene.blocks ?? []).map((block) => block.text ?? '').join('\n');
-    expect(text).toContain('我不能再替他們選');
-    expect(text).toContain('我只能決定，我自己願意承擔什麼');
+    expect(text).toContain('我不能再替你們選');
+    expect(text).toContain('問題是如何解除系統改寫現實的權限');
+    expect(text).toContain('Prediction / Simulation');
     expect(text).not.toContain('True Ending');
     expect(text).not.toContain('Good Ending');
     expect(text).not.toContain('Bad Ending');
@@ -81,6 +82,13 @@ describe('relationship-driven Final', () => {
     const paths = parseStoryWorldlinePathsText(raw('/worldlines/final_paths.yaml'));
     const ids = new Set(paths.map((path) => path.id));
     expect(ids).toEqual(new Set(['ending_a_tomorrow', 'ending_b_once_more', 'ending_c_forget_me']));
+    const a = paths.find(p => p.id === 'ending_a_tomorrow')!;
+    const c = paths.find(p => p.id === 'ending_c_forget_me')!;
+    expect(a.nodeIds).toContain('F_N09_seal_one_time');
+    for (const id of ['F_N11_g1_bridges', 'F_N11_g2_disarm', 'F_N11_g3_fence', 'F_N11_g4_verify', 'F_N11_g5_seal']) {
+      expect(c.nodeIds).toContain(id);
+    }
+    expect(dag.edges.some(edge => edge.source === 'F_N08_protagonist_choice' && edge.target === 'F_N11_ending_c')).toBe(false);
     for (const path of paths) {
       const convergenceIndex = path.nodeIds.indexOf('F_N07_collective_1831');
       const choiceIndex = path.nodeIds.indexOf('F_N08_protagonist_choice');

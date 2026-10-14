@@ -2,23 +2,22 @@ id: day_01_story_dag
 title: Day 01 因果 DAG
 nodes:
   - id: N00_arrival_graytide
-    title: 主角回到灰潮鎮
-    time: "14:20"
+    title: 主角在返鄉列車醒來
+    time: "06:12"
     actor_ids: [protagonist]
     visibility: public
     detail:
       before: [主角五年沒有回到灰潮鎮，只打算處理老家出售。]
-      after: [主角重新進入知夏死亡後停滯五年的生活圈。]
+      after: [主角於 06:12 在返鄉列車醒來，尚未抵達灰潮鎮。]
       reason: 房屋出售與整理遺物迫使她回鄉。
       affected_characters: [protagonist, yuan]
       delayed_effects: [鎮上認識林家的人會陸續得知主角回來。]
       knowledge_changes: []
       relationship_changes: []
       narrative_refs: [prologue_arrival]
-
   - id: N00_loop02_reset_awareness
     title: 第二次在返鄉列車上醒來
-    time: "14:20"
+    time: "06:12"
     actor_ids: [protagonist]
     visibility: public
     detail:
@@ -33,7 +32,7 @@ nodes:
 
   - id: N00_shopkeeper_mistake
     title: 店家把主角錯認成知夏
-    time: "14:26"
+    time: "07:50"
     actor_ids: [protagonist]
     visibility: public
     detail:
@@ -45,10 +44,9 @@ nodes:
       knowledge_changes: [fact_shopkeeper_mistook_protagonist_for_zhixia]
       relationship_changes: []
       narrative_refs: [prologue_after_store]
-
   - id: N00_correct_shopkeeper
     title: 主角立即糾正店家
-    time: "14:27"
+    time: "07:51"
     actor_ids: [protagonist]
     visibility: public
     detail:
@@ -60,10 +58,9 @@ nodes:
       knowledge_changes: []
       relationship_changes: []
       narrative_refs: []
-
   - id: N00_leave_mistake
     title: 主角沒有糾正店家
-    time: "14:27"
+    time: "07:51"
     actor_ids: [protagonist]
     visibility: public
     detail:
@@ -75,10 +72,9 @@ nodes:
       knowledge_changes: []
       relationship_changes: []
       narrative_refs: []
-
   - id: N00_yuan_reunion
     title: 主角與予安重逢
-    time: "14:40"
+    time: "07:40"
     actor_ids: [protagonist, yuan]
     visibility: public
     detail:
@@ -90,10 +86,9 @@ nodes:
       knowledge_changes: [fact_yuan_runs_clock_shop]
       relationship_changes: [yuan.trust_protagonist baseline]
       narrative_refs: [prologue_yuan_reunion]
-
   - id: N00_old_house
     title: 主角重新打開老家
-    time: "14:48"
+    time: "08:00"
     actor_ids: [protagonist]
     visibility: public
     detail:
@@ -105,25 +100,23 @@ nodes:
       knowledge_changes: []
       relationship_changes: []
       narrative_refs: [prologue_old_house]
-
   - id: N00_letter_discovered
     title: 發現第七封信
-    time: "14:55"
+    time: "06:14"
     actor_ids: [protagonist]
     visibility: public
     detail:
       before: [主角認為姊姊死亡五年已是確定事實。]
       after: [她拿到署名林知夏、郵戳卻是昨天的實體信件。]
-      reason: 信被混在老家累積的郵件中。
+      reason: 信在確定返鄉行程後、出發前已寄達，主角在返鄉列車上取出。
       affected_characters: [protagonist, yuan, reporter]
       delayed_effects: [主角開始查郵局與知夏生前留下的紀錄。]
       knowledge_changes: [fact_zhixia_letter_received]
       relationship_changes: []
       narrative_refs: [prologue_letter_discovery, prologue_letter_opened]
-
   - id: N00_search_zhixia_room
     title: 搜查知夏房間
-    time: "15:05"
+    time: "08:10"
     actor_ids: [protagonist]
     visibility: public
     detail:
@@ -135,10 +128,9 @@ nodes:
       knowledge_changes: []
       relationship_changes: []
       narrative_refs: []
-
   - id: N00_find_watch
     title: 找到停在 18:31 的手錶
-    time: "15:12"
+    time: "08:20"
     actor_ids: [protagonist]
     visibility: public
     detail:
@@ -150,10 +142,9 @@ nodes:
       knowledge_changes: [fact_1831_is_special]
       relationship_changes: []
       narrative_refs: []
-
   - id: N00_find_research_photo
     title: 找到知夏與研究所人員合照
-    time: "15:14"
+    time: "08:22"
     actor_ids: [protagonist, reporter]
     visibility: public
     detail:
@@ -165,10 +156,9 @@ nodes:
       knowledge_changes: [fact_reporter_knew_zhixia, fact_research_institute_connection]
       relationship_changes: []
       narrative_refs: []
-
   - id: N00_find_wakaharu_photo
     title: 找到若晴拍給知夏的照片
-    time: "15:16"
+    time: "08:24"
     actor_ids: [protagonist, wakaharu]
     visibility: public
     detail:
@@ -180,10 +170,9 @@ nodes:
       knowledge_changes: [fact_wakaharu_close_to_zhixia]
       relationship_changes: []
       narrative_refs: []
-
   - id: N00_assign_yuan_postoffice
     title: 請予安查郵局
-    time: "15:35"
+    time: "16:12"
     actor_ids: [protagonist, yuan]
     visibility: public
     detail:
@@ -195,7 +184,6 @@ nodes:
       knowledge_changes: []
       relationship_changes: [yuan.available_time -1]
       narrative_refs: []
-
   - id: N01_wakaharu_photography
     title: 與若晴聊攝影
     time: "16:10"
@@ -699,23 +687,24 @@ nodes:
     detail:
       before: [主角保留今天發生過的一切記憶。]
       after: [日期重新回到 10 月 3 日，人物行程回復，但主角記憶與部分證據狀態保留。]
-      reason: 午夜是因果修正完成點。
+      reason: Correction 於 00:00 未能滿足 Recovery 條件，Rollback 至當日 06:12。
       affected_characters: [protagonist, wakaharu, doctor, reporter, yuan, detective]
       delayed_effects: [下一輪開始。]
       knowledge_changes: [主角確認自己被困在同一天。]
       relationship_changes: []
       narrative_refs: [scene_0000_reset, loop02_0000_reset_again]
-
 edges:
-  - { id: E00_01, source: N00_arrival_graytide, target: N00_shopkeeper_mistake, label: "return to town", visibility: public }
-  - { id: E00_loop02_resume, source: N00_loop02_reset_awareness, target: N00_yuan_reunion, label: "remember previous loop", visibility: public }
+  - { id: E00_01, source: N00_arrival_graytide, target: N00_letter_discovered, label: "return to town", visibility: public }
+  - { id: E00_loop02_resume, source: N00_loop02_reset_awareness, target: N00_letter_discovered, label: "remember previous loop", visibility: public }
   - { id: E00_02a, source: N00_shopkeeper_mistake, target: N00_correct_shopkeeper, label: "correct identity", visibility: public }
   - { id: E00_02b, source: N00_shopkeeper_mistake, target: N00_leave_mistake, label: "let mistake stand", visibility: public }
-  - { id: E00_03a, source: N00_correct_shopkeeper, target: N00_yuan_reunion, label: "continue home", visibility: public }
-  - { id: E00_03b, source: N00_leave_mistake, target: N00_yuan_reunion, label: "continue home", visibility: public }
-  - { id: E00_04, source: N00_yuan_reunion, target: N00_old_house, label: "open old house", visibility: public }
-  - { id: E00_05, source: N00_old_house, target: N00_letter_discovered, label: "sort mail", visibility: public }
-  - { id: E00_06, source: N00_letter_discovered, target: N00_search_zhixia_room, label: "search for source", visibility: public }
+  - { id: E00_03a, source: N00_correct_shopkeeper, target: N00_old_house, label: "continue home", visibility: public }
+  - { id: E00_03b, source: N00_leave_mistake, target: N00_old_house, label: "continue home", visibility: public }
+  - { id: E00_04, source: N00_yuan_reunion, target: N00_shopkeeper_mistake, label: "open old house", visibility: public }
+  - { id: E00_05, source: N00_letter_discovered, target: N00_yuan_reunion, label: "sort mail", visibility: public }
+  - { id: E00_06, source: N00_old_house, target: N00_search_zhixia_room, label: "search for source", visibility: public }
+  - { id: E00_loop02_yuan_to_house, source: N00_yuan_reunion, target: N00_old_house, label: "continue home", visibility: public }
+  - { id: E00_author_letter_to_house, source: N00_letter_discovered, target: N00_old_house, label: "inbound train then house", visibility: author }
   - { id: E00_07a, source: N00_search_zhixia_room, target: N00_find_watch, label: "inspect watch", visibility: public }
   - { id: E00_07b, source: N00_search_zhixia_room, target: N00_find_research_photo, label: "inspect desk", visibility: public }
   - { id: E00_07c, source: N00_search_zhixia_room, target: N00_find_wakaharu_photo, label: "inspect photos", visibility: public }

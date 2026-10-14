@@ -2,14 +2,14 @@ id: loop_04_story_dag
 title: Loop 04｜五年前
 nodes:
   - id: L4_N00_hard_reset_0612
-    title: 06:12 成為正式重置起點
+    title: 06:12 再次醒在返鄉列車
     time: "06:12"
     actor_ids: [protagonist]
     visibility: public
     detail:
-      before: [主角前三輪都在下午才真正開始行動，因此誤以為 14:20 是循環起點。]
-      after: [主角確認世界其實在清晨 06:12 就已回到 10 月 3 日。]
-      reason: 第三輪午夜重置後，她第一次在列車尚未進鎮時就保持完整意識。
+      before: [此前主角即使以下午作為調查切入點，當日仍從列車上的 06:12 同一個 checkpoint 開始。]
+      after: [主角再次在 10 月 3 日 06:12 的列車上醒來，利用完整早晨重建舊案。]
+      reason: 每一輪的 06:12 都是 Last Clean Causal State；本輪改變的是她決定提前調查。
       affected_characters: [protagonist]
       delayed_effects: [上午調查時間被打開，主角可以直接追查五年前的舊案。]
       knowledge_changes: [hard_reset_checkpoint_0612]
@@ -54,10 +54,10 @@ nodes:
     detail:
       before: [錄音器看起來只是未登錄的五年前現場紀錄。]
       after: [主角確認 18:28 錄音中存在志遠聲音，但正式紀錄顯示他 18:42 才到場。]
-      reason: 某些資訊能在它真正發生之前被殘留到另一條世界線。
+      reason: 錄音時間碼和官方到場紀錄互相矛盾；目前無法排除紀錄錯誤或 Rewrite Echo。
       affected_characters: [protagonist, detective]
-      delayed_effects: [「世界線殘留」不再只是人的記憶，也可能存在於聲音與媒介。]
-      knowledge_changes: [future_information_can_appear_early]
+      delayed_effects: [主角開始調查媒介是否會留下 Rewrite Echo，但不把跨線聲音傳輸當成已證實事實。]
+      knowledge_changes: [recorder_timestamp_conflict_unresolved]
       relationship_changes: []
       narrative_refs: [loop04_1020_future_voice]
 
@@ -161,8 +161,8 @@ nodes:
       after: [主角發現知夏手寫筆記卻把同一分鐘記成「收到」。]
       reason: 通話紀錄可能同樣受到世界線殘留污染，讓資訊方向本身失真。
       affected_characters: [protagonist, zhixia]
-      delayed_effects: [18:03 將在後續與 17:58 未來來電、第七封信共同指向雙向跨線資訊。]
-      knowledge_changes: [unknown_call_direction_is_contaminated]
+      delayed_effects: [後續比對 18:03 通聯、17:58 未接電話和警告信來源；尚不能確認雙向跨線傳輸。]
+      knowledge_changes: [unknown_call_direction_unresolved]
       relationship_changes: []
       narrative_refs: [loop04_1803_unknown_call]
 

@@ -33,10 +33,10 @@ export type PlayerSession = PlayerSessionV3;
 export function createInitialPlayerSession(nowMs: number): PlayerSessionV3 {
   return {
     version: 3,
-    storyMinuteAtLastSync: 14 * 60 + 20,
+    storyMinuteAtLastSync: 6 * 60 + 12,
     lastSyncedRealTimeMs: nowMs,
     lastSeenRealTimeMs: nowMs,
-    currentLocation: 'ash_tide_station',
+    currentLocation: 'inbound_train',
     activeActivity: null,
     activeTravel: null,
     consumedSceneIds: [],

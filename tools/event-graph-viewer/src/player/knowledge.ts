@@ -4,15 +4,16 @@ import { advanceLoop } from './eventScheduler';
 import { emptyLoop, type LoopHistoryEntry, type MemoryKind, type PlayerSave, type PersistentMemory } from './model';
 import { activeLoop, replayLoop } from './runtime';
 import { projectPlayerNarrativeRecords } from './narrativeRecords';
-import { STORY_RECORDS, type PlayerNarrativeRecord } from './story';
+import { STORY_RECORDS, staticPlayerRecords, type PlayerNarrativeRecord } from './story';
 import type { PlayerStoryBundle } from '../types/playerStory';
 import { ATTENTION_OBSERVATION_MS, advanceAttention, beginAttention, redirectAttention } from './attention';
+import { isAtOldStation } from './stationTravel';
 
 const DEFAULT_PRESENCE_WINDOW_MINUTES = 5;
 export const MEMORY_CAPTURE_MS = 1_200;
 
 function staticRecords(loop: number): PlayerNarrativeRecord[] {
-  return STORY_RECORDS.map((record) => ({ ...record, sceneId: record.id, loopId: loop }));
+  return staticPlayerRecords(loop);
 }
 
 function recordSource(loop: number, records?: PlayerNarrativeRecord[]): PlayerNarrativeRecord[] {
@@ -43,6 +44,8 @@ export function availablePresenceRecords(
   const perceived = new Set(entry.perceivedSceneIds);
   return recordSource(loop, records).filter((record) => {
     if (record.acquisition !== 'presence') return false;
+    if (['signal-ledger','backup-relay','track-damage','external-ack'].includes(record.id)
+      && !isAtOldStation(save,minute)) return false;
     if (!ids.has(`${loop}:${record.id}`) || perceived.has(record.sceneId)) return false;
     if (record.revealMinute < entry.clock.entryMinute) return false;
     const until = record.availableUntilMinute ?? record.revealMinute + DEFAULT_PRESENCE_WINDOW_MINUTES;
@@ -146,6 +149,8 @@ export function settlePresenceAttention(
 
   const candidate = recordSource(loop, records).find(record => record.id === advanced.completedTargetId);
   if (!candidate || candidate.acquisition !== 'presence') return undefined;
+  if (['signal-ledger','backup-relay','track-damage','external-ack'].includes(candidate.id)
+    && !isAtOldStation(save,minute)) return undefined;
   if (!entry.revealedIds.includes(`${loop}:${candidate.id}`)) return undefined;
   if (candidate.revealMinute < entry.clock.entryMinute) return undefined;
   const until = candidate.availableUntilMinute ?? candidate.revealMinute + DEFAULT_PRESENCE_WINDOW_MINUTES;
@@ -194,12 +199,12 @@ export function reconcilePlayer(
   const loop = activeLoop(save);
   const targetMinute = clockMinuteAt(loop.clock, safeNow);
   const attentionRecords = story && loopId !== 1
-    ? projectPlayerNarrativeRecords(
+    ? [...staticPlayerRecords(loopId), ...projectPlayerNarrativeRecords(
       story,
       loopId,
       replayLoop(story.simulation.definition, story.simulation.initialState, save, loopId, targetMinute).history,
       targetMinute,
-    )
+    )]
     : undefined;
   settleMemoryCapture(save, loopId, safeNow, targetMinute, attentionRecords);
   settlePresenceAttention(save, loopId, safeNow, targetMinute, attentionRecords);
@@ -243,7 +248,8 @@ export function reconcilePlayer(
   loop.clock.lastProcessedMinute = result.reachedMinute;
   loop.clock.pendingCriticalBoundary = result.pendingBoundary;
   if (story) revealNarrative(save, loopId, result.reachedMinute, result.simulation.history, story);
-  if (!story || loopId === 1) revealStatic(save, loopId, result.reachedMinute, definition, initial);
+  // Physical observations remain possible on every loop. Narrative projection adds separate scenes.
+  revealStatic(save, loopId, result.reachedMinute, definition, initial);
   save.lastConfirmedMs = safeNow;
   return save;
 }

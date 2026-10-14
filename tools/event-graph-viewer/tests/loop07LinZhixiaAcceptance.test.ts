@@ -41,6 +41,7 @@ describe('Loop 07 Lin Zhixia', () => {
     expect(text).toContain('如果她回來，不要讓她變成我');
     expect(text).toContain('因為我一個人做錯了');
     expect(text).toContain('所以這一次，不該再由一個人決定');
+    expect(text).not.toContain('另一條世界線的主角說');
     expect(text).not.toContain('予安想起上一輪');
     expect(text).not.toContain('Memory Residue');
   });
@@ -52,7 +53,7 @@ describe('Loop 07 Lin Zhixia', () => {
     const decline = dag.nodes.find((node) => node.id === 'L7_N11_yuan_declines');
     const convergence = dag.nodes.find((node) => node.id === 'L7_N12_collective_1831');
 
-    expect(choice?.detail.after.join('\n')).toContain('予安自己決定');
+    expect(choice?.detail.before.join('\n')).toContain('予安選擇');
     expect(answer).toBeDefined();
     expect(decline).toBeDefined();
     expect(convergence?.time).toBe('18:31');

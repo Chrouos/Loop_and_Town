@@ -144,7 +144,7 @@ export function reconcilePlayerRuntime(
   const orderedQueue = orderNarrativeQueue(queue);
   const decisionSceneId = session.foregroundFreeze?.sceneId
     ?? orderedQueue.find((item) => item.kind === 'scene')?.id;
-  const choiceMinute = session.foregroundFreeze?.frozenMinute ?? storyMinute;
+  const choiceMinute = storyMinute;
   const availableChoices = decisionSceneId
     ? availableChoicesForScene(story.playerChoices, decisionSceneId, choiceMinute, session.knownFactIds)
     : [];

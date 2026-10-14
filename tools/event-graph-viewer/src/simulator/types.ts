@@ -32,7 +32,8 @@ export type Condition =
 export type SetEffect = { set: { path: string; value: unknown } };
 export type AddFlagEffect = { add_flag: string };
 export type EmitEventEffect = { emit_event: { event_id: string; at?: StoryTimeInput } };
-export type Effect = SetEffect | AddFlagEffect | EmitEventEffect;
+export type CorrectionEffect = { correction: import('./correctionSession').CorrectionCommand };
+export type Effect = SetEffect | AddFlagEffect | EmitEventEffect | CorrectionEffect;
 
 export type DelayedEffectDefinition = {
   id: string;

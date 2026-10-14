@@ -5,7 +5,7 @@ import { loadRealStory } from './helpers/loadRealStory';
 describe('player narrative story slice', () => {
   it('has at least three distinct ordinary arrival choices', () => {
     const story = loadRealStory();
-    const choices = story.playerChoices.filter((choice) => choice.sceneId === 'prologue_arrival');
+    const choices = story.playerChoices.filter((choice) => choice.sceneId === 'prologue_yuan_reunion');
     expect(choices.length).toBeGreaterThanOrEqual(3);
     expect(new Set(choices.map((choice) => JSON.stringify(choice.effects))).size).toBe(choices.length);
   });
@@ -16,14 +16,15 @@ describe('player narrative story slice', () => {
     expect(story.playerChoices.every((choice) => choice.effects.length > 0)).toBe(true);
   });
 
-  it('keeps the letter in world truth before player arrival but discovers it through mail handling', () => {
+  it('keeps the warning in the baseline and reopens it aboard the train', () => {
     const story = loadRealStory();
     const letter = story.narrative.artifacts.find((artifact) => artifact.id === 'zhixia_letter');
     const discovery = story.narrative.scenes.find((scene) => scene.id === 'prologue_letter_discovery');
     if (!letter || !discovery) throw new Error('missing letter story data');
     expect(toAbsoluteMinute(letter.formedAt)).toBeLessThan(14 * 60 + 20);
-    expect(discovery.requiresLocation).toBe('old_house');
-    expect(discovery.afterActivityId).toBe('sort_mail');
+    expect(discovery.requiresLocation).toBeUndefined();
+    expect(discovery.afterActivityId).toBeUndefined();
+    expect(discovery.at).toEqual({ day: 0, time: '06:14' });
   });
 
   it('contains simulator-backed 18:31 player presentation variants', () => {

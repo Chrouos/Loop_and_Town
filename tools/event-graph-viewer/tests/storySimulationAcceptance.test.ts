@@ -1,5 +1,7 @@
 import { expect, it } from 'vitest';
 import { simulateNamedWorldline } from '../src/simulator/storySimulation';
+import { materializeRecoveryBoundary } from '../src/simulator/recoveryBoundary';
+import type { CorrectionSession } from '../src/simulator/correctionSession';
 import { loadRealStory } from './helpers/loadRealStory';
 
 it.each([
@@ -61,3 +63,29 @@ it('is deterministic for the same named worldline', () => {
   expect(JSON.stringify(first.fullHistory)).toBe(JSON.stringify(second.fullHistory));
   expect(first.state).toEqual(second.state);
 });
+
+it('WL-04 passes through the 18:12 return route and 18:24 maintenance exposure', () => {
+  const result = simulateNamedWorldline(loadRealStory(), 'WL-04');
+  const handoff = result.fullHistory.find(entry => entry.kind === 'event' && entry.eventId === 'evt_1805_envelope_handoff');
+  const station = result.fullHistory.find(entry => entry.kind === 'event' && entry.eventId === 'evt_1831_station');
+  const route = result.fullHistory.find(entry => entry.kind === 'schedule' && entry.scheduleEntryId === 'doctor_leave_station_via_maintenance');
+  const exposure = result.fullHistory.find(entry => entry.kind === 'schedule' && entry.scheduleEntryId === 'doctor_enter_maintenance');
+  expect(handoff?.variantId).toBe('doctor_no_recipient');
+  expect(route?.scheduleStatus).toBe('applied');
+  expect(exposure?.scheduleStatus).toBe('applied');
+  expect(route?.absoluteMinute).toBe(18 * 60 + 12);
+  expect(exposure?.absoluteMinute).toBe(18 * 60 + 24);
+  expect(station?.variantId).toBe('doctor_dies');
+  expect((result.state.characters as Record<string, any>).doctor.location).toBe('maintenance_tunnel');
+});
+it('the live Loop 01 simulator adjudicates no-death WL-06 to 06:12 without losing external Captured Memory', () => {
+  const story = loadRealStory();
+  const result = simulateNamedWorldline(story, 'WL-06');
+  const correction = result.state.correction as CorrectionSession;
+  expect(correction).toMatchObject({phase:'RETRY', outcome:'RETRY', nextCheckpoint:'10/3 06:12'});
+  const persistent = {capturedFacts:['station_route_observed']};
+  const boundary = materializeRecoveryBoundary(result.state, story.initialState, persistent);
+  expect(boundary.nextWorldState).toEqual(story.initialState);
+  expect(boundary.persistentPlayerState).toEqual(persistent);
+});
+

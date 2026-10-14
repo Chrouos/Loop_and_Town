@@ -6,7 +6,7 @@ import { clockMinuteAt, createLoopClock, type TimeMode } from './clock';
 import { advanceLoop } from './eventScheduler';
 import { emptyLoop, type ActionId, type PlayerSave } from './model';
 
-const ACTIONS: ActionId[] = ['protect_wakaharu', 'stop_doctor'];
+const ACTIONS: ActionId[] = ['protect_wakaharu', 'stop_doctor', 'request_backup_inspection'];
 
 export function activeLoop(save: PlayerSave) {
   return save.loops[save.currentLoopId] ?? save.loops[1];
@@ -19,6 +19,8 @@ export function currentSimulationMinute(save: PlayerSave, safeNowMs: number): nu
 
 export function confirmAction(save: PlayerSave, id: ActionId, nowMs: number): PlayerSave {
   if (!ACTIONS.includes(id)) throw new Error('這個行動目前無法確認。');
+  if (id === 'request_backup_inspection' && !save.knowledge.discoveredEvidence.includes('primary_recovery_both_active'))
+    throw new Error('還沒有足夠的玩家推論能支持這次查證。');
   const current = currentSimulationMinute(save, nowMs);
   if (current >= 1100) throw new Error('約好的時間已經截止，不能把現在的決定寫回過去。');
   const loop = activeLoop(save);

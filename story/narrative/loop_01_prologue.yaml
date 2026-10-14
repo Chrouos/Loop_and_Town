@@ -5,12 +5,43 @@ scenes:
     participants: [protagonist]
     blocks:
       - type: narration
-        text: 火車停穩時，我才發現灰潮鎮的月台比記憶裡窄了一點。
+        text: 我在返鄉列車上醒來，手機顯示 10 月 3 日，06:12。窗外晨光還沒照進灰潮鎮。
       - type: monologue
         text: 五年沒回來，連風的味道都像變了。
 
+  - id: prologue_letter_discovery
+    at: { day: 0, time: "06:14" }
+    kind: artifact
+    participants: [protagonist]
+    artifact_id: zhixia_letter
+    blocks:
+      - type: narration
+        text: 我想起出發前收到的信。車票早買好了，行程也已經確定；它不是讓我回鄉的原因。
+      - type: narration
+        text: 郵戳是昨天。
+      - type: narration
+        text: 我原本只覺得奇怪，直到看見寄件人那一欄。
+      - type: monologue
+        text: 林知夏。
+      - type: monologue
+        text: ……不可能。姊姊死了五年。
+        factId: fact_zhixia_dead_five_years
+
+  - id: prologue_letter_opened
+    at: { day: 0, time: "06:16" }
+    kind: artifact
+    participants: [protagonist]
+    artifact_id: zhixia_letter
+    blocks:
+      - type: artifact
+        artifactId: zhixia_letter
+      - type: monologue
+        text: 紙上只寫著「不要回來」。我沒有立刻把信收回去。
+      - type: monologue
+        text: 郵戳是昨天。我又看了一遍，還是昨天。
+
   - id: prologue_station_exit
-    at: { day: 0, time: "07:20" }
+    at: { day: 0, time: "07:40" }
     kind: activity
     participants: [protagonist]
     starts_activity: walk_home
@@ -20,24 +51,13 @@ scenes:
       - type: monologue
         text: 這次只是回來整理房子。把該丟的丟掉，把該簽的簽完，就走。
 
-  - id: prologue_groceries
-    at: { day: 0, time: "07:30" }
-    kind: activity
-    participants: [protagonist]
-    starts_activity: buy_groceries
-    blocks:
-      - type: narration
-        text: 老街口的便利商店還在，只是招牌換了顏色。
-      - type: narration
-        text: 我買了水、雞蛋和一點晚餐材料。店員看了我好幾次，最後什麼也沒問。
-
   - id: prologue_yuan_reunion
-    at: { day: 0, time: "07:40" }
+    at: { day: 0, time: "07:45" }
     kind: dialogue
     participants: [protagonist, yuan]
     blocks:
       - type: narration
-        text: 走出店門時，有人從對街叫了我的名字。
+        text: 離開月台時，有人在車站出口叫了我的名字。
       - type: narration
         text: 周予安。高中同學，也是我離開灰潮鎮後少數還偶爾聯絡的人。
       - type: dialogue
@@ -50,6 +70,17 @@ scenes:
         speaker: yuan
         text: 店還在老地方。有空就過來，我請妳喝咖啡。
         factId: fact_yuan_runs_clock_shop
+
+  - id: prologue_groceries
+    at: { day: 0, time: "07:55" }
+    kind: activity
+    participants: [protagonist]
+    starts_activity: buy_groceries
+    blocks:
+      - type: narration
+        text: 老街口的便利商店還在，只是招牌換了顏色。
+      - type: narration
+        text: 我買了水、雞蛋和一點晚餐材料。店員看了我好幾次，最後什麼也沒問。
 
   - id: prologue_old_house
     at: { day: 0, time: "08:00" }
@@ -88,43 +119,12 @@ scenes:
       - type: narration
         text: 大部分是廣告、帳單和早就失效的通知。我一封一封分到紙箱裡。
 
-  - id: prologue_letter_discovery
-    at: { day: 0, time: "09:00" }
-    kind: artifact
-    participants: [protagonist]
-    artifact_id: zhixia_letter
-    blocks:
-      - type: narration
-        text: 最下面壓著一封沒有寄件地址的信。
-      - type: narration
-        text: 郵戳是昨天。
-      - type: narration
-        text: 我原本只覺得奇怪，直到看見寄件人那一欄。
-      - type: monologue
-        text: 林知夏。
-      - type: monologue
-        text: ……不可能。姊姊死了五年。
-        factId: fact_zhixia_dead_five_years
-
-  - id: prologue_letter_opened
-    at: { day: 0, time: "09:02" }
-    kind: artifact
-    participants: [protagonist]
-    artifact_id: zhixia_letter
-    blocks:
-      - type: artifact
-        artifactId: zhixia_letter
-      - type: monologue
-        text: 我沒有立刻把信放下。
-      - type: monologue
-        text: 郵戳是昨天。我又看了一遍，還是昨天。
-
   - id: main_story_handoff
     at: { day: 0, time: "09:10" }
     kind: transition
     participants: [protagonist]
     blocks:
       - type: narration
-        text: 我把信放在桌上，打開筆電。這已經不是能當作惡作劇丟掉的東西了。
+        text: 我把早上帶在外套口袋的信放在桌上，打開筆電。這已經不是能當作惡作劇丟掉的東西了。
       - type: monologue
         text: 先查清楚這封信到底從哪裡來。

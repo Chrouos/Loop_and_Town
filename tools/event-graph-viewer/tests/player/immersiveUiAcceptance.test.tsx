@@ -23,7 +23,7 @@ describe('Player immersive UI acceptance flow', () => {
 
     expect(screen.getByTestId('scene-frame')).toBeDefined();
     await user.click(await screen.findByRole('button', { name: /拆開信封/ }));
-    expect(screen.getByText('回來一趟。')).toBeDefined();
+    expect(screen.getAllByText('不要回來。')[0]).toBeDefined();
   });
 
   it('records an existing choice and reflects its consequence in the scene', async () => {
@@ -96,7 +96,7 @@ describe('Player immersive UI acceptance flow', () => {
     const envelope = await screen.findByRole('button', { name: /拆開信封/ });
     envelope.focus();
     await user.keyboard('{Enter}');
-    expect(screen.getByText('回來一趟。')).toBeDefined();
+    expect(screen.getAllByText('不要回來。')[0]).toBeDefined();
 
     const toolsButton = screen.getByRole('button', { name: '開啟工具' });
     toolsButton.focus();

@@ -1,6 +1,6 @@
 scenes:
   - id: loop02_1420_reset_awareness
-    at: { day: 0, time: "14:20" }
+    at: { day: 0, time: "06:12" }
     kind: narration
     participants: [protagonist]
     blocks:
@@ -65,7 +65,7 @@ scenes:
         text: 好。我先把攝影那邊處理完。陳醫生那邊我再跟他說。
 
   - id: loop02_1742_doctor_departure
-    at: { day: 0, time: "17:42" }
+    at: { day: 0, time: "17:40" }
     kind: narration
     participants: [doctor]
     blocks:
@@ -135,7 +135,7 @@ scenes:
       - type: narration
         text: 十七分鐘後，消防員在舊車站維修通道找到陳柏勳。維修門從內側鎖死，舊配電設備卻留下剛啟動過的高熱。
       - type: monologue
-        text: 我救了若晴。可是死掉的人沒有消失，只是換了一個名字。
+        text: 我救下了若晴，但 18:31 的異常並未消失。柏勳因交付失敗而改走維修通道，結果暴露在另一條危險的因果路徑裡。
 
   - id: loop02_1910_detective_shift
     at: { day: 0, time: "19:10" }
@@ -195,7 +195,7 @@ scenes:
       - type: narration
         text: 第一輪：若晴，18:31。第二輪：柏勳，18:31。
       - type: monologue
-        text: 我改了死者。沒有改掉時間。
+        text: 我改變若晴的行程，也間接改變柏勳的路線。但 18:31 還是發生了。
       - type: monologue
         text: 知夏留下的警告不是叫我更快救人。她是在叫我不要把死者當成原因。
 
@@ -223,4 +223,4 @@ scenes:
       - type: narration
         text: 我睜開眼，列車窗外仍是同一片灰色海岸。
       - type: monologue
-        text: 若晴活下來沒有用。柏勳死了也沒有用。那如果 18:31 沒有人死呢？
+        text: 若晴活下來很重要，但 Reset 沒有因此停止。柏勳死去也不是 Reset 的觸發條件。那如果 18:31 沒有人死呢？

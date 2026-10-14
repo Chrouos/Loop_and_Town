@@ -36,3 +36,10 @@ actions:
     visibility: observable
     effects:
       - set: { path: characters.doctor.route, value: stay_hospital }
+  - id: request_backup_inspection
+    at: { day: 0, time: "18:20" }
+    label: 請予安查證備援接口（不自動同意停用）
+    visibility: observable
+    effects:
+      - add_flag: world.backup_inspection_requested
+

@@ -1,6 +1,8 @@
 import { createLoopClock, LOOP_START_MINUTE, MINUTE, type LoopClockState } from './clock';
+import { FINAL_STEPS, type TimedFinalStep } from './finalGameplay';
+import type { StationVisit } from './stationTravel';
 
-export type ActionId = 'protect_wakaharu' | 'stop_doctor';
+export type ActionId = 'protect_wakaharu' | 'stop_doctor' | 'request_backup_inspection';
 export type LoopHistoryEntry = {
   sequence: number;
   simulationMinute: number;
@@ -34,6 +36,8 @@ export type MemoryCaptureState = {
 };
 export type LoopSave = {
   actionIds: ActionId[];
+  finalSteps: TimedFinalStep[];
+  stationVisit?: StationVisit;
   revealedIds: string[];
   perceivedSceneIds: string[];
   seenSceneIds: string[];
@@ -78,7 +82,7 @@ export type PlayerSave = {
 
 const record = (v: unknown): v is Record<string, unknown> => v !== null && typeof v === 'object' && !Array.isArray(v);
 const strings = (v: unknown): string[] => Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string').slice(0, 250) : [];
-const action = (value: unknown): value is ActionId => value === 'protect_wakaharu' || value === 'stop_doctor';
+const action = (value: unknown): value is ActionId => value === 'protect_wakaharu' || value === 'stop_doctor' || value === 'request_backup_inspection';
 const finite = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value);
 const emptyHistory = (value: unknown): LoopHistoryEntry[] => Array.isArray(value)
   ? value.filter(record).map((item, index) => ({
@@ -98,6 +102,7 @@ export const emptyAttention = (): AttentionState => ({ phase: 'idle' });
 
 export const emptyLoop = (clock: LoopClockState = createLoopClock('ACCELERATED', 0)): LoopSave => ({
   actionIds: [],
+  finalSteps: [],
   revealedIds: [],
   perceivedSceneIds: [],
   seenSceneIds: [],
@@ -162,6 +167,18 @@ function normalizeLoop(value: unknown, nowMs: number, fallbackClock?: LoopClockS
   const src = record(value) ? value : {};
   return {
     actionIds: [...new Set(strings(src.actionIds).filter(action))],
+    stationVisit: record(src.stationVisit) && finite(src.stationVisit.departMinute) && finite(src.stationVisit.arriveMinute)
+      && src.stationVisit.departMinute>=460 && src.stationVisit.arriveMinute===src.stationVisit.departMinute+20
+      ? { departMinute:src.stationVisit.departMinute, arriveMinute:src.stationVisit.arriveMinute,
+          ...(finite(src.stationVisit.returnDepartMinute) && src.stationVisit.returnDepartMinute>=src.stationVisit.arriveMinute
+            ? {returnDepartMinute:src.stationVisit.returnDepartMinute,
+                returnArriveMinute:src.stationVisit.returnDepartMinute+20}: {}) }
+      : undefined,
+    finalSteps: Array.isArray(src.finalSteps)
+      ? src.finalSteps.filter(record).filter(item => FINAL_STEPS.includes(item.id as TimedFinalStep['id'])
+        && finite(item.minute) && item.minute >= 1111 && item.minute < 1439)
+        .slice(0, 25).map(item => ({ id: item.id as TimedFinalStep['id'], minute: item.minute as number }))
+      : [],
     revealedIds: [...new Set(strings(src.revealedIds))],
     perceivedSceneIds: [...new Set(strings(src.perceivedSceneIds))],
     seenSceneIds: [...new Set(strings(src.seenSceneIds))],
