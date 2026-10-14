@@ -1,6 +1,6 @@
 import { createLoopClock, LOOP_START_MINUTE, MINUTE, type LoopClockState } from './clock';
 
-export type ActionId = 'protect_wakaharu' | 'stop_doctor';
+export type ActionId = 'protect_wakaharu' | 'stop_doctor' | 'request_backup_inspection';
 export type LoopHistoryEntry = {
   sequence: number;
   simulationMinute: number;
@@ -78,7 +78,7 @@ export type PlayerSave = {
 
 const record = (v: unknown): v is Record<string, unknown> => v !== null && typeof v === 'object' && !Array.isArray(v);
 const strings = (v: unknown): string[] => Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string').slice(0, 250) : [];
-const action = (value: unknown): value is ActionId => value === 'protect_wakaharu' || value === 'stop_doctor';
+const action = (value: unknown): value is ActionId => value === 'protect_wakaharu' || value === 'stop_doctor' || value === 'request_backup_inspection';
 const finite = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value);
 const emptyHistory = (value: unknown): LoopHistoryEntry[] => Array.isArray(value)
   ? value.filter(record).map((item, index) => ({

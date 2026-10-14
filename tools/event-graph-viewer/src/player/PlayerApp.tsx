@@ -165,7 +165,7 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
 
   function showDrawer(value: Drawer, target?: HTMLButtonElement) { opener.current = target ?? null; setDrawer(value); setNote(''); }
   function choose(id: ActionId) {
-    try { const nextSave = normalizeSave(save, now()); confirmAction(nextSave, id, now()); commit(nextSave); setNote(id === 'protect_wakaharu' ? '你答應在若晴出門前陪她留在家裡。' : '你請予安先到醫院，設法留住陳柏勳。'); }
+    try { const nextSave = normalizeSave(save, now()); confirmAction(nextSave, id, now()); commit(nextSave); setNote(id === 'protect_wakaharu' ? '你答應在若晴出門前陪她留在家裡。' : id === 'stop_doctor' ? '你請予安先到醫院，設法留住陳柏勳。' : '你把兩份紀錄交給予安，請他自行判斷是否調查備援接口。'); }
     catch (e) { setNote(e instanceof Error ? e.message : String(e)); }
   }
   function chooseMode(mode: 'ACCELERATED' | 'LIVE_SYNC') {
@@ -246,12 +246,14 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
           choices={[
             { actionId: 'protect_wakaharu', label: hasAction('protect_wakaharu') ? '已和若晴約好' : '保護若晴：「今晚，我陪你留下來。」', disabled: hasAction('protect_wakaharu') },
             { actionId: 'stop_doctor', label: hasAction('stop_doctor') ? '予安已答應去醫院' : '請予安：「幫我去醫院。」', disabled: hasAction('stop_doctor') },
+            ...(save.knowledge.discoveredEvidence.includes('primary_recovery_both_active') ? [{actionId:'request_backup_inspection',label:hasAction('request_backup_inspection')?'已請予安查證備援接口':'拿著紀錄請予安查證另一條線',disabled:hasAction('request_backup_inspection')}] : []),
           ]}
           onChoose={actionId => choose(actionId as ActionId)}
         /> : null}
         {record?.id === 'yu-an-message' && (hasAction('protect_wakaharu') || hasAction('stop_doctor')) && <div className="choice-replies" aria-label="今晚的回覆">
           {hasAction('protect_wakaharu') && <p>若晴回了訊息：「好，我今晚先不去車站。你來的時候，我把信給你看。」</p>}
           {hasAction('stop_doctor') && <p>予安回覆：「我現在去醫院找陳柏勳。會試著留住他，之後再回你。」</p>}
+          {hasAction('request_backup_inspection') && <p>予安：「我先去查銘牌上的第二條路。能不能動，我要自己看過才知道。」</p>}
           <small>約定已記下。車站的消息會在鎮上傳來時出現在這裡。</small>
         </div>}
         {note && <p className="inline-note" role="status">{note}</p>}
