@@ -16,12 +16,14 @@ describe('P1: finite, missable Final evidence',()=>{
   it('does not expose a clue after its window if the player never focused on it',()=>{
     const save=normalizeSave(null,0);
     save.loops[1].revealedIds.push('1:signal-ledger');
+    save.loops[1].stationVisit={departMinute:1000,arriveMinute:1020};
     expect(availablePresenceRecords(save,1,1070)).toEqual([]);
     expect(visibleRecords(save,1).some(x=>x.id==='signal-ledger')).toBe(false);
   });
   it('requires focused observation; a glance before shift completion grants nothing',()=>{
     const save=normalizeSave(null,0);
     save.loops[1].revealedIds.push('1:signal-ledger');
+    save.loops[1].stationVisit={departMinute:1000,arriveMinute:1020};
     expect(attendPresenceRecord(save,1,'signal-ledger',1054,undefined,undefined,1_000)).toBe(true);
     expect(save.loops[1].perceivedSceneIds).toEqual([]);
     const shifted=advanceAttention(save.loops[1].attention,1_100);
@@ -30,7 +32,7 @@ describe('P1: finite, missable Final evidence',()=>{
   });
   it('old elapsed loops may observe the same physical source again without inheriting NPC memory',()=>{
     const save=normalizeSave(null,0);
-    save.loops[2]={...save.loops[1], clock:createLoopClock('ACCELERATED',0),revealedIds:['2:backup-relay'],
+    save.loops[2]={...save.loops[1], clock:createLoopClock('ACCELERATED',0),stationVisit:{departMinute:1000,arriveMinute:1020},revealedIds:['2:backup-relay'],
       perceivedSceneIds:[],seenSceneIds:[],history:[], actionIds:[],attention:{phase:'idle'}};
     expect(availablePresenceRecords(save,2,1070,staticPlayerRecords(2)).map(x=>x.id)).toContain('backup-relay');
     expect(visibleRecords(save,2,staticPlayerRecords(2))).toEqual([]);

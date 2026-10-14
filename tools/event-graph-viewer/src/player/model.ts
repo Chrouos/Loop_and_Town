@@ -1,5 +1,6 @@
 import { createLoopClock, LOOP_START_MINUTE, MINUTE, type LoopClockState } from './clock';
 import { FINAL_STEPS, type TimedFinalStep } from './finalGameplay';
+import type { StationVisit } from './stationTravel';
 
 export type ActionId = 'protect_wakaharu' | 'stop_doctor' | 'request_backup_inspection';
 export type LoopHistoryEntry = {
@@ -36,6 +37,7 @@ export type MemoryCaptureState = {
 export type LoopSave = {
   actionIds: ActionId[];
   finalSteps: TimedFinalStep[];
+  stationVisit?: StationVisit;
   revealedIds: string[];
   perceivedSceneIds: string[];
   seenSceneIds: string[];
@@ -165,6 +167,13 @@ function normalizeLoop(value: unknown, nowMs: number, fallbackClock?: LoopClockS
   const src = record(value) ? value : {};
   return {
     actionIds: [...new Set(strings(src.actionIds).filter(action))],
+    stationVisit: record(src.stationVisit) && finite(src.stationVisit.departMinute) && finite(src.stationVisit.arriveMinute)
+      && src.stationVisit.departMinute>=460 && src.stationVisit.arriveMinute===src.stationVisit.departMinute+20
+      ? { departMinute:src.stationVisit.departMinute, arriveMinute:src.stationVisit.arriveMinute,
+          ...(finite(src.stationVisit.returnDepartMinute) && src.stationVisit.returnDepartMinute>=src.stationVisit.arriveMinute
+            ? {returnDepartMinute:src.stationVisit.returnDepartMinute,
+                returnArriveMinute:src.stationVisit.returnDepartMinute+20}: {}) }
+      : undefined,
     finalSteps: Array.isArray(src.finalSteps)
       ? src.finalSteps.filter(record).filter(item => FINAL_STEPS.includes(item.id as TimedFinalStep['id'])
         && finite(item.minute) && item.minute >= 1111 && item.minute < 1439)

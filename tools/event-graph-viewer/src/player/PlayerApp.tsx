@@ -25,6 +25,7 @@ import { getAudioPreference, setAudioPreference } from './ui/audioPreferences';
 import { FinalInvestigationScene } from './ui/FinalInvestigationScene';
 import { applyFinalStep, finalCorrection, finalInvestigationReady, type FinalStep } from './finalGameplay';
 import { materializeRecoveryBoundary } from '../simulator/recoveryBoundary';
+import { isAtOldStation, travelToOldStation, leaveOldStation } from './stationTravel';
 
 type LegacyStory = { definition: SimulationDefinition; initialState: WorldState };
 type Story = PlayerStoryBundle | LegacyStory;
@@ -148,7 +149,8 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
     isPlayerStoryBundle(story)?story.simulation.initialState:story.initialState,
     save,loopId,Math.min(clock.minute,1440),
   ).state : undefined;
-  const canInvestigate=worldState && finalInvestigationReady(save,worldState) && clock.minute>=1111;
+  const atOldStation=isAtOldStation(save,clock.minute);
+  const canInvestigate=worldState && finalInvestigationReady(save,worldState,clock.minute) && clock.minute>=1111;
   const finalSession=worldState && loopId>=2 && (canInvestigate || loop.finalSteps.length>0)
     ? finalCorrection(save,clock.minute):undefined;
   const finalForward=finalSession?.outcome==='FORWARD';
@@ -166,7 +168,7 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
     records,
     opportunities,
     scene: record,
-    location: resetPending ? '灰潮鎮' : record?.acquisition === 'presence' ? '舊車站' : '灰潮鎮',
+    location: resetPending ? '灰潮鎮' : atOldStation ? '舊車站' : '灰潮鎮',
   });
 
   useEffect(() => {
@@ -187,6 +189,14 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
   function choose(id: ActionId) {
     try { const nextSave = normalizeSave(save, now()); confirmAction(nextSave, id, now()); commit(nextSave); setNote(id === 'protect_wakaharu' ? '你答應在若晴出門前陪她留在家裡。' : id === 'stop_doctor' ? '你請予安先到醫院，設法留住陳柏勳。' : '你把兩份紀錄交給予安，請他自行判斷是否調查備援接口。'); }
     catch (e) { setNote(e instanceof Error ? e.message : String(e)); }
+  }
+  function visitStation() {
+    try { const nextSave=normalizeSave(save,now());travelToOldStation(nextSave,clock.minute);commit(nextSave);setNote('你動身前往舊車站。約二十分鐘後抵達，世界仍在流動。'); }
+    catch(e) {setNote(e instanceof Error?e.message:String(e));}
+  }
+  function returnFromStation() {
+    try {const nextSave=normalizeSave(save,now());leaveOldStation(nextSave,clock.minute);commit(nextSave);setNote('你離開舊站。路上的二十分鐘仍會發生事情。');}
+    catch(e) {setNote(e instanceof Error?e.message:String(e));}
   }
   function chooseFinal(step: FinalStep) {
     if(!worldState) return;
@@ -281,6 +291,9 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
           {hasAction('request_backup_inspection') && <p>予安：「我先去查銘牌上的第二條路。能不能動，我要自己看過才知道。」</p>}
           <small>約定已記下。車站的消息會在鎮上傳來時出現在這裡。</small>
         </div>}
+        {!loop.stationVisit && clock.minute>=460 && clock.minute<1111 && <div className="station-travel"><button type="button" onClick={visitStation}>沿著舊路前往車站 <small>約二十分鐘；世界不會等待</small></button></div>}
+        {loop.stationVisit && clock.minute>=loop.stationVisit.departMinute && clock.minute<loop.stationVisit.arriveMinute && <p className="station-travel" role="status">你正沿著舊路前往車站……這段時間的事件仍然發生。</p>}
+        {atOldStation && !loop.stationVisit?.returnDepartMinute && <button className="station-return" type="button" onClick={returnFromStation}>離開舊站，返回鎮中心</button>}
         {worldState && <FinalInvestigationScene save={save} world={worldState} minute={clock.minute} onStep={chooseFinal} />}
         {note && <p className="inline-note" role="status">{note}</p>}
       </div>}

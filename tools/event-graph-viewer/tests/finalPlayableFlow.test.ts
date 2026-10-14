@@ -9,6 +9,7 @@ function fixture(){
  save.currentLoopId=2;
  save.loops[2]=emptyLoop(createLoopClock('ACCELERATED',0));
  save.loops[2].actionIds.push('request_backup_inspection');
+ save.loops[2].stationVisit={departMinute:1000,arriveMinute:1020};
  save.knowledge.discoveredEvidence.push('primary_recovery_both_active');
  const physical=['signal-ledger','backup-relay','track-damage','external-ack'];
  for(const [i,id] of physical.entries()) save.knowledge.memories.push({
@@ -28,13 +29,13 @@ function step(save:ReturnType<typeof fixture>['save'],world:WorldState,values:Ar
 describe('P4: real PlayerSave-backed Final transitions',()=>{
  it('requires a genuine player hypothesis and contemporaneous Yuan inspection',()=>{
    const {save,world}=fixture();
-   expect(finalInvestigationReady(save,world)).toBe(true);
+   expect(finalInvestigationReady(save,world,1132)).toBe(true);
    save.knowledge.discoveredEvidence=[];
-   expect(finalInvestigationReady(save,world)).toBe(false);
+   expect(finalInvestigationReady(save,world,1132)).toBe(false);
    expect(()=>applyFinalStep(save,world,1132,'trace_mismatch')).toThrow();
    save.knowledge.discoveredEvidence=['primary_recovery_both_active'];
    delete (world.world as Record<string,unknown>).backup_inspection_completed;
-   expect(finalInvestigationReady(save,world)).toBe(false);
+   expect(finalInvestigationReady(save,world,1132)).toBe(false);
  });
  it('missing time and missing independent recorder cannot be bypassed',()=>{
    const {save,world}=fixture();

@@ -18,7 +18,7 @@ const captions: Record<FinalStep,string> = {
 export function FinalInvestigationScene({save,world,minute,onStep}:{
   save:PlayerSave;world:WorldState;minute:number;onStep:(step:FinalStep)=>void;
 }) {
-  if(!finalInvestigationReady(save,world)||minute<1111||minute>=1439) return null;
+  if(!finalInvestigationReady(save,world,minute)||minute<1111||minute>=1439) return null;
   const session=finalCorrection(save,minute);
   const offered=offeredFinalSteps(save,world,minute);
   const decisions=save.loops[save.currentLoopId].finalSteps;

@@ -11,6 +11,7 @@ function setup(){
  save.currentLoopId=2;
  save.loops[2]=emptyLoop(createLoopClock('ACCELERATED',0));
  save.loops[2].actionIds=['request_backup_inspection'];
+ save.loops[2].stationVisit={departMinute:1000,arriveMinute:1020};
  save.knowledge.discoveredEvidence=['primary_recovery_both_active'];
  save.knowledge.opened=['2:yuan-inspection-report'];
  for(const x of ['signal-ledger','backup-relay','track-damage','external-ack']) {

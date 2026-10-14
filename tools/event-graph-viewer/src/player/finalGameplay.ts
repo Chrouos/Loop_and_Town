@@ -1,6 +1,7 @@
 import { initialCorrectionSession, reduceCorrection, type CorrectionCommand, type CorrectionSession } from '../simulator/correctionSession';
 import type { WorldState } from '../simulator/types';
 import type { PlayerSave } from './model';
+import { isAtOldStation } from './stationTravel';
 
 export const FINAL_STEPS = [
   'trace_mismatch','invite_yuan','invite_doctor','invite_detective',
@@ -18,8 +19,8 @@ const stateOf = (world: WorldState, id: string): Record<string, unknown> =>
 const currentSteps = (save: PlayerSave): TimedFinalStep[] =>
   save.loops[save.currentLoopId]?.finalSteps ?? [];
 
-export function finalInvestigationReady(save: PlayerSave, world: WorldState): boolean {
-  return save.currentLoopId >= 2
+export function finalInvestigationReady(save: PlayerSave, world: WorldState, minute: number): boolean {
+  return save.currentLoopId >= 2 && isAtOldStation(save,minute)
     && save.knowledge.discoveredEvidence.includes('primary_recovery_both_active')
     && memory(save, 'signal-ledger') && memory(save, 'backup-relay')
     && memory(save, 'track-damage')
@@ -64,7 +65,7 @@ export function finalCorrection(save: PlayerSave, minute: number): CorrectionSes
 
 export function finalStepReason(save: PlayerSave, world: WorldState, minute: number, step: FinalStep): string | null {
   if(minute<1111 || minute>=1439) return '本輪可介入的時間已經過去。';
-  if(!finalInvestigationReady(save,world)) return '你還沒有取得本輪可核實的線索與予安的回覆。';
+  if(!finalInvestigationReady(save,world,minute)) return '你還沒有在舊站取得本輪可核實的線索與予安的回覆。';
   const entries=currentSteps(save);
   if(entries.some(item=>item.id===step)) return '同一個決定不會重做一次。';
   if(entries.length && minute<=entries[entries.length-1].minute) return '世界還在變化。下一項行動至少需要再過一分鐘。';
@@ -97,7 +98,7 @@ export function applyFinalStep(save: PlayerSave, world: WorldState, minute: numb
 }
 
 export function offeredFinalSteps(save: PlayerSave, world: WorldState, minute: number): FinalStep[] {
-  if(!finalInvestigationReady(save,world)||minute<1111||minute>=1439) return [];
+  if(!finalInvestigationReady(save,world,minute)||minute<1111||minute>=1439) return [];
   const existing=new Set(currentSteps(save).map(item=>item.id));
   const candidates:FinalStep[]=[
     'trace_mismatch','invite_yuan','invite_doctor','invite_detective',
