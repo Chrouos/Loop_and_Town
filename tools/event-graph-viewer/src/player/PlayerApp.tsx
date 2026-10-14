@@ -22,6 +22,9 @@ import type { PlayerStoryBundle } from '../types/playerStory';
 import { projectPlayerPresentation } from './presentation/projectPlayerPresentation';
 import { PlayerSceneStage } from './ui/PlayerSceneStage';
 import { getAudioPreference, setAudioPreference } from './ui/audioPreferences';
+import { FinalInvestigationScene } from './ui/FinalInvestigationScene';
+import { applyFinalStep, finalCorrection, finalInvestigationReady, type FinalStep } from './finalGameplay';
+import { materializeRecoveryBoundary } from '../simulator/recoveryBoundary';
 
 type LegacyStory = { definition: SimulationDefinition; initialState: WorldState };
 type Story = PlayerStoryBundle | LegacyStory;
@@ -140,7 +143,17 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
   const hasAction = (id: ActionId) => loop.actionIds.includes(id);
   const canAct = clock.minute < 1100;
   const next = clock.minute < 1100 ? '18:20 前，你還能改變今晚的行程' : clock.minute < 1111 ? '18:31，舊車站' : clock.minute < 1120 ? '等候鎮上的通報' : clock.minute < 1280 ? '21:20，予安說會再聯絡' : '午夜，日期會回到今天';
-  const resetPending = loop.clock.pendingCriticalBoundary === 'reset';
+  const worldState=story ? replayLoop(
+    isPlayerStoryBundle(story)?story.simulation.definition:story.definition,
+    isPlayerStoryBundle(story)?story.simulation.initialState:story.initialState,
+    save,loopId,Math.min(clock.minute,1440),
+  ).state : undefined;
+  const canInvestigate=worldState && finalInvestigationReady(save,worldState) && clock.minute>=1111;
+  const finalSession=worldState && loopId>=2 && (canInvestigate || loop.finalSteps.length>0)
+    ? finalCorrection(save,clock.minute):undefined;
+  const finalForward=finalSession?.outcome==='FORWARD';
+  const finalSafetyHold=finalSession?.outcome==='SAFETY_HOLD';
+  const resetPending = loop.clock.pendingCriticalBoundary === 'reset' && !finalForward && !finalSafetyHold;
   const presentation = projectPlayerPresentation({
     save,
     loopId,
@@ -169,6 +182,11 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
   function choose(id: ActionId) {
     try { const nextSave = normalizeSave(save, now()); confirmAction(nextSave, id, now()); commit(nextSave); setNote(id === 'protect_wakaharu' ? '你答應在若晴出門前陪她留在家裡。' : id === 'stop_doctor' ? '你請予安先到醫院，設法留住陳柏勳。' : '你把兩份紀錄交給予安，請他自行判斷是否調查備援接口。'); }
     catch (e) { setNote(e instanceof Error ? e.message : String(e)); }
+  }
+  function chooseFinal(step: FinalStep) {
+    if(!worldState) return;
+    try { const nextSave=normalizeSave(save,now()); applyFinalStep(nextSave,worldState,clock.minute,step); commit(nextSave); setNote('你的行動已經留下痕跡。世界仍持續前進。'); }
+    catch(e) { setNote(e instanceof Error ? e.message : String(e)); }
   }
   function chooseMode(mode: 'ACCELERATED' | 'LIVE_SYNC') {
     if (modeCommitInFlight) return;
@@ -228,7 +246,7 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
         }}
       >
         <SceneFrame className="scene-frame--flat player-presentation-frame">
-        {error ? <p role="alert">無法讀取鎮上的紀錄：{error}</p> : !story ? <p>正在取出案卷……</p> : resetPending && !resetPresentationComplete ? <ResetTransitionScene reducedMotion={prefersReducedMotion()} onPresentationComplete={() => setResetPresentationComplete(true)} /> : resetPending ? <div className="opening mode-choice"><p>鐘聲落下，今天又回到可以重來的地方。</p><p>下一次進入灰潮鎮時，你要怎麼走進這一天？</p><button onClick={() => chooseMode('LIVE_SYNC')} disabled={modeCommitInFlight || !isLiveSyncAvailable(currentMs)}>跟著現在走<span> · {isLiveSyncAvailable(currentMs) ? '從此刻的鎮內時間進入' : '現在是 Live Sync 無法進入的時間'}</span></button><button onClick={() => chooseMode('ACCELERATED')} disabled={modeCommitInFlight}>回到記憶開始的地方<span> · 從 06:12 的返程列車開始</span></button>{note && <p className="inline-note" role="status">{note}</p>}</div> : !opened ? <OpeningScene label={entry.label} lines={entry.lines} onOpenLetter={() => openRecord('letter')} /> : <div className={`reading-scene attention-${loop.attention.phase}`} key={`${clock.loop}:${record?.id}`}>
+        {error ? <p role="alert">無法讀取鎮上的紀錄：{error}</p> : !story ? <p>正在取出案卷……</p> : finalForward ? <div className="opening final-outcome" role="status"><p>鐘聲響完，日期沒有回去。</p><p>{finalSession?.sealMode==='PERMANENT'?'舊站的兩條自動改寫路徑已失去權限。每個人仍保留自己的選擇。':'這一輪已經封存，但改寫權限依然存在。'}</p><p>10 月 4 日　00:01</p></div> : finalSafetyHold ? <div className="opening final-outcome" role="status"><p>已經切斷的路徑不能自行恢復，但當輪仍未通過安全結案。</p><p>午夜沒有被宣告勝利。等待可靠的確認。</p></div> : resetPending && !resetPresentationComplete ? <ResetTransitionScene reducedMotion={prefersReducedMotion()} onPresentationComplete={() => setResetPresentationComplete(true)} /> : resetPending ? <div className="opening mode-choice"><p>鐘聲落下，今天又回到可以重來的地方。</p><p>下一次進入灰潮鎮時，你要怎麼走進這一天？</p><button onClick={() => chooseMode('LIVE_SYNC')} disabled={modeCommitInFlight || !isLiveSyncAvailable(currentMs)}>跟著現在走<span> · {isLiveSyncAvailable(currentMs) ? '從此刻的鎮內時間進入' : '現在是 Live Sync 無法進入的時間'}</span></button><button onClick={() => chooseMode('ACCELERATED')} disabled={modeCommitInFlight}>回到記憶開始的地方<span> · 從 06:12 的返程列車開始</span></button>{note && <p className="inline-note" role="status">{note}</p>}</div> : !opened ? <OpeningScene label={entry.label} lines={entry.lines} onOpenLetter={() => openRecord('letter')} /> : <div className={`reading-scene attention-${loop.attention.phase}`} key={`${clock.loop}:${record?.id}`}>
         {opportunities.length > 0 && <div className="presence-opportunities" aria-label="周遭動靜">{opportunities.map(item => <button key={item.id} onClick={() => attend(item.id)} aria-label={presenceCueLabel(item.id)} aria-current={loop.attention.targetId === item.id ? 'true' : undefined}>{presenceCueLabel(item.id)}</button>)}</div>}
         {loop.capture && <div className="memory-capture-status" role="status"><p>你正在把剛才的感覺留下來……</p></div>}
         {!loop.capture && lastPerceivedRecord && !lastMemory && <div className="memory-capture-prompt" role="status"><p>剛才那一幕還留在你心裡。</p><button onClick={() => capture(lastPerceivedRecord.id)}>捕捉這段記憶</button></div>}
@@ -258,6 +276,7 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
           {hasAction('request_backup_inspection') && <p>予安：「我先去查銘牌上的第二條路。能不能動，我要自己看過才知道。」</p>}
           <small>約定已記下。車站的消息會在鎮上傳來時出現在這裡。</small>
         </div>}
+        {worldState && <FinalInvestigationScene save={save} world={worldState} minute={clock.minute} onStep={chooseFinal} />}
         {note && <p className="inline-note" role="status">{note}</p>}
       </div>}
         </SceneFrame>
