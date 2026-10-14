@@ -112,7 +112,7 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
     )
     : undefined;
   // Real-world cues and authored scenes coexist in every loop; neither grants automatic perception.
-  const recordSource = loopId === 1 ? undefined : [...staticPlayerRecords(loopId), ...(playerRecords ?? [])];
+  const recordSource = loopId === 1 ? undefined : [...(playerRecords ?? []), ...staticPlayerRecords(loopId)];
   const records = visibleRecords(save, loopId, recordSource);
   const opportunities = availablePresenceRecords(save, loopId, clock.minute, recordSource);
   const opened = loopId !== 1 || save.knowledge.opened.includes(`${loopId}:letter`) || save.knowledge.opened.includes('letter');
@@ -121,7 +121,9 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
     && loop.revealedIds.includes(`${loopId}:${item.id}`)
     && (item.acquisition !== 'presence' || loop.perceivedSceneIds.includes(item.sceneId))
   ));
-  const record = records.find(x => x.id === selected) ?? selectedProjectedRecord ?? records[0];
+  const record = (loopId > 1 && selected === 'letter' && !save.knowledge.opened.includes(`${loopId}:letter`)
+    ? records.find(x => x.id !== 'letter') : undefined)
+    ?? records.find(x => x.id === selected) ?? selectedProjectedRecord ?? records[0];
   const attentionRecord = loop.attention.targetId
     ? (recordSource?.find(item => item.id === loop.attention.targetId) ?? recordById(loop.attention.targetId))
     : undefined;

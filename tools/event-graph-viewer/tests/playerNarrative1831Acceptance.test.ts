@@ -6,7 +6,7 @@ import { reconcilePlayerRuntime } from '../src/playerNarrative/runtime';
 import type { PlayerChoiceDefinition } from '../src/narrative/types';
 import { loadRealStory } from './helpers/loadRealStory';
 
-const LOOP_START = 14 * 60 + 20;
+const LOOP_START = 6 * 60 + 12;
 const EVENT_1831 = 18 * 60 + 31;
 const elapsedTo1831Ms = (EVENT_1831 - LOOP_START) * 60_000;
 

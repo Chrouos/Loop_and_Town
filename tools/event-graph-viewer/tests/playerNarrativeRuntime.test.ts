@@ -8,18 +8,19 @@ describe('player narrative runtime', () => {
   it('replays simulator history from submitted action IDs', () => {
     const story = loadRealStory();
     const session = createInitialPlayerSession(0);
+    session.storyMinuteAtLastSync = 860; // legacy scenario started at afternoon entry
     session.submittedActionIds = ['protect_wakaharu'];
     const view = reconcilePlayerRuntime(story, session, (1111 - 860) * 60_000);
     expect(view.worldHistory.some((entry) => entry.eventId === 'evt_1831_station')).toBe(true);
     expect(JSON.stringify(session)).not.toMatch(/doctorDies|wakaharuDies|victim/);
   });
 
-  it('uses frozen story minute while a foreground scene is open', () => {
+  it('continues world time while a foreground scene is open', () => {
     const story = loadRealStory();
     const session = createInitialPlayerSession(0);
     session.storyMinuteAtLastSync = 1075;
     session.foregroundFreeze = { sceneId: 'main_story_handoff', frozenMinute: 1075 };
-    expect(reconcilePlayerRuntime(story, session, 30 * 60_000).currentStoryMinute).toBe(1075);
+    expect(reconcilePlayerRuntime(story, session, 30 * 60_000).currentStoryMinute).toBe(1105);
   });
 
   it('advances after reload because foreground freeze is not persisted', () => {
@@ -37,7 +38,7 @@ describe('player narrative runtime', () => {
     const choice = story.playerChoices.find((item) => item.id === 'arrival_coffee');
     if (!choice) throw new Error('missing arrival coffee choice');
     const next = applyChoiceEffects(story, session, choice, 860);
-    expect(next.storyMinuteAtLastSync).toBe(860);
+    expect(next.storyMinuteAtLastSync).toBe(372);
     expect(next.activeActivity).toMatchObject({ activityId: 'buy_coffee', startedAt: 860, durationMinutes: 8 });
   });
 
@@ -49,6 +50,7 @@ describe('player narrative runtime', () => {
       id: 'late-station', sceneId: 'main_story_handoff', label: '直接去車站',
       effects: [{ type: 'travel' as const, to: 'old_station' }],
     };
+    session.storyMinuteAtLastSync = 860;
     const travelling = applyChoiceEffects(story, session, choice, 1092);
     expect(travelling.activeTravel?.arriveMinute).toBe(1114);
     const view = reconcilePlayerRuntime(story, travelling, (1114 - 860) * 60_000);
@@ -60,6 +62,7 @@ describe('player narrative runtime', () => {
     const story = loadRealStory();
     const session = createInitialPlayerSession(0);
     session.currentLocation = 'old_house';
+    session.storyMinuteAtLastSync = 860;
     const travelling = applyChoiceEffects(story, session, {
       id: 'late-station', sceneId: 'main_story_handoff', label: '直接去車站',
       effects: [{ type: 'travel' as const, to: 'old_station' }],

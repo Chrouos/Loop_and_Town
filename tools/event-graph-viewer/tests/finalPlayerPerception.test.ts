@@ -33,6 +33,6 @@ describe('P1: finite, missable Final evidence',()=>{
     save.loops[2]={...save.loops[1], clock:createLoopClock('ACCELERATED',0),revealedIds:['2:backup-relay'],
       perceivedSceneIds:[],seenSceneIds:[],history:[], actionIds:[],attention:{phase:'idle'}};
     expect(availablePresenceRecords(save,2,1070,staticPlayerRecords(2)).map(x=>x.id)).toContain('backup-relay');
-    expect(visibleRecords(save,2,staticPlayerRecords(2)).toEqual([]);
+    expect(visibleRecords(save,2,staticPlayerRecords(2))).toEqual([]);
   });
 });

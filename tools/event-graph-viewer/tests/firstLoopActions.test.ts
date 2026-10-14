@@ -6,13 +6,14 @@ import type { ActionDefinition } from '../src/simulator/types';
 const actions = (yaml.load(actionsText) as { actions: ActionDefinition[] }).actions;
 const byId = (id: string) => actions.find((action) => action.id === id)!;
 
-it('defines the five approved interventions', () => {
+it('defines the original five plus the player-gated backup investigation', () => {
   expect(actions.map((action) => action.id)).toEqual([
     'send_yuan_to_post_office',
     'show_letter_to_wakaharu',
     'confront_reporter',
     'protect_wakaharu',
     'stop_doctor',
+    'request_backup_inspection',
   ]);
 });
 
