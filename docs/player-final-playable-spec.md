@@ -13,7 +13,7 @@
 
 ## P1｜四個 finite observations
 
-All four are `acquisition: presence`, with a finite time window. Time does **not** wait for the player to hover, shift attention, complete an observation or deliberately capture.
+All four are `acquisition: presence`, with a finite time window. **They also require physical arrival at the old station**: the player explicitly departs after 07:40, spends twenty world minutes traveling, and cannot observe through walls, from town, or while en route. The station visit and any return trip are persisted per Loop, never across resets. Time does **not** wait for the player to hover, shift attention, complete an observation or deliberately capture.
 
 | Local time | Cue | What it establishes | What it does not prove |
 | --- | --- | --- | --- |
