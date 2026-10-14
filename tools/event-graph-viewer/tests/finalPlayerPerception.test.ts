@@ -32,6 +32,7 @@ describe('P1: finite, missable Final evidence',()=>{
   });
   it('old elapsed loops may observe the same physical source again without inheriting NPC memory',()=>{
     const save=normalizeSave(null,0);
+    save.currentLoopId=2;
     save.loops[2]={...save.loops[1], clock:createLoopClock('ACCELERATED',0),stationVisit:{departMinute:1000,arriveMinute:1020},revealedIds:['2:backup-relay'],
       perceivedSceneIds:[],seenSceneIds:[],history:[], actionIds:[],attention:{phase:'idle'}};
     expect(availablePresenceRecords(save,2,1070,staticPlayerRecords(2)).map(x=>x.id)).toContain('backup-relay');
