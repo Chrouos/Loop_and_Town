@@ -54,7 +54,7 @@ describe('P4: real PlayerSave-backed Final transitions',()=>{
  it('a named NPC may decline and the protagonist cannot override the decision',()=>{
    const {save,world}=fixture();
    step(save,world,[['trace_mismatch',1131]]);
-   (world.characters as Record<string,Record<string,unknown>).yuan.cooperation='decline';
+   (world.characters as Record<string, Record<string, unknown>>).yuan.cooperation = 'decline';
    expect(finalStepReason(save,world,1132,'invite_yuan')).toContain('拒絕');
    expect(()=>applyFinalStep(save,world,1132,'invite_yuan')).toThrow(/拒絕/);
  });
