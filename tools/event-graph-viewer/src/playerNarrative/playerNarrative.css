@@ -254,3 +254,18 @@ html, body, #root { height: 100%; overflow: hidden; }
   .choice-surface { max-height:30dvh; }
   .choice-button { font-size:13px; }
 }
+
+/* Compact height: keep the narrative and controls in one viewport. */
+@media (max-height: 650px) {
+  .player-narrative-shell { grid-template-rows: 36px minmax(0,1fr) 32px; }
+  .player-hud { padding: 7px 18px; font-size: 11px; }
+  .player-narrative-shell > .player-stage { padding: 4px 0; }
+  .player-tools { padding: 2px 18px 7px; }
+  .narration-beat-pager { gap: 6px; }
+  .narration-beat-pager__copy p { font-size: clamp(14px, 2.6vh, 17px); line-height:1.55; }
+  .narration-beat-pager__speaker { margin-bottom: 6px; }
+  .choice-surface { max-height: 27dvh; }
+  .choice-button { font-size: 13px; line-height: 1.25; padding: 6px 2px; }
+  .artifact-surface { max-height: 45dvh; margin: 6px 0; }
+  .letter-sheet, .artifact-sheet { max-height: 45dvh; padding: 12px 16px; }
+}
