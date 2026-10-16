@@ -4,7 +4,7 @@ import type { SimulationDefinition, WorldState } from '../simulator/types';
 import { clockMinuteAt, displayMinute, isLiveSyncAvailable } from './clock';
 import { entryPresentation, entryWindowFor } from './entry';
 import { attendPresenceRecord, availablePresenceRecords, beginMemoryCapture, reconcilePlayer, visibleRecords } from './knowledge';
-import { knownDiff, pinExcerpt } from './logic';
+import { knownDiff } from './logic';
 import { normalizeSave, type ActionId, type PlayerSave } from './model';
 import { activeLoop, confirmAction, continuePendingBoundary, createNextLoop, replayLoop } from './runtime';
 import { LEGACY_KEY, exportSave, importLegacy, readSave, writeSave } from './storage';
@@ -238,10 +238,6 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
     if (!beginMemoryCapture(nextSave, loopId, id, clock.minute, recordSource, now())) return;
     commit(nextSave);
   }
-  function pin(ref: string) {
-    try { const nextSave = normalizeSave(save, now()); pinExcerpt(nextSave, ref); commit(nextSave); setNote('已放在推理桌上。'); }
-    catch (e) { setNote(e instanceof Error ? e.message : String(e)); }
-  }
   function importSave() {
     const nextSave = importLegacy(importText, normalizeSave(save, now()));
     commit(nextSave); setNote(nextSave === save ? '無法讀取這份存檔。' : '存檔已匯入；舊案卷的結論只作為個人筆記。');
@@ -289,7 +285,6 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
           <div className="document-top"><span>第 {clock.loop} 次今天</span><span>{record?.source}　／　{record?.formedAt}</span></div>
           <h1>{record?.title}</h1>
           <div className="document-lines">{record?.body.map((line, i) => <p key={i}>{line}</p>)}</div>
-          {record?.excerpts.length ? <div className="excerpts"><span>留下你認為重要的句子</span>{record.excerpts.map(part => <button key={part.id} onClick={() => pin(`${record.id}:${part.id}`)}>{part.text}<span>＋</span></button>)}</div> : null}
         </>}
         {record?.id === 'letter' && records.some(x => x.id === 'yu-an-message') && <div className="decisions"><p>手機震了一下。予安留了話。</p><button onClick={() => openRecord('yu-an-message')}>讀予安的留言</button></div>}
         {record?.id === 'yu-an-message' && canAct ? <DialogueScene

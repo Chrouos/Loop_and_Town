@@ -75,15 +75,16 @@ it('clicking the opening letter remains an actual story transaction',async()=>{
  expect((await screen.findAllByText('不要回來。')).length).toBeGreaterThan(0);
 });
 
-it('a visible paper excerpt button updates the Investigation pin instead of silently ignoring clicks',async()=>{
+it('reading a document no longer adds an extra pin-this-sentence decision',async()=>{
  const storage=window.localStorage;storage.clear();
  render(<PlayerApp now={()=>1_000} storage={storage} loadStory={loadStory}/>);
  const user=userEvent.setup();
  await user.click(await screen.findByRole('button',{name:/拆開信封/}));
- const excerpt=screen.getByRole('button',{name:/郵戳是昨天的；署名是林知夏/});
- await user.click(excerpt);
- expect(readSave(storage,1_000).knowledge.pins).toContain('letter:postmark');
- expect(screen.getByRole('status').textContent).toContain('已放在推理桌上');
+ expect((await screen.findAllByText('不要回來。')).length).toBeGreaterThan(0);
+ expect(screen.queryByText('留下你認為重要的句子')).toBeNull();
+ expect(screen.queryByRole('button',{name:/郵戳是昨天的；署名是林知夏/})).toBeNull();
+ expect(readSave(storage,1_000).knowledge.pins).toHaveLength(0);
+ expect(readSave(storage,1_000).knowledge.memories).toHaveLength(0);
 });
 
 it('an observation missed during attention shift cannot retroactively produce player knowledge',()=>{

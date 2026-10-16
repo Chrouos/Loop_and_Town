@@ -112,7 +112,7 @@ P5 開場 vertical slice 驗收，才大量擴充 Story
 ## Implementation progress (PR #25)
 
 **已提交／具自動測試：**
-- P0：修正 `PlayerApp` 每次 rerender 可能重載故事的預設 callback identity；可點項目接實際 Attend handler，失敗有回饋；回歸測試包含信件打開、字句保存。
+- P0：修正 `PlayerApp` 每次 rerender 可能重載故事的預設 callback identity；可點項目接實際 Attend handler，失敗有回饋；回歸測試包含信件打開與玩家選擇性記憶保存。
 - P1：舞台改成黑底、拿掉綠色像素天空／地平線，弱化文件與狀態面板；Minimal HUD 仍在。
 - P2：開場第一個 NarrationBeat 已使用真正的 `TypewriterText`；信件警語採短分步顯示。**整套長篇 Narrative beat authoring 尚未實作完成**。
 - P3：主線 `紙張` 的 `InlineTextTarget`、旁邊 `沙沙、沙沙——`／`喀。`／廣播的有限 `AmbientCue` 共用既有 Attention／Perception／選擇性 Capture；同時事件可 Redirect，過期不補發。
@@ -122,3 +122,10 @@ P5 開場 vertical slice 驗收，才大量擴充 Story
 **刻意延後：**一般對話／其他章節全部改成語意 NarrationBeat、通用 YAML `segments[]` parser、全篇彩蛋作者工具、完整空間音效、不同解析度的實機截圖，以及更細的 NPC 場景演出。
 
 **請勿將示範用紙聲推導為幕後新人物／跨 Loop 傳訊。** 目前只描述當輪列車上可能實際感知的摩擦、車輪與廣播。
+
+### Interaction Simplification：取消重複的「重要句子」收集
+
+- 移除 Player 的 `excerpts`「留下你認為重要的句子」與每句 `＋` UI，不刪 Story 裡作為資料來源的 excerpt 文本。
+- 唯一玩家記憶機制：`Attention → Perceived Moment → optional Memory Capture → Memory Library / Investigation Wall`。
+- 歷史 `knowledge.pins` 保留並照常顯示於推理牆；支援連線與移出，不把它們強制轉成已 Capture 的記憶。
+- 回歸測試確認：讀信不會額外要求選句、不會自動新增 pins；舊 pins / 連線 / 座標重載後仍在，移除 pin 時清理依賴連線。
