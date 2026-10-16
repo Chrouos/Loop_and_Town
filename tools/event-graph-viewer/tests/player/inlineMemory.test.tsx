@@ -26,4 +26,22 @@ describe('inline memory capture', () => {
     fireEvent.click(screen.getByRole('button', { name: '郵戳是昨天的；署名是林知夏。' }));
     expect(onRemember).toHaveBeenCalledWith('postmark');
   });
+  it('marks persisted captured clues as remembered and prevents duplicate actions', async () => {
+    const onRemember = vi.fn(() => true);
+    render(<AutoFlowNarrative reducedMotion lines={['她說今晚要去舊車站。']} excerpts={[{ id: 'plan', text: '今晚要去舊車站。' }]} rememberedIds={['plan']} onRemember={onRemember} />);
+    const target = await screen.findByRole('button', { name: '已記住：今晚要去舊車站。' });
+    expect((target as HTMLButtonElement).disabled).toBe(true);
+    fireEvent.click(target);
+    expect(onRemember).not.toHaveBeenCalled();
+  });
+
+  it('does not falsely show a capture flash when the save rejects the clue', async () => {
+    const onRemember = vi.fn(() => false);
+    render(<AutoFlowNarrative reducedMotion lines={['她說今晚要去舊車站。']} excerpts={[{ id: 'plan', text: '今晚要去舊車站。' }]} onRemember={onRemember} />);
+    const target = await screen.findByRole('button', { name: '記住：今晚要去舊車站。' });
+    fireEvent.click(target);
+    expect(onRemember).toHaveBeenCalledWith('plan');
+    expect(target.className).not.toContain('just-saved');
+  });
+
 });
