@@ -1,8 +1,19 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import { NarrationBeatPager, narrationPageCapacity, splitNarrationPages } from '../src/playerNarrative/components/NarrationBeatPager';
+import { NarrationBeatPager, narrationPageCapacity, pageIndexForOffset, splitNarrationPages } from '../src/playerNarrative/components/NarrationBeatPager';
 
 describe('NarrationBeatPager', () => {
+  it('preserves the absolute reading position after repagination', () => {
+    const text = '月台上的腳步聲。'.repeat(30);
+    const before = splitNarrationPages(text, 105);
+    const after = splitNarrationPages(text, 38);
+    const anchor = before[0].length;
+    const index = pageIndexForOffset(after, anchor);
+    const start = after.slice(0, index).join('').length;
+    const end = start + after[index].length;
+    expect(start).toBeLessThanOrEqual(anchor);
+    expect(end).toBeGreaterThan(anchor);
+  });
   it('fits smaller pages on compact screens', () => {
     expect(narrationPageCapacity(390, 600)).toBe(38);
     expect(narrationPageCapacity(1366, 768)).toBe(105);
