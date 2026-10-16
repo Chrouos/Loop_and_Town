@@ -242,3 +242,15 @@ html, body, #root { height: 100%; overflow: hidden; }
   .artifact-paged-sheet p { font-size:14px; line-height:1.45; }
   .choice-surface { max-height:25dvh; }
 }
+
+/* Decision pagination: no nested scrollbar inside the game viewport. */
+.choice-surface { overflow:hidden; display:flex; flex-direction:column; max-height:min(34dvh,280px); }
+.choice-surface__items { min-height:0; display:grid; gap:3px; }
+.choice-button { line-height:1.35; padding:clamp(6px,1vh,11px) 2px; }
+.choice-pagination { display:flex; justify-content:space-between; align-items:center; font:11px system-ui,sans-serif; color:rgba(236,233,224,.55); padding-top:8px; }
+.choice-pagination button { border:0; background:transparent; color:inherit; padding:6px 4px; cursor:pointer; }
+.choice-pagination button:disabled { opacity:.25; cursor:default; }
+@media(max-height:620px) {
+  .choice-surface { max-height:30dvh; }
+  .choice-button { font-size:13px; }
+}
