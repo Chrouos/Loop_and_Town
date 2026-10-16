@@ -240,8 +240,8 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
     commit(nextSave);
   }
   function pin(ref: string) {
-    try { const nextSave = normalizeSave(save, now()); pinExcerpt(nextSave, ref); commit(nextSave); setNote('已放在推理桌上。'); }
-    catch (e) { setNote(e instanceof Error ? e.message : String(e)); }
+    try { const nextSave = normalizeSave(save, now()); pinExcerpt(nextSave, ref); commit(nextSave); setNote('已放在推理桌上。'); return true; }
+    catch (e) { setNote(e instanceof Error ? e.message : String(e)); return false; }
   }
   function importSave() {
     const nextSave = importLegacy(importText, normalizeSave(save, now()));
@@ -269,7 +269,7 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
         {!loop.capture && lastMemory && <div className="memory-capture-status" role="status"><p>已將「{lastMemory.title}」收進持久記憶。</p></div>}
         {incoming.length > 0 && <aside className="incoming-records incoming-records--quiet" aria-label="新消息"><span>鎮上有 {incoming.length} 則新消息</span><button type="button" onClick={() => showDrawer('case')}>查看消息 <span aria-hidden="true">↗</span></button></aside>}
         {observingSpatialRecord ? <SpatialTextLayer script={observingSpatialRecord.spatialScript!} now={now} /> : record?.spatialScript && record.acquisition === 'presence' ? <SpatialTextLayer script={record.spatialScript} now={now} /> : <>
-          <AutoFlowNarrative key={`${clock.loop}:${record?.id}`} title={record?.title} lines={record?.body ?? []} excerpts={record?.excerpts ?? []} onRemember={excerptId => { if (record) pin(`${record.id}:${excerptId}`); }} reducedMotion={prefersReducedMotion()} />
+          <AutoFlowNarrative key={`${clock.loop}:${record?.id}`} title={record?.title} lines={record?.body ?? []} excerpts={record?.excerpts ?? []} rememberedIds={(record?.excerpts ?? []).filter(excerpt => save.knowledge.pins.includes(`${record?.id}:${excerpt.id}`)).map(excerpt => excerpt.id)} onRemember={excerptId => record ? pin(`${record.id}:${excerptId}`) : false} reducedMotion={prefersReducedMotion()} />
         </>}
         {record?.id === 'letter' && records.some(x => x.id === 'yu-an-message') && <div className="decisions"><p>手機震了一下。予安留了話。</p><button onClick={() => openRecord('yu-an-message')}>讀予安的留言</button></div>}
         {record?.id === 'yu-an-message' && canAct ? <DialogueScene
