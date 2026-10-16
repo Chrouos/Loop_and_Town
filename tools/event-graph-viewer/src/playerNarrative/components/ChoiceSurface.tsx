@@ -7,17 +7,30 @@ export type ChoiceSurfaceProps = {
   onChoose: (id: string) => void;
 };
 
-const CHOICES_PER_PAGE = 3;
+export function choicesPerPage(height: number): number {
+  return height < 650 ? 2 : 3;
+}
+
+function useChoicePageSize() {
+  const [count, setCount] = useState(() => choicesPerPage(window.innerHeight));
+  useEffect(() => {
+    const resize = () => setCount(choicesPerPage(window.innerHeight));
+    window.addEventListener('resize', resize);
+    return () => window.removeEventListener('resize', resize);
+  }, []);
+  return count;
+}
 
 export function ChoiceSurface({ choices, onChoose }: ChoiceSurfaceProps) {
   const [page, setPage] = useState(0);
-  const pageCount = Math.max(1, Math.ceil(choices.length / CHOICES_PER_PAGE));
+  const pageSize = useChoicePageSize();
+  const pageCount = Math.max(1, Math.ceil(choices.length / pageSize));
   const currentPage = Math.min(page, pageCount - 1);
   useEffect(() => { setPage(0); }, [choices.map(choice => choice.id).join('|')]);
   return (
     <div className="choice-surface" aria-label="可採取的行動">
       <div className="choice-surface__items">
-        {choices.slice(currentPage * CHOICES_PER_PAGE, (currentPage + 1) * CHOICES_PER_PAGE).map((choice) => (
+        {choices.slice(currentPage * pageSize, (currentPage + 1) * pageSize).map((choice) => (
           <button className="choice-button" type="button" key={choice.id} onClick={() => onChoose(choice.id)}>
             {choice.label}
           </button>
