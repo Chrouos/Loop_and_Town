@@ -32,6 +32,20 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: tools/event-graph-viewer/package-lock.json
+      # One-time read-only lockfile resolver, removed after recording the generated lock diff.
+      - name: Resolve UI dependencies for lockfile
+        run: |
+          cp package-lock.json /tmp/loop-town-lock-before.json
+          npm install motion embla-carousel-react@^8 --package-lock-only --ignore-scripts --no-audit --no-fund
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const old = JSON.parse(fs.readFileSync('/tmp/loop-town-lock-before.json', 'utf8'));
+          const next = JSON.parse(fs.readFileSync('package-lock.json', 'utf8'));
+          const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+          const changed = Object.fromEntries(Object.entries(next.packages).filter(([key, value]) => JSON.stringify(old.packages[key]) !== JSON.stringify(value)));
+          const removed = Object.keys(old.packages).filter(key => !(key in next.packages));
+          console.log('LOCK_DELTA_BEGIN' + Buffer.from(JSON.stringify({deps:pkg.dependencies,changed,removed})).toString('base64') + 'LOCK_DELTA_END');
+          NODE
       - name: Install locked dependencies
         run: npm ci
       - name: Sync story data
