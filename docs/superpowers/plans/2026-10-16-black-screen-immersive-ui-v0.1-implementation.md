@@ -163,3 +163,15 @@ P5 開場 vertical slice 驗收，才大量擴充 Story
 1. `NarrationBeatPager`：長篇文字（包括後續訊息）分段閱讀、不截斷，已發生內容可前後翻，不回溯世界時間。
 2. 校正 Mobile 360×640、390×844 的文字尺度與控制焦點，並做實際瀏覽器驗收。
 3. 若需要鏡頭／sprite 再做 Phaser 4 Spike，不提前引入新 World Clock。
+
+## P7｜NarrationBeatPager + Loop 02 選擇介面（進行中）
+
+- 新增 `src/player/ui/NarrationBeatPager.tsx` 和 `narrationBeatPager.css`，一般記錄／信件改成 **分段閱讀、前後翻頁**，不再渲染可能延伸的 `document-lines`。
+- 文字依中文標點優先切段，超長句子再保留字元順序拆分，保證所有原始文字保留；純分段 navigation **不影響世界時間、Attention、記憶取得或事件 seen 狀態**。
+- 使用 Motion 只做短淡入淡出；`ResizeObserver` 偵測容器大小，小畫面必要時減少每段字數，避免直接被 `overflow:hidden` 裁切。
+- 使用 `recordId` 重新進入故事內容時重置段落索引；既有已讀／存檔內容仍由 Player Runtime 管理。
+- Loop 02 截圖中的選項原先沒有 `.mode-choice` 專用 CSS，顯示瀏覽器原生灰色按鈕；已改為暗色分行的敘事式選項、明確 hover/focus/disabled 狀態、限制於一屏內。
+- 限時對話場景為操作選項保留空間，不強迫玩家為了看完文字捲動整頁。
+- 增加純文字保存、長文分段、鍵盤導覽、記錄切換的測試；現有 Loop 02 測試不再假設整份文字一開始就全部可見。
+
+**仍待真人驗收**：360×640／390×844、桌機正常／高對比字體、動畫中按鈕可點、極短視窗；多個複合場景同時有選項與物件提示時仍須實際瀏覽器檢查。請勿宣稱所有章節完全不會裁切直到這些驗收完成。

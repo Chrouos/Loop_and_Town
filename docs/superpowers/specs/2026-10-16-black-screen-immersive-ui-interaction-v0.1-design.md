@@ -533,3 +533,11 @@ Existing Story YAML / Event Graph / World Clock / NPC Schedules
 
 PR #25 已導入 **Motion + Embla**、固定 Player 外層 `100dvh`，以及單一訊息為主的 `IncomingMessageStage`（不限數量的訊息以 1/N 切換，含鍵盤及 Touch）。
 **文件文字較長時仍有局部捲動 fallback**，以避免在尚未實作 `NarrationBeatPager` 前遺失文案。這是階段性差距，不能宣稱完全「沒有任何捲動」。真正免捲動的長篇分段閱讀、Phaser/Howler 與桌機/手機實機驗收，留到後續版本。
+
+### 14.8 v0.3：分段敘事／重要選擇表面（2026-10-16）
+
+- 使用 `NarrationBeatPager` 取代一般 `reading-scene .document-lines` 滾動區：中文原文切分以標點為優先，保留全部文字與原本段落順序。
+- `上一段 / 下一段`、`←/→` 操作只改 UI 目前可讀片段；不可提前取得未發生的 NPC 對話、改變 Event Clock、記憶、真相條件或世界線。
+- 內容依舞台實際大小估計每段可容納文字，再做溢出檢查縮小段落，避免在 `overflow:hidden` 下靜默裁掉字詞；減少動效不改故事內容。
+- Loop 02 的「跟著現在走／回到記憶開始的地方」仍是 **具因果的正式世界線模式選擇**，不是分頁切換；用完整語意、兩行暗色按鈕與 disabled 原因取代未套 CSS 的原生灰色方塊。
+- 完整長篇對話、通知與小屏手機的混合佈局仍需人工測試。無主畫面滾軸 ≠ 可以把未顯示內容直接丟掉。
