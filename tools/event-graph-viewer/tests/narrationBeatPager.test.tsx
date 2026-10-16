@@ -1,8 +1,13 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import { NarrationBeatPager, splitNarrationPages } from '../src/playerNarrative/components/NarrationBeatPager';
+import { NarrationBeatPager, narrationPageCapacity, splitNarrationPages } from '../src/playerNarrative/components/NarrationBeatPager';
 
 describe('NarrationBeatPager', () => {
+  it('fits smaller pages on compact screens', () => {
+    expect(narrationPageCapacity(390, 600)).toBe(38);
+    expect(narrationPageCapacity(1366, 768)).toBe(105);
+    expect(narrationPageCapacity(390, 480)).toBe(24);
+  });
   it('keeps every character in order when breaking long text', () => {
     const text = '月台上的腳步聲。'.repeat(40);
     expect(splitNarrationPages(text, 30).join('')).toBe(text);
