@@ -16,6 +16,18 @@ describe('auto-flow narration', () => {
     expect(screen.getByRole('button', { name: '顯示完整句子或接續對話' })).not.toBeNull();
   });
 
+  it('mouse movement never changes the explicit pause state', () => {
+    render(<AutoFlowNarrative lines={['先聽我說。', '然後呢。']} />);
+    const region = screen.getByRole('region', { name: '自動播放敘事' });
+    fireEvent.mouseEnter(region);
+    fireEvent.mouseLeave(region);
+    expect(screen.getByRole('button', { name: '暫停' })).not.toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: '暫停' }));
+    fireEvent.mouseEnter(region);
+    fireEvent.mouseLeave(region);
+    expect(screen.getByRole('button', { name: '播放' }).getAttribute('aria-pressed')).toBe('true');
+  });
+
   it('pauses and resumes on explicit user control', () => {
     render(<AutoFlowNarrative lines={['等一下。', '我還沒說完。']} />);
     const toggle = screen.getByRole('button', { name: '暫停' });
