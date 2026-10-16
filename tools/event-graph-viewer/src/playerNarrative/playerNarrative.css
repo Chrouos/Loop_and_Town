@@ -224,3 +224,21 @@ html, body, #root { height: 100%; overflow: hidden; }
   .narration-beat-pager__copy p { font-size: 15px; line-height: 1.55; }
   .narration-beat-pager { gap: 8px; }
 }
+
+/* Artifact and choices share the finite narrative viewport. */
+.artifact-surface { min-height:0; max-height: min(55dvh, 490px); margin:clamp(8px,2vh,22px) 0; }
+.letter-sheet,.artifact-sheet { max-height: min(55dvh, 490px); width:min(500px,100%); padding:clamp(16px,3vh,36px); overflow:hidden; }
+.artifact-paged-sheet { display:flex; flex-direction:column; gap:12px; justify-content:space-between; }
+.artifact-paged-sheet p { margin:0; white-space:pre-wrap; overflow-wrap:anywhere; font-size:clamp(15px,1.8vw,18px); line-height:1.65; }
+.artifact-page-controls { display:flex; align-items:center; justify-content:space-between; gap:16px; border-top:1px solid #998f79; padding-top:12px; color:#625748; font:12px system-ui,sans-serif; }
+.artifact-page-controls button { background:transparent; border:0; color:inherit; padding:7px 4px; }
+.artifact-page-controls button:disabled { opacity:.28; }
+.envelope-card { max-height:min(50dvh,310px); width:min(430px,100%); min-height:0; padding:clamp(16px,3vh,30px); }
+.choice-surface { min-height:0; max-height:32dvh; overflow-y:auto; overscroll-behavior:contain; scrollbar-width:thin; gap:4px; margin-top:clamp(10px,2vh,24px); }
+.choice-button { padding:clamp(8px,1.4vh,14px) 2px; font-size:clamp(14px,1.5vw,17px); }
+@media(max-height:620px) {
+  .artifact-surface { max-height:45dvh; }
+  .letter-sheet,.artifact-sheet { max-height:45dvh; }
+  .artifact-paged-sheet p { font-size:14px; line-height:1.45; }
+  .choice-surface { max-height:25dvh; }
+}
