@@ -126,3 +126,32 @@ html, body, #root {height:100%; width:100%; overflow:hidden}
   .player-scene-stage__content {padding-top:58px;padding-bottom:8px}
   .player-presentation-frame .reading-scene .document-lines {max-height:calc(100dvh - 255px)}
 }
+
+/* v0.3: narrative paging replaces the temporary document scroll fallback. */
+.player-presentation-frame .reading-scene .narration-beat-pager {width:min(55%,45ch);max-width:45ch;max-height:100%}
+.player-presentation-frame .reading-scene[data-with-incoming='true'] .narration-beat-pager {opacity:.78}
+.player-presentation-frame .reading-scene[data-record-id='letter'] .narration-beat-pager__page p:first-child {color:#ededee;font-size:clamp(18px,2vw,25px);letter-spacing:.08em}
+.player-presentation-frame .reading-scene[data-record-id='letter'] .narration-beat-pager__page p {clip-path:none;animation:none}
+/* Loop entry is a story choice. Avoid the browser's default gray form buttons. */
+.player-presentation-frame .mode-choice {width:min(780px,100%);max-width:780px;min-height:0;height:100%;margin:0 auto;display:flex;flex-direction:column;justify-content:center;gap:clamp(16px,4vh,32px);padding:clamp(10px,3vh,28px) 0;overflow:hidden}
+.player-presentation-frame .mode-choice__overture {font-size:clamp(14px,1.7vw,19px);color:#888891;letter-spacing:.1em;line-height:1.8;margin:0!important}
+.player-presentation-frame .mode-choice__question {margin:0;font-size:clamp(19px,2.5vw,30px);font-weight:400;line-height:1.7;letter-spacing:.07em;color:#e2e2e4;max-width:26ch}
+.player-presentation-frame .mode-choice__options {display:grid;gap:clamp(8px,1.5vh,16px);max-width:650px}
+.player-presentation-frame .mode-choice__option {appearance:none;border:0;border-left:2px solid transparent;background:#ffffff05;color:#d9d9dc;text-align:left;display:flex;flex-direction:column;align-items:flex-start;gap:6px;cursor:pointer;min-height:74px;width:100%;padding:12px clamp(14px,2vw,24px);font:inherit;transition:background .22s,border-color .22s,color .22s}
+.player-presentation-frame .mode-choice__option-title {font-size:clamp(15px,1.7vw,19px);letter-spacing:.07em}
+.player-presentation-frame .mode-choice__option small {color:#8d8e97;font-size:clamp(11px,1.1vw,13px);line-height:1.5;letter-spacing:.02em}
+.player-presentation-frame .mode-choice__option:hover:not(:disabled),.player-presentation-frame .mode-choice__option:focus-visible {background:#ffffff12;border-left-color:#d2d2d8;color:#fff;outline-offset:3px}
+.player-presentation-frame .mode-choice__option:disabled {opacity:.35;background:transparent;border-left-color:transparent;cursor:not-allowed}
+.player-presentation-frame .mode-choice__option:disabled small {color:#777783}
+@media(max-width:800px){
+ .player-presentation-frame .reading-scene .narration-beat-pager {width:100%;max-width:100%;}
+ .player-presentation-frame .mode-choice {justify-content:center;padding:10px 0;}
+ .player-presentation-frame .mode-choice__options {max-width:100%}
+ .player-presentation-frame .mode-choice__question {font-size:clamp(17px,4vw,24px)}
+}
+@media(max-height:640px){
+ .player-presentation-frame .mode-choice {gap:12px}
+ .player-presentation-frame .mode-choice__option {min-height:56px;padding:7px 13px;gap:1px}
+ .player-presentation-frame .mode-choice__overture {font-size:13px}
+}
+@media(prefers-reduced-motion:reduce){.player-presentation-frame .mode-choice__option {transition:none}}

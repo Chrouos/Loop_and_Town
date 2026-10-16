@@ -22,6 +22,7 @@ import type { PlayerStoryBundle } from '../types/playerStory';
 import { projectPlayerPresentation } from './presentation/projectPlayerPresentation';
 import { PlayerSceneStage } from './ui/PlayerSceneStage';
 import { IncomingMessageStage } from './ui/IncomingMessageStage';
+import { NarrationBeatPager } from './ui/NarrationBeatPager';
 import { getAudioPreference, setAudioPreference } from './ui/audioPreferences';
 import { FinalInvestigationScene } from './ui/FinalInvestigationScene';
 import { applyFinalStep, finalCorrection, finalInvestigationReady, type FinalStep } from './finalGameplay';
@@ -261,7 +262,21 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
         }}
       >
         <SceneFrame className="scene-frame--flat player-presentation-frame">
-        {error ? <p role="alert">無法讀取鎮上的紀錄：{error}</p> : !story ? <p>正在取出案卷……</p> : finalForward ? <div className="opening final-outcome" role="status"><p>鐘聲響完，日期沒有回去。</p><p>{finalSession?.sealMode==='PERMANENT'?'舊站的兩條自動改寫路徑已失去權限。每個人仍保留自己的選擇。':'這一輪已經封存，但改寫權限依然存在。'}</p><p>{finalBoundary?.nextCheckpoint ?? '10/4 00:01'}</p></div> : finalSafetyHold ? <div className="opening final-outcome" role="status"><p>已經切斷的路徑不能自行恢復，但當輪仍未通過安全結案。</p><p>午夜沒有被宣告勝利。等待可靠的確認。</p></div> : resetPending && !resetPresentationComplete ? <ResetTransitionScene reducedMotion={prefersReducedMotion()} onPresentationComplete={() => setResetPresentationComplete(true)} /> : resetPending ? <div className="opening mode-choice"><p>鐘聲落下，今天又回到可以重來的地方。</p><p>下一次進入灰潮鎮時，你要怎麼走進這一天？</p><button onClick={() => chooseMode('LIVE_SYNC')} disabled={modeCommitInFlight || !isLiveSyncAvailable(currentMs)}>跟著現在走<span> · {isLiveSyncAvailable(currentMs) ? '從此刻的鎮內時間進入' : '現在是 Live Sync 無法進入的時間'}</span></button><button onClick={() => chooseMode('ACCELERATED')} disabled={modeCommitInFlight}>回到記憶開始的地方<span> · 從 06:12 的返程列車開始</span></button>{note && <p className="inline-note" role="status">{note}</p>}</div> : !opened ? <OpeningScene
+        {error ? <p role="alert">無法讀取鎮上的紀錄：{error}</p> : !story ? <p>正在取出案卷……</p> : finalForward ? <div className="opening final-outcome" role="status"><p>鐘聲響完，日期沒有回去。</p><p>{finalSession?.sealMode==='PERMANENT'?'舊站的兩條自動改寫路徑已失去權限。每個人仍保留自己的選擇。':'這一輪已經封存，但改寫權限依然存在。'}</p><p>{finalBoundary?.nextCheckpoint ?? '10/4 00:01'}</p></div> : finalSafetyHold ? <div className="opening final-outcome" role="status"><p>已經切斷的路徑不能自行恢復，但當輪仍未通過安全結案。</p><p>午夜沒有被宣告勝利。等待可靠的確認。</p></div> : resetPending && !resetPresentationComplete ? <ResetTransitionScene reducedMotion={prefersReducedMotion()} onPresentationComplete={() => setResetPresentationComplete(true)} /> : resetPending ? <section className="opening mode-choice" aria-label="下一輪的進入方式">
+          <p className="mode-choice__overture">鐘聲落下，今天又回到可以重來的地方。</p>
+          <h1 className="mode-choice__question">下一次進入灰潮鎮時，你要怎麼走進這一天？</h1>
+          <div className="mode-choice__options" role="group" aria-label="選擇進入方式">
+            <button className="mode-choice__option" type="button" onClick={() => chooseMode('LIVE_SYNC')} disabled={modeCommitInFlight || !isLiveSyncAvailable(currentMs)}>
+              <span className="mode-choice__option-title">跟著現在走</span>
+              <small>{isLiveSyncAvailable(currentMs) ? '從此刻的鎮內時間進入' : '目前無法同步鎮內時間'}</small>
+            </button>
+            <button className="mode-choice__option" type="button" onClick={() => chooseMode('ACCELERATED')} disabled={modeCommitInFlight}>
+              <span className="mode-choice__option-title">回到記憶開始的地方</span>
+              <small>從 06:12 的返程列車開始</small>
+            </button>
+          </div>
+          {note && <p className="inline-note" role="status">{note}</p>}
+        </section> : !opened ? <OpeningScene
           label={entry.label}
           lines={entry.lines}
           onOpenLetter={() => openRecord('letter')}
@@ -285,7 +300,7 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
         {observingSpatialRecord ? <SpatialTextLayer script={observingSpatialRecord.spatialScript!} now={now} /> : record?.spatialScript && record.acquisition === 'presence' ? <SpatialTextLayer script={record.spatialScript} now={now} /> : <>
           <div className="document-top"><span>第 {clock.loop} 次今天</span><span>{record?.source}　／　{record?.formedAt}</span></div>
           <h1>{record?.title}</h1>
-          <div className="document-lines">{record?.body.map((line, i) => <p key={i}>{line}</p>)}</div>
+          <NarrationBeatPager recordId={`${clock.loop}:${record?.id ?? 'none'}`} lines={record?.body ?? []} compact={incoming.length > 0} />
         </>}
         {record?.id === 'letter' && records.some(x => x.id === 'yu-an-message') && <div className="decisions"><p>手機震了一下。予安留了話。</p><button onClick={() => openRecord('yu-an-message')}>讀予安的留言</button></div>}
         {record?.id === 'yu-an-message' && canAct ? <DialogueScene
