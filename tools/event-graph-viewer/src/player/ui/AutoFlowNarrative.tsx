@@ -49,8 +49,7 @@ export function AutoFlowNarrative({ lines, title, reducedMotion = false, onCompl
     setLetters(0);
   }
 
-  return <section className="auto-flow-narrative" aria-label="自動播放敘事"
-      onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
+  return <section className="auto-flow-narrative" aria-label="自動播放敘事">
     {title && <p className="auto-flow-narrative__chapter">{title}</p>}
     <div className="auto-flow-narrative__focus" role="status" aria-live="off">
       {index > 0 && <p key={index - 1} className="auto-flow-narrative__echo">{sequence[index - 1]}</p>}
