@@ -25,8 +25,6 @@ export function PlayerSceneStage({ presentation, children, reducedMotion = false
     data-audio-cues={audioEnabled ? 'enabled' : 'muted'}
   >
     <SceneAtmosphere presentation={presentation} reducedMotion={reducedMotion} />
-    <div className="player-scene-stage__pixel-sky" aria-hidden="true" />
-    <div className="player-scene-stage__pixel-horizon" aria-hidden="true" />
     <PlayerPresentationHud presentation={presentation} />
     <PlayerAmbientLayer presentation={presentation} />
     <LoopTransitionLayer presentation={presentation} reducedMotion={reducedMotion} />

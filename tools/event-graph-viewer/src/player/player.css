@@ -35,3 +35,27 @@
 .final-investigation button:hover,.final-investigation button:focus-visible {background:#a7c0ae19; outline:1px solid #9db4b0;}
 .final-investigation small {color:#a2a6a7}
 .final-outcome {max-width:36rem;margin:auto;line-height:2.2;letter-spacing:.07em}
+
+/* Immersive v0.1 overrides: old document/green cards are absent in player stage. */
+:root{background:#050506;color:#dededc}
+body,.player-shell{background:#050506}
+.player-header--minimal{background:#050506;color:#818187}
+.player-stage,.player-stage--reading{background:#050506;overflow:visible}
+.player-stage>.scene-frame{background:#050506}
+.player-scene-stage .scene-frame__content{position:relative;z-index:1}
+.player-presentation-frame>.reading-scene,.player-presentation-frame>.opening{max-width:680px}
+.player-presentation-frame .document-top{border:0;color:#626269;letter-spacing:.14em}
+.player-presentation-frame .reading-scene h1{font-size:clamp(20px,2.4vw,29px);font-weight:400;letter-spacing:.09em}
+.player-presentation-frame .document-lines p{max-width:34ch;line-height:2.1;letter-spacing:.055em}
+.player-presentation-frame .excerpts{margin-top:3rem;border:0;opacity:.82}
+.player-presentation-frame .excerpts button{background:none;border:0;border-bottom:1px solid #34343a;color:#96969b}
+.player-presentation-frame .excerpts button:hover,.player-presentation-frame .excerpts button:focus-visible{color:#ececeb;border-color:#9999a0}
+.player-presentation-frame .decisions,.player-presentation-frame .incoming-records{background:transparent;border:0;border-top:1px solid #36363b;padding:1rem 0}
+.player-presentation-frame .decisions button,.player-presentation-frame .incoming-records button{border:0;border-bottom:1px solid #37373d;background:none;color:#d4d4d5}
+.player-presentation-frame .decisions button:hover,.player-presentation-frame .incoming-records button:hover{background:transparent;color:#fff}
+.player-presentation-frame .inline-note{color:#bbbcc3;border-color:#60616a}
+.player-presentation-frame .opening-scene{background:transparent}
+.player-presentation-frame .opening-scene .envelope{box-shadow:0 16px 55px #000b}
+.player-presentation-frame .dialogue-choice{border-color:#404048;color:#d9d9dc}
+.player-presentation-frame .dialogue-choice:hover{border-color:#a6a6ae}
+.player-utility-trigger{position:relative;z-index:8}
