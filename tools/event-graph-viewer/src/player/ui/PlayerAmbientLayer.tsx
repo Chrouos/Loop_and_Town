@@ -9,6 +9,8 @@ type Props = {
 
 const textCue: Record<string, string> = {
   'train-rustle': '沙沙、沙沙——',
+  'train-wheel': '喀。',
+  'train-announcement': '廣播聲……',
   'station-blackout': '……鐘聲？',
   'signal-ledger': '……螢幕的數字？',
   'backup-relay': '……門邊的銘牌？',
