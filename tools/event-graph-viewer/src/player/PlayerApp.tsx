@@ -30,6 +30,8 @@ import { isAtOldStation, travelToOldStation, leaveOldStation } from './stationTr
 type LegacyStory = { definition: SimulationDefinition; initialState: WorldState };
 type Story = PlayerStoryBundle | LegacyStory;
 type Props = { now?: () => number; storage?: Storage; loadStory?: () => Promise<Story> };
+// Stable loader identity: a new default callback each render previously reloaded the story after every hover/click.
+const defaultLoadStory = () => loadPlayerStoryBundle('story/manifests/loop_01.yaml');
 type Drawer = 'tools' | 'case' | 'board' | 'worldlines' | 'save' | null;
 
 function isPlayerStoryBundle(story: Story): story is PlayerStoryBundle {
@@ -51,7 +53,7 @@ function presenceCueLabel(id: string): string {
   return '……剛才那邊？';
 }
 
-export function PlayerApp({ now = Date.now, storage = window.localStorage, loadStory = () => loadPlayerStoryBundle('story/manifests/loop_01.yaml') }: Props) {
+export function PlayerApp({ now = Date.now, storage = window.localStorage, loadStory = defaultLoadStory }: Props) {
   const [save, setSave] = useState<PlayerSave>(() => readSave(storage, now()));
   const [story, setStory] = useState<Story | null>(null);
   const [error, setError] = useState('');
@@ -63,6 +65,7 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
   const [resetPresentationComplete, setResetPresentationComplete] = useState(false);
   const [modeCommitInFlight, setModeCommitInFlight] = useState(false);
   const [audioEnabled, setAudioEnabled] = useState(() => getAudioPreference(storage));
+  const [hoveredTargetId, setHoveredTargetId] = useState<string | null>(null);
   const [currentMs, setCurrentMs] = useState(() => now());
   const opener = useRef<HTMLButtonElement | null>(null);
 
@@ -103,6 +106,7 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
   }, [drawer]);
 
   const loopId = save.currentLoopId;
+  const focusedTargetId = hoveredTargetId ?? (save.loops[loopId]?.attention.phase !== 'idle' ? save.loops[loopId]?.attention.targetId : null);
   const loop = activeLoop(save);
   const clock = { loop: loopId, minute: clockMinuteAt(loop.clock, Math.max(currentMs, save.lastConfirmedMs)) };
   const entryWindow = entryWindowFor(Math.min(clock.minute, 1439));
@@ -168,7 +172,7 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
     records,
     opportunities,
     scene: record,
-    location: resetPending ? '灰潮鎮' : atOldStation ? '舊車站' : '灰潮鎮',
+    location: resetPending ? '灰潮鎮' : atOldStation ? '舊車站' : clock.minute < 460 ? '返鄉列車' : '灰潮鎮',
   });
 
   useEffect(() => {
@@ -230,7 +234,12 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
   }
   function attend(id: string) {
     const nextSave = normalizeSave(save, now());
-    if (!attendPresenceRecord(nextSave, loopId, id, clock.minute, recordSource, record?.id, now())) return;
+    if (!attendPresenceRecord(nextSave, loopId, id, clock.minute, recordSource, record?.id, now())) {
+      setNote('剛才那個瞬間已經過去了。');
+      return;
+    }
+    setHoveredTargetId(null);
+    setNote('你把注意力轉向了那個方向……');
     commit(nextSave);
   }
   function capture(id: string) {
@@ -255,14 +264,28 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
         presentation={presentation}
         reducedMotion={prefersReducedMotion()}
         audioEnabled={audioEnabled}
+        focusedId={focusedTargetId}
+        onAmbientAttend={attend}
+        onAmbientPreview={setHoveredTargetId}
         input={{
           onAttend: opportunities[0] ? () => attend(opportunities[0].id) : undefined,
           onCapture: lastPerceivedRecord && !lastMemory ? () => capture(lastPerceivedRecord.id) : undefined,
         }}
       >
         <SceneFrame className="scene-frame--flat player-presentation-frame">
-        {error ? <p role="alert">無法讀取鎮上的紀錄：{error}</p> : !story ? <p>正在取出案卷……</p> : finalForward ? <div className="opening final-outcome" role="status"><p>鐘聲響完，日期沒有回去。</p><p>{finalSession?.sealMode==='PERMANENT'?'舊站的兩條自動改寫路徑已失去權限。每個人仍保留自己的選擇。':'這一輪已經封存，但改寫權限依然存在。'}</p><p>{finalBoundary?.nextCheckpoint ?? '10/4 00:01'}</p></div> : finalSafetyHold ? <div className="opening final-outcome" role="status"><p>已經切斷的路徑不能自行恢復，但當輪仍未通過安全結案。</p><p>午夜沒有被宣告勝利。等待可靠的確認。</p></div> : resetPending && !resetPresentationComplete ? <ResetTransitionScene reducedMotion={prefersReducedMotion()} onPresentationComplete={() => setResetPresentationComplete(true)} /> : resetPending ? <div className="opening mode-choice"><p>鐘聲落下，今天又回到可以重來的地方。</p><p>下一次進入灰潮鎮時，你要怎麼走進這一天？</p><button onClick={() => chooseMode('LIVE_SYNC')} disabled={modeCommitInFlight || !isLiveSyncAvailable(currentMs)}>跟著現在走<span> · {isLiveSyncAvailable(currentMs) ? '從此刻的鎮內時間進入' : '現在是 Live Sync 無法進入的時間'}</span></button><button onClick={() => chooseMode('ACCELERATED')} disabled={modeCommitInFlight}>回到記憶開始的地方<span> · 從 06:12 的返程列車開始</span></button>{note && <p className="inline-note" role="status">{note}</p>}</div> : !opened ? <OpeningScene label={entry.label} lines={entry.lines} onOpenLetter={() => openRecord('letter')} /> : <div className={`reading-scene attention-${loop.attention.phase}`} key={`${clock.loop}:${record?.id}`}>
-        {opportunities.length > 0 && <div className="presence-opportunities" aria-label="周遭動靜">{opportunities.map(item => <button key={item.id} onClick={() => attend(item.id)} aria-label={presenceCueLabel(item.id)} aria-current={loop.attention.targetId === item.id ? 'true' : undefined}>{presenceCueLabel(item.id)}</button>)}</div>}
+        {error ? <p role="alert">無法讀取鎮上的紀錄：{error}</p> : !story ? <p>正在取出案卷……</p> : finalForward ? <div className="opening final-outcome" role="status"><p>鐘聲響完，日期沒有回去。</p><p>{finalSession?.sealMode==='PERMANENT'?'舊站的兩條自動改寫路徑已失去權限。每個人仍保留自己的選擇。':'這一輪已經封存，但改寫權限依然存在。'}</p><p>{finalBoundary?.nextCheckpoint ?? '10/4 00:01'}</p></div> : finalSafetyHold ? <div className="opening final-outcome" role="status"><p>已經切斷的路徑不能自行恢復，但當輪仍未通過安全結案。</p><p>午夜沒有被宣告勝利。等待可靠的確認。</p></div> : resetPending && !resetPresentationComplete ? <ResetTransitionScene reducedMotion={prefersReducedMotion()} onPresentationComplete={() => setResetPresentationComplete(true)} /> : resetPending ? <div className="opening mode-choice"><p>鐘聲落下，今天又回到可以重來的地方。</p><p>下一次進入灰潮鎮時，你要怎麼走進這一天？</p><button onClick={() => chooseMode('LIVE_SYNC')} disabled={modeCommitInFlight || !isLiveSyncAvailable(currentMs)}>跟著現在走<span> · {isLiveSyncAvailable(currentMs) ? '從此刻的鎮內時間進入' : '現在是 Live Sync 無法進入的時間'}</span></button><button onClick={() => chooseMode('ACCELERATED')} disabled={modeCommitInFlight}>回到記憶開始的地方<span> · 從 06:12 的返程列車開始</span></button>{note && <p className="inline-note" role="status">{note}</p>}</div> : !opened ? <OpeningScene
+          label={entry.label}
+          lines={entry.lines}
+          onOpenLetter={() => openRecord('letter')}
+          paperAvailable={opportunities.some(item => item.id === 'paper-word')}
+          paperFocused={focusedTargetId === 'paper-word'}
+          onAttendPaper={() => attend('paper-word')}
+          onPreviewPaper={value => setHoveredTargetId(value ? 'paper-word' : null)}
+          observation={lastPerceivedRecord && ['train-rustle','paper-word'].includes(lastPerceivedRecord.id)
+            ? lastPerceivedRecord.body : undefined}
+          note={note}
+        /> : <div className={`reading-scene attention-${loop.attention.phase}`} key={`${clock.loop}:${record?.id}`}>
+        {lastPerceivedRecord && ['train-rustle','paper-word'].includes(lastPerceivedRecord.id) && <div className="perception-echo" role="status">{lastPerceivedRecord.body.map(line=><p key={line}>{line}</p>)}</div>}
         {loop.capture && <div className="memory-capture-status" role="status"><p>你正在把剛才的感覺留下來……</p></div>}
         {!loop.capture && lastPerceivedRecord && !lastMemory && <div className="memory-capture-prompt" role="status"><p>剛才那一幕還留在你心裡。</p><button onClick={() => capture(lastPerceivedRecord.id)}>捕捉這段記憶</button></div>}
         {!loop.capture && lastMemory && <div className="memory-capture-status" role="status"><p>已將「{lastMemory.title}」收進持久記憶。</p></div>}
