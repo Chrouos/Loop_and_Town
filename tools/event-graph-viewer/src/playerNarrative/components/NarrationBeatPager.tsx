@@ -30,10 +30,23 @@ export function splitNarrationPages(text: string, maxCharacters = 105): string[]
   return pages;
 }
 
+export function narrationPageCapacity(width: number, height: number): number {
+  if (height < 520) return width < 640 ? 24 : 45;
+  if (width < 480) return height < 750 ? 38 : 54;
+  if (width < 800 || height < 700) return 65;
+  return 105;
+}
+
 export function NarrationBeatPager({ block, phase, revealedCharacters, speakerNames = {}, onReveal, onAdvance, showCursor = true }: Props) {
   const text = block.type === 'artifact' ? '' : block.text;
-  const pages = splitNarrationPages(text);
+  const [viewport, setViewport] = useState(() => ({ width: window.innerWidth, height: window.innerHeight }));
+  const pages = splitNarrationPages(text, narrationPageCapacity(viewport.width, viewport.height));
   const [pageIndex, setPageIndex] = useState(0);
+  useEffect(() => {
+    const onResize = () => setViewport({ width: window.innerWidth, height: window.innerHeight });
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
   const boundedPage = Math.min(pageIndex, pages.length - 1);
   const start = pages.slice(0, boundedPage).join('').length;
   const end = start + pages[boundedPage].length;
@@ -42,6 +55,7 @@ export function NarrationBeatPager({ block, phase, revealedCharacters, speakerNa
   const reducedMotion = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
   useEffect(() => { setPageIndex(0); }, [block]);
+  useEffect(() => { setPageIndex(current => Math.min(current, pages.length - 1)); }, [viewport.width, viewport.height, pages.length]);
 
   useEffect(() => {
     if (pageComplete || phase !== 'typing') return;
