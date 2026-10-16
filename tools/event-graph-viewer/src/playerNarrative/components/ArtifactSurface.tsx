@@ -13,7 +13,7 @@ export function ArtifactSurface({ artifact, initiallyOpened = false, onOpened }:
   const [page, setPage] = useState(0);
   const pages = splitNarrationPages(artifact.content.join('\n\n'), 90);
   const sheet = <div className="letter-sheet artifact-paged-sheet" aria-label="文件內容">
-    <p>{pages[Math.min(page, pages.length - 1)]}</p>
+    {pages[Math.min(page, pages.length - 1)].split(/\n\n/).map((paragraph, index) => <p key={`${page}-${index}`}>{paragraph}</p>)}
     {pages.length > 1 && <nav className="artifact-page-controls" aria-label="文件分頁">
       <button type="button" disabled={page === 0} onClick={() => setPage(p => p - 1)}>‹ 上頁</button>
       <span>{page + 1} / {pages.length}</span>
