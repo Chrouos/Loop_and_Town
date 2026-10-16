@@ -275,6 +275,10 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
           observation={lastPerceivedRecord && ['train-rustle','paper-word'].includes(lastPerceivedRecord.id)
             ? lastPerceivedRecord.body : undefined}
           note={note}
+          reducedMotion={prefersReducedMotion()}
+          onCapture={lastPerceivedRecord && !loop.capture && !lastMemory ? () => capture(lastPerceivedRecord.id) : undefined}
+          capturing={Boolean(loop.capture)}
+          captured={Boolean(lastMemory)}
         /> : <div className={`reading-scene attention-${loop.attention.phase}`} key={`${clock.loop}:${record?.id}`}>
         {lastPerceivedRecord && ['train-rustle','paper-word'].includes(lastPerceivedRecord.id) && <div className="perception-echo" role="status">{lastPerceivedRecord.body.map(line=><p key={line}>{line}</p>)}</div>}
         {loop.capture && <div className="memory-capture-status" role="status"><p>你正在把剛才的感覺留下來……</p></div>}

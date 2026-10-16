@@ -27,6 +27,7 @@ export function PlayerSceneStage({ presentation, children, reducedMotion = false
     data-reduced-motion={reducedMotion ? 'true' : 'false'}
     data-audio-cues={audioEnabled ? 'enabled' : 'muted'}
     data-active-attention={focusedId ? 'true' : 'false'}
+    data-inline-focus={focusedId === 'paper-word' ? 'true' : 'false'}
   >
     <SceneAtmosphere presentation={presentation} reducedMotion={reducedMotion} />
     <PlayerPresentationHud presentation={presentation} />

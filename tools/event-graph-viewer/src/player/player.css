@@ -74,3 +74,13 @@ body,.player-shell{background:#050506}
 
 .perception-echo{max-width:35ch;margin:1.8rem 0;color:#c6c6cc;line-height:2.1;animation:appear .4s ease both}
 .perception-echo p{font-size:clamp(14px,1.5vw,18px);margin:0 0 .75rem}
+
+/* The train shudders once: effect only, not a pointer-intercepting animation layer. */
+.opening-scene__main:first-child{animation:immersive-train-shudder .23s ease .72s both}
+.player-presentation-frame .opening-scene .envelope{animation:immersive-object-emerge .8s cubic-bezier(.2,.8,.2,1) both}
+.player-presentation-frame .incoming-records{animation:immersive-object-emerge .6s ease both}
+.opening-scene__capture{appearance:none;border:0;border-bottom:1px solid #74747b;background:none;color:#bcbcc4;padding:.65rem 0;font:inherit;text-align:left;cursor:pointer;letter-spacing:.08em}
+.opening-scene__capture:hover,.opening-scene__capture:focus-visible{color:#fff;border-color:#d2d2d4}
+@keyframes immersive-train-shudder{0%,100%{transform:translateX(0)}25%{transform:translateX(3px)}70%{transform:translateX(-2px)}}
+@keyframes immersive-object-emerge{from{opacity:0;transform:translate3d(0,8px,0) rotate(-4deg)}to{opacity:1;transform:translate3d(0,0,0) rotate(-3deg)}}
+@media(prefers-reduced-motion:reduce){.opening-scene__main:first-child,.player-presentation-frame .opening-scene .envelope,.player-presentation-frame .incoming-records{animation:none!important}}
