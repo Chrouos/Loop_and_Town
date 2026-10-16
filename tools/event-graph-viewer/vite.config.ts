@@ -1,6 +1,9 @@
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vitest/config';
 
+// Vite executes this config in Node; keep the narrow env type without changing app TS globals.
+declare const process: { env: Record<string, string | undefined> };
+
 export default defineConfig(({ command }) => ({
   base: command === 'build' ? (process.env.LOOP_TOWN_BASE || '/Loop_and_Town/') : '/',
   plugins: [react()],
