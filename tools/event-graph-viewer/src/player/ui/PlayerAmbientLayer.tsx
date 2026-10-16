@@ -18,7 +18,8 @@ const textCue: Record<string, string> = {
 
 /** Ambient events are actual player-perceivable opportunities, not a debug status feed. */
 export function PlayerAmbientLayer({ presentation, onAttend, onPreview, focusedId }: Props) {
-  const cues = presentation.ambientCues.slice(0, 2);
+  // The word embedded in the narration must not be duplicated as an ambient button.
+  const cues = presentation.ambientCues.filter(cue => cue.id !== 'paper-word').slice(0, 2);
   return <aside className="player-ambient-layer" aria-label="周遭動靜" data-ambient-count={cues.length}>
     {cues.map((cue) => (
       <button

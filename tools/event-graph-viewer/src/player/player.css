@@ -71,3 +71,6 @@ body,.player-shell{background:#050506}
 .opening-scene__observation p{margin:0 0 .65rem}
 .player-scene-stage[data-inline-focus='true'] .player-scene-stage__content{opacity:1}
 .player-presentation-frame .opening-scene .envelope-button{position:relative;z-index:1;cursor:pointer}
+
+.perception-echo{max-width:35ch;margin:1.8rem 0;color:#c6c6cc;line-height:2.1;animation:appear .4s ease both}
+.perception-echo p{font-size:clamp(14px,1.5vw,18px);margin:0 0 .75rem}

@@ -170,7 +170,7 @@ it('frames Loop 1 at the return train and does not ask for a mode', async () => 
   const storage = window.localStorage;
   storage.clear();
   render(<PlayerApp now={() => 1000} storage={storage} loadStory={async () => ({ definition, initialState: initial })} />);
-  expect(await screen.findByText(/返程列車在灰潮鎮的月台/)).toBeDefined();
+  expect(await screen.findByText(/你是在返鄉列車的晃動裡醒來的/)).toBeDefined();
   expect(screen.queryByRole('button', { name: /跟著現在走/ })).toBeNull();
 });
 

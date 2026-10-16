@@ -31,3 +31,6 @@
 .player-scene-stage[data-reduced-motion='true'] .player-ambient-layer__cue{animation:none;transition:none}
 @keyframes immersive-cue-fade{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
 @media(max-width:700px){.player-ambient-layer{top:70%;bottom:12px;align-items:flex-start;flex-wrap:wrap}.player-ambient-layer__cue:nth-of-type(2){margin-bottom:0; margin-left:auto}}
+
+/* Keep ambient hit targets above all decorative and presentation layers. */
+.player-ambient-layer .player-ambient-layer__cue {position:relative;z-index:5;min-height:44px;min-width:70px}

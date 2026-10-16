@@ -44,15 +44,6 @@ function prefersReducedMotion(): boolean {
     : false;
 }
 
-function presenceCueLabel(id: string): string {
-  if (id === 'station-blackout') return '……鐘聲？';
-  if (id === 'signal-ledger') return '……螢幕的數字？';
-  if (id === 'backup-relay') return '……門邊的銘牌？';
-  if (id === 'track-damage') return '……路面的新痕？';
-  if (id === 'external-ack') return '……閃爍的紀錄器？';
-  return '……剛才那邊？';
-}
-
 export function PlayerApp({ now = Date.now, storage = window.localStorage, loadStory = defaultLoadStory }: Props) {
   const [save, setSave] = useState<PlayerSave>(() => readSave(storage, now()));
   const [story, setStory] = useState<Story | null>(null);
