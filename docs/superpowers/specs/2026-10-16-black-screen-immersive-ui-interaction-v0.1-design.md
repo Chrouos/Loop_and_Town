@@ -453,6 +453,8 @@ Existing Story YAML / Event Graph / World Clock / NPC Schedules
 
 **採用順序**
 - **Motion for React**（`motion` → `motion/react`）：取代散落的 fade、list enter/exit、訊息換頁、物件從黑幕浮出等自製 keyframes／timers。相容現有 React 18（需 18.2+），不用為此升 React 19。以 `AnimatePresence` 與變體動畫呈現已被 Runtime 決定的狀態；效果完成不能當作 World Time 前進條件。
+- **Embla Carousel v8**（`embla-carousel-react`）：使用其既有 React 元件/滑動引擎實作「1/N 則新消息」的觸控/左右切頁，不另造 swipe 手勢、carousel physics、索引同步。`loop: false`，不得自動輪播導致沒讀到的內容離開。
+- **Radix UI Dialog**（後續按需）：玩家主動展開案卷、存檔或推理牆時，可使用成熟的 focus trap／Escape／focus restore；避免手刻 Modal keyboard/focus 行為。不要把每個短 Cue 變成 modal。
 - **Phaser 4**（後續按需載入）：有確實的 2D 場景、鏡頭 shake/fade、遮光、Sprite 等需求再放入 Canvas，優先使用官方 Scale Manager 的 `FIT`／`RESIZE` 和 Camera Effects。**不要用 Phaser 重做中文字排版、原生可點字詞、存檔、NPC clock 或推理牆。** 現有 React 18 無須直接套用以 React 19 為基礎的整套 Phaser 範本；建立小型 Phaser/React adapter 即可。
 - **Howler.js**（可選）：真正需要播放雨聲、紙聲、環境音時再加入，並保留等價文字 Cue。Muted / Reduce Motion / autoplay 授權要處理。
 - **PixiJS + @pixi/react**：本階段**不採用**；與 Phaser 功能重疊，且目前 `@pixi/react` v8 要求 React 19，不應為了背景渲染先做主框架升級。
@@ -491,7 +493,7 @@ Existing Story YAML / Event Graph / World Clock / NPC Schedules
 ```
 
 - 以獨立 `IncomingMessageStage` 呈現**當前一則**訊息，最多顯示 2–3 個低對比的同類入口（大螢幕）；手機只呈現 1 則與 `1 / N`。
-- `Motion AnimatePresence mode="wait"` 做訊息切換與淡入淡出；不要顯示十條長分隔線。一次只有一個 Focusable 主要訊息內容，並有明確「閱讀／略過」。
+- `Embla Carousel` 負責真正的橫向捲動、滑動手勢和 `1/N` 索引同步；`Motion AnimatePresence` 只負責訊息本文/文字淡入淡出與切換提示，不與 Embla 重複控制 slide transforms。不要顯示十條長分隔線。一次只有一個主要訊息閱讀操作，並有明確「閱讀／略過」。
 - 按 `←/→`、`A/D` 或手指滑動切換訊息候選（避免干擾正在操作的文字或推理牆）；Enter / Tap 執行 `openRecord(id)`。鍵盤 Tab/Screen Reader 仍可找到所有合法命令。
 - `IncomingMessageStage` 是**玩家視圖投影**。資料來自現有 `incoming` 與 `records`，切換只改目前顯示哪則；按「閱讀」後仍走已驗證的 `openRecord`，不可因換頁偷偷 Mark Seen。
 - 過量訊息可以分群或 `1/N` 換頁，但不能刪除本來合法可存取的訊息。對有真正世界期限的 Cue 而言，切頁或展開不能延長感知期限。
@@ -524,3 +526,5 @@ Existing Story YAML / Event Graph / World Clock / NPC Schedules
 - Phaser Camera：`https://docs.phaser.io/api-documentation/class/cameras-scene2d-camera`
 - Phaser React TS Template：`https://github.com/phaserjs/template-react-ts`
 - Howler：`https://howlerjs.com/`
+- Embla v8：`https://www.embla-carousel.com/docs/v8/get-started/react`
+- Radix Dialog：`https://www.radix-ui.com/primitives/docs/components/dialog`

@@ -134,13 +134,13 @@ P5 開場 vertical slice 驗收，才大量擴充 Story
 
 將規格補充於本分支 `2026-10-16-black-screen-immersive-ui-interaction-v0.1-design.md §14`。
 
-**優先採用：**`motion`（Motion for React 18）。之後才視需求掛載 `phaser` 4 Canvas，真實音效需求出現時再加入 `howler`。不用 Pixi/Phaser 雙引擎，不在本階段引進 Ink/XState 第二套故事時鐘。
+**優先採用：**`motion`（Motion for React 18）+ `embla-carousel-react` v8（成熟的新消息滑動/換頁引擎）。之後才視需求掛載 `phaser` 4 Canvas，真實音效需求出現時再加入 `howler`。工具 Overlay 可逐步換成 Radix Dialog（焦點/鍵盤處理）。不用 Pixi/Phaser 雙引擎，不在本階段引進 Ink/XState 第二套故事時鐘。
 
 執行切分：
 
-1. **P6A dependency & motion primitive**：透過 `npm install motion` 產生可重現的 lock file；`npm ci` + Test + Build 都須通過。以 Motion 替代新消息換頁、文字 Focus 淡化、信件浮出的自製動畫。
+1. **P6A dependency & motion primitive**：透過 `npm install motion embla-carousel-react@^8` 產生可重現的 lock file；`npm ci` + Test + Build 都須通過。以 Motion 替代新消息換頁、文字 Focus 淡化、信件浮出的自製動畫。
 2. **P6B 100dvh shell**：`PlayerShell` 的 HUD / main / spatial cue 用固定 slot；全場景 no-scroll，內容用 NarrativeBeat 或輪替而非裁剪。
-3. **P6C 新消息舞台**：將現有 `incoming.map(...button)` 改成 `IncomingMessageStage`，一則主要事件 + 1/N + 左右切換；保留 `openRecord`、未讀狀態、World Time，其他類型 Ambient 獨立。
+3. **P6C 新消息舞台**：將現有 `incoming.map(...button)` 改成 `IncomingMessageStage`，以 Embla 管理一則主要事件 + 1/N + 左右切換/滑動（Motion 管淡入淡出）；保留 `openRecord`、未讀狀態、World Time，其他類型 Ambient 獨立。
 4. **P6D Phaser spike（選擇性）**：只有在文字視覺已好用但仍需鏡頭、Sprite、場景演出時，建立 lazy-mounted Phaser 4 Scene Layer 的小型 PoC；使用官方 Scale / Camera，不另造物理世界時鐘。
 5. **P6E 實機驗收**：至少 1366×768、1920×1080、390×844、360×640；20 筆未讀、長篇中文字、鍵盤/觸控、Reduced Motion、重載/輪迴/存檔，均無頁面滾輪或文字遺失。
 
