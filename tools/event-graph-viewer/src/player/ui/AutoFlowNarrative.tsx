@@ -56,6 +56,7 @@ export function AutoFlowNarrative({ lines, title, reducedMotion = false, onCompl
       {index > 0 && <p key={index - 1} className="auto-flow-narrative__echo">{sequence[index - 1]}</p>}
       <p key={index} className="auto-flow-narrative__active">{line.slice(0, letters)}{!fullyVisible && <span className="auto-flow-narrative__cursor" aria-hidden="true">▏</span>}</p>
     </div>
+    <div className="auto-flow-narrative__transcript" aria-label="完整敘事紀錄">{sequence.map((item, i) => <p key={i}>{item}</p>)}</div>
     <div className="auto-flow-narrative__control">
       {!finished ? <>
         <button type="button" onClick={handleAdvance} aria-label="顯示完整句子或接續對話">···</button>
