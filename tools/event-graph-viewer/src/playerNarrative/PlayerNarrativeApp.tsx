@@ -225,6 +225,7 @@ export function PlayerNarrativeApp({ story }: PlayerNarrativeAppProps) {
             {playback && activeBlock ? (
               <>
             <NarrationBeatPager
+              key={`${scene.id}:${playback.beatIndex}`}
               block={activeBlock}
               phase={playback.phase}
               revealedCharacters={playback.revealedCharacters}
