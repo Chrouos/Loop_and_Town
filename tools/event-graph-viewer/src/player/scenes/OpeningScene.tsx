@@ -22,7 +22,7 @@ export function OpeningScene({ label, lines, onOpenLetter, onAttendPaper, paperA
   return <section className="opening opening-scene" aria-label="進入灰潮鎮"
     data-inline-focus={paperFocused ? 'true' : 'false'}>
     <p className="opening-scene__main"><TypewriterText text="你是在返鄉列車的晃動裡醒來的。" speed={18} punctuationDelay={60} cursor reducedMotion={reducedMotion} /></p>
-    <p className="opening-scene__main">現在是灰潮鎮的{label}。車窗外仍很暗。</p>
+    <p className="opening-scene__main">現在是灰潮鎮的{label}。{label === '清晨' ? '車窗外仍很暗。' : '那封信一直被你握在手裡。'}</p>
     <p className="opening-scene__main">
       手指滑過信封裡的
       <InlineTextTarget available={paperAvailable} focused={paperFocused}
