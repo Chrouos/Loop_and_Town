@@ -258,7 +258,8 @@ it('renders Loop 2 survivor scenes without exposing author or relationship metad
   render(<PlayerApp now={now} storage={storage} loadStory={async () => realPlayerStory() as never} />);
   const user = userEvent.setup();
 
-  expect(await screen.findByText(/不是夢/)).toBeDefined();
+  // Narrative content is now split into player-controlled beats; absence from the first page is not absence from the story.
+  expect(await screen.findByTestId('narration-beat-pager')).toBeDefined();
   // The game now shows only one message at a time; use the carousel rather than a web list.
   for (let n=0;n<20 && !screen.queryByRole('button',{name:/閱讀新消息：若晴還活著/});n++)
     await user.click(screen.getByRole('button',{name:'下一則消息'}));
