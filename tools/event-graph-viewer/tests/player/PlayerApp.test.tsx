@@ -259,10 +259,15 @@ it('renders Loop 2 survivor scenes without exposing author or relationship metad
   const user = userEvent.setup();
 
   expect(await screen.findByText(/不是夢/)).toBeDefined();
+  // The game now shows only one message at a time; use the carousel rather than a web list.
+  for (let n=0;n<20 && !screen.queryByRole('button',{name:/閱讀新消息：若晴還活著/});n++)
+    await user.click(screen.getByRole('button',{name:'下一則消息'}));
   await user.click(screen.getByRole('button', { name: /閱讀新消息：若晴還活著/ }));
   expect(screen.getAllByText(/她活著/).length).toBeGreaterThan(0);
   expect(readSave(storage, now()).loops[2].seenSceneIds).toContain('loop02_1610_wakaharu_alive');
   expect(screen.queryByText(/remember|trust|closeness|respect|pressure|DAG|storyDag/i)).toBeNull();
+  for (let n=0;n<20 && !screen.queryByRole('button',{name:/閱讀新消息：18:31 的另一個死者/});n++)
+    await user.click(screen.getByRole('button',{name:'下一則消息'}));
   await user.click(screen.getByRole('button', { name: /閱讀新消息：18:31 的另一個死者/ }));
   expect(screen.getByText(/找到陳柏勳/)).toBeDefined();
 });
