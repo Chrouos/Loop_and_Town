@@ -37,25 +37,33 @@ export function narrationPageCapacity(width: number, height: number): number {
   return 105;
 }
 
+export function pageIndexForOffset(pages: string[], offset: number): number {
+  let cursor = 0;
+  for (let i = 0; i < pages.length; i++) {
+    cursor += pages[i].length;
+    if (offset < cursor) return i;
+  }
+  return Math.max(0, pages.length - 1);
+}
+
 export function NarrationBeatPager({ block, phase, revealedCharacters, speakerNames = {}, onReveal, onAdvance, showCursor = true }: Props) {
   const text = block.type === 'artifact' ? '' : block.text;
   const [viewport, setViewport] = useState(() => ({ width: window.innerWidth, height: window.innerHeight }));
   const pages = splitNarrationPages(text, narrationPageCapacity(viewport.width, viewport.height));
-  const [pageIndex, setPageIndex] = useState(0);
+  // Store the absolute first-character offset, not a page number: resize must not jump through the story.
+  const [pageAnchor, setPageAnchor] = useState(0);
   useEffect(() => {
     const onResize = () => setViewport({ width: window.innerWidth, height: window.innerHeight });
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
   }, []);
-  const boundedPage = Math.min(pageIndex, pages.length - 1);
+  const boundedPage = pageIndexForOffset(pages, pageAnchor);
   const start = pages.slice(0, boundedPage).join('').length;
   const end = start + pages[boundedPage].length;
   const pageComplete = revealedCharacters >= end;
   const visible = text.slice(start, Math.min(end, revealedCharacters));
   const reducedMotion = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
-  useEffect(() => { setPageIndex(0); }, [block]);
-  useEffect(() => { setPageIndex(current => Math.min(current, pages.length - 1)); }, [viewport.width, viewport.height, pages.length]);
 
   useEffect(() => {
     if (pageComplete || phase !== 'typing') return;
@@ -66,7 +74,7 @@ export function NarrationBeatPager({ block, phase, revealedCharacters, speakerNa
 
   function advance() {
     if (!pageComplete) { onReveal(end); return; }
-    if (boundedPage < pages.length - 1) { setPageIndex(boundedPage + 1); return; }
+    if (boundedPage < pages.length - 1) { setPageAnchor(end); return; }
     onAdvance();
   }
   function handleKeyboard(e: KeyboardEvent<HTMLElement>) {
