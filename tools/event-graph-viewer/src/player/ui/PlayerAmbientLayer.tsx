@@ -1,15 +1,43 @@
 import type { PlayerPresentationModel } from '../presentation/types';
 
-type Props = { presentation: PlayerPresentationModel };
+type Props = {
+  presentation: PlayerPresentationModel;
+  onAttend?: (recordId: string) => void;
+  onPreview?: (recordId: string | null) => void;
+  focusedId?: string | null;
+};
 
-export function PlayerAmbientLayer({ presentation }: Props) {
-  const cue = presentation.ambientCues[0];
-  return <aside className="player-ambient-layer" aria-label="環境狀態" data-ambient-count={presentation.ambientCues.length}>
-    {cue && <span className="player-ambient-layer__cue"><span>周遭有動靜</span> · {cue.title}</span>}
-    {!cue && presentation.mode === 'waiting' && <span className="player-ambient-layer__cue">世界沒有停下來</span>}
-    {presentation.attention.phase === 'shifting' && <span className="player-ambient-layer__state">注意力正在移動</span>}
-    {presentation.attention.phase === 'observing' && <span className="player-ambient-layer__state">正在留意</span>}
-    {presentation.capture.active && <span className="player-ambient-layer__state">正在留下這一刻</span>}
-    {presentation.reset.pending && <span className="player-ambient-layer__state">世界正在接手這一輪</span>}
+const textCue: Record<string, string> = {
+  'train-rustle': '沙沙、沙沙——',
+  'station-blackout': '……鐘聲？',
+  'signal-ledger': '……螢幕的數字？',
+  'backup-relay': '……門邊的銘牌？',
+  'track-damage': '……路面的新痕？',
+  'external-ack': '……閃爍的紀錄器？',
+};
+
+/** Ambient events are actual player-perceivable opportunities, not a debug status feed. */
+export function PlayerAmbientLayer({ presentation, onAttend, onPreview, focusedId }: Props) {
+  const cues = presentation.ambientCues.slice(0, 2);
+  return <aside className="player-ambient-layer" aria-label="周遭動靜" data-ambient-count={cues.length}>
+    {cues.map((cue) => (
+      <button
+        type="button"
+        key={cue.id}
+        className="player-ambient-layer__cue"
+        aria-label={textCue[cue.id] ?? cue.title}
+        aria-pressed={focusedId === cue.id}
+        data-focus={focusedId === cue.id ? 'true' : 'false'}
+        onMouseEnter={() => onPreview?.(cue.id)}
+        onMouseLeave={() => onPreview?.(null)}
+        onFocus={() => onPreview?.(cue.id)}
+        onBlur={() => onPreview?.(null)}
+        onClick={() => onAttend?.(cue.id)}
+      >
+        {textCue[cue.id] ?? cue.title}
+      </button>
+    ))}
+    {cues.length === 0 && presentation.mode === 'waiting' &&
+      <span className="player-ambient-layer__state">……</span>}
   </aside>;
 }

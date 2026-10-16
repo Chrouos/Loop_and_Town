@@ -46,6 +46,16 @@ const stationBlackoutSpatial = compileSpatialScript([
 ]);
 
 export const STORY_RECORDS: VisibleRecord[] = [
+  // v0.1 sensory beats: finite observations, never auto-granted Evidence.
+  { id: 'train-rustle', title: '沙沙、沙沙——', source: '返鄉列車／近處紙聲',
+    formedAt: '06:12', obtainedAt: '06:12–06:30', revealMinute: 372, availableUntilMinute: 390, acquisition: 'presence', matches: always,
+    body: ['紙頁擦過掌心，發出細微的摩擦聲。', '你暫時無法確定聲音是否只來自自己手中的信。'],
+    excerpts: [{ id: 'rustle', text: '列車裡傳來一陣紙張摩擦聲。' }] },
+  { id: 'paper-word', title: '紙張', source: '手裡的信／指尖觸感',
+    formedAt: '06:12', obtainedAt: '06:12–06:30', revealMinute: 372, availableUntilMinute: 390, acquisition: 'presence', matches: always,
+    body: ['紙的邊緣有一道細小的摺痕。', '或許只是折信時留下的；你還沒有理由斷定它有什麼意義。'],
+    excerpts: [{ id: 'crease', text: '信紙邊緣有一道細小摺痕。' }] },
+
   { id: 'signal-ledger', title: '舊站同步影像', source: '控制室外側螢幕／自行目視', formedAt: '17:33', obtainedAt: '17:33–17:42', revealMinute: 1053, availableUntilMinute: 1062, acquisition: 'presence',
     matches: always, body: ['顯示器左邊的 Target State 比右邊的 Observed State 早了一個 Epoch。', '時間碼有一段重疊，卻沒有人承認把模擬數據寫進現實。'],
     excerpts: [{ id: 'epoch', text: 'Target 和 Observed 被標為不同 Sync Epoch。' }] },
