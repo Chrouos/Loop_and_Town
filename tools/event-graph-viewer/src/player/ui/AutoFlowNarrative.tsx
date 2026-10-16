@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import './AutoFlowNarrative.css';
 import { inlineAnchors, type InlineExcerpt } from './inlineMemory';
 
@@ -47,7 +47,7 @@ export function AutoFlowNarrative({ lines, title, reducedMotion = false, onCompl
 
   function renderVisibleText(visible: string) {
     const anchors = inlineAnchors(line, excerpts).filter(anchor => anchor.end <= visible.length);
-    const nodes: React.ReactNode[] = [];
+    const nodes: ReactNode[] = [];
     let cursor = 0;
     for (const anchor of anchors) {
       nodes.push(visible.slice(cursor, anchor.start));
