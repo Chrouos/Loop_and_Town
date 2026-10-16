@@ -5,6 +5,8 @@ import { PlayerApp } from '../../src/player/PlayerApp';
 import { PlayerSceneStage } from '../../src/player/ui/PlayerSceneStage';
 import { InlineTextTarget } from '../../src/player/ui/InlineTextTarget';
 import { readSave } from '../../src/player/storage';
+import { normalizeSave } from '../../src/player/model';
+import { attendPresenceRecord, settlePresenceAttention } from '../../src/player/knowledge';
 import { ATTENTION_OBSERVATION_MS, ATTENTION_SHIFT_MS } from '../../src/player/attention';
 import type { PlayerPresentationModel } from '../../src/player/presentation/types';
 import type { SimulationDefinition, WorldState } from '../../src/simulator/types';
@@ -71,4 +73,25 @@ it('clicking the opening letter remains an actual story transaction',async()=>{
  await user.click(await screen.findByRole('button',{name:/拆開信封/}));
  expect(readSave(storage,1_000).knowledge.opened).toContain('1:letter');
  expect((await screen.findAllByText('不要回來。')).length).toBeGreaterThan(0);
+});
+
+it('a visible paper excerpt button updates the Investigation pin instead of silently ignoring clicks',async()=>{
+ const storage=window.localStorage;storage.clear();
+ render(<PlayerApp now={()=>1_000} storage={storage} loadStory={loadStory}/>);
+ const user=userEvent.setup();
+ await user.click(await screen.findByRole('button',{name:/拆開信封/}));
+ const excerpt=screen.getByRole('button',{name:/郵戳是昨天的；署名是林知夏/});
+ await user.click(excerpt);
+ expect(readSave(storage,1_000).knowledge.pins).toContain('letter:postmark');
+ expect(screen.getByRole('status').textContent).toContain('已放在推理桌上');
+});
+
+it('an observation missed during attention shift cannot retroactively produce player knowledge',()=>{
+ const save=normalizeSave(null,1_000);
+ save.loops[1].revealedIds.push('1:paper-word');
+ expect(attendPresenceRecord(save,1,'paper-word',389,undefined,'letter',1_000)).toBe(true);
+ const missed=settlePresenceAttention(save,1,1_000+ATTENTION_SHIFT_MS+ATTENTION_OBSERVATION_MS+1,391);
+ expect(missed).toBeUndefined();
+ expect(save.loops[1].perceivedSceneIds).not.toContain('paper-word');
+ expect(save.knowledge.memories).toHaveLength(0);
 });
