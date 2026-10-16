@@ -528,3 +528,8 @@ Existing Story YAML / Event Graph / World Clock / NPC Schedules
 - Howler：`https://howlerjs.com/`
 - Embla v8：`https://www.embla-carousel.com/docs/v8/get-started/react`
 - Radix Dialog：`https://www.radix-ui.com/primitives/docs/components/dialog`
+
+### 14.7 已落地與待補限制（P6 partial implementation）
+
+PR #25 已導入 **Motion + Embla**、固定 Player 外層 `100dvh`，以及單一訊息為主的 `IncomingMessageStage`（不限數量的訊息以 1/N 切換，含鍵盤及 Touch）。
+**文件文字較長時仍有局部捲動 fallback**，以避免在尚未實作 `NarrationBeatPager` 前遺失文案。這是階段性差距，不能宣稱完全「沒有任何捲動」。真正免捲動的長篇分段閱讀、Phaser/Howler 與桌機/手機實機驗收，留到後續版本。

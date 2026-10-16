@@ -145,3 +145,21 @@ P5 開場 vertical slice 驗收，才大量擴充 Story
 5. **P6E 實機驗收**：至少 1366×768、1920×1080、390×844、360×640；20 筆未讀、長篇中文字、鍵盤/觸控、Reduced Motion、重載/輪迴/存檔，均無頁面滾輪或文字遺失。
 
 **注意：**本次規格提交沒有修改 React 依賴或遊戲畫面；要實際使用 Motion 必須同時提交 `package.json` 與 `package-lock.json`，不可只改 package.json 導致 `npm ci` 失敗。保留 PR #25 Draft，待實際 UI/瀏覽器驗收才判斷可 Merge。
+
+## P6A–P6C implementation (PR #25)
+
+**已在本分支實作並納入 CI**（非單純 Spec）：
+
+- `motion@14.3.0` / `embla-carousel-react@8.6.0` 已安裝，lock file 由 GitHub Actions npm resolver 實際產生並回填，`npm ci` 驗證。
+- `IncomingMessageStage` 取代 `PlayerApp` 的全部新消息長列表。Embla 負責單一畫面、觸控 swipe、← → 與索引；Motion 負責唯一可見訊息的焦點淡入淡出。
+- 保持 `openRecord(id)` 為唯一閱讀命令；**滑動、切頁、hover 均不自動已讀、不會修改 World Clock 或 Attention**。
+- Player 頂層採 `100dvh`，關閉 document-level scroll；拆出舞台、場景、Overlay 的高度邊界，Mobile 顯示單一訊息 + `1 / N` 而非垂直無限清單。
+- 新增 20 則訊息與左右鍵／閱讀狀態測試；jsdom 增加 Embla/ Motion 必要的瀏覽器 Polyfill；原 Loop 2 測試改為依遊戲按鍵分頁後閱讀。
+- **未完成**：所有長篇文件仍保留局部 scroll fallback，應另做 `NarrationBeatPager` 無捲動分段閱讀；尚無完整手機／桌機真人操作驗收，也尚未使用 Phaser 4、Howler 或 Radix。
+- 預覽由 PR #25 的成功 CI 自動觸發 Pages 部署，網址固定：`https://chrouos.github.io/Loop_and_Town/previews/pr-25/player.html`。
+
+### 下一個小 PR
+
+1. `NarrationBeatPager`：長篇文字（包括後續訊息）分段閱讀、不截斷，已發生內容可前後翻，不回溯世界時間。
+2. 校正 Mobile 360×640、390×844 的文字尺度與控制焦點，並做實際瀏覽器驗收。
+3. 若需要鏡頭／sprite 再做 Phaser 4 Spike，不提前引入新 World Clock。
