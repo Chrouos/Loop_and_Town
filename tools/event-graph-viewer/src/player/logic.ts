@@ -28,6 +28,7 @@ function knownRefs(save: PlayerSave) {
   return refs;
 }
 
+/** Legacy compatibility only: the immersive Player no longer creates new excerpt pins. */
 export function pinExcerpt(save: PlayerSave, ref: string): PlayerSave {
   if (!knownRefs(save).has(ref)) throw new Error('這段文字還沒有取得來源。');
   if (save.knowledge.pins.includes(ref)) return save;
@@ -38,7 +39,8 @@ export function pinExcerpt(save: PlayerSave, ref: string): PlayerSave {
 
 export function unpinExcerpt(save: PlayerSave, ref: string): PlayerSave {
   save.knowledge.pins = save.knowledge.pins.filter(id => id !== ref);
-  save.knowledge.connections = save.knowledge.connections.filter(key => !key.split('|').includes(ref));
+  save.knowledge.connections = save.knowledge.connections.filter(key => !key.split('#')[0].split('|').includes(ref));
+  delete save.knowledge.positions[ref];
   return save;
 }
 

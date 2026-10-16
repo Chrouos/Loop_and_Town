@@ -11,7 +11,7 @@ export function entryWindowFor(minute: number): EntryWindow {
 
 export function entryPresentation(window: EntryWindow): { label: string; lines: string[] } {
   const presentations: Record<EntryWindow, { label: string; lines: string[] }> = {
-    dawn: { label: '清晨', lines: ['返程列車剛進站，灰潮鎮還沒有完全醒來。'] },
+    dawn: { label: '清晨', lines: ['列車還在行進。距離抵達灰潮鎮，仍有一段時間。'] },
     morning: { label: '上午', lines: ['鎮上的人已經開始各自走向今天的行程。'] },
     afternoon: { label: '午後', lines: ['午後的灰潮鎮看起來和平常一樣，細節卻有些錯位。'] },
     evening: { label: '傍晚', lines: ['傍晚的風從舊車站方向吹來，帶著還沒發生的消息。'] },

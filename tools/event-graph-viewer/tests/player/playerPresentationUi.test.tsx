@@ -56,8 +56,9 @@ describe('PlayerSceneStage', () => {
     expect(screen.getByText('舊車站')).toBeDefined();
     expect(screen.getByText('18:31')).toBeDefined();
     expect(screen.getByText('場景內容')).toBeDefined();
-    expect(screen.getByText('周遭有動靜')).toBeDefined();
-    expect(screen.getAllByText('正在留意')).toHaveLength(2);
+    expect(screen.getByRole('complementary', { name: '周遭動靜' })).toBeDefined();
+    expect(screen.getByRole('button', { name: '遠處的腳步聲' })).toBeDefined();
+    expect(screen.getAllByText('正在留意')).toHaveLength(1);
   });
 
   it('exposes capture and reset state without exposing author data', () => {
@@ -70,8 +71,8 @@ describe('PlayerSceneStage', () => {
 
     const stage = screen.getByRole('region', { name: '玩家場景：舊車站' });
     expect(stage.getAttribute('data-presentation-mode')).toBe('reset');
-    expect(screen.getByText('正在留下這一刻')).toBeDefined();
-    expect(screen.getByText('世界正在接手這一輪')).toBeDefined();
+    expect(screen.getByText('重置前的安靜')).toBeDefined();
+    expect(stage.getAttribute('data-presentation-mode')).toBe('reset');
     expect(screen.queryByText(/storyDags|relationship|hidden/i)).toBeNull();
   });
 });

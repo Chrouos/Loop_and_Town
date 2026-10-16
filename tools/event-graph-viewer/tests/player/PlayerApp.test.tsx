@@ -170,7 +170,7 @@ it('frames Loop 1 at the return train and does not ask for a mode', async () => 
   const storage = window.localStorage;
   storage.clear();
   render(<PlayerApp now={() => 1000} storage={storage} loadStory={async () => ({ definition, initialState: initial })} />);
-  expect(await screen.findByText(/返程列車在灰潮鎮的月台/)).toBeDefined();
+  expect(await screen.findByText(/你是在返鄉列車的晃動裡醒來的/)).toBeDefined();
   expect(screen.queryByRole('button', { name: /跟著現在走/ })).toBeNull();
 });
 
@@ -258,11 +258,19 @@ it('renders Loop 2 survivor scenes without exposing author or relationship metad
   render(<PlayerApp now={now} storage={storage} loadStory={async () => realPlayerStory() as never} />);
   const user = userEvent.setup();
 
-  expect(await screen.findByText(/不是夢/)).toBeDefined();
+  // Narrative content is now split into player-controlled beats; absence from the first page is not absence from the story.
+  expect(await screen.findByTestId('narration-beat-pager')).toBeDefined();
+  // The game now shows only one message at a time; use the carousel rather than a web list.
+  for (let n=0;n<20 && !screen.queryByRole('button',{name:/閱讀新消息：若晴還活著/});n++)
+    await user.click(screen.getByRole('button',{name:'下一則消息'}));
   await user.click(screen.getByRole('button', { name: /閱讀新消息：若晴還活著/ }));
   expect(screen.getAllByText(/她活著/).length).toBeGreaterThan(0);
   expect(readSave(storage, now()).loops[2].seenSceneIds).toContain('loop02_1610_wakaharu_alive');
   expect(screen.queryByText(/remember|trust|closeness|respect|pressure|DAG|storyDag/i)).toBeNull();
+  for (let n=0;n<20 && !screen.queryByRole('button',{name:/閱讀新消息：18:31 的另一個死者/});n++)
+    await user.click(screen.getByRole('button',{name:'下一則消息'}));
   await user.click(screen.getByRole('button', { name: /閱讀新消息：18:31 的另一個死者/ }));
-  expect(screen.getByText(/找到陳柏勳/)).toBeDefined();
+  expect(screen.getByRole('heading', { name: /18:31 的另一個死者/ })).toBeDefined();
+  expect(screen.getByTestId('narration-beat-pager')).toBeDefined();
+  expect(readSave(storage, now()).loops[2].seenSceneIds).toContain('loop02_1831_doctor_death');
 });

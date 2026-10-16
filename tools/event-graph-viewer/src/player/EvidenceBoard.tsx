@@ -71,7 +71,8 @@ export function EvidenceBoard({ save, onChange, onNotice }: Props) {
     return <line key={connection} x1={p.x + 105} y1={p.y + 72} x2={q.x + 105} y2={q.y + 72} />;
   });
   return <div className="board-wrap">
-    <p>記憶庫保存你捕捉到的片段。推理牆只記錄你自己放上去的記憶、連線與註記。</p>
+    <p>觀察到的細節，可以由你決定是否記住；需要推理時，再從記憶庫取出並連線。</p>
+    {save.knowledge.pins.length > 0 && <p className="board-legacy-note">舊版保存的句子仍留在推理牆上，可以照常查看、連線或移出。</p>}
     {feedback && <p role="status" className="board-feedback">{feedback}</p>}
     <section className="memory-library" aria-label="記憶庫">
       <h3>記憶庫</h3>
@@ -89,14 +90,14 @@ export function EvidenceBoard({ save, onChange, onNotice }: Props) {
         const excerpt = source?.excerpts.find(x => x.id === excerptId);
         const at = coords(ref, i);
         return <article key={ref} className={`evidence-card ${first === ref ? 'chosen' : ''}`} style={{ left: at.x, top: at.y }} onPointerDown={e => startDrag(e, ref, i)} onPointerMove={drag} onPointerUp={endDrag}>
-          <small>{memory ? `第 ${memory.sourceLoop} 輪 · ${memory.kind}` : `${source?.source} ／ ${source?.formedAt}`}</small>
+          <small>{memory ? `第 ${memory.sourceLoop} 輪 · ${memory.kind}` : `舊版保存的句子 · ${source?.source ?? '未知來源'} ／ ${source?.formedAt ?? '未知時間'}`}</small>
           <strong>{memory?.title ?? source?.title}</strong>
           <p>{memory ? memory.content.join(' ') : excerpt?.text}</p>
           <div><button onClick={() => connect(ref)}>連線</button><button onClick={() => remove(ref)}>移出</button></div>
           <span className="keyboard-move"><button aria-label={`向左移動${refLabel(ref)}`} onClick={() => move(ref, at.x - 20, at.y)}>←</button><button aria-label={`向右移動${refLabel(ref)}`} onClick={() => move(ref, at.x + 20, at.y)}>→</button><button aria-label={`向上移動${refLabel(ref)}`} onClick={() => move(ref, at.x, at.y - 20)}>↑</button><button aria-label={`向下移動${refLabel(ref)}`} onClick={() => move(ref, at.x, at.y + 20)}>↓</button></span>
         </article>;
       })}
-      {!refs.length && <p className="board-empty">推理牆上還沒有內容。從記憶庫放入一段，或回到信件挑出句子。</p>}
+      {!refs.length && <p className="board-empty">推理牆還是空的。先在故事中觀察，想記住時再保存；需要時從記憶庫放上來。</p>}
     </div>
     <section className="wall-notes" aria-label="推理牆註記">
       <h3>玩家註記</h3>

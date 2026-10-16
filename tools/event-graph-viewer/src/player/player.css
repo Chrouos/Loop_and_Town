@@ -35,3 +35,130 @@
 .final-investigation button:hover,.final-investigation button:focus-visible {background:#a7c0ae19; outline:1px solid #9db4b0;}
 .final-investigation small {color:#a2a6a7}
 .final-outcome {max-width:36rem;margin:auto;line-height:2.2;letter-spacing:.07em}
+
+/* Immersive v0.1 overrides: old document/green cards are absent in player stage. */
+:root{background:#050506;color:#dededc}
+body,.player-shell{background:#050506}
+.player-header--minimal{background:#050506;color:#818187}
+.player-stage,.player-stage--reading{background:#050506;overflow:visible}
+.player-stage>.scene-frame{background:#050506}
+.player-scene-stage .scene-frame__content{position:relative;z-index:1}
+.player-presentation-frame>.reading-scene,.player-presentation-frame>.opening{max-width:680px}
+.player-presentation-frame .document-top{border:0;color:#626269;letter-spacing:.14em}
+.player-presentation-frame .reading-scene h1{font-size:clamp(20px,2.4vw,29px);font-weight:400;letter-spacing:.09em}
+.player-presentation-frame .document-lines p{max-width:34ch;line-height:2.1;letter-spacing:.055em}
+.player-presentation-frame .excerpts{margin-top:3rem;border:0;opacity:.82}
+.player-presentation-frame .excerpts button{background:none;border:0;border-bottom:1px solid #34343a;color:#96969b}
+.player-presentation-frame .excerpts button:hover,.player-presentation-frame .excerpts button:focus-visible{color:#ececeb;border-color:#9999a0}
+.player-presentation-frame .decisions,.player-presentation-frame .incoming-records{background:transparent;border:0;border-top:1px solid #36363b;padding:1rem 0}
+.player-presentation-frame .decisions button,.player-presentation-frame .incoming-records button{border:0;border-bottom:1px solid #37373d;background:none;color:#d4d4d5}
+.player-presentation-frame .decisions button:hover,.player-presentation-frame .incoming-records button:hover{background:transparent;color:#fff}
+.player-presentation-frame .inline-note{color:#bbbcc3;border-color:#60616a}
+.player-presentation-frame .opening-scene{background:transparent}
+.player-presentation-frame .opening-scene .envelope{box-shadow:0 16px 55px #000b}
+.player-presentation-frame .dialogue-choice{border-color:#404048;color:#d9d9dc}
+.player-presentation-frame .dialogue-choice:hover{border-color:#a6a6ae}
+.player-utility-trigger{position:relative;z-index:8}
+
+/* In-world text: the words themselves are hit targets, not underlined links. */
+.opening-scene__main{font-size:clamp(18px,2vw,24px);max-width:35ch;line-height:2.1;letter-spacing:.07em}
+.opening-scene__aside{color:#8c8e94;font-size:clamp(12px,1.2vw,15px)!important;opacity:.8}
+.inline-text-target{appearance:none;display:inline;color:inherit;border:0;background:none;padding:0 .12em;margin:0;font:inherit;line-height:inherit;letter-spacing:inherit;cursor:pointer;border-radius:2px;text-decoration:none;box-shadow:none;transition:color .24s,text-shadow .24s}
+.inline-text-target:hover,.inline-text-target:focus-visible,.inline-text-target[aria-pressed='true']{color:#f5f5f4;text-shadow:0 0 14px #aaaab356;outline:1px dotted #777985;outline-offset:3px}
+.opening-scene[data-inline-focus='true'] .opening-scene__main:not(:has(.inline-text-target)){opacity:.34}
+.opening-scene[data-inline-focus='true'] .opening-scene__aside{opacity:.2}
+.opening-scene__observation{margin:2.4rem 0 .5rem;max-width:34ch;color:#cbcbcf;line-height:2.1;animation:appear .45s ease both}
+.opening-scene__observation p{margin:0 0 .65rem}
+.player-scene-stage[data-inline-focus='true'] .player-scene-stage__content{opacity:1}
+.player-presentation-frame .opening-scene .envelope-button{position:relative;z-index:1;cursor:pointer}
+
+.perception-echo{max-width:35ch;margin:1.8rem 0;color:#c6c6cc;line-height:2.1;animation:appear .4s ease both}
+.perception-echo p{font-size:clamp(14px,1.5vw,18px);margin:0 0 .75rem}
+
+/* The train shudders once: effect only, not a pointer-intercepting animation layer. */
+.opening-scene__main:first-child{animation:immersive-train-shudder .23s ease .72s both}
+.player-presentation-frame .opening-scene .envelope{animation:immersive-object-emerge .8s cubic-bezier(.2,.8,.2,1) both}
+.player-presentation-frame .incoming-records{animation:immersive-object-emerge .6s ease both}
+.opening-scene__capture{appearance:none;border:0;border-bottom:1px solid #74747b;background:none;color:#bcbcc4;padding:.65rem 0;font:inherit;text-align:left;cursor:pointer;letter-spacing:.08em}
+.opening-scene__capture:hover,.opening-scene__capture:focus-visible{color:#fff;border-color:#d2d2d4}
+@keyframes immersive-train-shudder{0%,100%{transform:translateX(0)}25%{transform:translateX(3px)}70%{transform:translateX(-2px)}}
+@keyframes immersive-object-emerge{from{opacity:0;transform:translate3d(0,8px,0) rotate(-4deg)}to{opacity:1;transform:translate3d(0,0,0) rotate(-3deg)}}
+@media(prefers-reduced-motion:reduce){.opening-scene__main:first-child,.player-presentation-frame .opening-scene .envelope,.player-presentation-frame .incoming-records{animation:none!important}}
+
+/* A letter is an encounter in the darkness, not a centered form or document card. */
+.player-presentation-frame .reading-scene[data-record-id='letter'] .document-top{font-size:.7rem;letter-spacing:.16em;opacity:.44;justify-content:flex-end}
+.player-presentation-frame .reading-scene[data-record-id='letter'] h1{color:#89898c;font-size:clamp(.9rem,1.15vw,1.05rem);font-weight:400;margin:clamp(35px,8vh,90px) 0 clamp(42px,9vh,95px)}
+.player-presentation-frame .reading-scene[data-record-id='letter'] .document-lines p:first-child{width:fit-content;max-width:100%;clip-path:inset(0 100% 0 0);animation:immersive-letter-reveal .9s steps(6,end) .12s forwards}
+.player-presentation-frame .reading-scene[data-record-id='letter'] .document-lines p:last-child{color:#9c9da2;animation-delay:1.05s}
+@keyframes immersive-letter-reveal{to{clip-path:inset(0 0 0 0)}}
+@media(prefers-reduced-motion:reduce){.player-presentation-frame .reading-scene[data-record-id='letter'] .document-lines p:first-child{clip-path:none;animation:none!important}}
+
+/* v0.2 game viewport: the Player is a single screen, not a scrolling web document. */
+html, body, #root {height:100%; width:100%; overflow:hidden}
+.player-shell {height:100vh;height:100dvh;min-height:0;max-height:100dvh;overflow:hidden;}
+.player-header--minimal {flex:0 0 auto;min-height:48px;max-height:52px;padding:7px clamp(12px,3vw,38px);border:0;}
+.player-stage,.player-stage--reading {flex:1 1 auto;min-height:0;height:auto;width:100%;overflow:hidden!important;padding:0!important;align-items:stretch;justify-content:stretch;}
+.player-stage>.player-scene-stage {flex:1 1 auto;height:100%;min-height:0;max-height:100%;overflow:hidden}
+.player-scene-stage__content {height:100%;min-height:0;padding:clamp(62px,9vh,105px) clamp(16px,6vw,95px) clamp(18px,4vh,36px);}
+.player-presentation-frame {height:100%;min-height:0;overflow:hidden;background:#050506;}
+.player-presentation-frame>.scene-frame__content {height:100%;min-height:0;padding:0;overflow:hidden;}
+.player-presentation-frame .reading-scene {position:relative;max-width:none!important;width:100%;height:100%;overflow:hidden;isolation:isolate;}
+.player-presentation-frame .reading-scene .document-top,
+.player-presentation-frame .reading-scene h1,
+.player-presentation-frame .reading-scene .document-lines {max-width:min(55%,42ch);}
+.player-presentation-frame .reading-scene .document-lines {max-height:calc(100dvh - 315px);min-height:0;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#303037 transparent;}
+.player-presentation-frame .reading-scene .document-lines p {font-size:clamp(14px,1.45vw,19px);line-height:1.85;margin:0 0 14px;}
+.player-presentation-frame .reading-scene h1 {margin:clamp(14px,3.5vh,34px) 0 clamp(12px,3vh,25px);}
+.player-presentation-frame .reading-scene .document-top {padding:0 0 8px;}
+.player-presentation-frame .reading-scene .incoming-message-stage {max-width:none;}
+.player-presentation-frame .reading-scene[data-with-incoming='true'] .document-lines {opacity:.7;transition:opacity .2s}
+.player-presentation-frame .opening {height:100%;overflow:hidden;}
+@media(max-width:800px) {
+  .player-header--minimal {min-height:42px;max-height:46px;flex-direction:row;align-items:center;}
+  .player-scene-stage__content {padding:clamp(65px,10vh,84px) clamp(16px,5vw,30px) 8px;}
+  .player-presentation-frame .reading-scene .document-top,.player-presentation-frame .reading-scene h1,.player-presentation-frame .reading-scene .document-lines {max-width:100%}
+  .player-presentation-frame .reading-scene .document-lines {max-height:calc(61dvh - 155px);}
+  .player-presentation-frame .reading-scene[data-with-incoming='true'] .document-lines {max-height:calc(61dvh - 190px);}
+  .player-presentation-frame .reading-scene[data-with-incoming='true'] h1 {font-size:clamp(16px,2vw,21px);}
+  .player-presentation-frame .opening {width:100%}
+}
+@media(max-height:700px) {
+  .player-scene-stage__content {padding-top:58px;padding-bottom:8px}
+  .player-presentation-frame .reading-scene .document-lines {max-height:calc(100dvh - 255px)}
+}
+
+/* v0.3: narrative paging replaces the temporary document scroll fallback. */
+.player-presentation-frame .reading-scene .narration-beat-pager {width:min(55%,45ch);max-width:45ch;max-height:100%}
+.player-presentation-frame .reading-scene[data-with-incoming='true'] .narration-beat-pager {opacity:.78}
+.player-presentation-frame .reading-scene[data-record-id='letter'] .narration-beat-pager__page p:first-child {color:#ededee;font-size:clamp(18px,2vw,25px);letter-spacing:.08em}
+.player-presentation-frame .reading-scene[data-record-id='letter'] .narration-beat-pager__page p {clip-path:none;animation:none}
+/* Loop entry is a story choice. Avoid the browser's default gray form buttons. */
+.player-presentation-frame .mode-choice {width:min(780px,100%);max-width:780px;min-height:0;height:100%;margin:0 auto;display:flex;flex-direction:column;justify-content:center;gap:clamp(16px,4vh,32px);padding:clamp(10px,3vh,28px) 0;overflow:hidden}
+.player-presentation-frame .mode-choice__overture {font-size:clamp(14px,1.7vw,19px);color:#888891;letter-spacing:.1em;line-height:1.8;margin:0!important}
+.player-presentation-frame .mode-choice__question {margin:0;font-size:clamp(19px,2.5vw,30px);font-weight:400;line-height:1.7;letter-spacing:.07em;color:#e2e2e4;max-width:26ch}
+.player-presentation-frame .mode-choice__options {display:grid;gap:clamp(8px,1.5vh,16px);max-width:650px}
+.player-presentation-frame .mode-choice__option {appearance:none;border:0;border-left:2px solid transparent;background:#ffffff05;color:#d9d9dc;text-align:left;display:flex;flex-direction:column;align-items:flex-start;gap:6px;cursor:pointer;min-height:74px;width:100%;padding:12px clamp(14px,2vw,24px);font:inherit;transition:background .22s,border-color .22s,color .22s}
+.player-presentation-frame .mode-choice__option-title {font-size:clamp(15px,1.7vw,19px);letter-spacing:.07em}
+.player-presentation-frame .mode-choice__option small {color:#8d8e97;font-size:clamp(11px,1.1vw,13px);line-height:1.5;letter-spacing:.02em}
+.player-presentation-frame .mode-choice__option:hover:not(:disabled),.player-presentation-frame .mode-choice__option:focus-visible {background:#ffffff12;border-left-color:#d2d2d8;color:#fff;outline-offset:3px}
+.player-presentation-frame .mode-choice__option:disabled {opacity:.35;background:transparent;border-left-color:transparent;cursor:not-allowed}
+.player-presentation-frame .mode-choice__option:disabled small {color:#777783}
+@media(max-width:800px){
+ .player-presentation-frame .reading-scene .narration-beat-pager {width:100%;max-width:100%;}
+ .player-presentation-frame .mode-choice {justify-content:center;padding:10px 0;}
+ .player-presentation-frame .mode-choice__options {max-width:100%}
+ .player-presentation-frame .mode-choice__question {font-size:clamp(17px,4vw,24px)}
+}
+@media(max-height:640px){
+ .player-presentation-frame .mode-choice {gap:12px}
+ .player-presentation-frame .mode-choice__option {min-height:56px;padding:7px 13px;gap:1px}
+ .player-presentation-frame .mode-choice__overture {font-size:13px}
+}
+@media(prefers-reduced-motion:reduce){.player-presentation-frame .mode-choice__option {transition:none}}
+
+/* Fit the narrative alongside explicit timed choices without pushing the action off-screen. */
+.player-presentation-frame .reading-scene[data-has-dialogue='true'] .narration-beat-pager{height:min(19dvh,150px)}
+.player-presentation-frame .reading-scene[data-has-dialogue='true'] .dialogue-scene{margin:clamp(7px,1.7vh,15px) 0 0;max-width:min(55%,44ch)}
+.player-presentation-frame .reading-scene[data-has-dialogue='true'] .dialogue-scene__choices{margin-top:clamp(8px,1.5vh,16px);gap:4px}
+.player-presentation-frame .reading-scene[data-has-dialogue='true'] .dialogue-choice{padding:7px 4px}
+@media(max-width:800px){.player-presentation-frame .reading-scene[data-has-dialogue='true'] .dialogue-scene{max-width:100%}}
