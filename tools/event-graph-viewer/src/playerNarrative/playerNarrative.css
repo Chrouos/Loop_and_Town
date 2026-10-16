@@ -155,3 +155,72 @@ button { font: inherit; }
 @media (prefers-reduced-motion: reduce) {
   .narrative-previous, .ambient-prose, .character-drawer, .typing-cursor { animation: none; transition: none; }
 }
+
+/* NarrationBeatPager v0.1: one beat per viewport; no document scrolling. */
+html, body, #root { height: 100%; overflow: hidden; }
+.player-narrative-shell {
+  height: 100dvh;
+  min-height: 0;
+  grid-template-rows: minmax(44px, auto) minmax(0, 1fr) minmax(42px, auto);
+}
+.player-narrative-shell > .player-stage {
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+  justify-content: center;
+  padding: 12px 0;
+}
+.player-hud { padding: clamp(12px,2vh,22px) clamp(18px,3vw,30px); }
+.player-tools { justify-content: flex-end; padding: 8px clamp(18px,3vw,30px) 16px; }
+.player-tools button { font-size: 11px; opacity: .55; padding: 6px 8px; }
+.player-tools button:hover, .player-tools button:focus-visible { opacity: 1; }
+.narration-beat-pager {
+  min-height: 0;
+  width: 100%;
+  max-height: 100%;
+  display: grid;
+  grid-template-rows: minmax(0,1fr) auto;
+  gap: clamp(16px,4vh,42px);
+  cursor: pointer;
+  outline: none;
+}
+.narration-beat-pager:focus-visible { outline: 1px solid rgba(236,233,224,.5); outline-offset: 6px; }
+.narration-beat-pager__copy {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
+}
+.narration-beat-pager__copy p {
+  margin: 0;
+  font-size: clamp(17px,2.2vw,25px);
+  line-height: 1.9;
+  letter-spacing: .06em;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.narration-beat-pager__monologue { color: rgba(236,233,224,.75); }
+.narration-beat-pager__speaker {
+  margin-bottom: 18px;
+  font: 12px system-ui,sans-serif;
+  letter-spacing: .16em;
+  color: rgba(236,233,224,.55);
+}
+.narration-beat-pager__footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font: 11px system-ui,sans-serif;
+  color: rgba(236,233,224,.42);
+  letter-spacing: .09em;
+}
+.scene-transition { min-height: 0; max-height: 100%; display: flex; flex-direction: column; justify-content: center; }
+@media (max-width: 640px) {
+  .player-stage { width: calc(100vw - 36px); }
+  .narration-beat-pager__copy p { font-size: clamp(16px,4.2vw,20px); line-height: 1.8; }
+}
+@media (max-height: 520px) {
+  .narration-beat-pager__copy p { font-size: 15px; line-height: 1.55; }
+  .narration-beat-pager { gap: 8px; }
+}
