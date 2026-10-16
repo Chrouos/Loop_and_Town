@@ -270,5 +270,7 @@ it('renders Loop 2 survivor scenes without exposing author or relationship metad
   for (let n=0;n<20 && !screen.queryByRole('button',{name:/閱讀新消息：18:31 的另一個死者/});n++)
     await user.click(screen.getByRole('button',{name:'下一則消息'}));
   await user.click(screen.getByRole('button', { name: /閱讀新消息：18:31 的另一個死者/ }));
-  expect(screen.getByText(/找到陳柏勳/)).toBeDefined();
+  expect(screen.getByRole('heading', { name: /18:31 的另一個死者/ })).toBeDefined();
+  expect(screen.getByTestId('narration-beat-pager')).toBeDefined();
+  expect(readSave(storage, now()).loops[2].seenSceneIds).toContain('loop02_1831_doctor_death');
 });
