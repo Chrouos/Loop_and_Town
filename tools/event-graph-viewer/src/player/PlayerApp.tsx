@@ -21,6 +21,7 @@ import { recordById, staticPlayerRecords } from './story';
 import type { PlayerStoryBundle } from '../types/playerStory';
 import { projectPlayerPresentation } from './presentation/projectPlayerPresentation';
 import { PlayerSceneStage } from './ui/PlayerSceneStage';
+import { IncomingMessageStage } from './ui/IncomingMessageStage';
 import { getAudioPreference, setAudioPreference } from './ui/audioPreferences';
 import { FinalInvestigationScene } from './ui/FinalInvestigationScene';
 import { applyFinalStep, finalCorrection, finalInvestigationReady, type FinalStep } from './finalGameplay';
@@ -275,12 +276,12 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
           onCapture={lastPerceivedRecord && !loop.capture && !lastMemory ? () => capture(lastPerceivedRecord.id) : undefined}
           capturing={Boolean(loop.capture)}
           captured={Boolean(lastMemory)}
-        /> : <div className={`reading-scene attention-${loop.attention.phase}`} data-record-id={record?.id} key={`${clock.loop}:${record?.id}`}>
+        /> : <div className={`reading-scene attention-${loop.attention.phase}`} data-record-id={record?.id} data-with-incoming={incoming.length > 0 ? "true" : "false"} key={`${clock.loop}:${record?.id}`}>
         {lastPerceivedRecord && ['train-rustle','paper-word'].includes(lastPerceivedRecord.id) && <div className="perception-echo" role="status">{lastPerceivedRecord.body.map(line=><p key={line}>{line}</p>)}</div>}
         {loop.capture && <div className="memory-capture-status" role="status"><p>你正在把剛才的感覺留下來……</p></div>}
         {!loop.capture && lastPerceivedRecord && !lastMemory && <div className="memory-capture-prompt" role="status"><p>剛才那一幕還留在你心裡。</p><button onClick={() => capture(lastPerceivedRecord.id)}>捕捉這段記憶</button></div>}
         {!loop.capture && lastMemory && <div className="memory-capture-status" role="status"><p>已將「{lastMemory.title}」收進持久記憶。</p></div>}
-        {incoming.length > 0 && <div className="incoming-records" aria-label="新消息"><p>鎮上有新消息</p>{incoming.map(item => <button key={item.id} onClick={() => openRecord(item.id)}>閱讀新消息：{item.title}</button>)}</div>}
+        {incoming.length > 0 && <IncomingMessageStage messages={incoming} onRead={openRecord} />}
         {observingSpatialRecord ? <SpatialTextLayer script={observingSpatialRecord.spatialScript!} now={now} /> : record?.spatialScript && record.acquisition === 'presence' ? <SpatialTextLayer script={record.spatialScript} now={now} /> : <>
           <div className="document-top"><span>第 {clock.loop} 次今天</span><span>{record?.source}　／　{record?.formedAt}</span></div>
           <h1>{record?.title}</h1>

@@ -92,3 +92,37 @@ body,.player-shell{background:#050506}
 .player-presentation-frame .reading-scene[data-record-id='letter'] .document-lines p:last-child{color:#9c9da2;animation-delay:1.05s}
 @keyframes immersive-letter-reveal{to{clip-path:inset(0 0 0 0)}}
 @media(prefers-reduced-motion:reduce){.player-presentation-frame .reading-scene[data-record-id='letter'] .document-lines p:first-child{clip-path:none;animation:none!important}}
+
+/* v0.2 game viewport: the Player is a single screen, not a scrolling web document. */
+html, body, #root {height:100%; width:100%; overflow:hidden}
+.player-shell {height:100vh;height:100dvh;min-height:0;max-height:100dvh;overflow:hidden;}
+.player-header--minimal {flex:0 0 auto;min-height:48px;max-height:52px;padding:7px clamp(12px,3vw,38px);border:0;}
+.player-stage,.player-stage--reading {flex:1 1 auto;min-height:0;height:auto;width:100%;overflow:hidden!important;padding:0!important;align-items:stretch;justify-content:stretch;}
+.player-stage>.player-scene-stage {flex:1 1 auto;height:100%;min-height:0;max-height:100%;overflow:hidden}
+.player-scene-stage__content {height:100%;min-height:0;padding:clamp(62px,9vh,105px) clamp(16px,6vw,95px) clamp(18px,4vh,36px);}
+.player-presentation-frame {height:100%;min-height:0;overflow:hidden;background:#050506;}
+.player-presentation-frame>.scene-frame__content {height:100%;min-height:0;padding:0;overflow:hidden;}
+.player-presentation-frame .reading-scene {position:relative;max-width:none!important;width:100%;height:100%;overflow:hidden;isolation:isolate;}
+.player-presentation-frame .reading-scene .document-top,
+.player-presentation-frame .reading-scene h1,
+.player-presentation-frame .reading-scene .document-lines {max-width:min(55%,42ch);}
+.player-presentation-frame .reading-scene .document-lines {max-height:calc(100dvh - 315px);min-height:0;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#303037 transparent;}
+.player-presentation-frame .reading-scene .document-lines p {font-size:clamp(14px,1.45vw,19px);line-height:1.85;margin:0 0 14px;}
+.player-presentation-frame .reading-scene h1 {margin:clamp(14px,3.5vh,34px) 0 clamp(12px,3vh,25px);}
+.player-presentation-frame .reading-scene .document-top {padding:0 0 8px;}
+.player-presentation-frame .reading-scene .incoming-message-stage {max-width:none;}
+.player-presentation-frame .reading-scene[data-with-incoming='true'] .document-lines {opacity:.7;transition:opacity .2s}
+.player-presentation-frame .opening {height:100%;overflow:hidden;}
+@media(max-width:800px) {
+  .player-header--minimal {min-height:42px;max-height:46px;flex-direction:row;align-items:center;}
+  .player-scene-stage__content {padding:clamp(65px,10vh,84px) clamp(16px,5vw,30px) 8px;}
+  .player-presentation-frame .reading-scene .document-top,.player-presentation-frame .reading-scene h1,.player-presentation-frame .reading-scene .document-lines {max-width:100%}
+  .player-presentation-frame .reading-scene .document-lines {max-height:calc(61dvh - 155px);}
+  .player-presentation-frame .reading-scene[data-with-incoming='true'] .document-lines {max-height:calc(61dvh - 190px);}
+  .player-presentation-frame .reading-scene[data-with-incoming='true'] h1 {font-size:clamp(16px,2vw,21px);}
+  .player-presentation-frame .opening {width:100%}
+}
+@media(max-height:700px) {
+  .player-scene-stage__content {padding-top:58px;padding-bottom:8px}
+  .player-presentation-frame .reading-scene .document-lines {max-height:calc(100dvh - 255px)}
+}

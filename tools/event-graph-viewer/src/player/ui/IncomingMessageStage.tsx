@@ -38,8 +38,9 @@ export function IncomingMessageStage({ messages, onRead, label = '鎮上新消�
   }, [api, ids]);
 
   const go = (direction: 'previous' | 'next') => {
-    if (direction === 'previous') api?.scrollPrev();
-    else api?.scrollNext();
+    const next = Math.max(0, Math.min(messages.length - 1, selectedIndex + (direction === 'previous' ? -1 : 1)));
+    setSelectedIndex(next);
+    api?.scrollTo(next);
   };
   function onKeyDown(event: KeyboardEvent<HTMLElement>) {
     if (event.altKey || event.ctrlKey || event.metaKey) return;
