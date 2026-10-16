@@ -59,3 +59,15 @@ body,.player-shell{background:#050506}
 .player-presentation-frame .dialogue-choice{border-color:#404048;color:#d9d9dc}
 .player-presentation-frame .dialogue-choice:hover{border-color:#a6a6ae}
 .player-utility-trigger{position:relative;z-index:8}
+
+/* In-world text: the words themselves are hit targets, not underlined links. */
+.opening-scene__main{font-size:clamp(18px,2vw,24px);max-width:35ch;line-height:2.1;letter-spacing:.07em}
+.opening-scene__aside{color:#8c8e94;font-size:clamp(12px,1.2vw,15px)!important;opacity:.8}
+.inline-text-target{appearance:none;display:inline;color:inherit;border:0;background:none;padding:0 .12em;margin:0;font:inherit;line-height:inherit;letter-spacing:inherit;cursor:pointer;border-radius:2px;text-decoration:none;box-shadow:none;transition:color .24s,text-shadow .24s}
+.inline-text-target:hover,.inline-text-target:focus-visible,.inline-text-target[aria-pressed='true']{color:#f5f5f4;text-shadow:0 0 14px #aaaab356;outline:1px dotted #777985;outline-offset:3px}
+.opening-scene[data-inline-focus='true'] .opening-scene__main:not(:has(.inline-text-target)){opacity:.34}
+.opening-scene[data-inline-focus='true'] .opening-scene__aside{opacity:.2}
+.opening-scene__observation{margin:2.4rem 0 .5rem;max-width:34ch;color:#cbcbcf;line-height:2.1;animation:appear .45s ease both}
+.opening-scene__observation p{margin:0 0 .65rem}
+.player-scene-stage[data-inline-focus='true'] .player-scene-stage__content{opacity:1}
+.player-presentation-frame .opening-scene .envelope-button{position:relative;z-index:1;cursor:pointer}
