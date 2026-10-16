@@ -52,3 +52,26 @@
 .player-shell--immersive .reading-scene--immersive .station-travel button:hover{border-color:#cbb892;color:#fff}
 .player-shell--immersive .reading-scene--immersive .excerpts{margin-top:24px}
 @media(max-height:650px){.player-shell--immersive .player-scene-stage__content{padding-top:64px;padding-bottom:12px}}
+
+/* Incoming updates belong in the HUD, never in the narration column. */
+.player-shell--immersive .reading-scene--immersive{position:relative}
+.player-shell--immersive .incoming-records--quiet{
+  position:fixed; z-index:4; top:86px; right:clamp(20px,4vw,60px);
+  width:max-content; max-width:min(260px,calc(100vw - 40px));
+  padding:10px 12px; margin:0; border:0; border-left:1px solid #637162;
+  background:rgba(8,15,11,.83); backdrop-filter:blur(8px);
+  display:flex; align-items:center; gap:14px;
+  color:#a8b3a7; font:11px system-ui,sans-serif; letter-spacing:.04em;
+}
+.player-shell--immersive .incoming-records--quiet span{white-space:nowrap}
+.player-shell--immersive .incoming-records--quiet button{
+  width:auto; border:0; padding:4px 0; background:transparent; color:#dfd9c6;
+  font:inherit; text-align:right; white-space:nowrap;
+}
+.player-shell--immersive .incoming-records--quiet button:hover{color:#fff}
+@media(max-width:700px){
+  .player-shell--immersive .incoming-records--quiet{
+    top:91px; right:16px; max-width:calc(100vw - 32px);
+    padding:6px 10px; gap:8px; font-size:10px;
+  }
+}
