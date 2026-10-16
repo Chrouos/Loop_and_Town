@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import './narrationBeatPager.css';
 
@@ -56,6 +56,7 @@ export function NarrationBeatPager({ lines, recordId, compact = false }: Props) 
   const box = useRef<HTMLDivElement>(null);
   const [limits, setLimits] = useState({ width: 0, height: 0 });
   const [pageIndex, setPageIndex] = useState(0);
+  const [fitRatio, setFitRatio] = useState(1);
   const reducedMotion = useReducedMotion();
 
   useEffect(() => {
@@ -71,15 +72,27 @@ export function NarrationBeatPager({ lines, recordId, compact = false }: Props) 
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => { setFitRatio(1); }, [recordId, limits.width, limits.height]);
+
   const capacity = useMemo(() => {
     if (!limits.width || !limits.height) return 72;
     const columns = Math.max(6, Math.floor(limits.width / (compact ? 19 : 20)));
     const rows = Math.max(2, Math.floor((limits.height - 22) / (compact ? 34 : 38)));
     // Leave breathing room around paragraphs and animations.
-    return Math.max(12, Math.floor(columns * rows * 0.7));
-  }, [limits, compact]);
+    return Math.max(12, Math.floor(columns * rows * 0.7 * fitRatio));
+  }, [limits, compact, fitRatio]);
   const pages = useMemo(() => paginateNarration(lines, capacity), [lines, capacity]);
   const index = Math.min(pageIndex, pages.length - 1);
+
+  // Real browser typography wins over the estimate. Shrink beats before clipping any text.
+  useLayoutEffect(() => {
+    const viewport = box.current;
+    const current = viewport?.querySelector<HTMLElement>('.narration-beat-pager__page');
+    if (!viewport || !current || viewport.clientHeight <= 0 || capacity <= 12) return;
+    if (current.scrollHeight > viewport.clientHeight + 2) {
+      setFitRatio(ratio => Math.max(0.15, ratio * 0.72));
+    }
+  }, [capacity, pages, index]);
 
   useEffect(() => { setPageIndex(0); }, [recordId]);
   const previous = () => setPageIndex(value => Math.max(0, value - 1));

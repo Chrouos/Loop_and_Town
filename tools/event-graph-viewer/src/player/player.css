@@ -155,3 +155,10 @@ html, body, #root {height:100%; width:100%; overflow:hidden}
  .player-presentation-frame .mode-choice__overture {font-size:13px}
 }
 @media(prefers-reduced-motion:reduce){.player-presentation-frame .mode-choice__option {transition:none}}
+
+/* Fit the narrative alongside explicit timed choices without pushing the action off-screen. */
+.player-presentation-frame .reading-scene[data-has-dialogue='true'] .narration-beat-pager{height:min(19dvh,150px)}
+.player-presentation-frame .reading-scene[data-has-dialogue='true'] .dialogue-scene{margin:clamp(7px,1.7vh,15px) 0 0;max-width:min(55%,44ch)}
+.player-presentation-frame .reading-scene[data-has-dialogue='true'] .dialogue-scene__choices{margin-top:clamp(8px,1.5vh,16px);gap:4px}
+.player-presentation-frame .reading-scene[data-has-dialogue='true'] .dialogue-choice{padding:7px 4px}
+@media(max-width:800px){.player-presentation-frame .reading-scene[data-has-dialogue='true'] .dialogue-scene{max-width:100%}}
