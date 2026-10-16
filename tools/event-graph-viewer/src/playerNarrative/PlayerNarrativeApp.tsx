@@ -11,7 +11,8 @@ import { ActivitySurface } from './components/ActivitySurface';
 import { ArtifactSurface } from './components/ArtifactSurface';
 import { CharacterDrawer } from './components/CharacterDrawer';
 import { ChoiceSurface } from './components/ChoiceSurface';
-import { NarrativeSurface, type PlaybackPhase } from './components/NarrativeSurface';
+import type { PlaybackPhase } from './components/NarrativeSurface';
+import { NarrationBeatPager } from './components/NarrationBeatPager';
 import { SceneTransition } from './components/SceneTransition';
 import { IdleSurface } from './components/IdleSurface';
 import { projectCharacterMemory } from '../narrative/characterMemory';
@@ -229,9 +230,8 @@ export function PlayerNarrativeApp({ story }: PlayerNarrativeAppProps) {
           >
             {playback && activeBlock ? (
               <>
-            <NarrativeSurface
+            <NarrationBeatPager
               block={activeBlock}
-              previousBlocks={previousBlocks}
               phase={playback.phase}
               revealedCharacters={playback.revealedCharacters}
               speakerNames={speakerNames}
