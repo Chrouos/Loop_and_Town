@@ -58,8 +58,11 @@ export function IncomingMessageStage({ messages, onRead, label = '鎮上新消�
       <div className="incoming-message-stage__viewport" ref={viewport}>
         <div className="incoming-message-stage__track">
           {messages.map((item, index) => (
-            <article className="incoming-message-stage__slide" key={item.id}
-              aria-hidden={index !== active} data-active={index === active ? 'true' : 'false'}>
+            <motion.article className="incoming-message-stage__slide" key={item.id}
+              aria-hidden={index !== active} data-active={index === active ? 'true' : 'false'}
+              initial={false}
+              animate={{ opacity: index === active ? 1 : 0.5 }}
+              transition={{ duration: reducedMotion ? 0 : 0.25 }}>
               <small className="incoming-message-stage__source">{item.source}　·　{item.formedAt}</small>
               <h2>{item.title}</h2>
               <p className="incoming-message-stage__hint">有人留下了一段訊息。</p>
@@ -67,7 +70,7 @@ export function IncomingMessageStage({ messages, onRead, label = '鎮上新消�
                 aria-label={`閱讀新消息：${item.title}`}
                 tabIndex={index === active ? 0 : -1}
                 onClick={() => onRead(item.id)}>閱讀這段訊息 <span aria-hidden="true">↗</span></button>
-            </article>
+            </motion.article>
           ))}
         </div>
       </div>
