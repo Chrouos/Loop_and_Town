@@ -423,3 +423,104 @@ PlayerApp (single source of truth)
 - `docs/player-final-playable-spec.md`：既有 P0–P4 可玩機制，不隨黑幕重設。
 - `tools/event-graph-viewer/src/player/{PlayerApp.tsx,attention.ts,knowledge.ts}`。
 - `tools/event-graph-viewer/src/player/ui/{PlayerSceneStage.tsx,PlayerAmbientLayer.tsx,TypewriterText.tsx}`。
+
+## 14. 100dvh Game Viewport / 遊戲套件選擇（v0.2 附錄）
+
+> **Decision：保留 React DOM 敘事層，優先採用 Motion for React；需要真實 Sprite/Camera 時再掛 Phaser 4 Canvas。** 保留 `PlayerApp` / `Worldline` / `Attention` / `Save` 的既有資料與語意，不將它們移進 Phaser 的時間系統。本節是接下來的實作規格，不代表套件已安裝或 UI 已完成。
+
+### 14.1 技術責任邊界
+
+```text
+Existing Story YAML / Event Graph / World Clock / NPC Schedules
+               ↓ (authoritative; no duplicate time engine)
+       Player Runtime / Attention / Memory
+               ↓
+       PlayerPresentationModel (pure)
+               ↓
+┌──────────────── GameViewport 100dvh ─────────────────┐
+│  Phaser 4 Stage, optional lazy-mounted                │
+│     black canvas / tiny shake / props / sprites      │
+│  (decorative, no narration click handler by default) │
+│                                                       │
+│  React DOM + Motion                                   │
+│     NarrationBeat + InlineTextTarget                  │
+│     AmbientCue + FocusSurface                         │
+│     IncomingMessageCarousel / ChoiceList             │
+│     HUD + accessibility / keyboard / touch           │
+└───────────────────────────────────────────────────────┘
+               ↘ Player Actions → Runtime validation
+```
+
+**採用順序**
+- **Motion for React**（`motion` → `motion/react`）：取代散落的 fade、list enter/exit、訊息換頁、物件從黑幕浮出等自製 keyframes／timers。相容現有 React 18（需 18.2+），不用為此升 React 19。以 `AnimatePresence` 與變體動畫呈現已被 Runtime 決定的狀態；效果完成不能當作 World Time 前進條件。
+- **Phaser 4**（後續按需載入）：有確實的 2D 場景、鏡頭 shake/fade、遮光、Sprite 等需求再放入 Canvas，優先使用官方 Scale Manager 的 `FIT`／`RESIZE` 和 Camera Effects。**不要用 Phaser 重做中文字排版、原生可點字詞、存檔、NPC clock 或推理牆。** 現有 React 18 無須直接套用以 React 19 為基礎的整套 Phaser 範本；建立小型 Phaser/React adapter 即可。
+- **Howler.js**（可選）：真正需要播放雨聲、紙聲、環境音時再加入，並保留等價文字 Cue。Muted / Reduce Motion / autoplay 授權要處理。
+- **PixiJS + @pixi/react**：本階段**不採用**；與 Phaser 功能重疊，且目前 `@pixi/react` v8 要求 React 19，不應為了背景渲染先做主框架升級。
+- **inkjs / XState**：這輪**不採用**；既有 Event Graph、Worldline/Attention 已是權威狀態，另加故事／狀態引擎會製造雙資料來源。
+
+### 14.2 固定遊戲視窗不是把文字截掉
+
+- `html` / `body` / `#root` / `PlayerShell` 作為全視窗 App shell。舞台以 `height: 100dvh`（備援 `100vh`）及 safe-area inset 維持單屏；`overflow: hidden` 僅對**一般遊戲舞台**，避免整頁捲軸。
+- HUD、當前主要 Narration/選擇與 Ambient 的佈局採固定 spatial slots；每個 slot 有最大高度／行數，事件不可讓舞台隨數量往下長。
+- **敘事內容絕不能被無聲截斷。** 長台詞按作者 `NarrationBeat` 或頁面段落分段；玩家可以向前／向後查看自己已感知的段落，但不可倒轉 Event Clock 或追回已錯失的 NPC 情報。
+- 工具／存檔／推理牆是玩家**主動打開的 Overlay / full-screen subscene**，如內容特別長，可以在工具內局部捲動／Pan；「玩家在遊戲場景中不滾輪」不等於禁止閱讀輔助或拖曳證據板。
+- 行動裝置需注意瀏覽器動態工具列，測試 `390×844`、`360×640`、桌機 `1366×768` 和 `1920×1080`，文字放大仍必須完整讀到。
+- Phaser Canvas 應在文字 DOM 底下並 `pointer-events: none`，除非某特定 Scene Prop 明確交由 Phaser 接收輸入。不能再出現全屏 hitbox 遮住文字。
+
+### 14.3 「鎮上有新消息」：主事件 + 有限次事件，不再是網頁長列表
+
+目前 `PlayerApp.tsx` 把所有 `incoming` 直接以一連串 `button` 塞到 `.incoming-records`，造成畫面越來越長。**新模型**：
+
+```text
+┌──────────────────────────────────────────────┐
+│ LOOP 01                            16:10     │
+│                                              │
+│                                              │
+│     你聽見手機震了一下。                     │
+│                                              │
+│     若晴還活著                                │
+│     「這次我沒有去舊站……」                   │
+│                                              │
+│     讀這段訊息                                │
+│                                              │
+│                              01 / 05         │
+│                  ◂ 上一則    下一則 ▸        │
+│                                              │
+│     ……腳步聲                                 │
+└──────────────────────────────────────────────┘
+```
+
+- 以獨立 `IncomingMessageStage` 呈現**當前一則**訊息，最多顯示 2–3 個低對比的同類入口（大螢幕）；手機只呈現 1 則與 `1 / N`。
+- `Motion AnimatePresence mode="wait"` 做訊息切換與淡入淡出；不要顯示十條長分隔線。一次只有一個 Focusable 主要訊息內容，並有明確「閱讀／略過」。
+- 按 `←/→`、`A/D` 或手指滑動切換訊息候選（避免干擾正在操作的文字或推理牆）；Enter / Tap 執行 `openRecord(id)`。鍵盤 Tab/Screen Reader 仍可找到所有合法命令。
+- `IncomingMessageStage` 是**玩家視圖投影**。資料來自現有 `incoming` 與 `records`，切換只改目前顯示哪則；按「閱讀」後仍走已驗證的 `openRecord`，不可因換頁偷偷 Mark Seen。
+- 過量訊息可以分群或 `1/N` 換頁，但不能刪除本來合法可存取的訊息。對有真正世界期限的 Cue 而言，切頁或展開不能延長感知期限。
+- 黑幕旁的 Ambient Cue 繼續獨立存在；**消息不是 ambient cue**，不能混成玩家只看了一眼就取得完整 Perception。
+- Hover 在 `IncomingMessageStage` 中只是 UI 選取／預覽，不應與 Attention 的真實 Observe 混為一談。要觀察世界聲音必須進入現有 `attendPresenceRecord`。
+
+### 14.4 Transition / Behavior 契約
+
+| 場景 | 用何套件 | 必須保障 |
+| --- | --- | --- |
+| 新消息到來 / 換頁 | Motion `AnimatePresence` | 進退場不丟失未讀訊息；focus management |
+| 訊息預覽高亮 | Motion `motion.button` | 不能無聲觸發 Player Attention/World Clock |
+| 開場逐句／信件浮現 | Motion + existing Text DOM | 字詞本身仍能 Tab/Click |
+| 純黑背景震動／鏡頭 | 可選 Phaser Camera | Reduced Motion；不阻擋輸入 |
+| 文本「沙沙——」 | React DOM / Motion | 真正點擊後呼叫 Attend |
+| 真實音效 | 可選 Howler | 預設不強制播放、無音效不漏線索 |
+
+### 14.5 Done Definition（後續實作）
+
+- 普通主舞台在桌機與手機皆無 document vertical scroll、也不會因 20 則未讀增高。
+- 讀取 1/20 到 20/20 都在同一個 viewport；不重排其他世界事件、不掉字、不偷讀。
+- 手機、鍵盤與滑鼠均能切換／閱讀，無 hover-only 操作。
+- Motion `prefers-reduced-motion` 時立即完整顯示相同內容；不改 Attention / World Clock。
+- 不新增重複的 Gameplay Clock / Event Graph / Save，並完整通過既有 player、first loop 與 final gameplay CI。
+- 畫面與實際操作必須經瀏覽器檢查，僅改 spec 或 CI Green 不等於修好。
+
+### 14.6 官方資料
+- Motion：`https://motion.dev/docs/react`
+- Phaser Scale Manager：`https://docs.phaser.io/phaser/concepts/scale-manager`
+- Phaser Camera：`https://docs.phaser.io/api-documentation/class/cameras-scene2d-camera`
+- Phaser React TS Template：`https://github.com/phaserjs/template-react-ts`
+- Howler：`https://howlerjs.com/`

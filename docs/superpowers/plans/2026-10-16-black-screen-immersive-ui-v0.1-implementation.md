@@ -129,3 +129,19 @@ P5 開場 vertical slice 驗收，才大量擴充 Story
 - 唯一玩家記憶機制：`Attention → Perceived Moment → optional Memory Capture → Memory Library / Investigation Wall`。
 - 歷史 `knowledge.pins` 保留並照常顯示於推理牆；支援連線與移出，不把它們強制轉成已 Capture 的記憶。
 - 回歸測試確認：讀信不會額外要求選句、不會自動新增 pins；舊 pins / 連線 / 座標重載後仍在，移除 pin 時清理依賴連線。
+
+## P6｜100dvh 單屏舞台 + 成熟套件輔助（已定架構；**尚未實作**）
+
+將規格補充於本分支 `2026-10-16-black-screen-immersive-ui-interaction-v0.1-design.md §14`。
+
+**優先採用：**`motion`（Motion for React 18）。之後才視需求掛載 `phaser` 4 Canvas，真實音效需求出現時再加入 `howler`。不用 Pixi/Phaser 雙引擎，不在本階段引進 Ink/XState 第二套故事時鐘。
+
+執行切分：
+
+1. **P6A dependency & motion primitive**：透過 `npm install motion` 產生可重現的 lock file；`npm ci` + Test + Build 都須通過。以 Motion 替代新消息換頁、文字 Focus 淡化、信件浮出的自製動畫。
+2. **P6B 100dvh shell**：`PlayerShell` 的 HUD / main / spatial cue 用固定 slot；全場景 no-scroll，內容用 NarrativeBeat 或輪替而非裁剪。
+3. **P6C 新消息舞台**：將現有 `incoming.map(...button)` 改成 `IncomingMessageStage`，一則主要事件 + 1/N + 左右切換；保留 `openRecord`、未讀狀態、World Time，其他類型 Ambient 獨立。
+4. **P6D Phaser spike（選擇性）**：只有在文字視覺已好用但仍需鏡頭、Sprite、場景演出時，建立 lazy-mounted Phaser 4 Scene Layer 的小型 PoC；使用官方 Scale / Camera，不另造物理世界時鐘。
+5. **P6E 實機驗收**：至少 1366×768、1920×1080、390×844、360×640；20 筆未讀、長篇中文字、鍵盤/觸控、Reduced Motion、重載/輪迴/存檔，均無頁面滾輪或文字遺失。
+
+**注意：**本次規格提交沒有修改 React 依賴或遊戲畫面；要實際使用 Motion 必須同時提交 `package.json` 與 `package-lock.json`，不可只改 package.json 導致 `npm ci` 失敗。保留 PR #25 Draft，待實際 UI/瀏覽器驗收才判斷可 Merge。
