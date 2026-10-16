@@ -11,7 +11,8 @@ import { ActivitySurface } from './components/ActivitySurface';
 import { ArtifactSurface } from './components/ArtifactSurface';
 import { CharacterDrawer } from './components/CharacterDrawer';
 import { ChoiceSurface } from './components/ChoiceSurface';
-import { NarrativeSurface, type PlaybackPhase } from './components/NarrativeSurface';
+import type { PlaybackPhase } from './components/NarrativeSurface';
+import { NarrationBeatPager } from './components/NarrationBeatPager';
 import { SceneTransition } from './components/SceneTransition';
 import { IdleSurface } from './components/IdleSurface';
 import { projectCharacterMemory } from '../narrative/characterMemory';
@@ -43,7 +44,6 @@ export function PlayerNarrativeApp({ story }: PlayerNarrativeAppProps) {
   const [nowMs, setNowMs] = useState(() => Date.now());
   const [session, setSession] = useState<PlayerSessionV3>(() => readPlayerSession(window.localStorage, Date.now()));
   const [playback, setPlayback] = useState<PlaybackState | null>(null);
-  const [previousBlocks, setPreviousBlocks] = useState<NarrativeBlock[]>([]);
   const [sceneKey, setSceneKey] = useState<string | null>(null);
   const [ambientText, setAmbientText] = useState<string | undefined>();
   const [charactersOpen, setCharactersOpen] = useState(false);
@@ -76,14 +76,12 @@ export function PlayerNarrativeApp({ story }: PlayerNarrativeAppProps) {
   useEffect(() => {
     if (!scene) {
       setPlayback(null);
-      setPreviousBlocks([]);
-      return;
+        return;
     }
     if (sceneKey !== scene.id) {
       setSceneKey(scene.id);
       setPlayback({ sceneId: scene.id, beatIndex: 0, phase: 'typing', revealedCharacters: 0 });
-      setPreviousBlocks([]);
-    }
+      }
   }, [scene, sceneKey]);
 
   useEffect(() => {
@@ -125,7 +123,6 @@ export function PlayerNarrativeApp({ story }: PlayerNarrativeAppProps) {
     persist(resumeWorld({ ...settled, consumedSceneIds: consumed }, Date.now()));
     setSceneKey(null);
     setPlayback(null);
-    setPreviousBlocks([]);
   }
 
   function choose(choiceId: string) {
@@ -140,7 +137,6 @@ export function PlayerNarrativeApp({ story }: PlayerNarrativeAppProps) {
     persist(resumeWorld({ ...applied, consumedSceneIds }, Date.now()));
     setSceneKey(null);
     setPlayback(null);
-    setPreviousBlocks([]);
     setAmbientText(undefined);
   }
 
@@ -194,7 +190,6 @@ export function PlayerNarrativeApp({ story }: PlayerNarrativeAppProps) {
     }
 
     if (playback.beatIndex < readableBlocks.length - 1) {
-      setPreviousBlocks((current) => [...current, activeBlock].slice(-2));
       setPlayback({
         sceneId: scene.id,
         beatIndex: playback.beatIndex + 1,
@@ -210,7 +205,7 @@ export function PlayerNarrativeApp({ story }: PlayerNarrativeAppProps) {
   function handleStageClick(event: MouseEvent<HTMLElement>) {
     const target = event.target;
     if (target instanceof Element && target.closest('button, a, input, textarea, select')) return;
-    if (target instanceof Element && target.closest('.narrative-surface')) return;
+    if (target instanceof Element && target.closest('.narration-beat-pager, .artifact-surface, .choice-surface')) return;
     advanceNarrative();
   }
 
@@ -229,9 +224,9 @@ export function PlayerNarrativeApp({ story }: PlayerNarrativeAppProps) {
           >
             {playback && activeBlock ? (
               <>
-            <NarrativeSurface
+            <NarrationBeatPager
+              key={`${scene.id}:${playback.beatIndex}`}
               block={activeBlock}
-              previousBlocks={previousBlocks}
               phase={playback.phase}
               revealedCharacters={playback.revealedCharacters}
               speakerNames={speakerNames}

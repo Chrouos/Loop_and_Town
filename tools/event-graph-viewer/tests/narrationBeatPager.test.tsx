@@ -1,0 +1,57 @@
+import { fireEvent, render, screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
+import { NarrationBeatPager, narrationPageCapacity, pageIndexForOffset, splitNarrationPages } from '../src/playerNarrative/components/NarrationBeatPager';
+
+describe('NarrationBeatPager', () => {
+  it('preserves the absolute reading position after repagination', () => {
+    const text = '月台上的腳步聲。'.repeat(30);
+    const before = splitNarrationPages(text, 105);
+    const after = splitNarrationPages(text, 38);
+    const anchor = before[0].length;
+    const index = pageIndexForOffset(after, anchor);
+    const start = after.slice(0, index).join('').length;
+    const end = start + after[index].length;
+    expect(start).toBeLessThanOrEqual(anchor);
+    expect(end).toBeGreaterThan(anchor);
+  });
+  it('fits smaller pages on compact screens', () => {
+    expect(narrationPageCapacity(390, 600)).toBe(38);
+    expect(narrationPageCapacity(1366, 768)).toBe(105);
+    expect(narrationPageCapacity(390, 480)).toBe(24);
+  });
+  it('keeps every character in order when breaking long text', () => {
+    const text = '月台上的腳步聲。'.repeat(40);
+    expect(splitNarrationPages(text, 30).join('')).toBe(text);
+    expect(splitNarrationPages(text, 30).every(page => page.length <= 30)).toBe(true);
+  });
+
+  it('reveals current page before changing pages or advancing beats', () => {
+    const text = '鐘聲響起。'.repeat(28);
+    const pages = splitNarrationPages(text);
+    const reveal = vi.fn();
+    const advance = vi.fn();
+    const props = {
+      block: { type: 'narration' as const, text },
+      phase: 'typing' as const,
+      revealedCharacters: 0,
+      onReveal: reveal,
+      onAdvance: advance,
+    };
+    const { rerender } = render(<NarrationBeatPager {...props} />);
+    const surface = screen.getByRole('region', { name: '故事敘事' });
+    fireEvent.click(surface);
+    expect(reveal).toHaveBeenCalledWith(pages[0].length);
+    expect(advance).not.toHaveBeenCalled();
+    rerender(<NarrationBeatPager {...props} revealedCharacters={pages[0].length} />);
+    fireEvent.click(surface);
+    expect(screen.getByText(`2 / ${pages.length}`)).not.toBeNull();
+    expect(advance).not.toHaveBeenCalled();
+  });
+
+  it('supports Enter as the same progression action', () => {
+    const advance = vi.fn();
+    render(<NarrationBeatPager block={{ type: 'narration', text: '結束。' }} phase="waiting" revealedCharacters={3} onReveal={() => undefined} onAdvance={advance} />);
+    fireEvent.keyDown(screen.getByRole('region', { name: '故事敘事' }), { key: 'Enter' });
+    expect(advance).toHaveBeenCalledTimes(1);
+  });
+});

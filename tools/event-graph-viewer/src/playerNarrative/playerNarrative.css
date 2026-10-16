@@ -155,3 +155,117 @@ button { font: inherit; }
 @media (prefers-reduced-motion: reduce) {
   .narrative-previous, .ambient-prose, .character-drawer, .typing-cursor { animation: none; transition: none; }
 }
+
+/* NarrationBeatPager v0.1: one beat per viewport; no document scrolling. */
+html, body, #root { height: 100%; overflow: hidden; }
+.player-narrative-shell {
+  height: 100dvh;
+  min-height: 0;
+  grid-template-rows: minmax(44px, auto) minmax(0, 1fr) minmax(42px, auto);
+}
+.player-narrative-shell > .player-stage {
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+  justify-content: center;
+  padding: 12px 0;
+}
+.player-hud { padding: clamp(12px,2vh,22px) clamp(18px,3vw,30px); }
+.player-tools { justify-content: flex-end; padding: 8px clamp(18px,3vw,30px) 16px; }
+.player-tools button { font-size: 11px; opacity: .55; padding: 6px 8px; }
+.player-tools button:hover, .player-tools button:focus-visible { opacity: 1; }
+.narration-beat-pager {
+  min-height: 0;
+  width: 100%;
+  max-height: 100%;
+  display: grid;
+  grid-template-rows: minmax(0,1fr) auto;
+  gap: clamp(16px,4vh,42px);
+  cursor: pointer;
+  outline: none;
+}
+.narration-beat-pager:focus-visible { outline: 1px solid rgba(236,233,224,.5); outline-offset: 6px; }
+.narration-beat-pager__copy {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
+}
+.narration-beat-pager__copy p {
+  margin: 0;
+  font-size: clamp(17px,2.2vw,25px);
+  line-height: 1.9;
+  letter-spacing: .06em;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.narration-beat-pager__monologue { color: rgba(236,233,224,.75); }
+.narration-beat-pager__speaker {
+  margin-bottom: 18px;
+  font: 12px system-ui,sans-serif;
+  letter-spacing: .16em;
+  color: rgba(236,233,224,.55);
+}
+.narration-beat-pager__footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font: 11px system-ui,sans-serif;
+  color: rgba(236,233,224,.42);
+  letter-spacing: .09em;
+}
+.scene-transition { min-height: 0; max-height: 100%; display: flex; flex-direction: column; justify-content: center; }
+@media (max-width: 640px) {
+  .player-stage { width: calc(100vw - 36px); }
+  .narration-beat-pager__copy p { font-size: clamp(16px,4.2vw,20px); line-height: 1.8; }
+}
+@media (max-height: 520px) {
+  .narration-beat-pager__copy p { font-size: 15px; line-height: 1.55; }
+  .narration-beat-pager { gap: 8px; }
+}
+
+/* Artifact and choices share the finite narrative viewport. */
+.artifact-surface { min-height:0; max-height: min(55dvh, 490px); margin:clamp(8px,2vh,22px) 0; }
+.letter-sheet,.artifact-sheet { max-height: min(55dvh, 490px); width:min(500px,100%); padding:clamp(16px,3vh,36px); overflow:hidden; }
+.artifact-paged-sheet { display:flex; flex-direction:column; gap:12px; justify-content:space-between; }
+.artifact-paged-sheet p { margin:0; white-space:pre-wrap; overflow-wrap:anywhere; font-size:clamp(15px,1.8vw,18px); line-height:1.65; }
+.artifact-page-controls { display:flex; align-items:center; justify-content:space-between; gap:16px; border-top:1px solid #998f79; padding-top:12px; color:#625748; font:12px system-ui,sans-serif; }
+.artifact-page-controls button { background:transparent; border:0; color:inherit; padding:7px 4px; }
+.artifact-page-controls button:disabled { opacity:.28; }
+.envelope-card { max-height:min(50dvh,310px); width:min(430px,100%); min-height:0; padding:clamp(16px,3vh,30px); }
+.choice-surface { min-height:0; max-height:32dvh; overflow-y:auto; overscroll-behavior:contain; scrollbar-width:thin; gap:4px; margin-top:clamp(10px,2vh,24px); }
+.choice-button { padding:clamp(8px,1.4vh,14px) 2px; font-size:clamp(14px,1.5vw,17px); }
+@media(max-height:620px) {
+  .artifact-surface { max-height:45dvh; }
+  .letter-sheet,.artifact-sheet { max-height:45dvh; }
+  .artifact-paged-sheet p { font-size:14px; line-height:1.45; }
+  .choice-surface { max-height:25dvh; }
+}
+
+/* Decision pagination: no nested scrollbar inside the game viewport. */
+.choice-surface { overflow:hidden; display:flex; flex-direction:column; max-height:min(34dvh,280px); }
+.choice-surface__items { min-height:0; display:grid; gap:3px; }
+.choice-button { line-height:1.35; padding:clamp(6px,1vh,11px) 2px; }
+.choice-pagination { display:flex; justify-content:space-between; align-items:center; font:11px system-ui,sans-serif; color:rgba(236,233,224,.55); padding-top:8px; }
+.choice-pagination button { border:0; background:transparent; color:inherit; padding:6px 4px; cursor:pointer; }
+.choice-pagination button:disabled { opacity:.25; cursor:default; }
+@media(max-height:620px) {
+  .choice-surface { max-height:30dvh; }
+  .choice-button { font-size:13px; }
+}
+
+/* Compact height: keep the narrative and controls in one viewport. */
+@media (max-height: 650px) {
+  .player-narrative-shell { grid-template-rows: 36px minmax(0,1fr) 32px; }
+  .player-hud { padding: 7px 18px; font-size: 11px; }
+  .player-narrative-shell > .player-stage { padding: 4px 0; }
+  .player-tools { padding: 2px 18px 7px; }
+  .narration-beat-pager { gap: 6px; }
+  .narration-beat-pager__copy p { font-size: clamp(14px, 2.6vh, 17px); line-height:1.55; }
+  .narration-beat-pager__speaker { margin-bottom: 6px; }
+  .choice-surface { max-height: 27dvh; }
+  .choice-button { font-size: 13px; line-height: 1.25; padding: 6px 2px; }
+  .artifact-surface { max-height: 45dvh; margin: 6px 0; }
+  .letter-sheet, .artifact-sheet { max-height: 45dvh; padding: 12px 16px; }
+}
