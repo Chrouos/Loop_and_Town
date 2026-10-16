@@ -279,7 +279,7 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
           onCapture={lastPerceivedRecord && !loop.capture && !lastMemory ? () => capture(lastPerceivedRecord.id) : undefined}
           capturing={Boolean(loop.capture)}
           captured={Boolean(lastMemory)}
-        /> : <div className={`reading-scene attention-${loop.attention.phase}`} key={`${clock.loop}:${record?.id}`}>
+        /> : <div className={`reading-scene attention-${loop.attention.phase}`} data-record-id={record?.id} key={`${clock.loop}:${record?.id}`}>
         {lastPerceivedRecord && ['train-rustle','paper-word'].includes(lastPerceivedRecord.id) && <div className="perception-echo" role="status">{lastPerceivedRecord.body.map(line=><p key={line}>{line}</p>)}</div>}
         {loop.capture && <div className="memory-capture-status" role="status"><p>你正在把剛才的感覺留下來……</p></div>}
         {!loop.capture && lastPerceivedRecord && !lastMemory && <div className="memory-capture-prompt" role="status"><p>剛才那一幕還留在你心裡。</p><button onClick={() => capture(lastPerceivedRecord.id)}>捕捉這段記憶</button></div>}

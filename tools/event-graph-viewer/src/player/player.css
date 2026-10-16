@@ -84,3 +84,11 @@ body,.player-shell{background:#050506}
 @keyframes immersive-train-shudder{0%,100%{transform:translateX(0)}25%{transform:translateX(3px)}70%{transform:translateX(-2px)}}
 @keyframes immersive-object-emerge{from{opacity:0;transform:translate3d(0,8px,0) rotate(-4deg)}to{opacity:1;transform:translate3d(0,0,0) rotate(-3deg)}}
 @media(prefers-reduced-motion:reduce){.opening-scene__main:first-child,.player-presentation-frame .opening-scene .envelope,.player-presentation-frame .incoming-records{animation:none!important}}
+
+/* A letter is an encounter in the darkness, not a centered form or document card. */
+.player-presentation-frame .reading-scene[data-record-id='letter'] .document-top{font-size:.7rem;letter-spacing:.16em;opacity:.44;justify-content:flex-end}
+.player-presentation-frame .reading-scene[data-record-id='letter'] h1{color:#89898c;font-size:clamp(.9rem,1.15vw,1.05rem);font-weight:400;margin:clamp(35px,8vh,90px) 0 clamp(42px,9vh,95px)}
+.player-presentation-frame .reading-scene[data-record-id='letter'] .document-lines p:first-child{width:fit-content;max-width:100%;clip-path:inset(0 100% 0 0);animation:immersive-letter-reveal .9s steps(6,end) .12s forwards}
+.player-presentation-frame .reading-scene[data-record-id='letter'] .document-lines p:last-child{color:#9c9da2;animation-delay:1.05s}
+@keyframes immersive-letter-reveal{to{clip-path:inset(0 0 0 0)}}
+@media(prefers-reduced-motion:reduce){.player-presentation-frame .reading-scene[data-record-id='letter'] .document-lines p:first-child{clip-path:none;animation:none!important}}

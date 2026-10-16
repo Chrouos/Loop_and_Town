@@ -34,3 +34,9 @@
 
 /* Keep ambient hit targets above all decorative and presentation layers. */
 .player-ambient-layer .player-ambient-layer__cue {position:relative;z-index:5;min-height:44px;min-width:70px}
+
+/* Keyboard action hints remain available, but do not live as a permanent toolbar. */
+.input-parity{opacity:.16;filter:grayscale(1);transition:opacity .2s;max-width:min(450px,calc(100% - 48px))}
+.input-parity:hover,.input-parity:focus-within{opacity:1;filter:none}
+.input-parity button{background:#050506b0;border-color:#44444b;color:#929299}
+.input-parity button:focus-visible{color:#fff;border-color:#9c9ca2}
