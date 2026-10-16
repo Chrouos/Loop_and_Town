@@ -27,7 +27,7 @@ describe('old pin saves remain readable without creating new pin choices',()=>{
   const onChange=vi.fn(),onNotice=vi.fn();
   render(<EvidenceBoard save={save} onChange={onChange} onNotice={onNotice}/>);
   expect(screen.getByText(/舊版保存的句子仍留在推理牆/)).toBeDefined();
-  expect(screen.getByText(/郵戳是昨天的；署名是林知夏/)).toBeDefined();
+  expect(screen.getAllByText(/郵戳是昨天的；署名是林知夏/).length).toBeGreaterThanOrEqual(2);
   expect(screen.getByText(/玩家連線/)).toBeDefined();
   const remove=screen.getAllByRole('button',{name:'移出'});
   await userEvent.setup().click(remove[0]);
