@@ -44,6 +44,20 @@ jobs:
         run: |
           test -s dist/index.html
           test -s dist/player.html
+      - name: Build PR preview with its real Pages asset path
+        if: github.event_name == 'pull_request'
+        env:
+          LOOP_TOWN_BASE: /Loop_and_Town/previews/pr-${{ github.event.pull_request.number }}/
+        run: npm run build
+      - name: Verify PR preview assets
+        if: github.event_name == 'pull_request'
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          test -s dist/player.html
+          test -s dist/story/manifests/loop_01.yaml
+          grep -q "/Loop_and_Town/previews/pr-${PR_NUMBER}/assets/" dist/player.html
+          grep -q "/Loop_and_Town/previews/pr-${PR_NUMBER}/assets/" dist/index.html
       - name: Archive PR preview build
         if: github.event_name == 'pull_request'
         uses: actions/upload-artifact@v4
