@@ -14,6 +14,7 @@ import { ResetTransitionScene } from './scenes/ResetTransitionScene';
 import { DialogueScene } from './scenes/DialogueScene';
 import { OpeningScene } from './scenes/OpeningScene';
 import { SceneFrame } from './ui/SceneFrame';
+import { AutoFlowNarrative } from './ui/AutoFlowNarrative';
 import { WorldlineHud } from './ui/WorldlineHud';
 import { SpatialTextLayer } from './SpatialTextLayer';
 import { markPlayerNarrativeSeen, projectPlayerNarrativeRecords } from './narrativeRecords';
@@ -248,7 +249,7 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
     if (story) refresh(story);
   }
 
-  return <div className="player-shell">
+  return <div className="player-shell player-shell--immersive">
     <header className="player-header player-header--minimal"><WorldlineHud loop={clock.loop} time={displayMinute(clock.minute)} showTime={false} /><button className="player-utility-trigger" aria-label="開啟工具" onClick={e => showDrawer('tools', e.currentTarget)}>···</button></header>
     <main className={`player-stage ${resetPending && !resetPresentationComplete ? 'player-stage--cinematic' : 'player-stage--reading'}`}>
       <PlayerSceneStage
@@ -261,16 +262,14 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
         }}
       >
         <SceneFrame className="scene-frame--flat player-presentation-frame">
-        {error ? <p role="alert">無法讀取鎮上的紀錄：{error}</p> : !story ? <p>正在取出案卷……</p> : finalForward ? <div className="opening final-outcome" role="status"><p>鐘聲響完，日期沒有回去。</p><p>{finalSession?.sealMode==='PERMANENT'?'舊站的兩條自動改寫路徑已失去權限。每個人仍保留自己的選擇。':'這一輪已經封存，但改寫權限依然存在。'}</p><p>{finalBoundary?.nextCheckpoint ?? '10/4 00:01'}</p></div> : finalSafetyHold ? <div className="opening final-outcome" role="status"><p>已經切斷的路徑不能自行恢復，但當輪仍未通過安全結案。</p><p>午夜沒有被宣告勝利。等待可靠的確認。</p></div> : resetPending && !resetPresentationComplete ? <ResetTransitionScene reducedMotion={prefersReducedMotion()} onPresentationComplete={() => setResetPresentationComplete(true)} /> : resetPending ? <div className="opening mode-choice"><p>鐘聲落下，今天又回到可以重來的地方。</p><p>下一次進入灰潮鎮時，你要怎麼走進這一天？</p><button onClick={() => chooseMode('LIVE_SYNC')} disabled={modeCommitInFlight || !isLiveSyncAvailable(currentMs)}>跟著現在走<span> · {isLiveSyncAvailable(currentMs) ? '從此刻的鎮內時間進入' : '現在是 Live Sync 無法進入的時間'}</span></button><button onClick={() => chooseMode('ACCELERATED')} disabled={modeCommitInFlight}>回到記憶開始的地方<span> · 從 06:12 的返程列車開始</span></button>{note && <p className="inline-note" role="status">{note}</p>}</div> : !opened ? <OpeningScene label={entry.label} lines={entry.lines} onOpenLetter={() => openRecord('letter')} /> : <div className={`reading-scene attention-${loop.attention.phase}`} key={`${clock.loop}:${record?.id}`}>
+        {error ? <p role="alert">無法讀取鎮上的紀錄：{error}</p> : !story ? <p>正在取出案卷……</p> : finalForward ? <div className="opening final-outcome" role="status"><p>鐘聲響完，日期沒有回去。</p><p>{finalSession?.sealMode==='PERMANENT'?'舊站的兩條自動改寫路徑已失去權限。每個人仍保留自己的選擇。':'這一輪已經封存，但改寫權限依然存在。'}</p><p>{finalBoundary?.nextCheckpoint ?? '10/4 00:01'}</p></div> : finalSafetyHold ? <div className="opening final-outcome" role="status"><p>已經切斷的路徑不能自行恢復，但當輪仍未通過安全結案。</p><p>午夜沒有被宣告勝利。等待可靠的確認。</p></div> : resetPending && !resetPresentationComplete ? <ResetTransitionScene reducedMotion={prefersReducedMotion()} onPresentationComplete={() => setResetPresentationComplete(true)} /> : resetPending ? <div className="opening mode-choice"><p>鐘聲落下，今天又回到可以重來的地方。</p><p>下一次進入灰潮鎮時，你要怎麼走進這一天？</p><button onClick={() => chooseMode('LIVE_SYNC')} disabled={modeCommitInFlight || !isLiveSyncAvailable(currentMs)}>跟著現在走<span> · {isLiveSyncAvailable(currentMs) ? '從此刻的鎮內時間進入' : '現在是 Live Sync 無法進入的時間'}</span></button><button onClick={() => chooseMode('ACCELERATED')} disabled={modeCommitInFlight}>回到記憶開始的地方<span> · 從 06:12 的返程列車開始</span></button>{note && <p className="inline-note" role="status">{note}</p>}</div> : !opened ? <OpeningScene label={entry.label} lines={entry.lines} onOpenLetter={() => openRecord('letter')} /> : <div className={`reading-scene reading-scene--immersive attention-${loop.attention.phase}`} key={`${clock.loop}:${record?.id}`}>
         {opportunities.length > 0 && <div className="presence-opportunities" aria-label="周遭動靜">{opportunities.map(item => <button key={item.id} onClick={() => attend(item.id)} aria-label={presenceCueLabel(item.id)} aria-current={loop.attention.targetId === item.id ? 'true' : undefined}>{presenceCueLabel(item.id)}</button>)}</div>}
         {loop.capture && <div className="memory-capture-status" role="status"><p>你正在把剛才的感覺留下來……</p></div>}
         {!loop.capture && lastPerceivedRecord && !lastMemory && <div className="memory-capture-prompt" role="status"><p>剛才那一幕還留在你心裡。</p><button onClick={() => capture(lastPerceivedRecord.id)}>捕捉這段記憶</button></div>}
         {!loop.capture && lastMemory && <div className="memory-capture-status" role="status"><p>已將「{lastMemory.title}」收進持久記憶。</p></div>}
         {incoming.length > 0 && <div className="incoming-records" aria-label="新消息"><p>鎮上有新消息</p>{incoming.map(item => <button key={item.id} onClick={() => openRecord(item.id)}>閱讀新消息：{item.title}</button>)}</div>}
         {observingSpatialRecord ? <SpatialTextLayer script={observingSpatialRecord.spatialScript!} now={now} /> : record?.spatialScript && record.acquisition === 'presence' ? <SpatialTextLayer script={record.spatialScript} now={now} /> : <>
-          <div className="document-top"><span>第 {clock.loop} 次今天</span><span>{record?.source}　／　{record?.formedAt}</span></div>
-          <h1>{record?.title}</h1>
-          <div className="document-lines">{record?.body.map((line, i) => <p key={i}>{line}</p>)}</div>
+          <AutoFlowNarrative key={`${clock.loop}:${record?.id}`} title={record?.title} lines={record?.body ?? []} reducedMotion={prefersReducedMotion()} />
           {record?.excerpts.length ? <div className="excerpts"><span>留下你認為重要的句子</span>{record.excerpts.map(part => <button key={part.id} onClick={() => pin(`${record.id}:${part.id}`)}>{part.text}<span>＋</span></button>)}</div> : null}
         </>}
         {record?.id === 'letter' && records.some(x => x.id === 'yu-an-message') && <div className="decisions"><p>手機震了一下。予安留了話。</p><button onClick={() => openRecord('yu-an-message')}>讀予安的留言</button></div>}

@@ -35,3 +35,20 @@
 .final-investigation button:hover,.final-investigation button:focus-visible {background:#a7c0ae19; outline:1px solid #9db4b0;}
 .final-investigation small {color:#a2a6a7}
 .final-outcome {max-width:36rem;margin:auto;line-height:2.2;letter-spacing:.07em}
+
+/* The live player.html entry uses the same cinematic surface, not the legacy document reader. */
+.player-shell--immersive{height:100dvh;min-height:0;overflow:hidden;background:#060808}
+.player-shell--immersive .player-header--minimal{flex:0 0 52px;min-height:52px}
+.player-shell--immersive .player-stage{min-height:0;flex:1;overflow:hidden;padding:0}
+.player-shell--immersive .player-scene-stage{height:100%;min-height:0;border:0;background:radial-gradient(ellipse at 55% 43%,#111a15 0%,#060908 72%,#030504 100%)}
+.player-shell--immersive .player-scene-stage__content{height:100%;min-height:0;padding:clamp(72px,10vh,96px) clamp(20px,5vw,80px) 36px;overflow:hidden}
+.player-shell--immersive .scene-frame--flat,.player-shell--immersive .scene-frame__content{height:100%;min-height:0;padding:0}
+.player-shell--immersive .reading-scene--immersive{height:100%;min-height:0;overflow-y:auto;scrollbar-width:none;overscroll-behavior:contain}
+.player-shell--immersive .reading-scene--immersive::-webkit-scrollbar{display:none}
+.player-shell--immersive .reading-scene--immersive .station-return,
+.player-shell--immersive .reading-scene--immersive .decisions button,
+.player-shell--immersive .reading-scene--immersive .station-travel button{background:transparent;border:0;border-bottom:1px solid #626b60;color:#d1d8cc;padding:10px 3px;text-align:left;font:inherit;letter-spacing:.03em}
+.player-shell--immersive .reading-scene--immersive .station-return:hover,
+.player-shell--immersive .reading-scene--immersive .station-travel button:hover{border-color:#cbb892;color:#fff}
+.player-shell--immersive .reading-scene--immersive .excerpts{margin-top:24px}
+@media(max-height:650px){.player-shell--immersive .player-scene-stage__content{padding-top:64px;padding-bottom:12px}}
