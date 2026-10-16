@@ -22,9 +22,12 @@ export function AutoFlowNarrative({ lines, title, reducedMotion = false, onCompl
   const [letters, setLetters] = useState(0);
   const [paused, setPaused] = useState(false);
   const [finished, setFinished] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
   const sequence = lines.length ? lines : ['……'];
   const line = sequence[Math.min(index, sequence.length - 1)];
   const fullyVisible = letters >= line.length;
+  const anchoredIds = new Set(sequence.flatMap(text => inlineAnchors(text, excerpts).map(anchor => anchor.id)));
+  const unanchored = excerpts.filter(excerpt => !anchoredIds.has(excerpt.id));
 
   useEffect(() => {
     if (paused || finished) return;
@@ -72,7 +75,9 @@ export function AutoFlowNarrative({ lines, title, reducedMotion = false, onCompl
       <p key={index} className="auto-flow-narrative__active">{renderVisibleText(line.slice(0, letters))}{!fullyVisible && <span className="auto-flow-narrative__cursor" aria-hidden="true">▏</span>}</p>
     </div>
     <div className="auto-flow-narrative__transcript" aria-label="完整敘事紀錄">{sequence.map((item, i) => <p key={i}>{item}</p>)}</div>
+    {moreOpen && <div className="auto-flow-narrative__other-clues" aria-label="其他可記住的線索">{unanchored.map(item => <button type="button" key={item.id} onClick={() => { onRemember?.(item.id); setMoreOpen(false); }}>{item.text}</button>)}</div>}
     <div className="auto-flow-narrative__control">
+      {unanchored.length > 0 && <button type="button" aria-expanded={moreOpen} onClick={() => setMoreOpen(v => !v)}>其他線索</button>}
       {!finished ? <>
         <button type="button" onClick={handleAdvance} aria-label="顯示完整句子或接續對話">···</button>
         <button type="button" onClick={() => setPaused(v => !v)} aria-pressed={paused}>{paused ? '播放' : '暫停'}</button>
