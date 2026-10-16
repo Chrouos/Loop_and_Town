@@ -1,6 +1,6 @@
 # 黑幕沉浸式 UI v0.1｜實作順序與 PR 切分
 
-> Status：Implementation plan（待排程與執行，不是既有程式已完成清單）
+> Status：Active implementation plan（Draft PR #25 已有第一段可玩切片，瀏覽器驗收與擴充待完成）
 >
 > Spec：`docs/superpowers/specs/2026-10-16-black-screen-immersive-ui-interaction-v0.1-design.md`
 >
@@ -108,3 +108,17 @@ P5 開場 vertical slice 驗收，才大量擴充 Story
 本輪最先的價值不是寫更多篇章，也不是堆技術，而是先保證：
 
 **黑幕有場景感、普通文字可讀、旁邊聲音可點、句子裡的字可點、只有一個 Focus、選擇真的改變世界。**
+
+## Implementation progress (PR #25)
+
+**已提交／具自動測試：**
+- P0：修正 `PlayerApp` 每次 rerender 可能重載故事的預設 callback identity；可點項目接實際 Attend handler，失敗有回饋；回歸測試包含信件打開、字句保存。
+- P1：舞台改成黑底、拿掉綠色像素天空／地平線，弱化文件與狀態面板；Minimal HUD 仍在。
+- P2：開場第一個 NarrationBeat 已使用真正的 `TypewriterText`；信件警語採短分步顯示。**整套長篇 Narrative beat authoring 尚未實作完成**。
+- P3：主線 `紙張` 的 `InlineTextTarget`、旁邊 `沙沙、沙沙——`／`喀。`／廣播的有限 `AmbientCue` 共用既有 Attention／Perception／選擇性 Capture；同時事件可 Redirect，過期不補發。
+- P4：列車極小晃動、信封與新訊息短時浮現、Reduced Motion；未依賴大型美術資產。
+- P5：Unit／React integration tests + TS／Vite CI。**尚未完成真人瀏覽器桌機＋手機視覺/手感驗收，不宣稱全遊戲 UI 重做完成。**
+
+**刻意延後：**一般對話／其他章節全部改成語意 NarrationBeat、通用 YAML `segments[]` parser、全篇彩蛋作者工具、完整空間音效、不同解析度的實機截圖，以及更細的 NPC 場景演出。
+
+**請勿將示範用紙聲推導為幕後新人物／跨 Loop 傳訊。** 目前只描述當輪列車上可能實際感知的摩擦、車輪與廣播。

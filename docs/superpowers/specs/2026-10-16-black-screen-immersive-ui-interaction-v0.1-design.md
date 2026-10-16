@@ -1,6 +1,6 @@
 # 黑幕沉浸式 UI / Interaction Spec v0.1
 
-> Status：**Approved direction / implementation pending**（本 PR 只鎖定規格，不宣稱已修好現有網站）
+> Status：**Active design + initial playable vertical slice implemented in Draft PR #25**（CI 驗證中；正式網站及瀏覽器視覺驗收尚未完成）
 >
 > Scope：正式 Player UI（`player.html`）的文字場景、旁支聲音、主線字詞互動、單一 Attention、基本選擇、物件演出與可及性。
 >
@@ -396,11 +396,11 @@ PlayerApp (single source of truth)
 | UI-12 | 手機／鍵盤／Reader | 可操作等價，且互動標籤不劇透 Hidden Truth |
 | UI-13 | 既有 Simulator / Story | Event Graph、worldline 與 18:31 / 00:00 tests 不回歸 |
 
-**v0.1 是 Spec 完成；以上測試通過並由瀏覽器實測後，才可稱 UI 修復完成。** 此次提交不包含播放器 CSS／互動修復，避免誤報。
+**本分支已有黑幕 CSS、可點主線字詞、限時 Ambient、Attention／Capture 交互，以及開場輕微演出。** 上述驗收矩陣仍需逐項通過並由瀏覽器實測後，才可稱完整 UI 修復；不要把 CI Green 說成正式 GitHub Pages 已更新。
 
 ## 12. 明確不做（留給後續）
 
-- 不在本次規格 PR 改寫全部主線、五年前知夏真相或 Ending C 機制。
+- 不在本次 UI PR 改寫全部主線、五年前知夏真相或 Ending C 機制。
 - 不新增一套平行 `playerNarrative` Clock/Save／Attention 資料來源。
 - 不新增「關鍵詞都發亮／點一下就通關」的玩家輔助系統。
 - 不要求先有美術立繪、完整 Three.js、音效庫或語音辨識，才開始修 UI。

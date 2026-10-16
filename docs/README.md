@@ -78,7 +78,7 @@ Story Canon 可以定義人物、事件與特殊劇情例外，但不能重新�
 
 - `superpowers/specs/2026-10-16-black-screen-immersive-ui-interaction-v0.1-design.md`：**黑幕舞台、主線逐句文字、周邊可點聲音、主線 Inline Discovery、Single Focus 及可驗證互動**。
 - `superpowers/plans/2026-10-16-black-screen-immersive-ui-v0.1-implementation.md`：按 P0 修點擊、P1 黑幕、P2 主線、P3 旁支／內文字詞、P4 演出、P5 開場驗收實作。
-- 這兩份文件是 **最新 UI/Interaction subsystem 方向**；不取代 Core Gameplay / Story Canon，也**不代表程式或正式網站已套用新版黑幕介面**。
+- 這兩份文件是 **最新 UI/Interaction subsystem 方向**；不取代 Core Gameplay / Story Canon。PR #25 已加入第一段黑幕／Inline／Ambient 可玩切片；**正式網站仍未套用，瀏覽器視覺驗收待完成**。
 - 此處雖存於 `docs/superpowers/`，但被本 Active Index **明確提升為目前 Player UI 規格**；其他未被提升的 dated 文仍屬歷史文件。
 
 ## 3. Author / Debug tooling
