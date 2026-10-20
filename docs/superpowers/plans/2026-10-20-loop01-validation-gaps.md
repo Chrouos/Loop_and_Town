@@ -45,7 +45,22 @@ Every projected narrative record is titled「鎮上的對話」or「時間線片
 
 ### G5 — Chapter content is keyed to loop count, not player progress (design question)
 
-`projectPlayerNarrativeRecords` selects the document whose `loopId` equals `save.currentLoopId`. A player's fifth loop always plays the Loop 05 chapter, regardless of what they perceived, captured or changed in Loops 1–4. Loop 8+ has no narrative at all. This needs a design decision (chapter gating rules) rather than a code fix; record it in Core Gameplay before M8 continues past Loop 02.
+`projectPlayerNarrativeRecords` selects the document whose `loopId` equals `save.currentLoopId`. A player's fifth loop always plays the Loop 05 chapter, regardless of what they perceived, captured or changed in Loops 1–4. Loop 8+ has no narrative at all.
+
+**Decision (2026-10-20): chapters unlock by story progress.** Each chapter has an unlock condition evaluated at reset; if it is not met, the next loop replays the current chapter. Conditions read **Player Knowledge** (opened records, perceived scenes, captured memories), never Author world history.
+
+Proposed conditions — draft, needs author confirmation before implementation:
+
+| Next chapter | Unlock condition (player knowledge) | Basis in `docs/main-story.md` |
+| --- | --- | --- |
+| Loop 02 活下來的人 | The player knows Wakaharu died at 18:31 (opened `station-bulletin-wakaharu` or perceived `scene_1831_wakaharu`) | Ch2 premise: stop Wakaharu from walking into the known danger |
+| Loop 03 沒有已知死者 | The player knows someone other than Wakaharu died at 18:31 (opened `station-bulletin-doctor`) | Ch2 reversal: stopping the first death ≠ stopping 18:31 |
+| Loop 04 五年前 | The player lived a loop with no known death (opened `station-bulletin-none`) and still reached the 00:00 reset | Ch3 reversal: death ≠ Hard Reset trigger |
+| Loop 05 只有我記得 | The player captured evidence from the three five-years-ago gaps (Detective's unregistered evidence, Doctor's sealed medical anomaly, Reporter's research gap) — exact Loop 04 scene ids to be chosen | Ch4: reconstruct Zhixia's death day from three professions |
+| Loop 06 / 07 | TBD — `main-story.md` marks the Ch6 letter mechanism and parts of Ch7 as not yet canon | — |
+| Final | Loop 07 condition met. Final P0–P4 mechanics are currently reachable from Loop 2 at the old station; they should move behind this gate | Ch7 → Final |
+
+Implementation sketch: a `chapterId` on `LoopSave` chosen at `createNextLoop`, `projectPlayerNarrativeRecords` keyed by `chapterId` instead of `currentLoopId`, unlock rules as data in `story/` rather than code. Record the rule in `docs/core-gameplay-spec-v0.1.md` once the conditions are confirmed.
 
 ### G6 — Orphan prologue file (P2)
 
