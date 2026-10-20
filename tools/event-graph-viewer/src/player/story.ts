@@ -46,6 +46,24 @@ const stationBlackoutSpatial = compileSpatialScript([
 ]);
 
 export const STORY_RECORDS: VisibleRecord[] = [
+  // v0.1 sensory beats: finite observations, never auto-granted Evidence.
+  { id: 'train-rustle', title: '沙沙、沙沙——', source: '返鄉列車／近處紙聲',
+    formedAt: '06:12', obtainedAt: '06:12–06:30', revealMinute: 372, availableUntilMinute: 390, acquisition: 'presence', matches: always,
+    body: ['紙頁擦過掌心，發出細微的摩擦聲。', '你暫時無法確定聲音是否只來自自己手中的信。'],
+    excerpts: [{ id: 'rustle', text: '列車裡傳來一陣紙張摩擦聲。' }] },
+  { id: 'train-wheel', title: '喀。', source: '返鄉列車／鐵軌聲',
+    formedAt: '06:18', obtainedAt: '06:18–06:26', revealMinute: 378, availableUntilMinute: 386, acquisition: 'presence', matches: always,
+    body: ['車輪碾過接縫，座位輕輕震了一下。', '車廂裡沒有誰因此停下自己的動作。'],
+    excerpts: [{ id: 'rattle', text: '列車行進時有一段輕微的接縫聲。' }] },
+  { id: 'train-announcement', title: '廣播聲……', source: '返鄉列車／車內廣播',
+    formedAt: '07:33', obtainedAt: '07:33–07:39', revealMinute: 453, availableUntilMinute: 459, acquisition: 'presence', matches: always,
+    body: ['廣播裡的地名被車輪聲吞掉了一半。', '灰潮鎮就在下一站。'],
+    excerpts: [{ id: 'approach', text: '抵達灰潮鎮前，車內廣播斷續響起。' }] },
+  { id: 'paper-word', title: '紙張', source: '手裡的信／指尖觸感',
+    formedAt: '06:12', obtainedAt: '06:12–06:30', revealMinute: 372, availableUntilMinute: 390, acquisition: 'presence', matches: always,
+    body: ['紙的邊緣有一道細小的摺痕。', '或許只是折信時留下的；你還沒有理由斷定它有什麼意義。'],
+    excerpts: [{ id: 'crease', text: '信紙邊緣有一道細小摺痕。' }] },
+
   { id: 'signal-ledger', title: '舊站同步影像', source: '控制室外側螢幕／自行目視', formedAt: '17:33', obtainedAt: '17:33–17:42', revealMinute: 1053, availableUntilMinute: 1062, acquisition: 'presence',
     matches: always, body: ['顯示器左邊的 Target State 比右邊的 Observed State 早了一個 Epoch。', '時間碼有一段重疊，卻沒有人承認把模擬數據寫進現實。'],
     excerpts: [{ id: 'epoch', text: 'Target 和 Observed 被標為不同 Sync Epoch。' }] },
