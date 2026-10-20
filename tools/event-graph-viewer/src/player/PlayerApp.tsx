@@ -6,7 +6,7 @@ import { entryPresentation, entryWindowFor } from './entry';
 import { attendPresenceRecord, availablePresenceRecords, beginMemoryCapture, reconcilePlayer, visibleRecords } from './knowledge';
 import { knownDiff, pinExcerpt } from './logic';
 import { normalizeSave, type ActionId, type PlayerSave } from './model';
-import { activeLoop, confirmAction, continuePendingBoundary, createNextLoop, replayLoop } from './runtime';
+import { activeLoop, confirmAction, continuePendingBoundary, createNextLoop, PROTECT_AWAY_MESSAGE, replayLoop } from './runtime';
 import { LEGACY_KEY, exportSave, importLegacy, readSave, writeSave } from './storage';
 import { EvidenceBoard } from './EvidenceBoard';
 import { WorldlineNotebook } from './WorldlineNotebook';
@@ -26,7 +26,7 @@ import { getAudioPreference, setAudioPreference } from './ui/audioPreferences';
 import { FinalInvestigationScene } from './ui/FinalInvestigationScene';
 import { applyFinalStep, finalCorrection, finalInvestigationReady, type FinalStep } from './finalGameplay';
 import { materializeRecoveryBoundary } from '../simulator/recoveryBoundary';
-import { isAtOldStation, travelToOldStation, leaveOldStation } from './stationTravel';
+import { isAtOldStation, protagonistLocationAt, travelToOldStation, leaveOldStation } from './stationTravel';
 
 type LegacyStory = { definition: SimulationDefinition; initialState: WorldState };
 type Story = PlayerStoryBundle | LegacyStory;
@@ -136,6 +136,7 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
   const incoming = records.filter(item => item.acquisition !== 'presence' && item.revealMinute > 0 && !save.knowledge.opened.includes(`${loopId}:${item.id}`));
   const hasAction = (id: ActionId) => loop.actionIds.includes(id);
   const canAct = clock.minute < 1100;
+  const awayFromTown = protagonistLocationAt(save, loopId, clock.minute) !== 'old_house';
   const next = clock.minute < 1100 ? '18:20 前，你還能改變今晚的行程' : clock.minute < 1111 ? '18:31，舊車站' : clock.minute < 1120 ? '等候鎮上的通報' : clock.minute < 1280 ? '21:20，予安說會再聯絡' : '午夜，日期會回到今天';
   const worldState=story ? replayLoop(
     isPlayerStoryBundle(story)?story.simulation.definition:story.definition,
@@ -271,7 +272,7 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
           text="18:20 前，你可以決定今晚要怎麼做。"
           reducedMotion={prefersReducedMotion()}
           choices={[
-            { actionId: 'protect_wakaharu', label: hasAction('protect_wakaharu') ? '已和若晴約好' : '保護若晴：「今晚，我陪你留下來。」', disabled: hasAction('protect_wakaharu') },
+            { actionId: 'protect_wakaharu', label: hasAction('protect_wakaharu') ? '已和若晴約好' : awayFromTown ? `保護若晴：${PROTECT_AWAY_MESSAGE}` : '保護若晴：「今晚，我陪你留下來。」', disabled: hasAction('protect_wakaharu') || awayFromTown },
             { actionId: 'stop_doctor', label: hasAction('stop_doctor') ? '予安已答應去醫院' : '請予安：「幫我去醫院。」', disabled: hasAction('stop_doctor') },
             ...(save.knowledge.discoveredEvidence.includes('primary_recovery_both_active') ? [{actionId:'request_backup_inspection',label:hasAction('request_backup_inspection')?'已請予安查證備援接口':'拿著紀錄請予安查證另一條線',disabled:hasAction('request_backup_inspection')}] : []),
           ]}

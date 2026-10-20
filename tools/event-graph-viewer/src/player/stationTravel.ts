@@ -33,6 +33,7 @@ export function travelToOldStation(save: PlayerSave, minute: number): PlayerSave
   if(minute >= 18 * 60 + 31) throw new Error('現在出發已來不及抵達關鍵現場。');
   const loop = save.loops[save.currentLoopId];
   if(loop.stationVisit) throw new Error('今天已安排過舊站行程，不能瞬間換位置。');
+  if(loop.actionIds.includes('protect_wakaharu')) throw new Error('你答應過今晚陪著若晴，不能丟下她去舊車站。');
   loop.stationVisit = { departMinute: minute, arriveMinute: minute + STATION_TRAVEL_MINUTES };
   return save;
 }
