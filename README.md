@@ -13,8 +13,8 @@ npm run dev
 開啟 Vite 顯示的網址，根目錄是 manifest-driven 的完整 Story DAG / Worldline author viewer；加上 `/player.html` 進入玩家端。
 `npm test` 執行測試，`npm run build` 同時建立兩個入口。
 
-首次進入對應鎮內 18:00，約 20 分鐘後截止介入，31 分鐘後發生車站事件；離開網頁後按真實經過的時間補算。
-世界線歷史只顯示玩家實際取得的紀錄。本版是短篇因果原型，進度只保存在目前瀏覽器，不提供跨裝置同步。
+第一輪從鎮內 06:12 的返程列車開始，以加速模式運行（現實 1 分鐘 ≈ 鎮內 12 分鐘，約 62 分鐘後到 18:31 車站事件）。第二輪起可選擇「跟著現在走」（Live Sync，依裝置當地時間進入，06:12 前不可用）或從 06:12 重新開始。離開網頁後按真實經過的時間補算；18:31 與 23:59 照常在玩家離線時發生，只有 00:00 重置需要玩家回來確認。
+世界線歷史只顯示玩家實際取得的紀錄。目前已接入 Loop 01–07 劇情與 Final 機制切片（逐輪遊玩驗證進行中，見 ROADMAP M8），進度只保存在目前瀏覽器，不提供跨裝置同步。
 
 舊案卷若與玩家端位於不同網域，可在舊網站開啟瀏覽器 Console，執行 `copy(localStorage.getItem('ash-town-bible-v1'))`，再到玩家端「存檔」貼上匯入。舊存檔中的推論會保留為個人筆記，不會被當成新世界線發生過的事件。
 
@@ -117,9 +117,4 @@ Loop 03：18:31 無人死亡
 
 ## 後續開發方向
 
-- 世界線 Simulator / runtime log
-- 現實時間同步與 Offline Report
-- NPC Schedule / Relation / Knowledge State
-- Event Graph Validator
-- `story/layouts/*.json` 與可拖曳 Graph layout
-- Event Graph 編輯器
+目前進度與優先順序以 [`ROADMAP.md`](ROADMAP.md) 為準。

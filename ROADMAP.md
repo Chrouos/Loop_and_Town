@@ -1,6 +1,6 @@
 # Loop_and_Town Development Roadmap
 
-> Updated: 2026-09-29
+> Updated: 2026-10-20
 >
 > Developer execution map. Gameplay semantics always defer to `docs/core-gameplay-spec-v0.1.md`.
 
@@ -32,30 +32,20 @@ Author causal truth ≠ Player Investigation Wall
 
 ---
 
-## 1. PR dependency map
+## 1. PR history
+
+The original M0–M6 PR stack has landed on `main`:
 
 ```text
-                    #20 Core Gameplay
-                   /        |         \
-                  /         |          \
-        #19 Player UI   #16 Story     #21 Player Runtime
-                            |
-                            v
-                     #18 Author Workbench
+#20 Core Gameplay            → merged (a4f5550)
+#18 Author Workbench         → merged via #23 reconcile
+#16 / #19 / #21              → reconciled and squashed into #24 (4f4d412)
+#24 Canonical worldlines + playable Final + CI/CD
+#25 Immersive Attention      → salvaged onto auto-flow player as #33
+#26–#33 Player presentation  → narration pager, auto-flow, inline capture, immersive Attention
 ```
 
-Recommended linear merge order:
-
-```text
-#20 → #19 → #16 → #21 → #18
-```
-
-After each base merge:
-
-1. rebase / retarget child PR
-2. resolve overlap using latest Core Gameplay
-3. run fresh full tests + build
-4. only then mark ready
+New work branches from latest `main`, follows the merge gate in §14, and lands as one PR per slice.
 
 ---
 
@@ -63,7 +53,7 @@ After each base merge:
 
 ### #20 Core Gameplay Spec
 
-Status: **Ready / merge first**
+Status: **Merged**
 
 Owns:
 
@@ -82,7 +72,7 @@ Also owns documentation precedence through `docs/README.md`.
 
 ### #19 Player Immersive UI Spec
 
-Status: **Documentation contract / merge after #20**
+Status: **Landed via #24**
 
 Translates gameplay rules into Player presentation architecture.
 
@@ -92,7 +82,7 @@ Translates gameplay rules into Player presentation architecture.
 
 ### #16 Main Story / Canon / DAG / Relationship
 
-Status: **Draft; active reconciliation**
+Status: **Landed via #24** (Loop 01–07 + Final narrative, DAG and worldline data on `main`)
 
 Owns:
 
@@ -343,7 +333,24 @@ Delivered:
 
 ## 10. M7 — Real-time world productionization
 
+Status: **Mostly implemented; remaining test gaps listed below**
+
 Consolidate time architecture after World Never Waits migration.
+
+Implemented in `src/player/clock.ts`, `runtime.ts`, `eventScheduler.ts`:
+
+- Loop 1 starts at 06:12 in ACCELERATED mode (scale ×12; ~62 real minutes to 18:31)
+- Loop 2+ chooses LIVE_SYNC (device local clock, unavailable before 06:12) or ACCELERATED from 06:12
+- OFFLINE / BOOTSTRAP catch-up crosses 18:31 and 23:59, stops only at the 00:00 Reset lifecycle
+- multi-day offline does not infer extra loops
+
+Covered by `tests/player/anchoredTimelineAcceptance.test.ts`, `tests/player/eventScheduler.test.ts`, `tests/player/knowledge.test.ts`.
+
+Not yet covered by an explicit acceptance test:
+
+- miss an Opportunity while Attention is focused elsewhere
+- Convergence while Capture / Attention is in progress (foreground)
+- Bell while reading a paged narration / letter
 
 Required:
 
@@ -368,6 +375,10 @@ Tests:
 ---
 
 ## 11. M8 — Story integration across loops
+
+Status: **Data wired; per-loop player validation not yet done**
+
+All Loop 01–07 and Final player narratives load through `story/manifests/loop_01.yaml`, and each has a data-level acceptance test. The Final P0–P4 mechanics are playable (`docs/player-final-playable-spec.md`). What has not been done is an end-to-end playthrough of each Loop in `/player.html` against the checklist below.
 
 ```text
 Loop 01 vertical slice
@@ -395,6 +406,8 @@ Each Loop validates:
 
 ### #18 Causal Timeline Workbench
 
+Status: **Merged** (author viewer root `index.html`)
+
 Purpose:
 
 - inspect causal truth
@@ -413,16 +426,25 @@ Player UI may not inherit it automatically.
 
 ## 13. M9 — Game-feel polish
 
-Only after semantic runtime is stable:
+Status: **Partially implemented ahead of M8 validation**
 
-- scene-first Player UI
+Done:
+
+- scene-first Player UI shell
+- fade in / fade out, reset transition, ambient waiting states
+- reduced motion path
+- paged narration without scrolling (#27), cinematic auto-flow (#28–#30)
+- inline clue capture from narrated words and capture feedback (#31–#32)
+- inline / peripheral immersive Attention (#33)
+
+Not started:
+
 - pixel / animated environment treatment
-- fade in / fade out
 - spatial sound
 - parallax / subtle motion
-- ambient waiting states
-- reduced motion
 - touch / controller mappings
+
+Further polish waits until M8 Loop 01 validation passes.
 
 ---
 
@@ -446,17 +468,16 @@ Only after semantic runtime is stable:
 ## 15. Immediate queue
 
 ```text
-1. Merge #20 — Core Gameplay + documentation precedence
-2. Rebase + merge #19 — Player presentation contract
-3. Rebase/fix/verify #16 — Story / Canon / Event Graph
-4. Rebase #21 on latest main
-5. Re-run #21 verification after rebase
-6. M5 — Memory Capture
-7. M6 — Investigation semantic migration
-8. Rebase + verify #18 — Author Workbench
-9. Loop 01 end-to-end vertical slice
-10. Loop 02 → Final runtime integration
-11. Game-feel polish
+Done: #20, #19, #16, #21, M5, M6, #18, Final P0–P4 slice, M9 presentation pass (#26–#33)
+
+1. Loop 01 end-to-end validation in /player.html against the M8 checklist
+   → regression check that #27–#33 presentation did not break
+     Attention / Perception / Capture / Wall / Reset semantics
+   → passive-path gap list: docs/superpowers/plans/2026-10-20-loop01-validation-gaps.md
+   → fix G1 + G2 first, then walk the active path
+2. Close M7 test gaps (miss while focused, Convergence during Capture, Bell while reading)
+3. Loop 02 validation, then Loop 03 → 07 in order, then reconnect to Final
+4. Remaining game-feel polish (environment art, spatial sound, parallax, touch / controller)
 ```
 
 Guiding rule:
