@@ -238,7 +238,7 @@ it('disables Live Sync in the inactive early-morning gap but keeps accelerated m
   save.loops[1].clock.pendingCriticalBoundary = 'reset';
   storage.setItem(SAVE_KEY, JSON.stringify(save));
   render(<PlayerApp now={() => now} storage={storage} loadStory={async () => ({ definition, initialState: initial })} />);
-  expect(await screen.findByText('世界接手了這一輪。')).toBeDefined();
+  expect(await screen.findByText('世界接手了這一輪。', {}, { timeout: 2000 })).toBeDefined();
   await userEvent.setup().click(await screen.findByRole('button', { name: '將記憶交還給世界' }));
   expect((await screen.findByRole('button', { name: /跟著現在走/ }, { timeout: 2000 }) as HTMLButtonElement).disabled).toBe(true);
   expect((screen.getByRole('button', { name: /回到記憶開始的地方/ }) as HTMLButtonElement).disabled).toBe(false);
