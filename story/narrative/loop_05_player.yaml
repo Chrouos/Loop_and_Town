@@ -1,5 +1,6 @@
 scenes:
   - id: loop05_0612_reset_alone
+    title: 只剩我有的昨天
     at: { day: 0, time: "06:12" }
     kind: narration
     participants: [protagonist]
@@ -14,6 +15,7 @@ scenes:
         text: 只有我記得。
 
   - id: loop05_0810_yuan_stranger_again
+    title: 好久不見
     at: { day: 0, time: "08:10" }
     kind: dialogue
     participants: [protagonist, yuan]
@@ -29,6 +31,7 @@ scenes:
         text: 他沒有忘記我。他只是從來沒有經歷過那些只有我記得的今天。
 
   - id: loop05_0840_key_from_lost_day
+    title: 備用鑰匙
     at: { day: 0, time: "08:40" }
     kind: dialogue
     participants: [protagonist, yuan]
@@ -47,6 +50,7 @@ scenes:
         text: 他沒有相信，但也沒有追問。我卻突然很清楚，知道一個人的祕密和被允許知道，是兩件不同的事。
 
   - id: loop05_0920_insight_yuan_father
+    title: 父親的零件
     at: { day: 0, time: "09:20" }
     kind: narration
     participants: [protagonist, yuan]
@@ -61,6 +65,7 @@ scenes:
         text: 如果我把這些記憶放在一起……他真的會隨手把那個外盒丟掉嗎？
 
   - id: loop05_1010_missing_case
+    title: 不見的外盒
     at: { day: 0, time: "10:10" }
     kind: dialogue
     participants: [protagonist, yuan]
@@ -81,6 +86,7 @@ scenes:
         text: 我只是換了一條查法。真正留下紀錄的，是這張維修單。
 
   - id: loop05_1230_yuan_questions_knowledge
+    title: 妳從哪裡知道
     at: { day: 0, time: "12:30" }
     kind: dialogue
     participants: [protagonist, yuan]
@@ -97,6 +103,7 @@ scenes:
         text: 對我來說，我們已經一起查過很多次。對他來說，今天才是第一次。
 
   - id: loop05_1540_wakaharu_insight
+    title: 相機背帶
     at: { day: 0, time: "15:40" }
     kind: dialogue
     participants: [protagonist, wakaharu]
@@ -115,6 +122,7 @@ scenes:
         text: 這只能讓我想起另一個 Moment，不能證明她現在在說謊。我把問題換成「知夏有沒有叫妳替她保管東西」。
 
   - id: loop05_2010_friendship_only_one_remembers
+    title: 同一家店
     at: { day: 0, time: "20:10" }
     kind: dialogue
     participants: [protagonist, yuan]
@@ -136,6 +144,7 @@ scenes:
         text: 每次 Reset，他都沒有失去我們建立的友誼。因為對這一個他來說，那些友誼從來沒有發生過。真正失去它的人只有我。
 
   - id: loop05_2359_bell
+    title: 記住一個人
     at: { day: 0, time: "23:59" }
     kind: narration
     participants: [protagonist]

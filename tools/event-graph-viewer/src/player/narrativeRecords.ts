@@ -75,11 +75,15 @@ function matchesScene(scene: NarrativeSceneDefinition, history: WorldlineHistory
   ));
 }
 
-function sceneTitle(scene: NarrativeSceneDefinition, lines: string[]): string {
-  if (scene.id === 'loop02_1420_reset_awareness') return '醒來之後';
-  if (scene.id === 'loop02_1610_wakaharu_alive') return '若晴還活著';
-  if (scene.id === 'loop02_1831_doctor_death') return '18:31 的另一個死者';
-  return scene.kind === 'dialogue' ? '鎮上的對話' : '時間線片段';
+function sceneTitle(scene: NarrativeSceneDefinition): string {
+  return scene.title ?? (scene.kind === 'dialogue' ? '鎮上的對話' : '時間線片段');
+}
+
+// Who the scene is about, in the protagonist's words; phone scenes say so.
+function sceneSource(scene: NarrativeSceneDefinition): string {
+  const people = scene.participants.filter(id => id !== 'protagonist').map(speakerLabel);
+  const who = people.length ? people.join('、') : '你自己';
+  return scene.observation?.channel === 'phone' ? `${who}／手機` : who;
 }
 
 function recordForScene(scene: NarrativeSceneDefinition): PlayerNarrativeRecord {
@@ -90,8 +94,8 @@ function recordForScene(scene: NarrativeSceneDefinition): PlayerNarrativeRecord 
     id: scene.id,
     sceneId: scene.id,
     loopId: 0,
-    title: sceneTitle(scene, body),
-    source: '時間線紀錄',
+    title: sceneTitle(scene),
+    source: sceneSource(scene),
     formedAt: displayMinute(minute),
     obtainedAt: displayMinute(minute),
     body,

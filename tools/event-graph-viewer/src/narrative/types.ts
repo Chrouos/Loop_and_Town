@@ -158,6 +158,8 @@ export type NarrativeSceneKind = 'narration' | 'dialogue' | 'artifact' | 'activi
 
 export type NarrativeSceneDefinition = {
   id: string;
+  /** Player-facing name shown in the case file. */
+  title?: string;
   at: StoryTimeInput;
   availableUntil?: StoryTimeInput;
   kind: NarrativeSceneKind;

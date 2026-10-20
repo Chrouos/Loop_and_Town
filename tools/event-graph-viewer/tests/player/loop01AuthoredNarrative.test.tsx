@@ -83,6 +83,17 @@ describe('Loop 01 authored narrative in the canonical player', () => {
     expect(loopOneScenes(bundle, save, 1439)).not.toContain('prologue_letter_opened');
   });
 
+  it('gives every authored scene its own case-file title and a source naming who was there', () => {
+    for (const document of bundle.narrativeDocuments) {
+      const titles = document.scenes.map(scene => scene.title?.trim());
+      expect(titles.filter(title => !title), `untitled scene in ${document.sourcePath}`).toEqual([]);
+      expect(new Set(titles).size, `duplicate title in ${document.sourcePath}`).toBe(titles.length);
+    }
+    const records = projectPlayerNarrativeRecords(bundle, 1, [], 1439, playerSceneConditions(loopOneSave(), 1));
+    expect(records.find(record => record.id === 'prologue_yuan_reunion')).toMatchObject({ title: '出口的予安', source: '予安' });
+    expect(records.find(record => record.id === 'prologue_arrival')?.source).toBe('你自己');
+  });
+
   it('labels every authored speaker instead of falling back to 對方', () => {
     for (const document of bundle.narrativeDocuments) {
       const records = projectPlayerNarrativeRecords(bundle, document.loopId, [], 1440, playerSceneConditions(loopOneSave(), 1));

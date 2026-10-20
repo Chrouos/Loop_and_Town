@@ -1,5 +1,6 @@
 scenes:
   - id: final_1742_full_truth
+    title: 全部攤在桌上
     at: { day: 0, time: "17:42" }
     kind: dialogue
     participants: [protagonist, yuan, wakaharu, doctor, reporter, detective]
@@ -16,6 +17,7 @@ scenes:
         text: 沒有人立刻回答。這一次，沉默不是等待主角下指令，而是在各自衡量自己願意承擔的東西。
 
   - id: final_1750_everyone_chooses
+    title: 各自的選擇
     at: { day: 0, time: "17:50" }
     kind: narration
     participants: [protagonist, yuan, wakaharu, doctor, reporter, detective]
@@ -28,6 +30,7 @@ scenes:
         text: 有人留下，也可能有人離開。重要的不是把所有人排到同一個最佳位置，而是每個人都知道風險後，仍能說出自己的答案。
 
   - id: final_1803_handoff_open
+    title: 18:03 的兩個方向
     at: { day: 0, time: "18:03" }
     kind: narration
     participants: [protagonist, zhixia]
@@ -39,6 +42,7 @@ scenes:
       - type: monologue
         text: "知夏不在另一端。現在能選擇的，是今天在場的人。"
   - id: final_1831_convergence
+    title: 18:31，所有人都在
     at: { day: 0, time: "18:31" }
     kind: narration
     participants: [protagonist, yuan, wakaharu, doctor, reporter, detective, zhixia]
@@ -50,6 +54,7 @@ scenes:
       - type: monologue
         text: "問題是如何解除系統改寫現實的權限，而不是選誰來付出生命。"
   - id: final_a_tomorrow
+    title: 接受這個今天
     at: { day: 0, time: "23:59" }
     kind: narration
     participants: [protagonist]
@@ -61,6 +66,7 @@ scenes:
       - type: narration
         text: "必須完成一次性 Forward Seal，這個今天才可能向前。我接受它的不完美，但 Writer 仍可能在未來再次改寫現實。"
   - id: final_b_once_more
+    title: 再試一次
     at: { day: 1, time: "06:12" }
     kind: narration
     participants: [protagonist, yuan]
@@ -75,6 +81,7 @@ scenes:
         speaker: protagonist
         text: "每一次只有我記得我們真正一起經歷過的事。"
   - id: final_c_forget_me
+    title: 切斷改寫
     at: { day: 0, time: "23:59" }
     kind: narration
     participants: [protagonist, yuan]
