@@ -13,9 +13,11 @@ type Props = {
   reducedMotion?: boolean;
   audioEnabled?: boolean;
   input?: InputParityProps;
+  onAmbientAttend?: (id: string) => void;
+  focusedId?: string | null;
 };
 
-export function PlayerSceneStage({ presentation, children, reducedMotion = false, audioEnabled = false, input }: Props) {
+export function PlayerSceneStage({ presentation, children, reducedMotion = false, audioEnabled = false, input, onAmbientAttend, focusedId }: Props) {
   return <section
     className="player-scene-stage"
     aria-label={`玩家場景：${presentation.location}`}
@@ -28,7 +30,7 @@ export function PlayerSceneStage({ presentation, children, reducedMotion = false
     <div className="player-scene-stage__pixel-sky" aria-hidden="true" />
     <div className="player-scene-stage__pixel-horizon" aria-hidden="true" />
     <PlayerPresentationHud presentation={presentation} />
-    <PlayerAmbientLayer presentation={presentation} />
+    <PlayerAmbientLayer presentation={presentation} onAttend={onAmbientAttend} focusedId={focusedId} />
     <LoopTransitionLayer presentation={presentation} reducedMotion={reducedMotion} />
     {input && <InputParity {...input} />}
     <div className="player-scene-stage__content">{children}</div>
