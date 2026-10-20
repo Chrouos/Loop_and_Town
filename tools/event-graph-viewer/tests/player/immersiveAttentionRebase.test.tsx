@@ -28,6 +28,9 @@ describe('PR25 attention migration onto auto-flow', () => {
     const attend = vi.fn();
     const presentation = {
       mode: 'reading',
+      attention: { phase: 'idle' },
+      capture: { active: false },
+      reset: { pending: false, npcState: 'current' },
       ambientCues: [{ id: 'train-rustle', title: '沙沙、沙沙——' }, { id: 'paper-word', title: '紙張' }],
     } as unknown as PlayerPresentationModel;
     render(<PlayerAmbientLayer presentation={presentation} onAttend={attend} />);
