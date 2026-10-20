@@ -35,7 +35,9 @@ The inline comment in `PlayerApp.tsx` says "Real-world cues and authored scenes 
 
 `SPEAKER_LABELS` in `src/player/narrativeRecords.ts` maps only protagonist / wakaharu / doctor / reporter / detective. Unlabelled lines per loop (variant-free projection): Loop 1: 11, Loop 3: 5, Loop 4: 6, Loop 5: 7, Loop 6: 2, Loop 7: 7. Yuan is the main companion; Loop 05 ("only I remember") is almost entirely his dialogue.
 
-### G3 — Generic record titles and sources (P1)
+### G3 — Generic record titles and sources (P1) — fixed
+
+> Fixed: all 117 player narrative scenes carry an authored `title` (short, first-person, no clue-highlight wording per Core Gameplay §23.2), and the source names who was there (「予安」「若晴、陳醫師」, or「你自己」; phone scenes add「／手機」). A test requires every scene to have a title unique within its chapter.
 
 Every projected narrative record is titled「鎮上的對話」or「時間線片段」with source「時間線紀錄」, except three hard-coded Loop 02 ids in `sceneTitle`. Loop 7 drawer at 23:00 shows three identical "17:58 鎮上的對話" entries. The player cannot tell records apart without opening each one. Needs an authored `title` (and optionally `source`) field on narrative scenes.
 
@@ -66,7 +68,9 @@ Conditions:
 
 Saves from before this change have no `chapterId` and keep playing the chapter matching their loop number.
 
-### G6 — Orphan prologue file (P2)
+### G6 — Orphan prologue file (P2) — fixed
+
+> Removed `story/narrative/loop_01_prologue.yaml` and its tracked generated copies; the loader test fixture now names `loop_01_player.yaml`.
 
 `story/narrative/loop_01_prologue.yaml` is not in the manifest; its `prologue_*` ids overlap with `loop_01_player.yaml`. Only `tests/narrativeLoader.test.ts` still reads it. Remove or mark as fixture.
 
@@ -95,6 +99,16 @@ Clicking a clue word inside an authored scene called `pinExcerpt`, which only kn
 - `PlayerApp.test.tsx` early-morning Live Sync case: reset presentation wait widened to 2 s like its siblings.
 - `inlineMemory.test.tsx`: the capture test rendered a second line that replaces the clickable phrase after 500 ms; under full-suite load the click landed after the swap. The test now renders the single line it asserts on.
 
+### G11 — Player sees scenes the protagonist was not in (P1, needs author decision)
+
+Several player-facing scenes have no `protagonist` among participants, so the player watches events the protagonist could not perceive:
+
+- `loop02_1742_doctor_departure`, `loop02_1805_doctor_no_recipient`, `loop02_1812_doctor_decides_return`, `loop02_1824_maintenance_passage` (Doctor alone)
+- `loop02_1950_reporter_replans` (Reporter alone)
+- `loop03_1910_wakaharu_resignation` (Wakaharu alone)
+
+This conflicts with the Perception Boundary (World Event ≠ Player Knowledge). Options: move them to the author-only DAG, rewrite them as what the protagonist later hears or reconstructs, or gate them behind an explicit in-world source (a call, a witness, a record).
+
 ## Active path (second pass, after G1/G2)
 
 Walked through the real `PlayerApp`: open letter → depart for the old station 17:10 → attend + capture `signal-ledger`, `backup-relay`, `track-damage`, `station-blackout`, `external-ack` → read Yuan's message, choose `protect_wakaharu` → 00:00 reset → hand memory back → ACCELERATED restart → Loop 2.
@@ -114,7 +128,8 @@ Not covered yet:
 ## Recommended order
 
 1. ~~G1 + G2~~, ~~G8 + G9 + G10~~, ~~G5 + G4~~ (done)
-2. G3 (authored titles)
-3. Author input: Chapter 6 / 7 / Final unlock conditions; Wakaharu's schedule after the 18:00 promise
-4. Wall UI walkthrough + M7 gap tests
-5. G6 + G7 cleanup
+2. ~~G3~~, ~~G6~~ (done)
+3. G11 (scenes outside the protagonist's perception)
+4. Author input: Chapter 6 / 7 / Final unlock conditions; Wakaharu's schedule after the 18:00 promise
+5. Wall UI walkthrough + M7 gap tests
+6. G7 cleanup
