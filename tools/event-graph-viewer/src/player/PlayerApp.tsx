@@ -17,7 +17,7 @@ import { SceneFrame } from './ui/SceneFrame';
 import { AutoFlowNarrative } from './ui/AutoFlowNarrative';
 import { WorldlineHud } from './ui/WorldlineHud';
 import { SpatialTextLayer } from './SpatialTextLayer';
-import { markPlayerNarrativeSeen, projectPlayerNarrativeRecords } from './narrativeRecords';
+import { markPlayerNarrativeSeen, playerSceneConditions, projectPlayerNarrativeRecords } from './narrativeRecords';
 import { recordById, staticPlayerRecords } from './story';
 import type { PlayerStoryBundle } from '../types/playerStory';
 import { projectPlayerPresentation } from './presentation/projectPlayerPresentation';
@@ -105,10 +105,11 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
       loopId,
       replayLoop(story.simulation.definition, story.simulation.initialState, save, loopId, clock.minute).history,
       clock.minute,
+      playerSceneConditions(save, loopId),
     )
     : undefined;
   // Real-world cues and authored scenes coexist in every loop; neither grants automatic perception.
-  const recordSource = loopId === 1 ? undefined : [...(playerRecords ?? []), ...staticPlayerRecords(loopId)];
+  const recordSource = playerRecords ? [...playerRecords, ...staticPlayerRecords(loopId)] : undefined;
   const records = visibleRecords(save, loopId, recordSource);
   const opportunities = availablePresenceRecords(save, loopId, clock.minute, recordSource);
   const opened = loopId !== 1 || save.knowledge.opened.includes(`${loopId}:letter`) || save.knowledge.opened.includes('letter');

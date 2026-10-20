@@ -3,7 +3,7 @@ import { clockMinuteAt, LOOP_START_MINUTE, realTimestampForSimulationMinute } fr
 import { advanceLoop } from './eventScheduler';
 import { emptyLoop, type LoopHistoryEntry, type MemoryKind, type PlayerSave, type PersistentMemory } from './model';
 import { activeLoop, replayLoop } from './runtime';
-import { projectPlayerNarrativeRecords } from './narrativeRecords';
+import { playerSceneConditions, projectPlayerNarrativeRecords } from './narrativeRecords';
 import { STORY_RECORDS, staticPlayerRecords, type PlayerNarrativeRecord } from './story';
 import type { PlayerStoryBundle } from '../types/playerStory';
 import { ATTENTION_OBSERVATION_MS, advanceAttention, beginAttention, redirectAttention } from './attention';
@@ -180,7 +180,7 @@ function revealNarrative(
   story: PlayerStoryBundle,
 ): void {
   const entry = save.loops[loop] ?? (save.loops[loop] = emptyLoop());
-  const records = projectPlayerNarrativeRecords(story, loop, history, minute);
+  const records = projectPlayerNarrativeRecords(story, loop, history, minute, playerSceneConditions(save, loop));
   for (const record of records) {
     const id = `${loop}:${record.id}`;
     if (record.revealMinute <= minute && record.matches(history) && !entry.revealedIds.includes(id)) entry.revealedIds.push(id);
@@ -198,12 +198,13 @@ export function reconcilePlayer(
   const loopId = save.currentLoopId;
   const loop = activeLoop(save);
   const targetMinute = clockMinuteAt(loop.clock, safeNow);
-  const attentionRecords = story && loopId !== 1
+  const attentionRecords = story
     ? [...staticPlayerRecords(loopId), ...projectPlayerNarrativeRecords(
       story,
       loopId,
       replayLoop(story.simulation.definition, story.simulation.initialState, save, loopId, targetMinute).history,
       targetMinute,
+      playerSceneConditions(save, loopId),
     )]
     : undefined;
   settleMemoryCapture(save, loopId, safeNow, targetMinute, attentionRecords);

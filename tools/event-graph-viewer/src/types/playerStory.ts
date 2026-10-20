@@ -1,4 +1,4 @@
-import type { NarrativeSceneDefinition, ArtifactDefinition } from '../narrative/types';
+import type { NarrativeSceneDefinition, ArtifactDefinition, ProtagonistScheduleDefinition } from '../narrative/types';
 import type { StoryBundle } from '../lib/loadSimulationStory';
 
 export type PlayerNarrativeDocument = {
@@ -14,4 +14,6 @@ export type PlayerStoryBundle = {
   >;
   narrativeDocuments: PlayerNarrativeDocument[];
   artifacts: ArtifactDefinition[];
+  /** Default-day activities; scenes gated by `afterActivityId` only unlock for these. */
+  protagonistSchedule?: ProtagonistScheduleDefinition;
 };

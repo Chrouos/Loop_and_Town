@@ -6,14 +6,50 @@ import type { NarrativeBlock, NarrativeSceneDefinition } from '../narrative/type
 import type { PlayerStoryBundle } from '../types/playerStory';
 import type { PlayerNarrativeRecord, RecordAcquisition } from './story';
 import { compileSpatialScript } from './spatialText';
+import { protagonistLocationAt } from './stationTravel';
 
 const SPEAKER_LABELS: Record<string, string> = {
   protagonist: '你',
+  yuan: '予安',
+  zhixia: '知夏',
   wakaharu: '若晴',
   doctor: '陳醫師',
   reporter: '庭安',
   detective: '志遠',
 };
+
+/** What the player-side runtime can verify about the protagonist when an authored scene happens. */
+export type PlayerSceneConditions = {
+  locationAt: (minute: number) => string;
+  knownFactIds: ReadonlySet<string>;
+};
+
+const LETTER_FACT_ID = 'fact_zhixia_letter_received';
+
+export function playerSceneConditions(save: PlayerSave, loop: number): PlayerSceneConditions {
+  const letterOpened = save.knowledge.opened.includes(`${loop}:letter`) || save.knowledge.opened.includes('letter');
+  return {
+    locationAt: (minute) => protagonistLocationAt(save, loop, minute),
+    knownFactIds: new Set(letterOpened ? [LETTER_FACT_ID] : []),
+  };
+}
+
+// Scenes whose conditions cannot be verified stay hidden rather than contradicting each other.
+function meetsSceneConditions(
+  scene: NarrativeSceneDefinition,
+  bundle: PlayerStoryBundle,
+  conditions: PlayerSceneConditions | undefined,
+): boolean {
+  const gated = scene.requiresLocation || scene.requiresFacts?.length || scene.afterActivityId;
+  if (!gated) return true;
+  if (!conditions) return false;
+  const minute = toAbsoluteMinute(scene.at);
+  if (scene.requiresLocation && conditions.locationAt(minute) !== scene.requiresLocation) return false;
+  if ((scene.requiresFacts ?? []).some((factId) => !conditions.knownFactIds.has(factId))) return false;
+  if (scene.afterActivityId
+    && !bundle.protagonistSchedule?.entries.some((entry) => entry.activityId === scene.afterActivityId)) return false;
+  return true;
+}
 
 function speakerLabel(speaker: string): string {
   return SPEAKER_LABELS[speaker] ?? '對方';
@@ -73,6 +109,7 @@ export function projectPlayerNarrativeRecords(
   loopId: number | 'final',
   history: WorldlineHistoryEntry[] | LoopHistoryEntry[],
   minute: number,
+  conditions?: PlayerSceneConditions,
 ): PlayerNarrativeRecord[] {
   const document = bundle.narrativeDocuments.find((item) => item.loopId === loopId);
   if (!document) return [];
@@ -80,6 +117,7 @@ export function projectPlayerNarrativeRecords(
     .map((scene, authoredIndex) => ({ scene, authoredIndex, minute: toAbsoluteMinute(scene.at) }))
     .filter(({ minute: authoredMinute }) => authoredMinute <= minute)
     .filter(({ scene }) => matchesScene(scene, history as WorldlineHistoryEntry[]))
+    .filter(({ scene }) => meetsSceneConditions(scene, bundle, conditions))
     .sort((left, right) => left.minute - right.minute || left.authoredIndex - right.authoredIndex)
     .map(({ scene }) => ({ ...recordForScene(scene), loopId }));
   return records;

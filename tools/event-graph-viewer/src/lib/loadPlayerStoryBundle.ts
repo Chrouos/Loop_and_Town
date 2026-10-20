@@ -63,6 +63,7 @@ export async function loadPlayerStoryBundle(manifestPath: string): Promise<Playe
     },
     narrativeDocuments,
     artifacts: simulation.narrative.artifacts,
+    protagonistSchedule: simulation.narrative.protagonistSchedule,
   };
 }
 
