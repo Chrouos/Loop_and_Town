@@ -1,6 +1,6 @@
 paths:
   - id: loop_06_six_letters
-    label: Loop 06｜前六封信・資訊交接
+    label: Loop 06｜前六份紀錄・來源調查
     visibility: public
     node_ids:
       - L6_N00_sort_carriers

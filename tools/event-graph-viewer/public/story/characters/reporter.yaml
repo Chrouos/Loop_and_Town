@@ -8,7 +8,7 @@ background:
   summary: 自稱回鄉採訪地方新聞的記者；五年前其實曾是舊研究所研究助理，也是林知夏最接近真相的調查搭檔之一。這次回鎮前已追查研究所舊案半年。
   history:
     - 曾在舊研究所工作。
-    - 五年前與林知夏合作追查 18:31 異常與世界線殘留。
+    - 五年前與林知夏合作追查 18:31 異常與世界線資訊殘留。
     - 兩人後來因「是否能把死亡風險轉移給別人」而決裂。
     - 研究所事故後離開灰潮鎮，之後成為調查記者。
   current_goal: 19:50 原本準備獨自進入舊研究所，取回當年的實驗紀錄。
@@ -38,7 +38,7 @@ knowledge:
     - fact_reporter_knew_zhixia
     - fact_research_institute_connection
     - fact_1831_is_special
-    - fact_memory_residue_exists
+    - fact_zhixia_worldline_memory_exists
 secrets:
   - 對主角隱瞞自己曾在舊研究所工作，也隱瞞與林知夏相識。
   - 知夏五年前要求她：如果妹妹回來，不要讓她知道自己做過什麼。

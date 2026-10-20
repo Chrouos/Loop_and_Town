@@ -5,18 +5,27 @@ visibility: observable
 variants:
   - id: wakaharu_dies
     priority: 100
-    when: { path: characters.wakaharu.location, op: eq, value: old_station }
+    when:
+      all:
+        - { path: characters.wakaharu.location, op: eq, value: old_station }
+        - { path: world.station_handoff_completed, op: eq, value: true }
     effects:
       - set: { path: characters.wakaharu.status, value: dead }
       - add_flag: world.anomaly_1831_observed
+      - correction: { op: converge }
   - id: doctor_dies
     priority: 90
-    when: { path: characters.doctor.location, op: eq, value: old_station }
+    when:
+      all:
+        - { path: characters.doctor.location, op: eq, value: maintenance_tunnel }
+        - { path: world.doctor_maintenance_exposed, op: eq, value: true }
     effects:
       - set: { path: characters.doctor.status, value: dead }
       - add_flag: world.anomaly_1831_observed
+      - correction: { op: converge }
   - id: no_death
     priority: 0
     fallback: true
     effects:
       - add_flag: world.anomaly_1831_observed
+      - correction: { op: converge }

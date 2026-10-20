@@ -8,8 +8,8 @@ nodes:
     visibility: public
     detail:
       before: [上一輪主角與予安已建立更深的合作與友誼。]
-      after: [世界重置，只有主角保留那段關係。]
-      reason: Hard Reset 不讓其他角色保留跨 Loop 記憶。
+      after: [世界重置，只有主角保留那段主觀經歷與自己 Captured 的 Memory。]
+      reason: Hard Reset 不讓普通 NPC 保留跨 Loop 記憶與關係狀態。
       affected_characters: [protagonist, yuan]
       delayed_effects: [主角開始承受關係只有自己記得的失落。]
       knowledge_changes: [只有主角保留跨 Loop 記憶。]
@@ -24,7 +24,7 @@ nodes:
     detail:
       before: [主角記得昨晚與予安一起調查、吃飯和談話。]
       after: [予安以第一次重逢的狀態對待主角。]
-      reason: 他沒有忘記上一輪；對現在的他而言，那一輪根本沒有發生。
+      reason: 對這一輪的予安而言，上一輪根本沒有發生。
       affected_characters: [protagonist, yuan]
       delayed_effects: [主角的熟悉感開始變成他眼中的異常。]
       knowledge_changes: []
@@ -37,14 +37,44 @@ nodes:
     actor_ids: [protagonist, yuan]
     visibility: public
     detail:
-      before: [只有上一輪的主角知道工具箱底板藏著備用鑰匙。]
+      before: [上一輪主角曾實際得知工具箱底板藏著備用鑰匙。]
       after: [主角直接找到鑰匙，予安第一次質問她為何知道。]
-      reason: 主角把跨 Loop 的人物記憶自然地帶進新的關係。
+      reason: 主角把自己上一輪真正經歷過的資訊帶進新的關係。
       affected_characters: [protagonist, yuan]
       delayed_effects: [予安開始注意主角對自己生活知道得不合理地多。]
       knowledge_changes: [備用鑰匙位置]
       relationship_changes: [yuan.suspicion +1]
       narrative_refs: [loop05_0840_key_from_lost_day]
+
+  - id: L5_N04_character_insight_unlocked
+    title: 玩家用過去的人物 Memory 形成假設
+    time: "09:20"
+    actor_ids: [protagonist, yuan]
+    visibility: public
+    detail:
+      before: [玩家曾在其他 Loop 實際觀察並可選擇 Capture 予安如何保存父親遺物。]
+      after: [玩家可以把這些 Memory 放到 Investigation Wall，形成「他是不是很難丟掉父親的東西？」的 hypothesis。]
+      reason: 人物理解來自跨 Loop 的真實 Perception；它不是系統自動解鎖的人格真相。
+      affected_characters: [protagonist, yuan]
+      delayed_effects: [若玩家採用這個 hypothesis，可選擇追查誰移動過物品。]
+      knowledge_changes: [insight_yuan_keeps_fathers_things]
+      relationship_changes: []
+      narrative_refs: [loop05_0920_insight_yuan_father]
+
+  - id: L5_N05_insight_becomes_clue
+    title: 人物 Memory 讓玩家選擇另一條調查方向
+    time: "10:10"
+    actor_ids: [protagonist, yuan, zhixia]
+    visibility: public
+    detail:
+      before: [父親留下的錄音器外盒不在原位，予安認為可能是自己以前丟掉。]
+      after: [玩家可因自己的 hypothesis 改查誰移動過物品，並在維修紀錄中找到知夏借用同型設備的客觀紀錄。]
+      reason: 人物理解只能提供調查動機，不能替玩家排除假設或直接當證明。
+      affected_characters: [protagonist, yuan, zhixia]
+      delayed_effects: [調查可能從物品消失轉向知夏曾借用同型設備。]
+      knowledge_changes: [知夏死亡前一天曾借用同型錄音設備。]
+      relationship_changes: []
+      narrative_refs: [loop05_1010_missing_case]
 
   - id: L5_N03_yuan_questions_knowledge
     title: 予安質問主角為何這麼了解自己
@@ -52,44 +82,14 @@ nodes:
     actor_ids: [protagonist, yuan]
     visibility: public
     detail:
-      before: [主角已多次無意間使用其他 Loop 得到的私人理解。]
+      before: [主角已多次使用其他 Loop 得到的私人理解。]
       after: [予安明確意識到主角掌握超過五年未見老同學應知道的資訊。]
-      reason: 鑰匙、父親遺物與咖啡習慣累積成無法忽略的異常。
+      reason: 鑰匙、父親遺物與生活習慣累積成無法忽略的異常。
       affected_characters: [protagonist, yuan]
       delayed_effects: [主角開始意識到理解別人不等於有權使用所有私人資訊。]
       knowledge_changes: []
       relationship_changes: [yuan.suspicion +1]
       narrative_refs: [loop05_1230_yuan_questions_knowledge]
-
-  - id: L5_N04_character_insight_unlocked
-    title: 人物理解成為可保留的線索
-    time: "09:20"
-    actor_ids: [protagonist, yuan]
-    visibility: public
-    detail:
-      before: [主角只把物證、時間與文件視為線索。]
-      after: [她正式把「予安不會丟父親遺物」視為人物型線索。]
-      reason: 這份理解來自跨 Loop 的真實相處，而不是一次對話選項。
-      affected_characters: [protagonist, yuan]
-      delayed_effects: [未來可用穩定人格與習慣排除錯誤假設。]
-      knowledge_changes: [insight_yuan_keeps_fathers_things]
-      relationship_changes: []
-      narrative_refs: [loop05_0920_insight_yuan_father]
-
-  - id: L5_N05_insight_becomes_clue
-    title: 人物理解第一次改變調查方向
-    time: "10:10"
-    actor_ids: [protagonist, yuan, zhixia]
-    visibility: public
-    detail:
-      before: [父親留下的錄音器外盒不在原位，予安以為可能是自己丟掉。]
-      after: [主角因理解予安而排除這個假設，追查誰移動過物品，找到知夏的舊維修單。]
-      reason: Character Insight 可以指向「哪個假設不合理」，但不能單獨當作證明。
-      affected_characters: [protagonist, yuan, zhixia]
-      delayed_effects: [調查從物品消失轉向知夏曾借用同型設備。]
-      knowledge_changes: [知夏死亡前一天曾借用同型錄音設備。]
-      relationship_changes: []
-      narrative_refs: [loop05_1010_missing_case]
 
   - id: L5_N06_friendship_only_one_remembers
     title: 一段只有主角記得的友誼
@@ -99,7 +99,7 @@ nodes:
     detail:
       before: [予安只把今天視為五年後第一次重新相處。]
       after: [主角承認真正失去跨 Loop 關係的人只有自己。]
-      reason: 其他人沒有被輪迴傷害人格；代價集中在記憶持有者身上。
+      reason: 其他人沒有被輪迴累積上一輪關係；代價集中在記憶持有者身上。
       affected_characters: [protagonist, yuan]
       delayed_effects: [主角更能理解知夏為何最後把熟悉的人當成可預測變數。]
       knowledge_changes: [記住一個人不等於有權替他決定。]
@@ -109,7 +109,7 @@ nodes:
 edges:
   - { id: L5_E00, source: L5_N00_reset_alone, target: L5_N01_yuan_stranger_again, label: "only protagonist remembers", visibility: public }
   - { id: L5_E01, source: L5_N01_yuan_stranger_again, target: L5_N02_key_from_lost_day, label: "use lost-day knowledge", visibility: public }
-  - { id: L5_E02, source: L5_N02_key_from_lost_day, target: L5_N04_character_insight_unlocked, label: "recognize stable habit", visibility: public }
-  - { id: L5_E03, source: L5_N04_character_insight_unlocked, target: L5_N05_insight_becomes_clue, label: "exclude wrong assumption", visibility: public }
+  - { id: L5_E02, source: L5_N02_key_from_lost_day, target: L5_N04_character_insight_unlocked, label: "recall perceived character pattern", visibility: public }
+  - { id: L5_E03, source: L5_N04_character_insight_unlocked, target: L5_N05_insight_becomes_clue, label: "choose alternate investigation", visibility: public }
   - { id: L5_E04, source: L5_N05_insight_becomes_clue, target: L5_N03_yuan_questions_knowledge, label: "knowledge becomes suspicious", visibility: public }
   - { id: L5_E05, source: L5_N03_yuan_questions_knowledge, target: L5_N06_friendship_only_one_remembers, label: "relationship asymmetry", visibility: public }

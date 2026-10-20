@@ -1,5 +1,6 @@
 scenes:
   - id: loop04_0612_hard_reset
+    title: 從清晨開始
     at: { day: 0, time: "06:12" }
     kind: narration
     participants: [protagonist]
@@ -9,13 +10,14 @@ scenes:
       - type: narration
         text: 10 月 3 日，06:12。
       - type: monologue
-        text: 原來真正被重置的不是下午兩點二十分。是更早。
+        text: 這次我終於能從清晨而不是下午開始追查。06:12 從來就不只是進鎮時間。
       - type: narration
         text: 前三輪，我只是到了下午才真正開始行動。這一次，我終於有整個早上可以用。
       - type: monologue
         text: 不再改今天。先查清楚五年前。
 
   - id: loop04_0910_detective_confrontation
+    title: 警局的早上
     at: { day: 0, time: "09:10" }
     kind: dialogue
     participants: [protagonist, detective]
@@ -36,6 +38,7 @@ scenes:
         text: 這個動作比相信我更糟。他知道 18:31 有問題。
 
   - id: loop04_0930_hidden_recorder
+    title: 藏了五年的錄音器
     at: { day: 0, time: "09:30" }
     kind: dialogue
     participants: [protagonist, detective, zhixia, reporter]
@@ -60,6 +63,7 @@ scenes:
         text: 我把播放鍵按停。五年前的若晴只有十八歲。這句話不是在描述今天，卻像她們早就看過某個若晴會死的版本。
 
   - id: loop04_1020_future_voice
+    title: 18:28 的聲音
     at: { day: 0, time: "10:20" }
     kind: dialogue
     participants: [protagonist, detective]
@@ -83,6 +87,7 @@ scenes:
         text: 這台錄音器不是只記錄了過去。它曾經把某個未來提前留下來。
 
   - id: loop04_1140_seven_records
+    title: 七份病歷
     at: { day: 0, time: "11:40" }
     kind: dialogue
     participants: [protagonist, doctor]
@@ -106,6 +111,7 @@ scenes:
         text: 從那天開始，我就不敢再把她說的事情當成妄想。
 
   - id: loop04_1310_reporter_confession
+    title: 庭安的證詞
     at: { day: 0, time: "13:10" }
     kind: dialogue
     participants: [protagonist, reporter]
@@ -127,6 +133,7 @@ scenes:
         text: 真正麻煩的不是她猜中。而是她有時候會忍不住去阻止。
 
   - id: loop04_1400_first_correction
+    title: 第一次改寫
     at: { day: 0, time: "14:00" }
     kind: dialogue
     participants: [protagonist, reporter, zhixia]
@@ -151,6 +158,7 @@ scenes:
         text: 「修正」從此成了她們記錄不同結果時使用的名字。
 
   - id: loop04_1530_ethical_break
+    title: 損失最小的版本
     at: { day: 0, time: "15:30" }
     kind: dialogue
     participants: [protagonist, reporter, zhixia]
@@ -177,6 +185,7 @@ scenes:
         text: 我不是在聽姊姊的故事。我是在看自己再往前走幾步會變成什麼。
 
   - id: loop04_1741_final_call_log
+    title: 通聯紀錄
     at: { day: 0, time: "17:41" }
     kind: narration
     participants: [protagonist, detective, reporter, doctor, yuan]
@@ -191,6 +200,7 @@ scenes:
         text: 如果五年前所有人都只拿到一小塊，那 18:03 可能就是還沒有人看懂的那一塊。
 
   - id: loop04_1758_yuan_missed_call
+    title: 17:58 的未接來電
     at: { day: 0, time: "17:58" }
     kind: dialogue
     participants: [protagonist, yuan]
@@ -212,6 +222,7 @@ scenes:
         text: 我第一次理解，五年前有些缺口不是因為秘密，只是因為人活著的時候不會知道哪一分鐘會變成最後一次。
 
   - id: loop04_1803_unknown_call
+    title: 18:03
     at: { day: 0, time: "18:03" }
     kind: narration
     participants: [protagonist]
@@ -228,6 +239,7 @@ scenes:
         text: 18:03 不是一個名字。它可能是一個跨過世界線的入口。
 
   - id: loop04_2240_mirror_warning
+    title: 攤在地板上的東西
     at: { day: 0, time: "22:40" }
     kind: narration
     participants: [protagonist]

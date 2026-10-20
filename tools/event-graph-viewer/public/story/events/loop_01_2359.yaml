@@ -8,3 +8,4 @@ variants:
     fallback: true
     effects:
       - add_flag: flags.midnight_bells_heard
+      - correction: { op: final_check }

@@ -1,5 +1,10 @@
 character_id: yuan
 entries:
+  - id: yuan_meet_train_0740
+    at: { day: 0, time: "07:40" }
+    visibility: hidden
+    effects:
+      - set: { path: characters.yuan.location, value: with_player }
   - id: yuan_town_1750
     at: { day: 0, time: "17:50" }
     visibility: hidden
@@ -36,3 +41,24 @@ entries:
     when: { path: characters.yuan.assignment, op: eq, value: post_office }
     effects:
       - set: { path: characters.yuan.location, value: road_from_post_office }
+  # Player asks, but Yuan independently acts only when still at the station area.
+  - id: yuan_check_backup_if_available
+    at: { day: 0, time: "18:26" }
+    visibility: hidden
+    when:
+      all:
+        - { path: world.backup_inspection_requested, op: eq, value: true }
+        - { path: characters.yuan.location, op: eq, value: station_area }
+    effects:
+      - add_flag: world.backup_inspection_completed
+      - set: { path: characters.yuan.assignment, value: inspect_backup }
+  - id: yuan_cannot_inspect_from_post_office
+    at: { day: 0, time: "18:26" }
+    visibility: hidden
+    when:
+      all:
+        - { path: world.backup_inspection_requested, op: eq, value: true }
+        - { path: characters.yuan.location, op: eq, value: post_office }
+    effects:
+      - set: { path: characters.yuan.assignment, value: post_office }
+
