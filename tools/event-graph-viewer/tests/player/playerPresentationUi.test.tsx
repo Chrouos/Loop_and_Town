@@ -56,7 +56,7 @@ describe('PlayerSceneStage', () => {
     expect(screen.getByText('舊車站')).toBeDefined();
     expect(screen.getByText('18:31')).toBeDefined();
     expect(screen.getByText('場景內容')).toBeDefined();
-    expect(screen.getByText('周遭有動靜')).toBeDefined();
+    expect(screen.getByRole('button', { name: '遠處的腳步聲' })).toBeDefined();
     expect(screen.getAllByText('正在留意')).toHaveLength(2);
   });
 
