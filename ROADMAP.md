@@ -473,8 +473,8 @@ Done: #20, #19, #16, #21, M5, M6, #18, Final P0–P4 slice, M9 presentation pass
 1. Loop 01 end-to-end validation in /player.html against the M8 checklist
    → regression check that #27–#33 presentation did not break
      Attention / Perception / Capture / Wall / Reset semantics
-   → passive-path gap list: docs/superpowers/plans/2026-10-20-loop01-validation-gaps.md
-   → fix G1 + G2 first, then walk the active path
+   → gap list: docs/superpowers/plans/2026-10-20-loop01-validation-gaps.md
+   → G1 + G2 fixed; passive and active paths walked; next G8 + G9, G3, then G5 / G4
 2. Close M7 test gaps (miss while focused, Convergence during Capture, Bell while reading)
 3. Loop 02 validation, then Loop 03 → 07 in order, then reconnect to Final
 4. Remaining game-feel polish (environment art, spatial sound, parallax, touch / controller)
