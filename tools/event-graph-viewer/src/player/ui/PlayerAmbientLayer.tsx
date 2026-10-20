@@ -13,5 +13,9 @@ export function PlayerAmbientLayer({ presentation, onAttend, focusedId }: Props)
  {cues.map(cue => <button type="button" key={cue.id} className="player-ambient-layer__cue"
   aria-label={labels[cue.id] ?? cue.title} aria-pressed={focusedId === cue.id}
   onClick={() => onAttend?.(cue.id)}>{labels[cue.id] ?? cue.title}</button>)}
+ {presentation.attention.phase === 'observing' && <span className="player-ambient-layer__state">正在留意</span>}
+ {presentation.attention.phase === 'shifting' && <span className="player-ambient-layer__state">注意力正在移動</span>}
+ {presentation.capture.active && <span className="player-ambient-layer__state">正在留下這一刻</span>}
+ {presentation.reset.pending && <span className="player-ambient-layer__state">世界正在接手這一輪</span>}
  </aside>;
 }
