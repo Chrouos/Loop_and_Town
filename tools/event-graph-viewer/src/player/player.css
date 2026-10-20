@@ -75,3 +75,16 @@
     padding:6px 10px; gap:8px; font-size:10px;
   }
 }
+
+/* While the 18:20 decision is open the passage gives up space so every choice stays on screen without scrolling. */
+.player-shell--immersive .reading-scene--deciding .auto-flow-narrative{height:min(30dvh,240px);min-height:120px}
+.player-shell--immersive .reading-scene--deciding .dialogue-scene{margin-top:14px}
+.player-shell--immersive .reading-scene--deciding .dialogue-scene__choices{margin-top:18px;gap:6px}
+.player-shell--immersive .reading-scene--deciding .dialogue-choice{padding:10px 2px}
+@media(max-width:700px){.player-shell--immersive .reading-scene--deciding .dialogue-scene__text{font-size:16px;line-height:1.7}.player-shell--immersive .reading-scene--deciding .dialogue-choice{font-size:15px;line-height:1.6}}
+
+/* Capture is a quiet in-scene offer, not a form button. */
+.player-shell--immersive .memory-capture-prompt,.player-shell--immersive .memory-capture-status{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 16px;margin:0 0 14px}
+.player-shell--immersive .memory-capture-prompt p,.player-shell--immersive .memory-capture-status p{margin:0;color:#a9a393;font-size:13px;letter-spacing:.06em}
+.player-shell--immersive .memory-capture-prompt button{background:transparent;border:0;border-bottom:1px solid #c5b08a;color:#edd8b0;padding:4px 2px;font:inherit;font-size:14px;letter-spacing:.06em;cursor:pointer}
+.player-shell--immersive .memory-capture-prompt button:hover,.player-shell--immersive .memory-capture-prompt button:focus-visible{color:#fff}

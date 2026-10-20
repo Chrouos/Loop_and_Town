@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { loadPlayerStoryBundle } from '../lib/loadPlayerStoryBundle';
 import type { SimulationDefinition, WorldState } from '../simulator/types';
-import { clockMinuteAt, displayMinute, isLiveSyncAvailable } from './clock';
-import { entryPresentation, entryWindowFor } from './entry';
+import { BELL_MINUTE, clockMinuteAt, displayMinute, isLiveSyncAvailable } from './clock';
+import { entryPresentation, idleLine, entryWindowFor } from './entry';
 import { attendPresenceRecord, availablePresenceRecords, beginMemoryCapture, narrativeExcerptMemoryId, reconcilePlayer, rememberNarrativeExcerpt, visibleRecords } from './knowledge';
 import { knownDiff, pinExcerpt } from './logic';
 import { normalizeSave, type ActionId, type PlayerSave } from './model';
@@ -43,6 +43,18 @@ function prefersReducedMotion(): boolean {
     ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
     : false;
 }
+
+// The stage follows the present: older unwatched scenes wait in the case file instead of replaying a backlog.
+const STAGE_FRESH_MINUTES = 30;
+// A finished passage stays on screen for a breath before the next scene takes the stage.
+const STAGE_LINGER_MS = 2500;
+// Documents the player chose to open stay longer before the day moves on.
+const DOCUMENT_LINGER_MS = 7000;
+const NOTE_VISIBLE_MS = 8000;
+// A perceived moment can be kept only shortly after it ends; afterwards it is simply gone.
+const CAPTURE_GRACE_MINUTES = 10;
+// The Loop 1 opening scene already shows the protagonist waking on the train.
+const OPENING_COVERED_SCENE = 'prologue_arrival';
 
 export function PlayerApp({ now = Date.now, storage = window.localStorage, loadStory = () => loadPlayerStoryBundle('story/manifests/loop_01.yaml') }: Props) {
   const [save, setSave] = useState<PlayerSave>(() => readSave(storage, now()));
@@ -157,15 +169,8 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
       save.knowledge.memories)
     : undefined;
   const resetPending = loop.clock.pendingCriticalBoundary === 'reset' && !finalForward && !finalSafetyHold;
-  const presentation = projectPlayerPresentation({
-    save,
-    loopId,
-    minute: clock.minute,
-    records,
-    opportunities,
-    scene: record,
-    location: resetPending ? '灰潮鎮' : atOldStation ? '舊車站' : '灰潮鎮',
-  });
+  const captureOpen = Boolean(lastPerceivedRecord && !lastMemory && !resetPending
+    && clock.minute <= (lastPerceivedRecord.availableUntilMinute ?? lastPerceivedRecord.revealMinute + 5) + CAPTURE_GRACE_MINUTES);
 
   useEffect(() => {
     if (!resetPending) setResetPresentationComplete(false);
@@ -180,16 +185,44 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
       && item.id !== record?.id
       && loop.revealedIds.includes(`${loopId}:${item.id}`)
       && !loop.seenSceneIds.includes(item.sceneId)
-      && !save.knowledge.opened.includes(`${loopId}:${item.id}`))
+      && !save.knowledge.opened.includes(`${loopId}:${item.id}`)
+      && item.revealMinute >= clock.minute - STAGE_FRESH_MINUTES)
     .sort((left, right) => left.revealMinute - right.revealMinute)[0];
   const holdsDecision = record?.id === 'yu-an-message' && canAct;
+  // The 23:59 bell and the midnight scene play to the end before the reset presentation takes the stage.
+  const finalePlaying = Boolean(record && authoredIds.has(record.id) && record.revealMinute >= BELL_MINUTE && finishedRecordId !== record.id);
+  const deferReset = resetPending && opened && (finalePlaying || (nextAuthoredScene?.revealMinute ?? 0) >= BELL_MINUTE);
+  const presentation = projectPlayerPresentation({
+    save,
+    loopId,
+    minute: clock.minute,
+    records,
+    opportunities,
+    scene: record,
+    resetHeld: deferReset,
+    location: resetPending ? '灰潮鎮' : atOldStation ? '舊車站' : '灰潮鎮',
+  });
   const stageRecordId = record?.id ?? null;
   const markStageFinished = useCallback(() => setFinishedRecordId(stageRecordId), [stageRecordId]);
-  const stageIdle = opened && !resetPending && !drawer && loop.attention.phase === 'idle' && !loop.capture;
+  const stageIdle = opened && (!resetPending || deferReset) && !drawer && loop.attention.phase === 'idle' && !loop.capture;
+  const openRecordRef = useRef(openRecord);
+  openRecordRef.current = openRecord;
+  const nextSceneId = nextAuthoredScene?.id;
+  const stageReadyToMove = Boolean(nextSceneId) && stageIdle && !holdsDecision && finishedRecordId === stageRecordId;
+  const lingerMs = stageRecordId && authoredIds.has(stageRecordId) ? STAGE_LINGER_MS : DOCUMENT_LINGER_MS;
   useEffect(() => {
-    if (!nextAuthoredScene || !stageIdle || holdsDecision || finishedRecordId !== record?.id) return;
-    openRecord(nextAuthoredScene.id);
-  });
+    if (!stageReadyToMove || !nextSceneId) return;
+    const timer = window.setTimeout(() => openRecordRef.current(nextSceneId), lingerMs);
+    return () => window.clearTimeout(timer);
+  }, [stageReadyToMove, nextSceneId, lingerMs]);
+  // A finished scene from long ago gives way to the present moment instead of staying on stage for hours.
+  const stageStale = Boolean(record && authoredIds.has(record.id) && finishedRecordId === record.id
+    && !nextAuthoredScene && record.revealMinute < clock.minute - STAGE_FRESH_MINUTES);
+  useEffect(() => {
+    if (!note) return;
+    const timer = window.setTimeout(() => setNote(''), NOTE_VISIBLE_MS);
+    return () => window.clearTimeout(timer);
+  }, [note]);
 
   useEffect(() => {
     if (!story || loop.attention.phase === 'idle') return;
@@ -239,6 +272,7 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
     const nextSave = normalizeSave(save, now());
     const readKey = `${loopId}:${id}`;
     if (!nextSave.knowledge.opened.includes(readKey)) nextSave.knowledge.opened.push(readKey);
+    if (id === 'letter' && chapterOf(nextSave, loopId) === 1) markPlayerNarrativeSeen(nextSave, loopId, OPENING_COVERED_SCENE);
     if (authoredIds.has(id)) {
       markPlayerNarrativeSeen(nextSave, loopId, id);
     }
@@ -284,22 +318,27 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
         audioEnabled={audioEnabled}
         input={{
           onAttend: opportunities[0] ? () => attend(opportunities[0].id) : undefined,
-          onCapture: lastPerceivedRecord && !lastMemory ? () => capture(lastPerceivedRecord.id) : undefined,
+          onCapture: captureOpen && lastPerceivedRecord ? () => capture(lastPerceivedRecord.id) : undefined,
         }}
         onAmbientAttend={attend}
         focusedId={loop.attention.targetId}
       >
         <SceneFrame className="scene-frame--flat player-presentation-frame">
-        {error ? <p role="alert">無法讀取鎮上的紀錄：{error}</p> : !story ? <p>正在取出案卷……</p> : finalForward ? <div className="opening final-outcome" role="status"><p>鐘聲響完，日期沒有回去。</p><p>{finalSession?.sealMode==='PERMANENT'?'舊站的兩條自動改寫路徑已失去權限。每個人仍保留自己的選擇。':'這一輪已經封存，但改寫權限依然存在。'}</p><p>{finalBoundary?.nextCheckpoint ?? '10/4 00:01'}</p></div> : finalSafetyHold ? <div className="opening final-outcome" role="status"><p>已經切斷的路徑不能自行恢復，但當輪仍未通過安全結案。</p><p>午夜沒有被宣告勝利。等待可靠的確認。</p></div> : resetPending && !resetPresentationComplete ? <ResetTransitionScene reducedMotion={prefersReducedMotion()} onPresentationComplete={() => setResetPresentationComplete(true)} /> : resetPending ? <div className="opening mode-choice"><p>鐘聲落下，今天又回到可以重來的地方。</p><p>下一次進入灰潮鎮時，你要怎麼走進這一天？</p><button onClick={() => chooseMode('LIVE_SYNC')} disabled={modeCommitInFlight || !isLiveSyncAvailable(currentMs)}>跟著現在走<span> · {isLiveSyncAvailable(currentMs) ? '從此刻的鎮內時間進入' : '現在是 Live Sync 無法進入的時間'}</span></button><button onClick={() => chooseMode('ACCELERATED')} disabled={modeCommitInFlight}>回到記憶開始的地方<span> · 從 06:12 的返程列車開始</span></button>{note && <p className="inline-note" role="status">{note}</p>}</div> : !opened ? <OpeningScene label={entry.label} lines={entry.lines} paperAvailable={opportunities.some(item => item.id === 'paper-word')} onAttendPaper={() => attend('paper-word')} onOpenLetter={() => openRecord('letter')} /> : <div className={`reading-scene reading-scene--immersive attention-${loop.attention.phase}`} key={`${clock.loop}:${record?.id}`}>
+        {error ? <p role="alert">無法讀取鎮上的紀錄：{error}</p> : !story ? <p>正在取出案卷……</p> : finalForward ? <div className="opening final-outcome" role="status"><p>鐘聲響完，日期沒有回去。</p><p>{finalSession?.sealMode==='PERMANENT'?'舊站的兩條自動改寫路徑已失去權限。每個人仍保留自己的選擇。':'這一輪已經封存，但改寫權限依然存在。'}</p><p>{finalBoundary?.nextCheckpoint ?? '10/4 00:01'}</p></div> : finalSafetyHold ? <div className="opening final-outcome" role="status"><p>已經切斷的路徑不能自行恢復，但當輪仍未通過安全結案。</p><p>午夜沒有被宣告勝利。等待可靠的確認。</p></div> : resetPending && !deferReset && !resetPresentationComplete ? <ResetTransitionScene reducedMotion={prefersReducedMotion()} onPresentationComplete={() => setResetPresentationComplete(true)} /> : resetPending && !deferReset ? <div className="opening mode-choice"><p>鐘聲落下，今天又回到可以重來的地方。</p><p>下一次進入灰潮鎮時，你要怎麼走進這一天？</p><button onClick={() => chooseMode('LIVE_SYNC')} disabled={modeCommitInFlight || !isLiveSyncAvailable(currentMs)}>跟著現在走<span> · {isLiveSyncAvailable(currentMs) ? '從此刻的鎮內時間進入' : '現在是 Live Sync 無法進入的時間'}</span></button><button onClick={() => chooseMode('ACCELERATED')} disabled={modeCommitInFlight}>回到記憶開始的地方<span> · 從 06:12 的返程列車開始</span></button>{note && <p className="inline-note" role="status">{note}</p>}</div> : !opened ? <OpeningScene label={entry.label} lines={entry.lines} paperAvailable={opportunities.some(item => item.id === 'paper-word')} onAttendPaper={() => attend('paper-word')} onOpenLetter={() => openRecord('letter')} /> : <div className={`reading-scene reading-scene--immersive attention-${loop.attention.phase}${holdsDecision ? ' reading-scene--deciding' : ''}`} key={`${clock.loop}:${record?.id}`}>
         
         {loop.capture && <div className="memory-capture-status" role="status"><p>你正在把剛才的感覺留下來……</p></div>}
-        {!loop.capture && lastPerceivedRecord && !lastMemory && <div className="memory-capture-prompt" role="status"><p>剛才那一幕還留在你心裡。</p><button onClick={() => capture(lastPerceivedRecord.id)}>捕捉這段記憶</button></div>}
-        {!loop.capture && lastMemory && <div className="memory-capture-status" role="status"><p>已將「{lastMemory.title}」收進持久記憶。</p></div>}
+        {!loop.capture && captureOpen && lastPerceivedRecord && <div className="memory-capture-prompt" role="status"><p>剛才那一幕還留在你心裡。</p><button onClick={() => capture(lastPerceivedRecord.id)}>捕捉這段記憶</button></div>}
+        {!loop.capture && lastMemory && <div key={lastMemory.id} className="memory-capture-status memory-capture-status--fading" role="status"><p>已將「{lastMemory.title}」收進持久記憶。</p></div>}
         {incoming.length > 0 && <aside className="incoming-records incoming-records--quiet" aria-label="新消息"><span>鎮上有 {incoming.length} 則新消息</span><button type="button" onClick={() => showDrawer('case')}>查看消息 <span aria-hidden="true">↗</span></button></aside>}
-        {observingSpatialRecord ? <SpatialTextLayer script={observingSpatialRecord.spatialScript!} now={now} /> : record?.spatialScript && record.acquisition === 'presence' ? <SpatialTextLayer script={record.spatialScript} now={now} /> : <>
-          <AutoFlowNarrative key={`${clock.loop}:${record?.id}`} title={record?.title} lines={record?.body ?? []} excerpts={record?.excerpts ?? []} rememberedIds={rememberedExcerptIds(record)} onComplete={markStageFinished} onRemember={excerptId => record ? rememberExcerpt(record, excerptId) : false} reducedMotion={prefersReducedMotion()} />
-        </>}
-        {record?.id === 'letter' && records.some(x => x.id === 'yu-an-message') && <div className="decisions"><p>手機震了一下。予安留了話。</p><button onClick={() => openRecord('yu-an-message')}>讀予安的留言</button></div>}
+        {observingSpatialRecord && <SpatialTextLayer script={observingSpatialRecord.spatialScript!} now={now} />}
+        {/* Attending elsewhere hides the passage without stopping it: faded does not mean paused. */}
+        {record?.spatialScript && record.acquisition === 'presence' ? !observingSpatialRecord && <SpatialTextLayer script={record.spatialScript} now={now} /> : <div className="stage-primary" hidden={Boolean(observingSpatialRecord)}>
+          {stageStale ? <section className="stage-idle" aria-label="此刻">
+            <p className="stage-idle__time">{atOldStation ? '舊車站' : '灰潮鎮'} · {entry.label}</p>
+            <p className="stage-idle__line">{idleLine(entryWindow)}</p>
+          </section> : <AutoFlowNarrative key={`${clock.loop}:${record?.id}`} title={record?.title} lines={record?.body ?? []} excerpts={record?.excerpts ?? []} rememberedIds={rememberedExcerptIds(record)} onComplete={markStageFinished} onRemember={excerptId => record ? rememberExcerpt(record, excerptId) : false} reducedMotion={prefersReducedMotion()} />}
+        </div>}
+        {record?.id !== 'yu-an-message' && canAct && !hasAction('protect_wakaharu') && !hasAction('stop_doctor') && records.some(x => x.id === 'yu-an-message') && <div className="decisions"><p>手機震了一下。予安留了話。</p><button onClick={() => openRecord('yu-an-message')}>讀予安的留言</button></div>}
         {record?.id === 'yu-an-message' && canAct ? <DialogueScene
           speaker="予安"
           text="18:20 前，你可以決定今晚要怎麼做。"

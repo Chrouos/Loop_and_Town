@@ -55,4 +55,6 @@ export type PlayerPresentationInput = {
   opportunities: PlayerNarrativeRecord[];
   scene?: PlayerNarrativeRecord;
   location?: string;
+  /** The reset is pending but the closing scene is still playing; present it once that ends. */
+  resetHeld?: boolean;
 };

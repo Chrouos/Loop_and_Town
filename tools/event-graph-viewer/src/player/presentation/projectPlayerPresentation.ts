@@ -43,7 +43,7 @@ export function projectPlayerPresentation(input: PlayerPresentationInput): Playe
     .filter(record => currentLoop?.perceivedSceneIds.includes(record.sceneId))
     .filter(record => !persistedIds.has(`memory:${String(input.loopId)}:${record.id}`))
     .map(visibleScene);
-  const resetPending = currentLoop?.clock.pendingCriticalBoundary === 'reset';
+  const resetPending = currentLoop?.clock.pendingCriticalBoundary === 'reset' && !input.resetHeld;
   const mode = resetPending
     ? 'reset'
     : capture

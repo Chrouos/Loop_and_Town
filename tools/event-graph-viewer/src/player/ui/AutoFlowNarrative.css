@@ -30,3 +30,13 @@
 .auto-flow-narrative__memory--just-saved{animation:memory-capture-glow 1.05s ease-out both}
 @keyframes memory-capture-glow{0%{text-shadow:0 0 0 transparent;color:#fff6d9}35%{text-shadow:0 0 14px rgba(246,211,139,.65);color:#ffe7ae}100%{text-shadow:none;color:#bcad89}}
 @media(prefers-reduced-motion:reduce){.auto-flow-narrative__memory--just-saved{animation:none}}
+
+/* The present moment when no new scene has reached the protagonist for a while. */
+.stage-idle{width:min(740px,100%);min-height:190px;margin:auto;display:flex;flex-direction:column;justify-content:center;gap:18px;color:#e9e6df;animation:stage-idle-in 1.6s ease both}
+.stage-idle__time{margin:0;font:12px system-ui,sans-serif;letter-spacing:.18em;color:#a9a393}
+.stage-idle__line{margin:0;font-size:clamp(18px,2.2vw,26px);line-height:1.85;letter-spacing:.055em;color:#cfd2c6}
+@keyframes stage-idle-in{from{opacity:0}to{opacity:1}}
+/* Capture feedback is a moment, not a banner that stays for the rest of the day. */
+.memory-capture-status--fading{animation:capture-note-fade 8s ease forwards}
+@keyframes capture-note-fade{0%,70%{opacity:1}100%{opacity:0;visibility:hidden}}
+@media(prefers-reduced-motion:reduce){.stage-idle{animation:none}.memory-capture-status--fading{animation-timing-function:step-end}}

@@ -109,8 +109,25 @@ describe('Loop 01 authored narrative in the canonical player', () => {
       storage.setItem(SAVE_KEY, JSON.stringify(loopOneSave()));
       const now = realTimeAt(8 * 60 + 10);
       render(<PlayerApp now={() => now} storage={storage} loadStory={async () => bundle} />);
-      expect(await screen.findByText(/我在返鄉列車的震動裡醒來/, {}, { timeout: 8000 })).toBeDefined();
+      // 06:12 is more than half an hour old by 08:10, so the stage picks up at 07:40 instead of replaying it.
+      expect(await screen.findByText(/火車停穩/, {}, { timeout: 10_000 })).toBeDefined();
+      expect(document.querySelector('.auto-flow-narrative__chapter')?.textContent).toBe('出口的予安');
     } finally { restore(); }
+  }, 15_000);
+
+  it('keeps the 18:00 message reachable while the stage plays other scenes', async () => {
+    const storage = window.localStorage;
+    storage.clear();
+    const save = loopOneSave();
+    save.loops[1].stationVisit = { departMinute: 17 * 60 + 10, arriveMinute: 17 * 60 + 30 };
+    storage.setItem(SAVE_KEY, JSON.stringify(save));
+    const now = realTimeAt(18 * 60 + 6);
+    render(<PlayerApp now={() => now} storage={storage} loadStory={async () => bundle} />);
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole('button', { name: '開啟工具' }));
+    await user.click(screen.getByRole('button', { name: /^案卷/ }));
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: /18:05/ }));
+    expect(screen.getByRole('button', { name: '讀予安的留言' })).toBeDefined();
   });
 
   it('keeps the 18:20 decision on stage instead of moving on to other scenes', async () => {
@@ -137,6 +154,40 @@ describe('Loop 01 authored narrative in the canonical player', () => {
     await screen.findByRole('button', { name: '開啟工具' });
     await act(async () => { await new Promise(resolve => setTimeout(resolve, 50)); });
     expect(screen.queryByText(/則新消息/)).toBeNull();
+  });
+
+  it('lets the 23:59 bell scene play before the reset presentation takes the stage', async () => {
+    const restore = preferReducedMotion();
+    try {
+      const storage = window.localStorage;
+      storage.clear();
+      storage.setItem(SAVE_KEY, JSON.stringify(loopOneSave()));
+      const now = realTimeAt(24 * 60 + 1);
+      render(<PlayerApp now={() => now} storage={storage} loadStory={async () => bundle} />);
+      expect(await screen.findByText(/鎮中心傳來第一聲鐘響/, {}, { timeout: 12_000 })).toBeDefined();
+      expect(screen.queryByText('世界接手了這一輪。')).toBeNull();
+    } finally { restore(); }
+  }, 20_000);
+
+  it('offers to keep a perceived moment only shortly after it ends', async () => {
+    const perceivedBlackout = () => {
+      const save = loopOneSave();
+      save.loops[1].stationVisit = { departMinute: 17 * 60 + 10, arriveMinute: 17 * 60 + 30 };
+      save.loops[1].perceivedSceneIds = ['station-blackout'];
+      save.loops[1].lastPerceivedRecordId = 'station-blackout';
+      return save;
+    };
+    const storage = window.localStorage;
+    for (const [minute, offered] of [[18 * 60 + 45, true], [19 * 60, false]] as const) {
+      storage.clear();
+      storage.setItem(SAVE_KEY, JSON.stringify(perceivedBlackout()));
+      const now = realTimeAt(minute);
+      const view = render(<PlayerApp now={() => now} storage={storage} loadStory={async () => bundle} />);
+      await screen.findByRole('button', { name: '開啟工具' });
+      await act(async () => { await new Promise(resolve => setTimeout(resolve, 50)); });
+      expect(Boolean(screen.queryByRole('button', { name: '捕捉這段記憶' }))).toBe(offered);
+      view.unmount();
+    }
   });
 
   it('lets the player reach the 22:40 watch warning from the Loop 1 case file', async () => {
