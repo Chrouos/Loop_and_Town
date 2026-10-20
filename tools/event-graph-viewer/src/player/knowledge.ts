@@ -4,6 +4,7 @@ import { advanceLoop } from './eventScheduler';
 import { emptyLoop, type LoopHistoryEntry, type MemoryKind, type PlayerSave, type PersistentMemory } from './model';
 import { activeLoop, replayLoop } from './runtime';
 import { playerSceneConditions, projectPlayerNarrativeRecords } from './narrativeRecords';
+import { chapterOf } from './chapters';
 import { STORY_RECORDS, staticPlayerRecords, type PlayerNarrativeRecord } from './story';
 import type { PlayerStoryBundle } from '../types/playerStory';
 import { ATTENTION_OBSERVATION_MS, advanceAttention, beginAttention, redirectAttention } from './attention';
@@ -99,6 +100,39 @@ function memoryKind(record: PlayerNarrativeRecord): MemoryKind {
   return record.spatialScript ? 'composite' : 'text';
 }
 
+export function narrativeExcerptMemoryId(loop: number, recordId: string, excerptId: string): string {
+  return `${memoryId(loop, recordId)}:${excerptId}`;
+}
+
+/** Inline capture of words from an authored scene the player was given this loop; keeps only those words. */
+export function rememberNarrativeExcerpt(
+  save: PlayerSave,
+  loop: number,
+  record: PlayerNarrativeRecord,
+  excerptId: string,
+  minute: number,
+  nowMs: number,
+): PersistentMemory {
+  const excerpt = record.excerpts.find(item => item.id === excerptId);
+  if (!excerpt || !save.loops[loop]?.revealedIds.includes(`${loop}:${record.id}`)) throw new Error('這段文字還沒有取得來源。');
+  const id = narrativeExcerptMemoryId(loop, record.id, excerptId);
+  const existing = save.knowledge.memories.find(memory => memory.id === id);
+  if (existing) return existing;
+  const memory: PersistentMemory = {
+    id,
+    sourceLoop: loop,
+    sourceRecordId: record.id,
+    sourceSceneId: record.sceneId,
+    capturedAtMinute: minute,
+    capturedAtMs: nowMs,
+    kind: 'text',
+    title: record.title,
+    content: [excerpt.text],
+  };
+  save.knowledge.memories.push(memory);
+  return memory;
+}
+
 function settleMemoryCapture(
   save: PlayerSave,
   loop: number,
@@ -180,7 +214,7 @@ function revealNarrative(
   story: PlayerStoryBundle,
 ): void {
   const entry = save.loops[loop] ?? (save.loops[loop] = emptyLoop());
-  const records = projectPlayerNarrativeRecords(story, loop, history, minute, playerSceneConditions(save, loop));
+  const records = projectPlayerNarrativeRecords(story, chapterOf(save, loop), history, minute, playerSceneConditions(save, loop));
   for (const record of records) {
     const id = `${loop}:${record.id}`;
     if (record.revealMinute <= minute && record.matches(history) && !entry.revealedIds.includes(id)) entry.revealedIds.push(id);
@@ -201,7 +235,7 @@ export function reconcilePlayer(
   const attentionRecords = story
     ? [...staticPlayerRecords(loopId), ...projectPlayerNarrativeRecords(
       story,
-      loopId,
+      chapterOf(save, loopId),
       replayLoop(story.simulation.definition, story.simulation.initialState, save, loopId, targetMinute).history,
       targetMinute,
       playerSceneConditions(save, loopId),

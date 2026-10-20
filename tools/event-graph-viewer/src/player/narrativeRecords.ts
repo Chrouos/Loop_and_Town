@@ -106,12 +106,12 @@ function recordForScene(scene: NarrativeSceneDefinition): PlayerNarrativeRecord 
 
 export function projectPlayerNarrativeRecords(
   bundle: PlayerStoryBundle,
-  loopId: number | 'final',
+  chapterId: number | 'final',
   history: WorldlineHistoryEntry[] | LoopHistoryEntry[],
   minute: number,
   conditions?: PlayerSceneConditions,
 ): PlayerNarrativeRecord[] {
-  const document = bundle.narrativeDocuments.find((item) => item.loopId === loopId);
+  const document = bundle.narrativeDocuments.find((item) => item.loopId === chapterId);
   if (!document) return [];
   const records = document.scenes
     .map((scene, authoredIndex) => ({ scene, authoredIndex, minute: toAbsoluteMinute(scene.at) }))
@@ -119,7 +119,7 @@ export function projectPlayerNarrativeRecords(
     .filter(({ scene }) => matchesScene(scene, history as WorldlineHistoryEntry[]))
     .filter(({ scene }) => meetsSceneConditions(scene, bundle, conditions))
     .sort((left, right) => left.minute - right.minute || left.authoredIndex - right.authoredIndex)
-    .map(({ scene }) => ({ ...recordForScene(scene), loopId }));
+    .map(({ scene }) => ({ ...recordForScene(scene), loopId: chapterId }));
   return records;
 }
 

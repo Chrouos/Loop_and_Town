@@ -34,6 +34,12 @@ function manifestBundle(): PlayerStoryBundle {
 const T0 = new Date(2026, 9, 20, 9, 0, 0, 0).getTime();
 const realTimeAt = (minute: number) => T0 + ((minute - 372) / 12) * MINUTE;
 
+function preferReducedMotion(): () => void {
+  const original = window.matchMedia;
+  window.matchMedia = ((query: string) => ({ matches: query.includes('reduce'), media: query, addEventListener() {}, removeEventListener() {} })) as unknown as typeof window.matchMedia;
+  return () => { window.matchMedia = original; };
+}
+
 function loopOneSave(): PlayerSave {
   const save = normalizeSave(null, T0);
   save.knowledge.opened = ['1:letter'];
@@ -82,6 +88,44 @@ describe('Loop 01 authored narrative in the canonical player', () => {
       const records = projectPlayerNarrativeRecords(bundle, document.loopId, [], 1440, playerSceneConditions(loopOneSave(), 1));
       expect(records.flatMap(record => record.body).filter(line => line.startsWith('對方：'))).toEqual([]);
     }
+  });
+
+  it('moves the stage on to the next unwatched scene once the current passage has finished', async () => {
+    const restore = preferReducedMotion();
+    try {
+      const storage = window.localStorage;
+      storage.clear();
+      storage.setItem(SAVE_KEY, JSON.stringify(loopOneSave()));
+      const now = realTimeAt(8 * 60 + 10);
+      render(<PlayerApp now={() => now} storage={storage} loadStory={async () => bundle} />);
+      expect(await screen.findByText(/我在返鄉列車的震動裡醒來/, {}, { timeout: 8000 })).toBeDefined();
+    } finally { restore(); }
+  });
+
+  it('keeps the 18:20 decision on stage instead of moving on to other scenes', async () => {
+    const restore = preferReducedMotion();
+    try {
+      const storage = window.localStorage;
+      storage.clear();
+      storage.setItem(SAVE_KEY, JSON.stringify(loopOneSave()));
+      const now = realTimeAt(18 * 60 + 1);
+      render(<PlayerApp now={() => now} storage={storage} loadStory={async () => bundle} />);
+      const user = userEvent.setup();
+      await user.click(await screen.findByRole('button', { name: /讀予安的留言/ }, { timeout: 8000 }));
+      await act(async () => { await new Promise(resolve => setTimeout(resolve, 3000)); });
+      expect(screen.getByRole('button', { name: /保護若晴/ })).toBeDefined();
+    } finally { restore(); }
+  }, 15_000);
+
+  it('counts only real messages as incoming, not scenes the protagonist lived through', async () => {
+    const storage = window.localStorage;
+    storage.clear();
+    storage.setItem(SAVE_KEY, JSON.stringify(loopOneSave()));
+    const now = realTimeAt(17 * 60 + 10);
+    render(<PlayerApp now={() => now} storage={storage} loadStory={async () => bundle} />);
+    await screen.findByRole('button', { name: '開啟工具' });
+    await act(async () => { await new Promise(resolve => setTimeout(resolve, 50)); });
+    expect(screen.queryByText(/則新消息/)).toBeNull();
   });
 
   it('lets the player reach the 22:40 watch warning from the Loop 1 case file', async () => {

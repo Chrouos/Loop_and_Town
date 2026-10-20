@@ -65,4 +65,5 @@ worldline_paths:
 artifacts:
   - artifacts/zhixia_letter.yaml
 player_choices: choices/loop_01_player_v0_1.yaml
+chapter_progression: loops/chapter_progression.yaml
 travel: travel/loop_01.yaml

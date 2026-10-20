@@ -8,6 +8,7 @@ function fixture(){
  const save=normalizeSave(null,0);
  save.currentLoopId=2;
  save.loops[2]=emptyLoop(createLoopClock('ACCELERATED',0));
+ save.loops[2].chapterId='final';
  save.loops[2].actionIds.push('request_backup_inspection');
  save.loops[2].stationVisit={departMinute:1000,arriveMinute:1020};
  save.knowledge.discoveredEvidence.push('primary_recovery_both_active');

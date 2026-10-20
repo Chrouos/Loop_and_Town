@@ -5,6 +5,7 @@ import {
   parseNarrativeDocument,
 } from './loadSimulationStory';
 import type { NarrativeSceneDefinition } from '../narrative/types';
+import { parseChapterProgression } from '../player/chapters';
 import type { PlayerNarrativeDocument, PlayerStoryBundle } from '../types/playerStory';
 
 function storyPath(path: string): string {
@@ -50,6 +51,9 @@ export async function loadPlayerStoryBundle(manifestPath: string): Promise<Playe
     : [];
   const narrativeDocuments = [...baseDocuments, ...extraDocuments];
   validateUniqueSceneIds(narrativeDocuments);
+  const chapterProgression = manifest.chapter_progression
+    ? parseChapterProgression(await loadYaml(storyPath(manifest.chapter_progression)))
+    : undefined;
 
   return {
     simulation: {
@@ -64,6 +68,7 @@ export async function loadPlayerStoryBundle(manifestPath: string): Promise<Playe
     narrativeDocuments,
     artifacts: simulation.narrative.artifacts,
     protagonistSchedule: simulation.narrative.protagonistSchedule,
+    chapterProgression,
   };
 }
 

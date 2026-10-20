@@ -3,7 +3,7 @@ import { loadPlayerStoryBundle } from '../lib/loadPlayerStoryBundle';
 import type { SimulationDefinition, WorldState } from '../simulator/types';
 import { clockMinuteAt, displayMinute, isLiveSyncAvailable } from './clock';
 import { entryPresentation, entryWindowFor } from './entry';
-import { attendPresenceRecord, availablePresenceRecords, beginMemoryCapture, reconcilePlayer, visibleRecords } from './knowledge';
+import { attendPresenceRecord, availablePresenceRecords, beginMemoryCapture, narrativeExcerptMemoryId, reconcilePlayer, rememberNarrativeExcerpt, visibleRecords } from './knowledge';
 import { knownDiff, pinExcerpt } from './logic';
 import { normalizeSave, type ActionId, type PlayerSave } from './model';
 import { activeLoop, confirmAction, continuePendingBoundary, createNextLoop, PROTECT_AWAY_MESSAGE, replayLoop } from './runtime';
@@ -26,6 +26,7 @@ import { getAudioPreference, setAudioPreference } from './ui/audioPreferences';
 import { FinalInvestigationScene } from './ui/FinalInvestigationScene';
 import { applyFinalStep, finalCorrection, finalInvestigationReady, type FinalStep } from './finalGameplay';
 import { materializeRecoveryBoundary } from '../simulator/recoveryBoundary';
+import { chapterOf } from './chapters';
 import { isAtOldStation, protagonistLocationAt, travelToOldStation, leaveOldStation } from './stationTravel';
 
 type LegacyStory = { definition: SimulationDefinition; initialState: WorldState };
@@ -56,6 +57,7 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
   const [modeCommitInFlight, setModeCommitInFlight] = useState(false);
   const [audioEnabled, setAudioEnabled] = useState(() => getAudioPreference(storage));
   const [currentMs, setCurrentMs] = useState(() => now());
+  const [finishedRecordId, setFinishedRecordId] = useState<string | null>(null);
   const opener = useRef<HTMLButtonElement | null>(null);
 
   const commit = useCallback((next: PlayerSave) => { const copy = normalizeSave(next, now()); setSave(copy); writeSave(storage, copy); }, [now, storage]);
@@ -102,7 +104,7 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
   const playerRecords = story && isPlayerStoryBundle(story)
     ? projectPlayerNarrativeRecords(
       story,
-      loopId,
+      chapterOf(save, loopId),
       replayLoop(story.simulation.definition, story.simulation.initialState, save, loopId, clock.minute).history,
       clock.minute,
       playerSceneConditions(save, loopId),
@@ -133,7 +135,7 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
   const lastMemory = lastPerceivedRecord
     ? save.knowledge.memories.find(memory => memory.id === `memory:${loopId}:${lastPerceivedRecord.id}`)
     : undefined;
-  const incoming = records.filter(item => item.acquisition !== 'presence' && item.revealMinute > 0 && !save.knowledge.opened.includes(`${loopId}:${item.id}`));
+  const incoming = records.filter(item => item.acquisition === 'message' && item.revealMinute > 0 && !save.knowledge.opened.includes(`${loopId}:${item.id}`));
   const hasAction = (id: ActionId) => loop.actionIds.includes(id);
   const canAct = clock.minute < 1100;
   const awayFromTown = protagonistLocationAt(save, loopId, clock.minute) !== 'old_house';
@@ -168,6 +170,26 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
   useEffect(() => {
     if (!resetPending) setResetPresentationComplete(false);
   }, [resetPending]);
+
+  // When the current passage has finished playing, the stage moves on to the earliest authored scene the
+  // player has not watched yet. Reading in a drawer, attending, capturing or an open 18:20 decision hold it.
+  const authoredIds = new Set((playerRecords ?? []).map(item => item.id));
+  const nextAuthoredScene = (recordSource ?? [])
+    .filter(item => authoredIds.has(item.id)
+      && item.acquisition !== 'presence'
+      && item.id !== record?.id
+      && loop.revealedIds.includes(`${loopId}:${item.id}`)
+      && !loop.seenSceneIds.includes(item.sceneId)
+      && !save.knowledge.opened.includes(`${loopId}:${item.id}`))
+    .sort((left, right) => left.revealMinute - right.revealMinute)[0];
+  const holdsDecision = record?.id === 'yu-an-message' && canAct;
+  const stageRecordId = record?.id ?? null;
+  const markStageFinished = useCallback(() => setFinishedRecordId(stageRecordId), [stageRecordId]);
+  const stageIdle = opened && !resetPending && !drawer && loop.attention.phase === 'idle' && !loop.capture;
+  useEffect(() => {
+    if (!nextAuthoredScene || !stageIdle || holdsDecision || finishedRecordId !== record?.id) return;
+    openRecord(nextAuthoredScene.id);
+  });
 
   useEffect(() => {
     if (!story || loop.attention.phase === 'idle') return;
@@ -207,7 +229,7 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
         const initialState = isPlayerStoryBundle(story) ? story.simulation.initialState : story.initialState;
         continuePendingBoundary(nextSave, definition, initialState);
       }
-      createNextLoop(nextSave, mode, now());
+      createNextLoop(nextSave, mode, now(), story && isPlayerStoryBundle(story) ? story.chapterProgression : undefined);
       commit(nextSave);
       if (story) refresh(story);
     } catch (e) { setNote(e instanceof Error ? e.message : String(e)); }
@@ -217,7 +239,7 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
     const nextSave = normalizeSave(save, now());
     const readKey = `${loopId}:${id}`;
     if (!nextSave.knowledge.opened.includes(readKey)) nextSave.knowledge.opened.push(readKey);
-    if (loopId !== 1 && records.some((item) => item.id === id && item.sceneId === id)) {
+    if (authoredIds.has(id)) {
       markPlayerNarrativeSeen(nextSave, loopId, id);
     }
     commit(nextSave); setSelected(id); setDrawer(null);
@@ -236,6 +258,17 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
     try { const nextSave = normalizeSave(save, now()); pinExcerpt(nextSave, ref); commit(nextSave); setNote('已放在推理桌上。'); return true; }
     catch (e) { setNote(e instanceof Error ? e.message : String(e)); return false; }
   }
+  // Static records keep the legacy table pins; authored scene words become Persistent Memory.
+  function rememberExcerpt(target: NonNullable<typeof record>, excerptId: string) {
+    if (recordById(target.id)) return pin(`${target.id}:${excerptId}`);
+    try { const nextSave = normalizeSave(save, now()); rememberNarrativeExcerpt(nextSave, loopId, target, excerptId, clock.minute, now()); commit(nextSave); setNote('已收進記憶庫。'); return true; }
+    catch (e) { setNote(e instanceof Error ? e.message : String(e)); return false; }
+  }
+  const rememberedExcerptIds = (target: typeof record) => (target?.excerpts ?? []).filter(excerpt => (
+    recordById(target!.id)
+      ? save.knowledge.pins.includes(`${target!.id}:${excerpt.id}`)
+      : save.knowledge.memories.some(memory => memory.id === narrativeExcerptMemoryId(loopId, target!.id, excerpt.id))
+  )).map(excerpt => excerpt.id);
   function importSave() {
     const nextSave = importLegacy(importText, normalizeSave(save, now()));
     commit(nextSave); setNote(nextSave === save ? '無法讀取這份存檔。' : '存檔已匯入；舊案卷的結論只作為個人筆記。');
@@ -264,7 +297,7 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
         {!loop.capture && lastMemory && <div className="memory-capture-status" role="status"><p>已將「{lastMemory.title}」收進持久記憶。</p></div>}
         {incoming.length > 0 && <aside className="incoming-records incoming-records--quiet" aria-label="新消息"><span>鎮上有 {incoming.length} 則新消息</span><button type="button" onClick={() => showDrawer('case')}>查看消息 <span aria-hidden="true">↗</span></button></aside>}
         {observingSpatialRecord ? <SpatialTextLayer script={observingSpatialRecord.spatialScript!} now={now} /> : record?.spatialScript && record.acquisition === 'presence' ? <SpatialTextLayer script={record.spatialScript} now={now} /> : <>
-          <AutoFlowNarrative key={`${clock.loop}:${record?.id}`} title={record?.title} lines={record?.body ?? []} excerpts={record?.excerpts ?? []} rememberedIds={(record?.excerpts ?? []).filter(excerpt => save.knowledge.pins.includes(`${record?.id}:${excerpt.id}`)).map(excerpt => excerpt.id)} onRemember={excerptId => record ? pin(`${record.id}:${excerptId}`) : false} reducedMotion={prefersReducedMotion()} />
+          <AutoFlowNarrative key={`${clock.loop}:${record?.id}`} title={record?.title} lines={record?.body ?? []} excerpts={record?.excerpts ?? []} rememberedIds={rememberedExcerptIds(record)} onComplete={markStageFinished} onRemember={excerptId => record ? rememberExcerpt(record, excerptId) : false} reducedMotion={prefersReducedMotion()} />
         </>}
         {record?.id === 'letter' && records.some(x => x.id === 'yu-an-message') && <div className="decisions"><p>手機震了一下。予安留了話。</p><button onClick={() => openRecord('yu-an-message')}>讀予安的留言</button></div>}
         {record?.id === 'yu-an-message' && canAct ? <DialogueScene

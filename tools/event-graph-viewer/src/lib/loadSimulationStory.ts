@@ -46,6 +46,7 @@ export type StoryManifest = {
   artifacts?: string[];
   character_insights?: string;
   player_choices?: string;
+  chapter_progression?: string;
   travel?: string;
 };
 
@@ -104,6 +105,7 @@ function asManifest(value: unknown): StoryManifest {
   if (record.character_insights !== undefined && typeof record.character_insights !== 'string') throw new Error('Invalid story manifest character insights');
   if (record.player_choices !== undefined && typeof record.player_choices !== 'string') throw new Error('Invalid story manifest player_choices');
   if (record.travel !== undefined && typeof record.travel !== 'string') throw new Error('Invalid story manifest travel');
+  if (record.chapter_progression !== undefined && typeof record.chapter_progression !== 'string') throw new Error('Invalid story manifest chapter_progression');
 
   return record as unknown as StoryManifest;
 }

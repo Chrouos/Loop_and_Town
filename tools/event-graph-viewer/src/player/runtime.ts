@@ -6,6 +6,7 @@ import { clockMinuteAt, createLoopClock, type TimeMode } from './clock';
 import { advanceLoop } from './eventScheduler';
 import { emptyLoop, type ActionId, type PlayerSave } from './model';
 import { protagonistLocationAt } from './stationTravel';
+import { nextChapter, type ChapterRule } from './chapters';
 
 const ACTIONS: ActionId[] = ['protect_wakaharu', 'stop_doctor', 'request_backup_inspection'];
 export const PROTECT_AWAY_MESSAGE = '你人不在鎮上，今晚趕不回去陪若晴。';
@@ -55,13 +56,14 @@ export function continuePendingBoundary(save: PlayerSave, definition: Simulation
   return save;
 }
 
-export function createNextLoop(save: PlayerSave, mode: TimeMode, nowMs: number): PlayerSave {
+export function createNextLoop(save: PlayerSave, mode: TimeMode, nowMs: number, chapterRules?: ChapterRule[]): PlayerSave {
   const current = activeLoop(save);
   if (!current.clock.pendingCriticalBoundary && !current.sealed) throw new Error('必須先完成目前輪迴的重置。');
   current.sealed = true;
   const nextId = save.currentLoopId + 1;
   save.currentLoopId = nextId;
   save.loops[nextId] = emptyLoop(createLoopClock(mode, nowMs));
+  if (chapterRules) save.loops[nextId].chapterId = nextChapter(save, nextId - 1, chapterRules);
   save.lastConfirmedMs = Math.max(save.lastConfirmedMs, nowMs);
   return save;
 }

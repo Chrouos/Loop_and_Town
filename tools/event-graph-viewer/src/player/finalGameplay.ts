@@ -1,4 +1,5 @@
 import { hasQualifiedParticipants, initialCorrectionSession, reduceCorrection, type CorrectionCommand, type CorrectionSession } from '../simulator/correctionSession';
+import { chapterOf } from './chapters';
 import type { WorldState } from '../simulator/types';
 import type { PlayerSave } from './model';
 import { isAtOldStation } from './stationTravel';
@@ -20,7 +21,7 @@ const currentSteps = (save: PlayerSave): TimedFinalStep[] =>
   save.loops[save.currentLoopId]?.finalSteps ?? [];
 
 export function finalInvestigationReady(save: PlayerSave, world: WorldState, minute: number): boolean {
-  return save.currentLoopId >= 2 && isAtOldStation(save,minute)
+  return chapterOf(save, save.currentLoopId) === 'final' && isAtOldStation(save,minute)
     && save.knowledge.discoveredEvidence.includes('primary_recovery_both_active')
     && memory(save, 'signal-ledger') && memory(save, 'backup-relay')
     && memory(save, 'track-damage')

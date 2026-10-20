@@ -1,4 +1,5 @@
 import { createLoopClock, LOOP_START_MINUTE, MINUTE, type LoopClockState } from './clock';
+import { isChapterId, type ChapterId } from './chapters';
 import { FINAL_STEPS, type TimedFinalStep } from './finalGameplay';
 import type { StationVisit } from './stationTravel';
 
@@ -47,6 +48,8 @@ export type LoopSave = {
   sealed: boolean;
   clock: LoopClockState;
   history: LoopHistoryEntry[];
+  /** Story chapter this loop plays; absent on saves from before chapter progression. */
+  chapterId?: ChapterId;
 };
 export type MemoryKind = 'text' | 'visual' | 'sound' | 'composite';
 export type PersistentMemory = {
@@ -186,6 +189,7 @@ function normalizeLoop(value: unknown, nowMs: number, fallbackClock?: LoopClockS
     capture: normalizeCapture(src.capture),
     lastPerceivedRecordId: typeof src.lastPerceivedRecordId === 'string' ? src.lastPerceivedRecordId : undefined,
     sealed: src.sealed === true,
+    ...(isChapterId(src.chapterId) ? { chapterId: src.chapterId } : {}),
     clock: normalizeClock(src.clock, nowMs) ?? fallbackClock ?? createLoopClock('ACCELERATED', nowMs),
     history: emptyHistory(src.history),
   };

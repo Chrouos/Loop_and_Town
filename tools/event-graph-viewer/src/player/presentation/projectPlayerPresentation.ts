@@ -1,5 +1,6 @@
 import { displayMinute } from '../clock';
 import { playerSceneConditions, projectPlayerNarrativeRecords } from '../narrativeRecords';
+import { chapterOf } from '../chapters';
 import type { LoopHistoryEntry, PlayerSave } from '../model';
 import type { WorldlineHistoryEntry } from '../../simulator/types';
 import type { PlayerStoryBundle } from '../../types/playerStory';
@@ -96,7 +97,7 @@ export function projectLoopIntegration(
   minute: number,
 ): PlayerLoopIntegration {
   const loopId = save.currentLoopId;
-  const records = projectPlayerNarrativeRecords(bundle, loopId, history, minute, playerSceneConditions(save, loopId));
+  const records = projectPlayerNarrativeRecords(bundle, chapterOf(save, loopId), history, minute, playerSceneConditions(save, loopId));
   const currentLoop = save.loops[loopId];
   const opportunities = records.filter(record => (
     record.acquisition === 'presence'
