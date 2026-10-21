@@ -71,6 +71,7 @@ export function projectPlayerPresentation(input: PlayerPresentationInput): Playe
     },
     reset: {
       pending: Boolean(resetPending),
+      settled: Boolean(resetPending && input.resetSettled),
       npcState: input.loopId === 1 ? 'current' : 'reset',
     },
     persistentMemoryIds: input.save.knowledge.memories.map(memory => memory.id),

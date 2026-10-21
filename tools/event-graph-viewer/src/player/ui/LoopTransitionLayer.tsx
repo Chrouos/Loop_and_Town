@@ -12,6 +12,6 @@ export function LoopTransitionLayer({ presentation, reducedMotion = false }: Pro
     data-duration-ms={presentation.reset.pending ? String(duration) : '0'}
     aria-hidden={!presentation.reset.pending}
   >
-    {presentation.reset.pending && <p role="status">午夜正在靠近</p>}
+    {presentation.reset.pending && !presentation.reset.settled && <p role="status">午夜正在靠近</p>}
   </div>;
 }

@@ -91,3 +91,11 @@
 
 /* The minimal header stays one row on phones; stacking pushed the tools trigger out of its 52px bar. */
 .player-shell--immersive .player-header--minimal{flex-direction:row;align-items:center}
+
+/* Choosing how to enter the next day: quiet, stacked, each with its consequence underneath. */
+.player-shell--immersive .mode-choice{max-width:640px;display:flex;flex-direction:column;align-items:flex-start;gap:6px}
+.player-shell--immersive .mode-choice>p{margin:0 0 18px}
+.player-shell--immersive .mode-choice button{width:100%;display:flex;flex-direction:column;align-items:flex-start;gap:4px;background:transparent;border:0;border-bottom:1px solid #626b60;color:#e3e6dc;padding:14px 3px;text-align:left;font:inherit;font-size:clamp(17px,1.8vw,21px);letter-spacing:.05em;cursor:pointer}
+.player-shell--immersive .mode-choice button small{font-size:12px;letter-spacing:.1em;color:#8f998c}
+.player-shell--immersive .mode-choice button:hover:not(:disabled),.player-shell--immersive .mode-choice button:focus-visible{border-color:#c5b08a;color:#fff}
+.player-shell--immersive .mode-choice button:disabled{color:#6c746b}
