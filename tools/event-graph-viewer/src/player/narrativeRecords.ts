@@ -129,6 +129,7 @@ function recordForScene(scene: NarrativeSceneDefinition, minute: number): Player
     obtainedAt: displayMinute(minute),
     body,
     excerpts: sceneExcerpts(scene, body),
+    movesTo: scene.movesTo,
     revealMinute: minute,
     availableUntilMinute: scene.availableUntil ? toAbsoluteMinute(scene.availableUntil) : undefined,
     acquisition: acquisitionFor(scene),

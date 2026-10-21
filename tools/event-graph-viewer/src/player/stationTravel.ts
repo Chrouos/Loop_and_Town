@@ -79,6 +79,23 @@ export function leaveOldStation(save: PlayerSave, minute: number): PlayerSave {
   return save;
 }
 
+/** A scene narrates her going home: wherever she was, she set off in time to arrive as it begins. */
+export function returnHomeByStory(save: PlayerSave, loop: number, minute: number): void {
+  const entry = save.loops[loop];
+  if (!entry) return;
+  const station = entry.stationVisit;
+  if (station && station.returnDepartMinute === undefined && station.departMinute <= minute) {
+    station.returnDepartMinute = Math.max(station.arriveMinute, minute - STATION_TRAVEL_MINUTES);
+    station.returnArriveMinute = station.returnDepartMinute + STATION_TRAVEL_MINUTES;
+  }
+  for (const visit of entry.townVisits ?? []) {
+    if (visit.returnDepartMinute !== undefined || visit.departMinute > minute) continue;
+    const walk = TOWN_TRAVEL_MINUTES[visit.place];
+    visit.returnDepartMinute = Math.max(visit.arriveMinute, minute - walk);
+    visit.returnArriveMinute = visit.returnDepartMinute + walk;
+  }
+}
+
 export function travelToTown(save: PlayerSave, place: TownPlace, minute: number): PlayerSave {
   if (minute < TOWN_ARRIVAL_MINUTE) throw new Error('主角尚未抵達灰潮鎮。');
   if (minute >= LAST_DEPARTURE_MINUTE) throw new Error('已經太晚，鎮上的店都關了。');

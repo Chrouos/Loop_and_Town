@@ -17,6 +17,7 @@ import loop01Yaml from '../../../../story/narrative/loop_01_player.yaml?raw';
 import dailyYaml from '../../../../story/narrative/daily_player.yaml?raw';
 import { narrativeExcerptMemoryId, rememberNarrativeExcerpt } from '../../src/player/knowledge';
 import { createNextLoop } from '../../src/player/runtime';
+import { reconcilePlayer } from '../../src/player/knowledge';
 import type { PlayerStoryBundle } from '../../src/types/playerStory';
 
 const story = loadRealStory();
@@ -153,5 +154,18 @@ describe('everyday town life between the morning and the evening', () => {
     const nextLoop = projectPlayerNarrativeRecords(bundle, 1, [], 12 * 60, playerSceneConditions(save, 2, activities)).map(record => record.id);
     expect(nextLoop).toContain('daily_clock_1140_remembered_coffee');
     expect(nextLoop).not.toContain('daily_clock_1140_black_coffee');
+  });
+});
+
+describe('the story carries the protagonist home', () => {
+  it('brings her back from the old station when the 22:40 scene says she is home', () => {
+    const save = freshSave();
+    travelToOldStation(save, 17 * 60 + 10);
+    reconcilePlayer(save, realTimeAt(22 * 60), story.definition, story.initialState, bundle);
+    expect(protagonistLocationAt(save, 1, 22 * 60)).toBe('old_station');
+    reconcilePlayer(save, realTimeAt(23 * 60 + 30), story.definition, story.initialState, bundle);
+    expect(save.loops[1].revealedIds).toContain('1:scene_2240_watch_warning');
+    expect(protagonistLocationAt(save, 1, 22 * 60 + 40)).toBe('old_house');
+    expect(save.loops[1].revealedIds).toContain('1:scene_2320_kitchen_quiet');
   });
 });

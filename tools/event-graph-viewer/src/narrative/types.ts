@@ -178,6 +178,8 @@ export type NarrativeSceneDefinition = {
   requiresMemory?: string[];
   /** When this scene happens, the named everyday scene does not: the protagonist lives that moment differently. */
   replaces?: string;
+  /** The narration itself carries the protagonist here (e.g. "回到老家後"); her location follows the story. */
+  movesTo?: 'old_house';
   afterActivityId?: string;
   sourceEventId?: string;
   sourceVariantId?: string;

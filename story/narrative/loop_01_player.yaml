@@ -561,6 +561,7 @@ scenes:
 
   - id: scene_2240_watch_warning
     title: 錶的後蓋
+    movesTo: old_house
     at: { day: 0, time: "22:40" }
     kind: narration
     participants: [protagonist, yuan]

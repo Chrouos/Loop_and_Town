@@ -8,7 +8,7 @@ import { chapterOf } from './chapters';
 import { STORY_RECORDS, staticPlayerRecords, type PlayerNarrativeRecord } from './story';
 import type { PlayerStoryBundle } from '../types/playerStory';
 import { ATTENTION_OBSERVATION_MS, advanceAttention, beginAttention, redirectAttention } from './attention';
-import { isAtOldStation } from './stationTravel';
+import { isAtOldStation, returnHomeByStory } from './stationTravel';
 
 const DEFAULT_PRESENCE_WINDOW_MINUTES = 5;
 export const MEMORY_CAPTURE_MS = 1_200;
@@ -214,10 +214,17 @@ function revealNarrative(
   story: PlayerStoryBundle,
 ): void {
   const entry = save.loops[loop] ?? (save.loops[loop] = emptyLoop());
-  const records = projectPlayerNarrativeRecords(story, chapterOf(save, loop), history, minute, playerSceneConditions(save, loop, story.activities));
-  for (const record of records) {
-    const id = `${loop}:${record.id}`;
-    if (record.revealMinute <= minute && record.matches(history) && !entry.revealedIds.includes(id)) entry.revealedIds.push(id);
+  // A scene that carries the protagonist home changes which later scenes she can be part of, so look again.
+  for (let pass = 0, moved = true; moved && pass < 3; pass += 1) {
+    moved = false;
+    const records = projectPlayerNarrativeRecords(story, chapterOf(save, loop), history, minute, playerSceneConditions(save, loop, story.activities));
+    for (const record of records) {
+      const id = `${loop}:${record.id}`;
+      if (record.revealMinute <= minute && record.matches(history) && !entry.revealedIds.includes(id)) {
+        entry.revealedIds.push(id);
+        if (record.movesTo === 'old_house') { returnHomeByStory(save, loop, record.revealMinute); moved = true; }
+      }
+    }
   }
 }
 
