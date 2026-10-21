@@ -28,7 +28,7 @@ import { applyFinalStep, finalCorrection, finalInvestigationReady, type FinalSte
 import { materializeRecoveryBoundary } from '../simulator/recoveryBoundary';
 import { chapterOf } from './chapters';
 import { isAtOldStation, leaveOldStation, leaveTown, protagonistLocationAt, TOWN_PLACES, TOWN_TRAVEL_MINUTES, travelToOldStation, travelToTown, type TownPlace } from './stationTravel';
-import { activeActivity, activityLines, startActivity, stopActivity, type HomeActivityId } from './mainAction';
+import { activeActivity, activityCompletedAt, activityLines, startActivity, stopActivity, type HomeActivityId } from './mainAction';
 import { InlineTextTarget } from './ui/InlineTextTarget';
 
 type LegacyStory = { definition: SimulationDefinition; initialState: WorldState };
@@ -160,8 +160,9 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
   const here = protagonistLocationAt(save, loopId, clock.minute);
   const townPlace = TOWN_PLACES.find(place => place === here);
   const currentActivity = activeActivity(save, loopId, clock.minute, activities);
+  const homeActivityDone = (id: HomeActivityId) => Boolean(loop.activityRuns?.some(run => run.id === id));
   const homeActivityAvailable = (id: HomeActivityId) => here === 'old_house' && !currentActivity
-    && activities.some(item => item.id === id) && !loop.activityRuns?.some(run => run.id === id);
+    && activities.some(item => item.id === id) && !homeActivityDone(id);
   const next = clock.minute < 1100 ? '18:20 前，你還能改變今晚的行程' : clock.minute < 1111 ? '18:31，舊車站' : clock.minute < 1120 ? '等候鎮上的通報' : clock.minute < 1280 ? '21:20，予安說會再聯絡' : '午夜，日期會回到今天';
   const worldState=story ? replayLoop(
     isPlayerStoryBundle(story)?story.simulation.definition:story.definition,
@@ -199,7 +200,8 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
       && !save.knowledge.opened.includes(`${loopId}:${item.id}`)
       && item.revealMinute >= clock.minute - STAGE_FRESH_MINUTES)
     .sort((left, right) => left.revealMinute - right.revealMinute)[0];
-  const holdsDecision = record?.id === 'yu-an-message' && canAct;
+  // Once she has answered, the reply lingers like any document and the evening moves on.
+  const holdsDecision = record?.id === 'yu-an-message' && canAct && !hasAction('protect_wakaharu') && !hasAction('stop_doctor');
   // The 23:59 bell and the midnight scene play to the end before the reset presentation takes the stage.
   const finalePlaying = Boolean(record && authoredIds.has(record.id) && record.revealMinute >= BELL_MINUTE && finishedRecordId !== record.id);
   const deferReset = resetPending && opened && (finalePlaying || (nextAuthoredScene?.revealMinute ?? 0) >= BELL_MINUTE);
@@ -359,7 +361,7 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
         
         {loop.capture && <div className="memory-capture-status" role="status"><p>你正在把剛才的感覺留下來……</p></div>}
         {!loop.capture && captureOpen && lastPerceivedRecord && <div className="memory-capture-prompt" role="status"><p>剛才那一幕還留在你心裡。</p><button onClick={() => capture(lastPerceivedRecord.id)}>捕捉這段記憶</button></div>}
-        {!loop.capture && lastMemory && <div key={lastMemory.id} className="memory-capture-status memory-capture-status--fading" role="status"><p>已將「{lastMemory.title}」收進持久記憶。</p></div>}
+        {!loop.capture && lastMemory && now() - lastMemory.capturedAtMs < NOTE_VISIBLE_MS && <div key={lastMemory.id} className="memory-capture-status memory-capture-status--fading" role="status"><p>已將「{lastMemory.title}」收進持久記憶。</p></div>}
         {incoming.length > 0 && <aside className="incoming-records incoming-records--quiet" aria-label="新消息"><span>鎮上有 {incoming.length} 則新消息</span><button type="button" onClick={() => showDrawer('case')}>查看消息 <span aria-hidden="true">↗</span></button></aside>}
         {observingSpatialRecord && <SpatialTextLayer script={observingSpatialRecord.spatialScript!} now={now} />}
         {/* Attending elsewhere hides the passage without stopping it: faded does not mean paused. */}
@@ -371,7 +373,7 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
               <p className="stage-idle__state">{currentActivity.definition.presentation.idle}<button type="button" className="stage-idle__stop" onClick={putDownActivity}>先放下</button></p>
             </> : here === 'old_house' ? <>
               <p className="stage-idle__line">{idleLine(entryWindow)}</p>
-              <p className="stage-idle__line">老家很安靜。桌上的<InlineTextTarget available={homeActivityAvailable('research_online')} actionLabel="打開筆電查資料" onAttend={() => beginActivity('research_online')}>筆電</InlineTextTarget>還沒打開，<InlineTextTarget available={homeActivityAvailable('wait_for_call')} actionLabel="把手機放在手邊等消息" onAttend={() => beginActivity('wait_for_call')}>手機</InlineTextTarget>就放在手邊。</p>
+              <p className="stage-idle__line">{homeActivityDone('research_online') ? (activityCompletedAt(save, loopId, 'research_online', activities) === undefined ? '筆電還開著，查到一半的分頁沒有關。' : '筆電闔上了，抄下來的名字還壓在旁邊。') : <>老家很安靜。桌上的<InlineTextTarget available={homeActivityAvailable('research_online')} actionLabel="打開筆電查資料" onAttend={() => beginActivity('research_online')}>筆電</InlineTextTarget>還沒打開，</>}{homeActivityDone('wait_for_call') ? '手機一直沒有再響。' : <><InlineTextTarget available={homeActivityAvailable('wait_for_call')} actionLabel="把手機放在手邊等消息" onAttend={() => beginActivity('wait_for_call')}>手機</InlineTextTarget>就放在手邊。</>}</p>
             </> : townPlace === 'cafe' ? <p className="stage-idle__line">{worldCharacters.wakaharu?.location === 'cafe' ? '若晴在吧台後面忙著，還沒注意到我。咖啡機一直在響。' : '靠窗的位置換了幾次客人，吧台後面已經沒有若晴。'}</p>
             : townPlace === 'clock_shop' ? <p className="stage-idle__line">{clock.minute < 17 * 60 + 50 ? '予安趴在工作台前修錶，收音機開得很小聲，牆上的鐘各走各的。' : '鐵門拉下了一半，予安不在店裡。'}</p>
             : townPlace === 'hospital' ? <p className="stage-idle__line">{worldCharacters.doctor?.location === 'hospital' ? '護理站說陳醫生下午都在看診，診間的門一直關著。' : '走廊的廣播叫過幾個號碼，陳醫生的診間已經熄燈。'}</p>
