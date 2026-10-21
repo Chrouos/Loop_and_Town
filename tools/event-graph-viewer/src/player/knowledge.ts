@@ -214,7 +214,7 @@ function revealNarrative(
   story: PlayerStoryBundle,
 ): void {
   const entry = save.loops[loop] ?? (save.loops[loop] = emptyLoop());
-  const records = projectPlayerNarrativeRecords(story, chapterOf(save, loop), history, minute, playerSceneConditions(save, loop));
+  const records = projectPlayerNarrativeRecords(story, chapterOf(save, loop), history, minute, playerSceneConditions(save, loop, story.activities));
   for (const record of records) {
     const id = `${loop}:${record.id}`;
     if (record.revealMinute <= minute && record.matches(history) && !entry.revealedIds.includes(id)) entry.revealedIds.push(id);
@@ -238,7 +238,7 @@ export function reconcilePlayer(
       chapterOf(save, loopId),
       replayLoop(story.simulation.definition, story.simulation.initialState, save, loopId, targetMinute).history,
       targetMinute,
-      playerSceneConditions(save, loopId),
+      playerSceneConditions(save, loopId, story.activities),
     )]
     : undefined;
   settleMemoryCapture(save, loopId, safeNow, targetMinute, attentionRecords);

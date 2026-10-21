@@ -1,4 +1,4 @@
-import type { NarrativeSceneDefinition, ArtifactDefinition, ProtagonistScheduleDefinition } from '../narrative/types';
+import type { ActivityDefinition, NarrativeSceneDefinition, ArtifactDefinition, ProtagonistScheduleDefinition } from '../narrative/types';
 import type { StoryBundle } from '../lib/loadSimulationStory';
 import type { ChapterRule } from '../player/chapters';
 
@@ -17,6 +17,8 @@ export type PlayerStoryBundle = {
   artifacts: ArtifactDefinition[];
   /** Default-day activities; scenes gated by `afterActivityId` only unlock for these. */
   protagonistSchedule?: ProtagonistScheduleDefinition;
+  /** What the protagonist can spend time doing; the player chooses some of them at the old house. */
+  activities?: ActivityDefinition[];
   /** Absent: each loop plays the chapter matching its number. */
   chapterProgression?: ChapterRule[];
 };

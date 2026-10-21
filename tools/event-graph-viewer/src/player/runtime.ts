@@ -11,6 +11,12 @@ import { nextChapter, type ChapterRule } from './chapters';
 const ACTIONS: ActionId[] = ['protect_wakaharu', 'stop_doctor', 'request_backup_inspection'];
 export const PROTECT_AWAY_MESSAGE = '你人不在鎮上，今晚趕不回去陪若晴。';
 
+/** At the old station or on the road there is no way to be with Wakaharu tonight; anywhere in town is close enough. */
+export function isAwayFromTown(save: PlayerSave, minute: number): boolean {
+  const where = protagonistLocationAt(save, save.currentLoopId, minute);
+  return where === 'old_station' || where === 'en_route';
+}
+
 export function activeLoop(save: PlayerSave) {
   return save.loops[save.currentLoopId] ?? save.loops[1];
 }
@@ -26,8 +32,7 @@ export function confirmAction(save: PlayerSave, id: ActionId, nowMs: number): Pl
     throw new Error('還沒有足夠的玩家推論能支持這次查證。');
   const current = currentSimulationMinute(save, nowMs);
   if (current >= 1100) throw new Error('約好的時間已經截止，不能把現在的決定寫回過去。');
-  if (id === 'protect_wakaharu' && protagonistLocationAt(save, save.currentLoopId, current) !== 'old_house')
-    throw new Error(PROTECT_AWAY_MESSAGE);
+  if (id === 'protect_wakaharu' && isAwayFromTown(save, current)) throw new Error(PROTECT_AWAY_MESSAGE);
   const loop = activeLoop(save);
   if (loop.actionIds.includes(id)) throw new Error('這件事已經記下。');
   loop.actionIds.push(id);

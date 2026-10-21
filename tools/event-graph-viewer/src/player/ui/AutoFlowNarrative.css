@@ -40,3 +40,6 @@
 .memory-capture-status--fading{animation:capture-note-fade 8s ease forwards}
 @keyframes capture-note-fade{0%,70%{opacity:1}100%{opacity:0;visibility:hidden}}
 @media(prefers-reduced-motion:reduce){.stage-idle{animation:none}.memory-capture-status--fading{animation-timing-function:step-end}}
+.stage-idle__state{margin:0;display:flex;align-items:baseline;gap:18px;font:12px system-ui,sans-serif;letter-spacing:.14em;color:#8f998c}
+.stage-idle__stop{border:0;border-bottom:1px solid #596358;background:transparent;color:#a9b0a4;padding:3px 2px;font:inherit;cursor:pointer}
+.stage-idle__stop:hover,.stage-idle__stop:focus-visible{color:#eee3c8;border-color:#c5b08a}

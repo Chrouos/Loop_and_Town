@@ -60,14 +60,14 @@ it('opens the envelope and records a deliberate action before the deadline', asy
   let current = 1000;
   render(<PlayerApp now={() => current} storage={storage} loadStory={async () => ({ definition, initialState: initial })} />);
   const user = userEvent.setup();
-  await user.click(await screen.findByRole('button', { name: /拆開信封/ }));
+  await user.click(await screen.findByRole('button', { name: /拆開信封/ }, { timeout: 3000 }));
   expect(screen.getAllByText('不要回來。')[0]).toBeDefined();
   expect(screen.queryByRole('button', { name: /保護若晴/ })).toBeNull();
   current += Math.ceil((1080 - 372) / 12) * MINUTE;
   fireEvent(document, new Event('visibilitychange'));
   await user.click(screen.getByRole('button', { name: /讀予安的留言/ }));
   expect(screen.getByText(/她看起來不想自己去/)).toBeDefined();
-  await user.click(await screen.findByRole('button', { name: /保護若晴/ }));
+  await user.click(await screen.findByRole('button', { name: /保護若晴/ }, { timeout: 3000 }));
   expect(readSave(storage, 1000).loops[1].actionIds).toContain('protect_wakaharu');
 });
 

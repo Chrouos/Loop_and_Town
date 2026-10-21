@@ -6,7 +6,7 @@ import { entryPresentation, idleLine, entryWindowFor } from './entry';
 import { attendPresenceRecord, availablePresenceRecords, beginMemoryCapture, narrativeExcerptMemoryId, reconcilePlayer, rememberNarrativeExcerpt, visibleRecords } from './knowledge';
 import { knownDiff, pinExcerpt } from './logic';
 import { normalizeSave, type ActionId, type PlayerSave } from './model';
-import { activeLoop, confirmAction, continuePendingBoundary, createNextLoop, PROTECT_AWAY_MESSAGE, replayLoop } from './runtime';
+import { activeLoop, confirmAction, continuePendingBoundary, createNextLoop, isAwayFromTown, PROTECT_AWAY_MESSAGE, replayLoop } from './runtime';
 import { LEGACY_KEY, exportSave, importLegacy, readSave, writeSave } from './storage';
 import { EvidenceBoard } from './EvidenceBoard';
 import { WorldlineNotebook } from './WorldlineNotebook';
@@ -27,7 +27,9 @@ import { FinalInvestigationScene } from './ui/FinalInvestigationScene';
 import { applyFinalStep, finalCorrection, finalInvestigationReady, type FinalStep } from './finalGameplay';
 import { materializeRecoveryBoundary } from '../simulator/recoveryBoundary';
 import { chapterOf } from './chapters';
-import { isAtOldStation, protagonistLocationAt, travelToOldStation, leaveOldStation } from './stationTravel';
+import { isAtOldStation, leaveOldStation, leaveTown, protagonistLocationAt, TOWN_PLACES, TOWN_TRAVEL_MINUTES, travelToOldStation, travelToTown, type TownPlace } from './stationTravel';
+import { activeActivity, activityLines, startActivity, stopActivity, type HomeActivityId } from './mainAction';
+import { InlineTextTarget } from './ui/InlineTextTarget';
 
 type LegacyStory = { definition: SimulationDefinition; initialState: WorldState };
 type Story = PlayerStoryBundle | LegacyStory;
@@ -55,6 +57,9 @@ const NOTE_VISIBLE_MS = 8000;
 const CAPTURE_GRACE_MINUTES = 10;
 // The Loop 1 opening scene already shows the protagonist waking on the train.
 const OPENING_COVERED_SCENE = 'prologue_arrival';
+const PLACE_NAMES: Record<string, string> = { old_house: '老家', cafe: '咖啡店', hospital: '醫院', old_station: '舊車站', en_route: '路上', train: '返鄉列車' };
+const WALK_LABELS: Record<TownPlace, string> = { cafe: '走去咖啡店', hospital: '去醫院看看' };
+const MINUTE_WORDS: Record<number, string> = { 12: '十二', 18: '十八' };
 
 export function PlayerApp({ now = Date.now, storage = window.localStorage, loadStory = () => loadPlayerStoryBundle('story/manifests/loop_01.yaml') }: Props) {
   const [save, setSave] = useState<PlayerSave>(() => readSave(storage, now()));
@@ -119,7 +124,7 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
       chapterOf(save, loopId),
       replayLoop(story.simulation.definition, story.simulation.initialState, save, loopId, clock.minute).history,
       clock.minute,
-      playerSceneConditions(save, loopId),
+      playerSceneConditions(save, loopId, story.activities),
     )
     : undefined;
   // Real-world cues and authored scenes coexist in every loop; neither grants automatic perception.
@@ -150,7 +155,13 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
   const incoming = records.filter(item => item.acquisition === 'message' && item.revealMinute > 0 && !save.knowledge.opened.includes(`${loopId}:${item.id}`));
   const hasAction = (id: ActionId) => loop.actionIds.includes(id);
   const canAct = clock.minute < 1100;
-  const awayFromTown = protagonistLocationAt(save, loopId, clock.minute) !== 'old_house';
+  const awayFromTown = isAwayFromTown(save, clock.minute);
+  const activities = story && isPlayerStoryBundle(story) ? story.activities ?? [] : [];
+  const here = protagonistLocationAt(save, loopId, clock.minute);
+  const townPlace = TOWN_PLACES.find(place => place === here);
+  const currentActivity = activeActivity(save, loopId, clock.minute, activities);
+  const homeActivityAvailable = (id: HomeActivityId) => here === 'old_house' && !currentActivity
+    && activities.some(item => item.id === id) && !loop.activityRuns?.some(run => run.id === id);
   const next = clock.minute < 1100 ? '18:20 前，你還能改變今晚的行程' : clock.minute < 1111 ? '18:31，舊車站' : clock.minute < 1120 ? '等候鎮上的通報' : clock.minute < 1280 ? '21:20，予安說會再聯絡' : '午夜，日期會回到今天';
   const worldState=story ? replayLoop(
     isPlayerStoryBundle(story)?story.simulation.definition:story.definition,
@@ -200,7 +211,7 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
     opportunities,
     scene: record,
     resetHeld: deferReset,
-    location: resetPending ? '灰潮鎮' : atOldStation ? '舊車站' : '灰潮鎮',
+    location: resetPending ? '灰潮鎮' : PLACE_NAMES[here] ?? '灰潮鎮',
   });
   const stageRecordId = record?.id ?? null;
   const markStageFinished = useCallback(() => setFinishedRecordId(stageRecordId), [stageRecordId]);
@@ -216,8 +227,12 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
     return () => window.clearTimeout(timer);
   }, [stageReadyToMove, nextSceneId, lingerMs]);
   // A finished scene from long ago gives way to the present moment instead of staying on stage for hours.
-  const stageStale = Boolean(record && authoredIds.has(record.id) && finishedRecordId === record.id
-    && !nextAuthoredScene && record.revealMinute < clock.minute - STAGE_FRESH_MINUTES);
+  // A finished passage gives way to the present moment once it is old, once it was a document, or once the
+  // protagonist has started doing something else.
+  const stageDone = Boolean(record && finishedRecordId === record.id && !nextAuthoredScene && !holdsDecision);
+  const stageStale = stageDone && Boolean(record && (record.revealMinute < clock.minute - STAGE_FRESH_MINUTES
+    || !authoredIds.has(record.id) || currentActivity));
+  const worldCharacters = (worldState?.characters ?? {}) as Record<string, { location?: unknown } | undefined>;
   useEffect(() => {
     if (!note) return;
     const timer = window.setTimeout(() => setNote(''), NOTE_VISIBLE_MS);
@@ -242,6 +257,21 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
   function visitStation() {
     try { const nextSave=normalizeSave(save,now());travelToOldStation(nextSave,clock.minute);commit(nextSave);setNote('你動身前往舊車站。約二十分鐘後抵達，世界仍在流動。'); }
     catch(e) {setNote(e instanceof Error?e.message:String(e));}
+  }
+  function goToTown(place: TownPlace) {
+    try { const nextSave = normalizeSave(save, now()); travelToTown(nextSave, place, clock.minute); commit(nextSave); setNote(`你出門往${PLACE_NAMES[place]}走。路上的時間仍會發生事情。`); }
+    catch (e) { setNote(e instanceof Error ? e.message : String(e)); }
+  }
+  function walkHome() {
+    try { const nextSave = normalizeSave(save, now()); leaveTown(nextSave, clock.minute); commit(nextSave); setNote('你往老家走。路上的時間仍會發生事情。'); }
+    catch (e) { setNote(e instanceof Error ? e.message : String(e)); }
+  }
+  function beginActivity(id: HomeActivityId) {
+    try { const nextSave = normalizeSave(save, now()); startActivity(nextSave, loopId, id, clock.minute, activities); commit(nextSave); }
+    catch (e) { setNote(e instanceof Error ? e.message : String(e)); }
+  }
+  function putDownActivity() {
+    const nextSave = normalizeSave(save, now()); stopActivity(nextSave, loopId, clock.minute, activities); commit(nextSave);
   }
   function returnFromStation() {
     try {const nextSave=normalizeSave(save,now());leaveOldStation(nextSave,clock.minute);commit(nextSave);setNote('你離開舊站。路上的二十分鐘仍會發生事情。');}
@@ -334,8 +364,16 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
         {/* Attending elsewhere hides the passage without stopping it: faded does not mean paused. */}
         {record?.spatialScript && record.acquisition === 'presence' ? !observingSpatialRecord && <SpatialTextLayer script={record.spatialScript} now={now} /> : <div className="stage-primary" hidden={Boolean(observingSpatialRecord)}>
           {stageStale ? <section className="stage-idle" aria-label="此刻">
-            <p className="stage-idle__time">{atOldStation ? '舊車站' : '灰潮鎮'} · {entry.label}</p>
-            <p className="stage-idle__line">{idleLine(entryWindow)}</p>
+            <p className="stage-idle__time">{PLACE_NAMES[here] ?? '灰潮鎮'} · {entry.label}</p>
+            {currentActivity ? <>
+              {activityLines(currentActivity, clock.minute).slice(-2).map(line => <p key={line} className="stage-idle__line">{line}</p>)}
+              <p className="stage-idle__state">{currentActivity.definition.presentation.idle}<button type="button" className="stage-idle__stop" onClick={putDownActivity}>先放下</button></p>
+            </> : here === 'old_house' ? <>
+              <p className="stage-idle__line">{idleLine(entryWindow)}</p>
+              <p className="stage-idle__line">老家很安靜。桌上的<InlineTextTarget available={homeActivityAvailable('research_online')} actionLabel="打開筆電查資料" onAttend={() => beginActivity('research_online')}>筆電</InlineTextTarget>還沒打開，<InlineTextTarget available={homeActivityAvailable('wait_for_call')} actionLabel="把手機放在手邊等消息" onAttend={() => beginActivity('wait_for_call')}>手機</InlineTextTarget>就放在手邊。</p>
+            </> : townPlace === 'cafe' ? <p className="stage-idle__line">{worldCharacters.wakaharu?.location === 'cafe' ? '若晴在吧台後面忙著，還沒注意到我。咖啡機一直在響。' : '靠窗的位置換了幾次客人，吧台後面已經沒有若晴。'}</p>
+            : townPlace === 'hospital' ? <p className="stage-idle__line">{worldCharacters.doctor?.location === 'hospital' ? '護理站說陳醫生下午都在看診，診間的門一直關著。' : '走廊的廣播叫過幾個號碼，陳醫生的診間已經熄燈。'}</p>
+            : <p className="stage-idle__line">{idleLine(entryWindow)}</p>}
           </section> : <AutoFlowNarrative key={`${clock.loop}:${record?.id}`} title={record?.title} lines={record?.body ?? []} excerpts={record?.excerpts ?? []} rememberedIds={rememberedExcerptIds(record)} onComplete={markStageFinished} onRemember={excerptId => record ? rememberExcerpt(record, excerptId) : false} reducedMotion={prefersReducedMotion()} />}
         </div>}
         {record?.id !== 'yu-an-message' && canAct && !hasAction('protect_wakaharu') && !hasAction('stop_doctor') && records.some(x => x.id === 'yu-an-message') && <div className="decisions"><p>手機震了一下。予安留了話。</p><button onClick={() => openRecord('yu-an-message')}>讀予安的留言</button></div>}
@@ -356,7 +394,12 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
           {hasAction('request_backup_inspection') && <p>予安：「我先去查銘牌上的第二條路。能不能動，我要自己看過才知道。」</p>}
           <small>約定已記下。車站的消息會在鎮上傳來時出現在這裡。</small>
         </div>}
-        {!loop.stationVisit && clock.minute>=460 && clock.minute<1111 && <div className="station-travel"><button type="button" onClick={visitStation}>沿著舊路前往車站 <small>約二十分鐘；世界不會等待</small></button></div>}
+        {here !== 'en_route' && here !== 'old_station' && clock.minute>=460 && clock.minute<1439 && <div className="station-travel">
+          {!loop.stationVisit && clock.minute<1111 && <button type="button" onClick={visitStation}>沿著舊路前往車站 <small>約二十分鐘；世界不會等待</small></button>}
+          {here === 'old_house' && TOWN_PLACES.map(place => <button key={place} type="button" onClick={() => goToTown(place)}>{WALK_LABELS[place]} <small>約{MINUTE_WORDS[TOWN_TRAVEL_MINUTES[place]]}分鐘</small></button>)}
+          {townPlace && <button type="button" onClick={walkHome}>回老家 <small>約{MINUTE_WORDS[TOWN_TRAVEL_MINUTES[townPlace]]}分鐘</small></button>}
+        </div>}
+        {here === 'en_route' && !(loop.stationVisit && clock.minute>=loop.stationVisit.departMinute && clock.minute<loop.stationVisit.arriveMinute) && <p className="station-travel" role="status">你正走在路上……這段時間的事件仍然發生。</p>}
         {loop.stationVisit && clock.minute>=loop.stationVisit.departMinute && clock.minute<loop.stationVisit.arriveMinute && <p className="station-travel" role="status">你正沿著舊路前往車站……這段時間的事件仍然發生。</p>}
         {atOldStation && !loop.stationVisit?.returnDepartMinute && <button className="station-return" type="button" onClick={returnFromStation}>離開舊站，返回鎮中心</button>}
         {worldState && <FinalInvestigationScene save={save} world={worldState} minute={clock.minute} onStep={chooseFinal} />}

@@ -97,7 +97,7 @@ export function projectLoopIntegration(
   minute: number,
 ): PlayerLoopIntegration {
   const loopId = save.currentLoopId;
-  const records = projectPlayerNarrativeRecords(bundle, chapterOf(save, loopId), history, minute, playerSceneConditions(save, loopId));
+  const records = projectPlayerNarrativeRecords(bundle, chapterOf(save, loopId), history, minute, playerSceneConditions(save, loopId, bundle.activities));
   const currentLoop = save.loops[loopId];
   const opportunities = records.filter(record => (
     record.acquisition === 'presence'

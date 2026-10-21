@@ -2,11 +2,12 @@ import { displayMinute } from './clock';
 import type { LoopHistoryEntry, PlayerSave } from './model';
 import type { WorldlineHistoryEntry } from '../simulator/types';
 import { toAbsoluteMinute } from '../simulator/time';
-import type { NarrativeBlock, NarrativeSceneDefinition } from '../narrative/types';
+import type { ActivityDefinition, NarrativeBlock, NarrativeSceneDefinition } from '../narrative/types';
 import type { PlayerStoryBundle } from '../types/playerStory';
 import type { PlayerNarrativeRecord, RecordAcquisition } from './story';
 import { compileSpatialScript } from './spatialText';
 import { protagonistLocationAt } from './stationTravel';
+import { activityCompletedAt } from './mainAction';
 
 const SPEAKER_LABELS: Record<string, string> = {
   protagonist: '你',
@@ -22,33 +23,50 @@ const SPEAKER_LABELS: Record<string, string> = {
 export type PlayerSceneConditions = {
   locationAt: (minute: number) => string;
   knownFactIds: ReadonlySet<string>;
+  /** When the player carried a chosen activity through to its end this loop. */
+  activityCompletedAt?: (activityId: string) => number | undefined;
 };
 
 const LETTER_FACT_ID = 'fact_zhixia_letter_received';
 
-export function playerSceneConditions(save: PlayerSave, loop: number): PlayerSceneConditions {
+export function playerSceneConditions(save: PlayerSave, loop: number, activities: ActivityDefinition[] = []): PlayerSceneConditions {
   const letterOpened = save.knowledge.opened.includes(`${loop}:letter`) || save.knowledge.opened.includes('letter');
   return {
     locationAt: (minute) => protagonistLocationAt(save, loop, minute),
     knownFactIds: new Set(letterOpened ? [LETTER_FACT_ID] : []),
+    activityCompletedAt: (activityId) => activityCompletedAt(save, loop, activityId, activities),
   };
 }
 
-// Scenes whose conditions cannot be verified stay hidden rather than contradicting each other.
-function meetsSceneConditions(
+// The minute a scene reaches the player, or undefined when its conditions cannot be verified; unverifiable
+// scenes stay hidden rather than contradicting each other.
+function sceneMinute(
   scene: NarrativeSceneDefinition,
   bundle: PlayerStoryBundle,
   conditions: PlayerSceneConditions | undefined,
-): boolean {
+): number | undefined {
+  let minute = toAbsoluteMinute(scene.at);
   const gated = scene.requiresLocation || scene.requiresFacts?.length || scene.afterActivityId;
-  if (!gated) return true;
-  if (!conditions) return false;
-  const minute = toAbsoluteMinute(scene.at);
-  if (scene.requiresLocation && conditions.locationAt(minute) !== scene.requiresLocation) return false;
-  if ((scene.requiresFacts ?? []).some((factId) => !conditions.knownFactIds.has(factId))) return false;
-  if (scene.afterActivityId
-    && !bundle.protagonistSchedule?.entries.some((entry) => entry.activityId === scene.afterActivityId)) return false;
-  return true;
+  if (!gated) return minute;
+  if (!conditions) return undefined;
+  if ((scene.requiresFacts ?? []).some((factId) => !conditions.knownFactIds.has(factId))) return undefined;
+  if (scene.afterActivityId) {
+    // A chosen activity ends when the player finishes it; default-day activities keep their authored time.
+    const finished = conditions.activityCompletedAt?.(scene.afterActivityId);
+    if (finished !== undefined) minute = finished;
+    else if (!bundle.protagonistSchedule?.entries.some((entry) => entry.activityId === scene.afterActivityId)) return undefined;
+  }
+  if (scene.requiresLocation) {
+    // Arriving while the scene is still going on is enough; it reaches the player on arrival.
+    const until = scene.availableUntil ? toAbsoluteMinute(scene.availableUntil) : minute;
+    let present: number | undefined;
+    for (let at = minute; at <= until && present === undefined; at += 1) {
+      if (conditions.locationAt(at) === scene.requiresLocation) present = at;
+    }
+    if (present === undefined) return undefined;
+    minute = present;
+  }
+  return minute;
 }
 
 function speakerLabel(speaker: string): string {
@@ -86,9 +104,8 @@ function sceneSource(scene: NarrativeSceneDefinition): string {
   return scene.observation?.channel === 'phone' ? `${who}／手機` : who;
 }
 
-function recordForScene(scene: NarrativeSceneDefinition): PlayerNarrativeRecord {
+function recordForScene(scene: NarrativeSceneDefinition, minute: number): PlayerNarrativeRecord {
   const body = scene.blocks.map(visibleText).filter((line): line is string => Boolean(line && line.trim()));
-  const minute = toAbsoluteMinute(scene.at);
   const spatialScript = compileSpatialScript(scene.blocks);
   return {
     id: scene.id,
@@ -118,12 +135,11 @@ export function projectPlayerNarrativeRecords(
   const document = bundle.narrativeDocuments.find((item) => item.loopId === chapterId);
   if (!document) return [];
   const records = document.scenes
-    .map((scene, authoredIndex) => ({ scene, authoredIndex, minute: toAbsoluteMinute(scene.at) }))
-    .filter(({ minute: authoredMinute }) => authoredMinute <= minute)
+    .map((scene, authoredIndex) => ({ scene, authoredIndex, minute: sceneMinute(scene, bundle, conditions) }))
+    .filter((item): item is { scene: NarrativeSceneDefinition; authoredIndex: number; minute: number } => item.minute !== undefined && item.minute <= minute)
     .filter(({ scene }) => matchesScene(scene, history as WorldlineHistoryEntry[]))
-    .filter(({ scene }) => meetsSceneConditions(scene, bundle, conditions))
     .sort((left, right) => left.minute - right.minute || left.authoredIndex - right.authoredIndex)
-    .map(({ scene }) => ({ ...recordForScene(scene), loopId: chapterId }));
+    .map(({ scene, minute: reachedAt }) => ({ ...recordForScene(scene, reachedAt), loopId: chapterId }));
   return records;
 }
 
