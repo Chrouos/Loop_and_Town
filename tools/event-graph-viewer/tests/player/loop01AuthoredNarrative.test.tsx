@@ -23,7 +23,7 @@ function manifestBundle(): PlayerStoryBundle {
     },
     narrativeDocuments: Object.entries(narrativeFiles).map(([path, raw]) => ({
       sourcePath: path,
-      loopId: /final_player/.test(path) ? 'final' as const : Number(/loop_(\d+)_player/.exec(path)![1]),
+      loopId: /final_player/.test(path) ? 'final' as const : /daily_player/.test(path) ? 'daily' as const : Number(/loop_(\d+)_player/.exec(path)![1]),
       scenes: parseNarrativeDocument(yaml.load(raw)),
     })),
     artifacts: story.narrative.artifacts,
@@ -96,6 +96,7 @@ describe('Loop 01 authored narrative in the canonical player', () => {
 
   it('labels every authored speaker instead of falling back to 對方', () => {
     for (const document of bundle.narrativeDocuments) {
+      if (document.loopId === 'daily') continue;
       const records = projectPlayerNarrativeRecords(bundle, document.loopId, [], 1440, playerSceneConditions(loopOneSave(), 1));
       expect(records.flatMap(record => record.body).filter(line => line.startsWith('對方：'))).toEqual([]);
     }

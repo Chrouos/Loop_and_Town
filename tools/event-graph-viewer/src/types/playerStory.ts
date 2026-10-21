@@ -4,7 +4,8 @@ import type { ChapterRule } from '../player/chapters';
 
 export type PlayerNarrativeDocument = {
   sourcePath: string;
-  loopId: number | 'final';
+  /** A chapter, or 'daily' for the everyday town life that repeats in every loop. */
+  loopId: number | 'final' | 'daily';
   scenes: NarrativeSceneDefinition[];
 };
 

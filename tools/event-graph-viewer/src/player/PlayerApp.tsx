@@ -57,9 +57,9 @@ const NOTE_VISIBLE_MS = 8000;
 const CAPTURE_GRACE_MINUTES = 10;
 // The Loop 1 opening scene already shows the protagonist waking on the train.
 const OPENING_COVERED_SCENE = 'prologue_arrival';
-const PLACE_NAMES: Record<string, string> = { old_house: '老家', cafe: '咖啡店', hospital: '醫院', old_station: '舊車站', en_route: '路上', train: '返鄉列車' };
-const WALK_LABELS: Record<TownPlace, string> = { cafe: '走去咖啡店', hospital: '去醫院看看' };
-const MINUTE_WORDS: Record<number, string> = { 12: '十二', 18: '十八' };
+const PLACE_NAMES: Record<string, string> = { old_house: '老家', clock_shop: '鐘錶店', cafe: '咖啡店', hospital: '醫院', old_station: '舊車站', en_route: '路上', train: '返鄉列車' };
+const WALK_LABELS: Record<TownPlace, string> = { clock_shop: '去予安的鐘錶店', cafe: '走去咖啡店', hospital: '去醫院看看' };
+const MINUTE_WORDS: Record<number, string> = { 8: '八', 12: '十二', 18: '十八' };
 
 export function PlayerApp({ now = Date.now, storage = window.localStorage, loadStory = () => loadPlayerStoryBundle('story/manifests/loop_01.yaml') }: Props) {
   const [save, setSave] = useState<PlayerSave>(() => readSave(storage, now()));
@@ -372,6 +372,7 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
               <p className="stage-idle__line">{idleLine(entryWindow)}</p>
               <p className="stage-idle__line">老家很安靜。桌上的<InlineTextTarget available={homeActivityAvailable('research_online')} actionLabel="打開筆電查資料" onAttend={() => beginActivity('research_online')}>筆電</InlineTextTarget>還沒打開，<InlineTextTarget available={homeActivityAvailable('wait_for_call')} actionLabel="把手機放在手邊等消息" onAttend={() => beginActivity('wait_for_call')}>手機</InlineTextTarget>就放在手邊。</p>
             </> : townPlace === 'cafe' ? <p className="stage-idle__line">{worldCharacters.wakaharu?.location === 'cafe' ? '若晴在吧台後面忙著，還沒注意到我。咖啡機一直在響。' : '靠窗的位置換了幾次客人，吧台後面已經沒有若晴。'}</p>
+            : townPlace === 'clock_shop' ? <p className="stage-idle__line">{clock.minute < 17 * 60 + 50 ? '予安趴在工作台前修錶，收音機開得很小聲，牆上的鐘各走各的。' : '鐵門拉下了一半，予安不在店裡。'}</p>
             : townPlace === 'hospital' ? <p className="stage-idle__line">{worldCharacters.doctor?.location === 'hospital' ? '護理站說陳醫生下午都在看診，診間的門一直關著。' : '走廊的廣播叫過幾個號碼，陳醫生的診間已經熄燈。'}</p>
             : <p className="stage-idle__line">{idleLine(entryWindow)}</p>}
           </section> : <AutoFlowNarrative key={`${clock.loop}:${record?.id}`} title={record?.title} lines={record?.body ?? []} excerpts={record?.excerpts ?? []} rememberedIds={rememberedExcerptIds(record)} onComplete={markStageFinished} onRemember={excerptId => record ? rememberExcerpt(record, excerptId) : false} reducedMotion={prefersReducedMotion()} />}

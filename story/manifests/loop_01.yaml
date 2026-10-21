@@ -46,6 +46,7 @@ narratives:
   - narrative/loop_06_player.yaml
   - narrative/loop_07_player.yaml
   - narrative/final_player.yaml
+  - narrative/daily_player.yaml
 story_dags:
   - events/day_01_story_dag.yaml
   - events/loop_03_story_dag.yaml

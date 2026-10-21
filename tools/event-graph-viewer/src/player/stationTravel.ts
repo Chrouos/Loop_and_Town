@@ -8,10 +8,10 @@ export type StationVisit = {
   returnArriveMinute?: number;
 };
 
-export type TownPlace = 'cafe' | 'hospital';
-export const TOWN_PLACES: TownPlace[] = ['cafe', 'hospital'];
+export type TownPlace = 'cafe' | 'hospital' | 'clock_shop';
+export const TOWN_PLACES: TownPlace[] = ['clock_shop', 'cafe', 'hospital'];
 // Walking times from the old house, matching story/travel/loop_01.yaml.
-export const TOWN_TRAVEL_MINUTES: Record<TownPlace, number> = { cafe: 12, hospital: 18 };
+export const TOWN_TRAVEL_MINUTES: Record<TownPlace, number> = { clock_shop: 8, cafe: 12, hospital: 18 };
 /** A round trip from the old house to a place in town; leaving for the old station ends it without a walk home. */
 export type TownVisit = StationVisit & { place: TownPlace };
 

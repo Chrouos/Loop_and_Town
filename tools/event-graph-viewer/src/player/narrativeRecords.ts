@@ -25,6 +25,8 @@ export type PlayerSceneConditions = {
   knownFactIds: ReadonlySet<string>;
   /** When the player carried a chosen activity through to its end this loop. */
   activityCompletedAt?: (activityId: string) => number | undefined;
+  /** Scenes the player captured words from in an earlier loop. */
+  rememberedSceneIds?: ReadonlySet<string>;
 };
 
 const LETTER_FACT_ID = 'fact_zhixia_letter_received';
@@ -35,6 +37,7 @@ export function playerSceneConditions(save: PlayerSave, loop: number, activities
     locationAt: (minute) => protagonistLocationAt(save, loop, minute),
     knownFactIds: new Set(letterOpened ? [LETTER_FACT_ID] : []),
     activityCompletedAt: (activityId) => activityCompletedAt(save, loop, activityId, activities),
+    rememberedSceneIds: new Set(save.knowledge.memories.filter(memory => memory.sourceLoop < loop).map(memory => memory.sourceSceneId)),
   };
 }
 
@@ -46,10 +49,11 @@ function sceneMinute(
   conditions: PlayerSceneConditions | undefined,
 ): number | undefined {
   let minute = toAbsoluteMinute(scene.at);
-  const gated = scene.requiresLocation || scene.requiresFacts?.length || scene.afterActivityId;
+  const gated = scene.requiresLocation || scene.requiresFacts?.length || scene.afterActivityId || scene.requiresMemory?.length;
   if (!gated) return minute;
   if (!conditions) return undefined;
   if ((scene.requiresFacts ?? []).some((factId) => !conditions.knownFactIds.has(factId))) return undefined;
+  if ((scene.requiresMemory ?? []).some((sceneId) => !conditions.rememberedSceneIds?.has(sceneId))) return undefined;
   if (scene.afterActivityId) {
     // A chosen activity ends when the player finishes it; default-day activities keep their authored time.
     const finished = conditions.activityCompletedAt?.(scene.afterActivityId);
@@ -104,6 +108,14 @@ function sceneSource(scene: NarrativeSceneDefinition): string {
   return scene.observation?.channel === 'phone' ? `${who}／手機` : who;
 }
 
+// Authored memorable words are what the player can keep; scenes without them offer their opening lines.
+function sceneExcerpts(scene: NarrativeSceneDefinition, body: string[]): Array<{ id: string; text: string }> {
+  const memorable = scene.blocks.flatMap((block, index) => (
+    block.type !== 'artifact' && block.memorable ? [{ id: `${scene.id}:memorable:${index}`, text: block.memorable }] : []
+  ));
+  return memorable.length ? memorable : body.slice(0, 2).map((text, index) => ({ id: `${scene.id}:excerpt:${index}`, text }));
+}
+
 function recordForScene(scene: NarrativeSceneDefinition, minute: number): PlayerNarrativeRecord {
   const body = scene.blocks.map(visibleText).filter((line): line is string => Boolean(line && line.trim()));
   const spatialScript = compileSpatialScript(scene.blocks);
@@ -116,7 +128,7 @@ function recordForScene(scene: NarrativeSceneDefinition, minute: number): Player
     formedAt: displayMinute(minute),
     obtainedAt: displayMinute(minute),
     body,
-    excerpts: body.slice(0, 2).map((text, index) => ({ id: `${scene.id}:excerpt:${index}`, text })),
+    excerpts: sceneExcerpts(scene, body),
     revealMinute: minute,
     availableUntilMinute: scene.availableUntil ? toAbsoluteMinute(scene.availableUntil) : undefined,
     acquisition: acquisitionFor(scene),
@@ -132,12 +144,18 @@ export function projectPlayerNarrativeRecords(
   minute: number,
   conditions?: PlayerSceneConditions,
 ): PlayerNarrativeRecord[] {
-  const document = bundle.narrativeDocuments.find((item) => item.loopId === chapterId);
-  if (!document) return [];
-  const records = document.scenes
+  // The chapter's own scenes plus everyday town life, which happens again in every loop.
+  const scenes = bundle.narrativeDocuments
+    .filter((item) => item.loopId === chapterId || item.loopId === 'daily')
+    .flatMap((item) => item.scenes);
+  if (!scenes.length) return [];
+  const eligible = scenes
     .map((scene, authoredIndex) => ({ scene, authoredIndex, minute: sceneMinute(scene, bundle, conditions) }))
     .filter((item): item is { scene: NarrativeSceneDefinition; authoredIndex: number; minute: number } => item.minute !== undefined && item.minute <= minute)
-    .filter(({ scene }) => matchesScene(scene, history as WorldlineHistoryEntry[]))
+    .filter(({ scene }) => matchesScene(scene, history as WorldlineHistoryEntry[]));
+  const replaced = new Set(eligible.flatMap(({ scene }) => scene.replaces ? [scene.replaces] : []));
+  const records = eligible
+    .filter(({ scene }) => !replaced.has(scene.id))
     .sort((left, right) => left.minute - right.minute || left.authoredIndex - right.authoredIndex)
     .map(({ scene, minute: reachedAt }) => ({ ...recordForScene(scene, reachedAt), loopId: chapterId }));
   return records;

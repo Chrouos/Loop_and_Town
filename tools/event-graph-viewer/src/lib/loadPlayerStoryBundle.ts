@@ -12,9 +12,10 @@ function storyPath(path: string): string {
   return path.startsWith('story/') ? path : `story/${path}`;
 }
 
-function loopIdForPath(path: string): number | 'final' {
+function loopIdForPath(path: string): number | 'final' | 'daily' {
   const finalMatch = /(?:^|\/)final_player\.ya?ml$/.exec(path);
   if (finalMatch) return 'final';
+  if (/(?:^|\/)daily_player\.ya?ml$/.test(path)) return 'daily';
   const loopMatch = /(?:^|\/)loop_(\d+)_player\.ya?ml$/.exec(path);
   if (loopMatch) return Number(loopMatch[1]);
   throw new Error(`Cannot derive player narrative loop id from source: ${storyPath(path)}`);

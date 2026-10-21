@@ -136,6 +136,8 @@ export type NarrativeTextBlock = {
   type: 'narration' | 'monologue';
   text: string;
   factId?: string;
+  /** The words in this line the protagonist can keep; the player captures them from the narration. */
+  memorable?: string;
   presentation?: NarrativeTextPresentation;
 };
 
@@ -144,6 +146,8 @@ export type NarrativeDialogueBlock = {
   speaker: string;
   text: string;
   factId?: string;
+  /** The words in this line the protagonist can keep; the player captures them from the narration. */
+  memorable?: string;
   presentation?: NarrativeTextPresentation;
 };
 
@@ -170,6 +174,10 @@ export type NarrativeSceneDefinition = {
   artifactId?: string;
   requiresFacts?: string[];
   requiresLocation?: string;
+  /** Scenes whose words the player kept in an earlier loop; this scene only happens because the protagonist remembers. */
+  requiresMemory?: string[];
+  /** When this scene happens, the named everyday scene does not: the protagonist lives that moment differently. */
+  replaces?: string;
   afterActivityId?: string;
   sourceEventId?: string;
   sourceVariantId?: string;

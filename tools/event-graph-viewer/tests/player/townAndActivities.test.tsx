@@ -14,6 +14,9 @@ import { parseNarrativeDocument } from '../../src/lib/loadSimulationStory';
 import { loadRealStory } from '../helpers/loadRealStory';
 import travelYaml from '../../../../story/travel/loop_01.yaml?raw';
 import loop01Yaml from '../../../../story/narrative/loop_01_player.yaml?raw';
+import dailyYaml from '../../../../story/narrative/daily_player.yaml?raw';
+import { narrativeExcerptMemoryId, rememberNarrativeExcerpt } from '../../src/player/knowledge';
+import { createNextLoop } from '../../src/player/runtime';
 import type { PlayerStoryBundle } from '../../src/types/playerStory';
 
 const story = loadRealStory();
@@ -23,7 +26,10 @@ const bundle: PlayerStoryBundle = {
     loop: story.loop, initialState: story.initialState, schedules: story.schedules, definition: story.definition,
     worldlines: story.worldlines, playerChoices: story.playerChoices, travelEdges: story.travelEdges,
   },
-  narrativeDocuments: [{ sourcePath: 'loop_01_player.yaml', loopId: 1, scenes: parseNarrativeDocument(yaml.load(loop01Yaml)) }],
+  narrativeDocuments: [
+    { sourcePath: 'loop_01_player.yaml', loopId: 1, scenes: parseNarrativeDocument(yaml.load(loop01Yaml)) },
+    { sourcePath: 'daily_player.yaml', loopId: 'daily', scenes: parseNarrativeDocument(yaml.load(dailyYaml)) },
+  ],
   artifacts: story.narrative.artifacts,
   protagonistSchedule: story.narrative.protagonistSchedule,
   activities,
@@ -106,4 +112,46 @@ describe('things to do at the old house', () => {
     expect(await screen.findByText('正在查資料……')).toBeDefined();
     expect(screen.getByRole('button', { name: /走去咖啡店/ })).toBeDefined();
   }, 30_000);
+});
+
+describe('everyday town life between the morning and the evening', () => {
+  it('lets the player find Yuan at his shop and keep what she noticed', () => {
+    const save = freshSave();
+    travelToTown(save, 'clock_shop', 11 * 60 + 35);
+    const scene = scenesAt(save, 12 * 60).find(record => record.id === 'daily_clock_1140_black_coffee');
+    expect(scene?.excerpts.map(excerpt => excerpt.text)).toEqual(['自己那杯什麼都沒加', '房仲的名片']);
+    expect(scene?.source).toBe('予安');
+  });
+
+  it('gives every hour from 11:30 to 16:30 something to find somewhere in town', () => {
+    const daily = parseNarrativeDocument(yaml.load(dailyYaml)).filter(scene => !scene.requiresMemory);
+    for (let hour = 11; hour < 16; hour += 1) {
+      const start = hour * 60 + 30;
+      const covered = daily.some(scene => {
+        const [h, m] = String((scene.at as { time: string }).time).split(':').map(Number);
+        const [uh, um] = String((scene.availableUntil as { time: string }).time).split(':').map(Number);
+        return h * 60 + m <= start + 60 && uh * 60 + um >= start;
+      });
+      expect(covered, `nothing between ${hour}:30 and ${hour + 1}:30`).toBe(true);
+    }
+  });
+
+  it('remembers the detail in the next loop, where the same moment plays out differently', () => {
+    const save = freshSave();
+    travelToTown(save, 'clock_shop', 11 * 60 + 35);
+    const scene = scenesAt(save, 12 * 60).find(record => record.id === 'daily_clock_1140_black_coffee')!;
+    save.loops[1].revealedIds.push(`1:${scene.id}`);
+    rememberNarrativeExcerpt(save, 1, scene, scene.excerpts[0].id, 12 * 60, 0);
+    expect(save.knowledge.memories[0].id).toBe(narrativeExcerptMemoryId(1, scene.id, scene.excerpts[0].id));
+    // Same loop: the memory does not rewrite the moment it came from.
+    expect(scenesAt(save, 12 * 60).map(record => record.id)).not.toContain('daily_clock_1140_remembered_coffee');
+
+    save.loops[1].sealed = true;
+    createNextLoop(save, 'ACCELERATED', 1000);
+    save.loops[2].chapterId = 1;
+    travelToTown(save, 'clock_shop', 11 * 60 + 35);
+    const nextLoop = projectPlayerNarrativeRecords(bundle, 1, [], 12 * 60, playerSceneConditions(save, 2, activities)).map(record => record.id);
+    expect(nextLoop).toContain('daily_clock_1140_remembered_coffee');
+    expect(nextLoop).not.toContain('daily_clock_1140_black_coffee');
+  });
 });
