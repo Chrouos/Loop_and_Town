@@ -113,6 +113,18 @@ describe('things to do at the old house', () => {
     expect(await screen.findByText('正在查資料……')).toBeDefined();
     expect(screen.getByRole('button', { name: /走去咖啡店/ })).toBeDefined();
   }, 30_000);
+  it('remembers at home what the laptop already turned up while the phone is still there', async () => {
+    const storage = window.localStorage;
+    storage.clear();
+    const save = freshSave();
+    startActivity(save, 1, 'research_online', 10 * 60, activities);
+    storage.setItem(SAVE_KEY, JSON.stringify(save));
+    const now = realTimeAt(16 * 60);
+    render(<PlayerApp now={() => now} storage={storage} loadStory={async () => bundle} />);
+    expect(await screen.findByText(/筆電闔上了/, {}, { timeout: 20_000 })).toBeDefined();
+    expect(screen.queryByRole('button', { name: '打開筆電查資料' })).toBeNull();
+    expect(screen.getByRole('button', { name: '把手機放在手邊等消息' })).toBeDefined();
+  }, 30_000);
 });
 
 describe('everyday town life between the morning and the evening', () => {

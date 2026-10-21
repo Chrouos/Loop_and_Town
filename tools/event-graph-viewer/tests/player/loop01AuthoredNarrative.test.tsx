@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import yaml from 'js-yaml';
-import { act, render, screen, within } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PlayerApp } from '../../src/player/PlayerApp';
 import { normalizeSave, type PlayerSave } from '../../src/player/model';
@@ -145,6 +145,47 @@ describe('Loop 01 authored narrative in the canonical player', () => {
       expect(screen.getByRole('button', { name: /保護若晴/ })).toBeDefined();
     } finally { restore(); }
   }, 15_000);
+
+  it('lets the evening move on once the 18:20 decision has been answered', async () => {
+    const restore = preferReducedMotion();
+    try {
+      const storage = window.localStorage;
+      storage.clear();
+      const save = loopOneSave();
+      save.loops[1].stationVisit = { departMinute: 17 * 60 + 10, arriveMinute: 17 * 60 + 30 };
+      storage.setItem(SAVE_KEY, JSON.stringify(save));
+      const now = realTimeAt(18 * 60 + 6);
+      render(<PlayerApp now={() => now} storage={storage} loadStory={async () => bundle} />);
+      const user = userEvent.setup();
+      await user.click(await screen.findByRole('button', { name: /讀予安的留言/ }, { timeout: 8000 }));
+      await user.click(await screen.findByRole('button', { name: /^請予安/ }));
+      await screen.findByText(/予安回覆/);
+      // The reply lingers like a document, then the scenes the player has not watched yet take the stage.
+      await waitFor(() => expect(document.querySelector('.auto-flow-narrative__chapter')?.textContent).not.toBe('予安的留言'), { timeout: 12_000 });
+    } finally { restore(); }
+  }, 20_000);
+
+  it('confirms a captured memory briefly instead of on every later scene', async () => {
+    const storage = window.localStorage;
+    storage.clear();
+    const save = loopOneSave();
+    save.loops[1].stationVisit = { departMinute: 17 * 60 + 10, arriveMinute: 17 * 60 + 30 };
+    save.loops[1].perceivedSceneIds = ['station-blackout'];
+    save.loops[1].lastPerceivedRecordId = 'station-blackout';
+    save.knowledge.memories = [{
+      id: 'memory:1:station-blackout', sourceLoop: 1, sourceRecordId: 'station-blackout', sourceSceneId: 'station-blackout',
+      capturedAtMinute: 18 * 60 + 32, capturedAtMs: realTimeAt(18 * 60 + 32), kind: 'visual', title: '車站的燈', content: ['燈熄了'],
+    }];
+    for (const [minute, shown] of [[18 * 60 + 32, true], [18 * 60 + 40, false]] as const) {
+      storage.setItem(SAVE_KEY, JSON.stringify(save));
+      const now = realTimeAt(minute);
+      const view = render(<PlayerApp now={() => now} storage={storage} loadStory={async () => bundle} />);
+      await screen.findByRole('button', { name: '開啟工具' });
+      await act(async () => { await new Promise(resolve => setTimeout(resolve, 50)); });
+      expect(Boolean(screen.queryByText(/收進持久記憶/))).toBe(shown);
+      view.unmount();
+    }
+  });
 
   it('counts only real messages as incoming, not scenes the protagonist lived through', async () => {
     const storage = window.localStorage;
