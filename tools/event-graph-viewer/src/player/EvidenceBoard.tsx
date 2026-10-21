@@ -2,6 +2,8 @@ import { useState, type PointerEvent as ReactPointerEvent } from 'react';
 import { addMemoryToWall, addPlayerNote, connectWallRefs, removeWallRef, unpinExcerpt, submitBridgeHypothesis, BRIDGE_HYPOTHESIS } from './logic';
 import { normalizeSave, type PlayerSave } from './model';
 import { forgetMemory, MEMORY_CAPACITY } from './knowledge';
+
+const MEMORY_KIND_LABELS = { text: '文字', visual: '畫面', sound: '聲音', composite: '場景' } as const;
 import { recordById } from './story';
 
 type Props = { save: PlayerSave; onChange: (save: PlayerSave) => void; onNotice: (text: string) => void };
@@ -77,7 +79,7 @@ export function EvidenceBoard({ save, onChange, onNotice }: Props) {
     <section className="memory-library" aria-label="記憶庫">
       <h3>記憶庫 <small>{save.knowledge.memories.length}／{MEMORY_CAPACITY}</small></h3>
       {save.knowledge.memories.length ? save.knowledge.memories.map(memory => <div key={memory.id}>
-        <strong>{memory.title}</strong><small>第 {memory.sourceLoop} 輪 · {memory.kind}</small>
+        <strong>{memory.title}</strong><small>第 {memory.sourceLoop} 輪 · {MEMORY_KIND_LABELS[memory.kind]}</small>
         <p>{memory.content.join(' ')}</p>
         <button disabled={save.knowledge.wallRefs.includes(memory.id)} onClick={() => { const next = normalizeSave(save, save.lastConfirmedMs); onChange(addMemoryToWall(next, memory.id)); }}>放到推理牆</button>
         <button onClick={() => { const next = normalizeSave(save, save.lastConfirmedMs); onChange(forgetMemory(next, memory.id)); }}>放下這段記憶</button>
