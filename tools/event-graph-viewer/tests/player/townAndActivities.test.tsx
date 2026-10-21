@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import yaml from 'js-yaml';
-import { act, render, screen } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PlayerApp } from '../../src/player/PlayerApp';
 import { normalizeSave } from '../../src/player/model';
@@ -15,7 +15,7 @@ import { loadRealStory } from '../helpers/loadRealStory';
 import travelYaml from '../../../../story/travel/loop_01.yaml?raw';
 import loop01Yaml from '../../../../story/narrative/loop_01_player.yaml?raw';
 import dailyYaml from '../../../../story/narrative/daily_player.yaml?raw';
-import { narrativeExcerptMemoryId, rememberNarrativeExcerpt } from '../../src/player/knowledge';
+import { MEMORY_CAPACITY, narrativeExcerptMemoryId, rememberNarrativeExcerpt } from '../../src/player/knowledge';
 import { createNextLoop } from '../../src/player/runtime';
 import { reconcilePlayer } from '../../src/player/knowledge';
 import type { PlayerStoryBundle } from '../../src/types/playerStory';
@@ -180,4 +180,32 @@ describe('the story carries the protagonist home', () => {
     expect(protagonistLocationAt(save, 1, 22 * 60 + 40)).toBe('old_house');
     expect(save.loops[1].revealedIds).toContain('1:scene_2320_kitchen_quiet');
   });
+
+  it('asks what to let go when she is already carrying all she can', async () => {
+    const original = window.matchMedia;
+    window.matchMedia = ((query: string) => ({ matches: query.includes('reduce'), media: query, addEventListener() {}, removeEventListener() {} })) as unknown as typeof window.matchMedia;
+    try {
+      const storage = window.localStorage;
+      storage.clear();
+      const save = freshSave();
+      travelToTown(save, 'clock_shop', 11 * 60 + 30);
+      save.knowledge.memories = Array.from({ length: MEMORY_CAPACITY }, (_, n) => ({
+        id: `memory:1:old_${n}`, sourceLoop: 1, sourceRecordId: `old_${n}`, sourceSceneId: `old_${n}`,
+        capturedAtMinute: 600, capturedAtMs: T0, kind: 'text' as const, title: `舊片段 ${n}`, content: [`舊的第 ${n} 段`],
+      }));
+      storage.setItem(SAVE_KEY, JSON.stringify(save));
+      const now = realTimeAt(11 * 60 + 41);
+      render(<PlayerApp now={() => now} storage={storage} loadStory={async () => bundle} />);
+      const user = userEvent.setup();
+      await user.click(await screen.findByRole('button', { name: '記住：自己那杯什麼都沒加' }, { timeout: 20_000 }));
+      const panel = await screen.findByRole('group', { name: '要放下哪一段記憶' });
+      await user.click(within(panel).getByRole('button', { name: /舊片段 3/ }));
+      const kept = readSave(storage, now).knowledge.memories;
+      expect(kept).toHaveLength(MEMORY_CAPACITY);
+      expect(kept.map(item => item.id)).not.toContain('memory:1:old_3');
+      expect(kept.some(item => item.content[0] === '自己那杯什麼都沒加')).toBe(true);
+      expect(screen.queryByRole('group', { name: '要放下哪一段記憶' })).toBeNull();
+    } finally { window.matchMedia = original; }
+  }, 30_000);
 });
+

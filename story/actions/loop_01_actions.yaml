@@ -43,3 +43,19 @@ actions:
     effects:
       - add_flag: world.backup_inspection_requested
 
+
+  # 只有人在舊車站時才能選；是主角自己的位置，不會改變其他人的行程。
+  - id: wait_for_wakaharu_at_entrance
+    at: { day: 0, time: "18:05" }
+    label: 在入口等若晴，先把信給她看
+    visibility: observable
+    effects:
+      - add_flag: flags.protagonist_waited_at_entrance
+      - add_flag: flags.wakaharu_saw_letter
+
+  - id: watch_doctor_on_platform
+    at: { day: 0, time: "18:05" }
+    label: 留在月台盯著陳柏勳
+    visibility: observable
+    effects:
+      - add_flag: flags.protagonist_watched_doctor

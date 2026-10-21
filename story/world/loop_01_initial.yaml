@@ -36,6 +36,8 @@ flags:
   yuan_saw_reporter_at_station: false
   postal_record_anomaly_found: false
   wakaharu_saw_letter: false
+  protagonist_waited_at_entrance: false
+  protagonist_watched_doctor: false
   reporter_confronted: false
   old_case_1831_revealed: false
   sister_warning_found: false

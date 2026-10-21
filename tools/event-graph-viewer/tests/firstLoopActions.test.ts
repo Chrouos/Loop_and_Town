@@ -6,7 +6,7 @@ import type { ActionDefinition } from '../src/simulator/types';
 const actions = (yaml.load(actionsText) as { actions: ActionDefinition[] }).actions;
 const byId = (id: string) => actions.find((action) => action.id === id)!;
 
-it('defines the original five plus the player-gated backup investigation', () => {
+it('defines the original five, the player-gated backup investigation and the two station-only choices', () => {
   expect(actions.map((action) => action.id)).toEqual([
     'send_yuan_to_post_office',
     'show_letter_to_wakaharu',
@@ -14,6 +14,8 @@ it('defines the original five plus the player-gated backup investigation', () =>
     'protect_wakaharu',
     'stop_doctor',
     'request_backup_inspection',
+    'wait_for_wakaharu_at_entrance',
+    'watch_doctor_on_platform',
   ]);
 });
 

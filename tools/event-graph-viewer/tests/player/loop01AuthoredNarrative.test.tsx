@@ -4,7 +4,7 @@ import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PlayerApp } from '../../src/player/PlayerApp';
 import { normalizeSave, type PlayerSave } from '../../src/player/model';
-import { SAVE_KEY } from '../../src/player/storage';
+import { readSave, SAVE_KEY } from '../../src/player/storage';
 import { MINUTE } from '../../src/player/clock';
 import { replayLoop } from '../../src/player/runtime';
 import { playerSceneConditions, projectPlayerNarrativeRecords } from '../../src/player/narrativeRecords';
@@ -185,6 +185,22 @@ describe('Loop 01 authored narrative in the canonical player', () => {
       expect(Boolean(screen.queryByText(/收進持久記憶/))).toBe(shown);
       view.unmount();
     }
+  });
+
+  it('offers the two station-only choices to someone standing at the old station', async () => {
+    const storage = window.localStorage;
+    storage.clear();
+    const save = loopOneSave();
+    save.loops[1].stationVisit = { departMinute: 17 * 60 + 10, arriveMinute: 17 * 60 + 30 };
+    storage.setItem(SAVE_KEY, JSON.stringify(save));
+    const now = realTimeAt(18 * 60 + 2);
+    render(<PlayerApp now={() => now} storage={storage} loadStory={async () => bundle} />);
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole('button', { name: /讀予安的留言/ }, { timeout: 8000 }));
+    expect(screen.getByRole('button', { name: /^留在月台盯著陳柏勳/ })).toBeDefined();
+    await user.click(screen.getByRole('button', { name: /^在入口等若晴/ }));
+    expect(readSave(storage, now).loops[1].actionIds).toEqual(['wait_for_wakaharu_at_entrance']);
+    expect((screen.getByRole('button', { name: /只能待在一個地方/ }) as HTMLButtonElement).disabled).toBe(true);
   });
 
   it('counts only real messages as incoming, not scenes the protagonist lived through', async () => {
