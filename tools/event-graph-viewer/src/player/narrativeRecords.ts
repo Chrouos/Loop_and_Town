@@ -14,7 +14,7 @@ const SPEAKER_LABELS: Record<string, string> = {
   yuan: '予安',
   zhixia: '知夏',
   wakaharu: '若晴',
-  doctor: '陳醫師',
+  doctor: '陳醫生',
   reporter: '庭安',
   detective: '志遠',
 };
