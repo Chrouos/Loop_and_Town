@@ -9,3 +9,5 @@ travel:
   - { from: cafe, to: hospital, minutes: 10 }
   - { from: hospital, to: cafe, minutes: 10 }
   - { from: hospital, to: old_station, minutes: 13 }
+  - { from: old_house, to: clock_shop, minutes: 8 }
+  - { from: clock_shop, to: old_house, minutes: 8 }

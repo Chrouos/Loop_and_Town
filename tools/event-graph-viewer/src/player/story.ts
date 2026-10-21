@@ -19,6 +19,7 @@ export type VisibleRecord = {
 export type PlayerNarrativeRecord = VisibleRecord & {
   sceneId: string;
   loopId: number | 'final';
+  movesTo?: 'old_house';
 };
 
 export type RecordAcquisition = 'persistent' | 'message' | 'presence';

@@ -925,6 +925,26 @@ Composite 只能組合主角在同一 Moment 真正感知到的元素。
 
 這避免 Memory Capture 被「系統其實全部都幫你記住」架空。
 
+### 17.2 Chapter progression follows player knowledge
+
+章節依劇情進度解鎖，不依輪迴次數。
+
+```text
+00:00 Reset
+→ 檢查剛結束那一輪玩家取得的內容
+→ 達成本章解鎖條件：下一輪進入下一章
+→ 未達成：下一輪重玩同一章
+```
+
+解鎖條件只能讀玩家知識：
+
+- 該輪交到玩家手上的紀錄或場景（revealed）
+- 該輪從特定場景捕捉的記憶（captured）
+
+不能讀作者世界線歷史。世界發生過某件事，不代表玩家知道。
+
+條件以資料維護於 `story/loops/chapter_progression.yaml`。正典尚未定案的章節（目前第 5→6、6→7、7→Final）暫時自動推進，定案後改為實際條件。Final 的調查機制只在 Final 章開放。
+
 ---
 
 ## 18. Memory Resonance

@@ -1,6 +1,7 @@
 import { createLoopClock, LOOP_START_MINUTE, MINUTE, type LoopClockState } from './clock';
+import { isChapterId, type ChapterId } from './chapters';
 import { FINAL_STEPS, type TimedFinalStep } from './finalGameplay';
-import type { StationVisit } from './stationTravel';
+import { TOWN_PLACES, TOWN_TRAVEL_MINUTES, type StationVisit, type TownPlace, type TownVisit } from './stationTravel';
 
 export type ActionId = 'protect_wakaharu' | 'stop_doctor' | 'request_backup_inspection';
 export type LoopHistoryEntry = {
@@ -38,6 +39,9 @@ export type LoopSave = {
   actionIds: ActionId[];
   finalSteps: TimedFinalStep[];
   stationVisit?: StationVisit;
+  townVisits?: TownVisit[];
+  /** Things the protagonist chose to do at home; a stop before the end means it was interrupted. */
+  activityRuns?: ActivityRunSave[];
   revealedIds: string[];
   perceivedSceneIds: string[];
   seenSceneIds: string[];
@@ -47,7 +51,10 @@ export type LoopSave = {
   sealed: boolean;
   clock: LoopClockState;
   history: LoopHistoryEntry[];
+  /** Story chapter this loop plays; absent on saves from before chapter progression. */
+  chapterId?: ChapterId;
 };
+export type ActivityRunSave = { id: string; startMinute: number; stopMinute?: number };
 export type MemoryKind = 'text' | 'visual' | 'sound' | 'composite';
 export type PersistentMemory = {
   id: string;
@@ -163,6 +170,29 @@ function normalizeCapture(value: unknown): MemoryCaptureState | undefined {
   return { recordId: value.recordId, startedAtMs: value.startedAtMs, endsAtMs: Math.max(value.startedAtMs, value.endsAtMs) };
 }
 
+function normalizeTownVisits(value: unknown[]): TownVisit[] {
+  return value.filter(record).flatMap((item): TownVisit[] => {
+    const place = item.place as TownPlace;
+    if (!TOWN_PLACES.includes(place) || !finite(item.departMinute) || item.departMinute < 460) return [];
+    const walk = TOWN_TRAVEL_MINUTES[place];
+    if (item.arriveMinute !== item.departMinute + walk) return [];
+    const visit: TownVisit = { place, departMinute: item.departMinute, arriveMinute: item.arriveMinute };
+    if (finite(item.returnDepartMinute) && item.returnDepartMinute >= item.arriveMinute) {
+      visit.returnDepartMinute = item.returnDepartMinute;
+      if (item.returnArriveMinute === item.returnDepartMinute + walk) visit.returnArriveMinute = item.returnArriveMinute;
+    }
+    return [visit];
+  }).slice(0, 20);
+}
+
+function normalizeActivityRuns(value: unknown[]): ActivityRunSave[] {
+  return value.filter(record).flatMap((item): ActivityRunSave[] => (
+    typeof item.id === 'string' && finite(item.startMinute)
+      ? [{ id: item.id, startMinute: item.startMinute, ...(finite(item.stopMinute) && item.stopMinute >= item.startMinute ? { stopMinute: item.stopMinute } : {}) }]
+      : []
+  )).slice(0, 20);
+}
+
 function normalizeLoop(value: unknown, nowMs: number, fallbackClock?: LoopClockState): LoopSave {
   const src = record(value) ? value : {};
   return {
@@ -174,6 +204,8 @@ function normalizeLoop(value: unknown, nowMs: number, fallbackClock?: LoopClockS
             ? {returnDepartMinute:src.stationVisit.returnDepartMinute,
                 returnArriveMinute:src.stationVisit.returnDepartMinute+20}: {}) }
       : undefined,
+    ...(Array.isArray(src.townVisits) ? { townVisits: normalizeTownVisits(src.townVisits) } : {}),
+    ...(Array.isArray(src.activityRuns) ? { activityRuns: normalizeActivityRuns(src.activityRuns) } : {}),
     finalSteps: Array.isArray(src.finalSteps)
       ? src.finalSteps.filter(record).filter(item => FINAL_STEPS.includes(item.id as TimedFinalStep['id'])
         && finite(item.minute) && item.minute >= 1111 && item.minute < 1439)
@@ -186,6 +218,7 @@ function normalizeLoop(value: unknown, nowMs: number, fallbackClock?: LoopClockS
     capture: normalizeCapture(src.capture),
     lastPerceivedRecordId: typeof src.lastPerceivedRecordId === 'string' ? src.lastPerceivedRecordId : undefined,
     sealed: src.sealed === true,
+    ...(isChapterId(src.chapterId) ? { chapterId: src.chapterId } : {}),
     clock: normalizeClock(src.clock, nowMs) ?? fallbackClock ?? createLoopClock('ACCELERATED', nowMs),
     history: emptyHistory(src.history),
   };

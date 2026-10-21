@@ -1,5 +1,6 @@
 scenes:
   - id: loop07_0612_final_question
+    title: 她最後的選擇
     at: { day: 0, time: "06:12" }
     kind: narration
     participants: [protagonist, zhixia]
@@ -11,6 +12,7 @@ scenes:
       - type: monologue
         text: "她最後真正做過什麼選擇？"
   - id: loop07_0830_hidden_notebook
+    title: 牆板後的筆記
     at: { day: 0, time: "08:30" }
     kind: dialogue
     participants: [protagonist, reporter, zhixia]
@@ -27,6 +29,7 @@ scenes:
         text: 一開始她每頁都寫「再試一次」。後來寫「不能全部保住」。再後來，只剩數字。
 
   - id: loop07_0920_worldline_31
+    title: 世界線 31
     at: { day: 0, time: "09:20" }
     kind: narration
     participants: [protagonist, reporter, zhixia]
@@ -44,6 +47,7 @@ scenes:
         text: 她曾經成功讓我留下，卻在同一條 Worldline 看見我死亡。那不是任何人應該替別人決定人生的理由。
 
   - id: loop07_1040_designed_argument
+    title: 那場爭吵
     at: { day: 0, time: "10:40" }
     kind: dialogue
     participants: [protagonist, reporter, zhixia]
@@ -63,6 +67,7 @@ scenes:
         text: 是。但這不代表她後來做的每件事都對。
 
   - id: loop07_1210_people_as_variables
+    title: 被寫進筆記的人
     at: { day: 0, time: "12:10" }
     kind: narration
     participants: [protagonist, reporter, zhixia]
@@ -77,6 +82,7 @@ scenes:
         text: 她不是把死亡從我身上搬給別人。她是開始接受「別人承擔比較大的風險」作為可以比較的結果。
 
   - id: loop07_1340_final_break
+    title: 疲倦的錄音
     at: { day: 0, time: "13:40" }
     kind: dialogue
     participants: [protagonist, reporter, zhixia]
@@ -103,6 +109,7 @@ scenes:
         text: ……來不及。
 
   - id: loop07_1500_do_not_become_me
+    title: 最後一頁
     at: { day: 0, time: "15:00" }
     kind: narration
     participants: [protagonist, reporter, zhixia]
@@ -118,6 +125,7 @@ scenes:
         text: 我早在收到信前就決定返鄉。姊姊的警告不是召喚，更不是要求我替她繼續計算完美答案。
 
   - id: loop07_1620_letter_reply
+    title: 沒有新字
     at: { day: 0, time: "16:20" }
     kind: narration
     participants: [protagonist, zhixia]
@@ -129,6 +137,7 @@ scenes:
       - type: monologue
         text: "因為我一個人做錯了——我想這是她最後沒有說出口的意思。所以這一次，不該再由一個人決定。"
   - id: loop07_1758_yuan_choice
+    title: 予安的電話
     at: { day: 0, time: "17:58" }
     kind: dialogue
     participants: [protagonist, yuan]
@@ -142,6 +151,7 @@ scenes:
         speaker: protagonist
         text: "我可以說我知道的。但店要不要賣、現在要不要談，還是你自己決定。"
   - id: loop07_1758_yuan_answers
+    title: 予安接了
     at: { day: 0, time: "17:58" }
     kind: dialogue
     participants: [protagonist, yuan]
@@ -154,6 +164,7 @@ scenes:
       - type: narration
         text: "他得到資訊，沒有因此把人生決定交給我。"
   - id: loop07_1758_yuan_declines
+    title: 予安沒接
     at: { day: 0, time: "17:58" }
     kind: dialogue
     participants: [protagonist, yuan]
@@ -166,6 +177,7 @@ scenes:
       - type: narration
         text: "我接受他今天不想談的選擇。"
   - id: loop07_1831_collective_convergence
+    title: 一起面對的 18:31
     at: { day: 0, time: "18:31" }
     kind: narration
     participants: [protagonist, yuan, wakaharu, doctor, reporter, detective]
@@ -178,6 +190,7 @@ scenes:
         text: 世界沒有在等一個死人。至少這一次，看起來更像是在等我們怎麼面對同一件事。
 
   - id: loop07_1831_collective_burden
+    title: 交還的風險
     at: { day: 0, time: "18:31" }
     kind: narration
     participants: [protagonist, yuan, wakaharu, doctor, reporter, detective, zhixia]

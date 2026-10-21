@@ -48,7 +48,7 @@ export function AutoFlowNarrative({ lines, title, reducedMotion = false, onCompl
       setLetters(0);
     }, reducedMotion ? 500 : playbackDelay(line));
     return () => window.clearTimeout(timer);
-  }, [paused, finished, fullyVisible, reducedMotion, index, line, sequence.length, onComplete]);
+  }, [paused, finished, letters, fullyVisible, reducedMotion, index, line, sequence.length, onComplete]);
 
   useEffect(() => {
     if (!recentlyRemembered) return;

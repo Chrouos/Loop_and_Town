@@ -39,6 +39,7 @@ export type PlayerPresentationModel = {
   };
   reset: {
     pending: boolean;
+    settled?: boolean;
     npcState: 'current' | 'reset';
   };
   persistentMemoryIds: string[];
@@ -55,4 +56,8 @@ export type PlayerPresentationInput = {
   opportunities: PlayerNarrativeRecord[];
   scene?: PlayerNarrativeRecord;
   location?: string;
+  /** The reset is pending but the closing scene is still playing; present it once that ends. */
+  resetHeld?: boolean;
+  /** The bell has finished and the player is choosing how to enter the next day. */
+  resetSettled?: boolean;
 };

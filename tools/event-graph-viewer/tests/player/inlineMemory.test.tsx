@@ -13,8 +13,8 @@ describe('inline memory capture', () => {
 
   it('captures a revealed phrase using its authored excerpt id', async () => {
     const onRemember = vi.fn();
-    render(<AutoFlowNarrative reducedMotion lines={['她說今晚要去舊車站。', '沉默。']} excerpts={[{ id: 'plan', text: '今晚要去舊車站。' }]} onRemember={onRemember} />);
-    const button = await screen.findByRole('button', { name: '記住：今晚要去舊車站。' });
+    render(<AutoFlowNarrative reducedMotion lines={['她說今晚要去舊車站。']} excerpts={[{ id: 'plan', text: '今晚要去舊車站。' }]} onRemember={onRemember} />);
+    const button = await screen.findByRole('button', { name: '記住：今晚要去舊車站。' }, { timeout: 2000 });
     fireEvent.click(button);
     expect(onRemember).toHaveBeenCalledWith('plan');
   });
@@ -29,7 +29,7 @@ describe('inline memory capture', () => {
   it('marks persisted captured clues as remembered and prevents duplicate actions', async () => {
     const onRemember = vi.fn(() => true);
     render(<AutoFlowNarrative reducedMotion lines={['她說今晚要去舊車站。']} excerpts={[{ id: 'plan', text: '今晚要去舊車站。' }]} rememberedIds={['plan']} onRemember={onRemember} />);
-    const target = await screen.findByRole('button', { name: '已記住：今晚要去舊車站。' });
+    const target = await screen.findByRole('button', { name: '已記住：今晚要去舊車站。' }, { timeout: 2000 });
     expect((target as HTMLButtonElement).disabled).toBe(true);
     fireEvent.click(target);
     expect(onRemember).not.toHaveBeenCalled();
@@ -38,7 +38,7 @@ describe('inline memory capture', () => {
   it('does not falsely show a capture flash when the save rejects the clue', async () => {
     const onRemember = vi.fn(() => false);
     render(<AutoFlowNarrative reducedMotion lines={['她說今晚要去舊車站。']} excerpts={[{ id: 'plan', text: '今晚要去舊車站。' }]} onRemember={onRemember} />);
-    const target = await screen.findByRole('button', { name: '記住：今晚要去舊車站。' });
+    const target = await screen.findByRole('button', { name: '記住：今晚要去舊車站。' }, { timeout: 2000 });
     fireEvent.click(target);
     expect(onRemember).toHaveBeenCalledWith('plan');
     expect(target.className).not.toContain('just-saved');

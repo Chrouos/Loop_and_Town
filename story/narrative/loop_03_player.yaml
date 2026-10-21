@@ -1,5 +1,6 @@
 scenes:
   - id: loop03_1420_third_awake
+    title: 第三次
     at: { day: 0, time: "06:12" }
     kind: narration
     participants: [protagonist]
@@ -14,6 +15,7 @@ scenes:
         text: 如果問題出在 18:31，那就把所有人都移開。
 
   - id: loop03_1540_wakaharu_foreknowledge
+    title: 妳怎麼知道
     at: { day: 0, time: "15:40" }
     kind: dialogue
     participants: [protagonist, wakaharu]
@@ -32,6 +34,7 @@ scenes:
         text: 對我來說只是已知資訊。對她來說，卻像我一直在看著她。
 
   - id: loop03_1630_yuan_notices
+    title: 擋下的球
     at: { day: 0, time: "16:30" }
     kind: dialogue
     participants: [protagonist, yuan]
@@ -51,6 +54,7 @@ scenes:
         text: 我沒有回答。他也沒有追問，只是之後一路都在看我。
 
   - id: loop03_1720_doctor_intercept
+    title: 不能交出去
     at: { day: 0, time: "17:20" }
     kind: dialogue
     participants: [protagonist, doctor]
@@ -76,6 +80,7 @@ scenes:
         text: 沒事。我今天不去車站。
 
   - id: loop03_1800_clear_station
+    title: 安排今天
     at: { day: 0, time: "18:00" }
     kind: narration
     participants: [protagonist, wakaharu, doctor, reporter, detective, yuan]
@@ -90,6 +95,7 @@ scenes:
         text: 18:20，沒有人靠近。18:25，沒有異常。18:29，我開始相信這次真的可以。
 
   - id: loop03_1831_no_death
+    title: 普通的 18:31
     at: { day: 0, time: "18:31" }
     kind: dialogue
     participants: [protagonist, wakaharu, doctor, yuan]
@@ -107,6 +113,7 @@ scenes:
         text: 我坐在路邊，第一次真的笑出聲。不是因為解開了什麼，只因為今天終於沒有死人。
 
   - id: loop03_1910_wakaharu_resignation
+    title: 還沒想好
     at: { day: 0, time: "19:10" }
     kind: dialogue
     participants: [wakaharu]
@@ -123,6 +130,7 @@ scenes:
         text: 她仍然擔心母親，也不知道作品集夠不夠好。只是今天，她終於有機會去做原本就想做的事。
 
   - id: loop03_2000_yuan_realtor
+    title: 停走的掛鐘
     at: { day: 0, time: "20:00" }
     kind: dialogue
     participants: [protagonist, yuan]
@@ -142,6 +150,7 @@ scenes:
         text: 有時候我不知道我是在顧店，還是在替所有人保存一個他們比較喜歡的過去。
 
   - id: loop03_2240_not_success
+    title: 頁角的一句話
     at: { day: 0, time: "22:40" }
     kind: narration
     participants: [protagonist]
@@ -156,6 +165,7 @@ scenes:
         text: 我盯著那句話很久。她像早就知道我會走到這一步。
 
   - id: loop03_2310_doctor_old_record
+    title: 另一份病歷
     at: { day: 0, time: "23:10" }
     kind: dialogue
     participants: [protagonist, doctor]
@@ -181,6 +191,7 @@ scenes:
         text: 那不一定是一回事。
 
   - id: loop03_2359_bell
+    title: 沒有人聽見
     at: { day: 0, time: "23:59" }
     kind: narration
     participants: [protagonist]
@@ -197,6 +208,7 @@ scenes:
         text: 十二聲鐘響完時，我已經知道答案了。沒有人死亡，世界也沒有打算放過這一天。
 
   - id: loop03_0000_reset
+    title: 推回起點
     at: { day: 1, time: "00:00" }
     kind: narration
     participants: [protagonist]

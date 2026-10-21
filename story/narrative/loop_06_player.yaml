@@ -1,5 +1,6 @@
 scenes:
   - id: loop06_0612_sort_carriers
+    title: 列出來源
     at: { day: 0, time: "06:12" }
     kind: narration
     participants: [protagonist]
@@ -11,6 +12,7 @@ scenes:
       - type: monologue
         text: "我把『七封』當作暫時分類，而不是正確答案。"
   - id: loop06_0830_first_note
+    title: 地方誌的紙條
     at: { day: 0, time: "08:30" }
     kind: narration
     participants: [protagonist, zhixia]
@@ -22,6 +24,7 @@ scenes:
       - type: monologue
         text: "先記錄版本與來源。"
   - id: loop06_0940_library_card
+    title: 借閱卡
     at: { day: 0, time: "09:40" }
     kind: narration
     participants: [protagonist, zhixia]
@@ -33,6 +36,7 @@ scenes:
       - type: monologue
         text: "我需要的不只是紙，而是能核實的保管歷史。"
   - id: loop06_1100_sound_carrier
+    title: 對不上的錄音
     at: { day: 0, time: "11:00" }
     kind: dialogue
     participants: [protagonist, detective, zhixia]
@@ -45,6 +49,7 @@ scenes:
       - type: monologue
         text: "可能是設備異常，也可能還有別的資料被改寫。"
   - id: loop06_1230_medical_record
+    title: 原始病歷
     at: { day: 0, time: "12:30" }
     kind: dialogue
     participants: [protagonist, doctor, zhixia]
@@ -57,6 +62,7 @@ scenes:
       - type: monologue
         text: "這些原始紀錄能用來查核，不能直接證明一套傳輸架構。"
   - id: loop06_1410_fifth_letter
+    title: 燒掉之後的抄本
     at: { day: 0, time: "14:10" }
     kind: dialogue
     participants: [protagonist, reporter, zhixia]
@@ -69,6 +75,7 @@ scenes:
       - type: monologue
         text: "備份、轉記或 Rewrite 異常，現在都不能排除。"
   - id: loop06_1510_insight_to_evidence
+    title: 維修貼紙
     at: { day: 0, time: "15:10" }
     kind: dialogue
     participants: [protagonist, yuan, zhixia]
@@ -94,6 +101,7 @@ scenes:
         text: 我只是因為一段人物記憶，選擇多查了一條路。真正留下記錄的，是這一行五年前的字。
 
   - id: loop06_1600_sixth_carrier
+    title: 只有我記得的事
     at: { day: 0, time: "16:00" }
     kind: narration
     participants: [protagonist, zhixia]
@@ -105,6 +113,7 @@ scenes:
       - type: monologue
         text: "我不能把自己記得，誤當作信件已能跨線傳輸。"
   - id: loop06_1740_why_seventh
+    title: 為什麼是第七封
     at: { day: 0, time: "17:40" }
     kind: narration
     participants: [protagonist, zhixia]
@@ -116,6 +125,7 @@ scenes:
       - type: monologue
         text: "投遞方法還沒有答案，不能先把假設當技術。"
   - id: loop06_1803_handoff_point
+    title: 撥出與收到
     at: { day: 0, time: "18:03" }
     kind: narration
     participants: [protagonist, zhixia]
@@ -127,6 +137,7 @@ scenes:
       - type: monologue
         text: "我還不能把它直接叫成跨線交接。"
   - id: loop06_1831_seventh_message
+    title: 仍然只有四個字
     at: { day: 0, time: "18:31" }
     kind: narration
     participants: [protagonist, zhixia]

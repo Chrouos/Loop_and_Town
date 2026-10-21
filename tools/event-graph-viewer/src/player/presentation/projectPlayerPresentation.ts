@@ -1,5 +1,6 @@
 import { displayMinute } from '../clock';
-import { projectPlayerNarrativeRecords } from '../narrativeRecords';
+import { playerSceneConditions, projectPlayerNarrativeRecords } from '../narrativeRecords';
+import { chapterOf } from '../chapters';
 import type { LoopHistoryEntry, PlayerSave } from '../model';
 import type { WorldlineHistoryEntry } from '../../simulator/types';
 import type { PlayerStoryBundle } from '../../types/playerStory';
@@ -42,7 +43,7 @@ export function projectPlayerPresentation(input: PlayerPresentationInput): Playe
     .filter(record => currentLoop?.perceivedSceneIds.includes(record.sceneId))
     .filter(record => !persistedIds.has(`memory:${String(input.loopId)}:${record.id}`))
     .map(visibleScene);
-  const resetPending = currentLoop?.clock.pendingCriticalBoundary === 'reset';
+  const resetPending = currentLoop?.clock.pendingCriticalBoundary === 'reset' && !input.resetHeld;
   const mode = resetPending
     ? 'reset'
     : capture
@@ -70,6 +71,7 @@ export function projectPlayerPresentation(input: PlayerPresentationInput): Playe
     },
     reset: {
       pending: Boolean(resetPending),
+      settled: Boolean(resetPending && input.resetSettled),
       npcState: input.loopId === 1 ? 'current' : 'reset',
     },
     persistentMemoryIds: input.save.knowledge.memories.map(memory => memory.id),
@@ -96,7 +98,7 @@ export function projectLoopIntegration(
   minute: number,
 ): PlayerLoopIntegration {
   const loopId = save.currentLoopId;
-  const records = projectPlayerNarrativeRecords(bundle, loopId, history, minute);
+  const records = projectPlayerNarrativeRecords(bundle, chapterOf(save, loopId), history, minute, playerSceneConditions(save, loopId, bundle.activities));
   const currentLoop = save.loops[loopId];
   const opportunities = records.filter(record => (
     record.acquisition === 'presence'

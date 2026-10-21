@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { AutoFlowNarrative, playbackDelay } from '../../src/player/ui/AutoFlowNarrative';
 
@@ -6,6 +6,13 @@ describe('auto-flow narration', () => {
   it('uses a bounded natural pause between lines', () => {
     expect(playbackDelay('好。')).toBeGreaterThanOrEqual(1100);
     expect(playbackDelay('很長的敘述'.repeat(200))).toBeLessThanOrEqual(2800);
+  });
+
+  it('types every character and plays through to the end with normal motion', async () => {
+    const onComplete = vi.fn();
+    render(<AutoFlowNarrative lines={['不要回來。', '姊']} onComplete={onComplete} />);
+    await waitFor(() => expect(onComplete).toHaveBeenCalled(), { timeout: 4000 });
+    expect(screen.getByRole('status').textContent).toContain('姊');
   });
 
   it('renders each line without previous/next page buttons', () => {

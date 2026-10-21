@@ -1,9 +1,0 @@
-id: evt_1640_reporter_encounter
-title: 葉庭安
-at: { day: 0, time: "16:40" }
-visibility: observable
-variants:
-  - id: reporter_encounter
-    priority: 0
-    fallback: true
-    effects: []

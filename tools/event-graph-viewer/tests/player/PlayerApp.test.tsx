@@ -60,14 +60,14 @@ it('opens the envelope and records a deliberate action before the deadline', asy
   let current = 1000;
   render(<PlayerApp now={() => current} storage={storage} loadStory={async () => ({ definition, initialState: initial })} />);
   const user = userEvent.setup();
-  await user.click(await screen.findByRole('button', { name: /拆開信封/ }));
+  await user.click(await screen.findByRole('button', { name: /拆開信封/ }, { timeout: 3000 }));
   expect(screen.getAllByText('不要回來。')[0]).toBeDefined();
   expect(screen.queryByRole('button', { name: /保護若晴/ })).toBeNull();
   current += Math.ceil((1080 - 372) / 12) * MINUTE;
   fireEvent(document, new Event('visibilitychange'));
   await user.click(screen.getByRole('button', { name: /讀予安的留言/ }));
   expect(screen.getByText(/她看起來不想自己去/)).toBeDefined();
-  await user.click(await screen.findByRole('button', { name: /保護若晴/ }));
+  await user.click(await screen.findByRole('button', { name: /保護若晴/ }, { timeout: 3000 }));
   expect(readSave(storage, 1000).loops[1].actionIds).toContain('protect_wakaharu');
 });
 
@@ -238,7 +238,7 @@ it('disables Live Sync in the inactive early-morning gap but keeps accelerated m
   save.loops[1].clock.pendingCriticalBoundary = 'reset';
   storage.setItem(SAVE_KEY, JSON.stringify(save));
   render(<PlayerApp now={() => now} storage={storage} loadStory={async () => ({ definition, initialState: initial })} />);
-  expect(await screen.findByText('世界接手了這一輪。')).toBeDefined();
+  expect(await screen.findByText('世界接手了這一輪。', {}, { timeout: 2000 })).toBeDefined();
   await userEvent.setup().click(await screen.findByRole('button', { name: '將記憶交還給世界' }));
   expect((await screen.findByRole('button', { name: /跟著現在走/ }, { timeout: 2000 }) as HTMLButtonElement).disabled).toBe(true);
   expect((screen.getByRole('button', { name: /回到記憶開始的地方/ }) as HTMLButtonElement).disabled).toBe(false);

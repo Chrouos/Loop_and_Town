@@ -1,5 +1,6 @@
 scenes:
   - id: prologue_arrival
+    title: 返鄉列車
     at: { day: 0, time: "06:12" }
     kind: narration
     participants: [protagonist]
@@ -12,6 +13,7 @@ scenes:
         text: 這次只是回來整理房子。把該丟的丟掉，把該簽的簽完，就走。
 
   - id: prologue_letter_discovery
+    title: 口袋裡的信
     at: { day: 0, time: "06:14" }
     kind: artifact
     participants: [protagonist]
@@ -30,6 +32,7 @@ scenes:
         factId: fact_zhixia_dead_five_years
 
   - id: prologue_letter_opened
+    title: 不要回來
     at: { day: 0, time: "06:16" }
     kind: artifact
     participants: [protagonist]
@@ -43,6 +46,7 @@ scenes:
       - type: monologue
         text: 郵戳是昨天。我又看了一遍，還是昨天。
   - id: prologue_after_coffee
+    title: 等咖啡的時候
     at: { day: 0, time: "07:48" }
     kind: narration
     participants: [protagonist]
@@ -54,6 +58,7 @@ scenes:
         text: 我沒有插話。紙杯拿到手之後，才重新把行李拉桿拉起來。
 
   - id: prologue_after_store
+    title: 被叫錯的名字
     at: { day: 0, time: "07:50" }
     kind: narration
     participants: [protagonist]
@@ -67,6 +72,7 @@ scenes:
         text: 我只說沒關係。走出店門後，水瓶一直冰著掌心。
 
   - id: prologue_yuan_reunion
+    title: 出口的予安
     at: { day: 0, time: "07:40" }
     availableUntil: { day: 0, time: "08:30" }
     kind: dialogue
@@ -88,6 +94,7 @@ scenes:
         factId: fact_yuan_runs_clock_shop
 
   - id: prologue_old_house
+    title: 老家的門
     at: { day: 0, time: "08:00" }
     kind: narration
     participants: [protagonist]
@@ -101,6 +108,7 @@ scenes:
         text: 書架上還有姊姊留下的書。灰很多，但排列方式一點都沒變。
 
   - id: prologue_after_clean
+    title: 第一批紙箱
     at: { day: 0, time: "08:30" }
     kind: narration
     participants: [protagonist]
@@ -113,6 +121,7 @@ scenes:
         text: 房仲傍晚才會回電話。現在急也沒有用。
 
   - id: prologue_after_read
+    title: 涼掉的茶
     at: { day: 0, time: "08:50" }
     kind: narration
     participants: [protagonist]
@@ -125,6 +134,7 @@ scenes:
         text: 還是做點事吧。
 
   - id: scene_after_letter
+    title: 桌上的信
     at: { day: 0, time: "09:10" }
     kind: transition
     participants: [protagonist]
@@ -137,6 +147,7 @@ scenes:
         text: 如果不是有人在拿姊姊開玩笑，就一定有哪裡留下了紀錄。
 
   - id: scene_after_waiting_for_yuan
+    title: 沒有亮的手機
     at: { day: 0, time: "10:00" }
     kind: narration
     participants: [protagonist]
@@ -149,6 +160,7 @@ scenes:
         text: 光等也沒有用。
 
   - id: scene_after_research
+    title: 抄下的名字
     at: { day: 0, time: "11:30" }
     kind: narration
     participants: [protagonist]
@@ -160,6 +172,7 @@ scenes:
         text: 我把那個名字抄了下來。至少現在有地方能繼續問。
 
   - id: scene_after_dinner
+    title: 廚房的火
     at: { day: 0, time: "18:00" }
     kind: narration
     participants: [protagonist]
@@ -172,6 +185,7 @@ scenes:
         text: 信還放在桌上。吃不吃得下是另一回事。
 
   - id: scene_wakaharu_cafe
+    title: 靠窗的若晴
     at: { day: 0, time: "16:30" }
     availableUntil: { day: 0, time: "17:44" }
     kind: dialogue
@@ -189,6 +203,7 @@ scenes:
         text: 她說姊姊名字的方式太自然，我反而一時接不上話。
 
   - id: scene_reporter_cafe
+    title: 門鈴響的時候
     at: { day: 0, time: "16:40" }
     availableUntil: { day: 0, time: "17:10" }
     kind: dialogue
@@ -206,6 +221,7 @@ scenes:
         text: 她問得太慢，像是在挑一個比較安全的說法。
 
   - id: scene_wakaharu_before_leaving
+    title: 她晚點要去車站
     at: { day: 0, time: "17:20" }
     availableUntil: { day: 0, time: "17:30" }
     kind: dialogue
@@ -219,6 +235,7 @@ scenes:
         text: 她說得很隨便，手指卻一直捏著紙杯的邊緣。
 
   - id: scene_doctor_before_leaving
+    title: 陳醫生看了鐘
     at: { day: 0, time: "17:20" }
     availableUntil: { day: 0, time: "17:30" }
     kind: dialogue
@@ -234,6 +251,7 @@ scenes:
         text: 他已經把抽屜關上了。
 
   - id: scene_wakaharu_message
+    title: 一行訊息
     at: { day: 0, time: "17:55" }
     kind: dialogue
     participants: [protagonist, wakaharu]
@@ -252,6 +270,7 @@ scenes:
         text: 訊息只有一行。我看了一眼右上角的時間。
 
   - id: scene_1805_station_handoff
+    title: 月台上的信封
     at: { day: 0, time: "18:05" }
     availableUntil: { day: 0, time: "18:17" }
     kind: narration
@@ -268,6 +287,7 @@ scenes:
         text: 他們兩個都沒有注意到我。
 
   - id: scene_1810_yuan_observation
+    title: 路口的予安
     at: { day: 0, time: "18:10" }
     availableUntil: { day: 0, time: "18:17" }
     kind: narration
@@ -283,6 +303,7 @@ scenes:
         text: 葉庭安。她剛剛從車站裡出來。
 
   - id: scene_1818_warning
+    title: 若晴看著鐘
     at: { day: 0, time: "18:18" }
     availableUntil: { day: 0, time: "18:30" }
     kind: dialogue
@@ -298,6 +319,7 @@ scenes:
         text: 她說完就看向月台上方的鐘，像是在等它證明什麼。
 
   - id: scene_1818_guarded
+    title: 若晴沒有回答
     at: { day: 0, time: "18:18" }
     availableUntil: { day: 0, time: "18:30" }
     kind: dialogue
@@ -313,6 +335,7 @@ scenes:
         text: 我問她為什麼。她沒有回答。
 
   - id: scene_1820_old_house
+    title: 天暗了
     at: { day: 0, time: "18:20" }
     availableUntil: { day: 0, time: "18:30" }
     kind: transition
@@ -325,6 +348,7 @@ scenes:
         text: 現在去車站，大概也趕不上什麼。但不去，好像更糟。
 
   - id: scene_1820_cafe
+    title: 收杯子的時間
     at: { day: 0, time: "18:20" }
     availableUntil: { day: 0, time: "18:30" }
     kind: transition
@@ -337,6 +361,7 @@ scenes:
         text: 從這裡到舊車站不遠。只是現在才走，還是太晚了一點。
 
   - id: scene_1820_hospital
+    title: 醫院出口
     at: { day: 0, time: "18:20" }
     availableUntil: { day: 0, time: "18:30" }
     kind: transition
@@ -349,6 +374,7 @@ scenes:
         text: 舊車站就在另一頭。現在過去，未必來得及。
 
   - id: scene_1831_wakaharu
+    title: 分針跳到 31
     at: { day: 0, time: "18:31" }
     availableUntil: { day: 0, time: "18:31" }
     kind: narration
@@ -365,6 +391,7 @@ scenes:
         text: 我衝過去時，第一聲鐘響才剛落下。
 
   - id: scene_1831_doctor
+    title: 倒下的不是若晴
     at: { day: 0, time: "18:31" }
     availableUntil: { day: 0, time: "18:31" }
     kind: narration
@@ -381,6 +408,7 @@ scenes:
         text: 陳醫生就在月台邊。上一秒他還站著。
 
   - id: scene_1831_doctor_report
+    title: 若晴的電話
     at: { day: 0, time: "18:31" }
     kind: narration
     participants: [protagonist, wakaharu]
@@ -400,6 +428,7 @@ scenes:
         text: 若晴還活著。這句話本來應該讓我鬆一口氣，卻沒有。
 
   - id: scene_2030_wakaharu_life
+    title: 照片和信封
     at: { day: 0, time: "20:30" }
     kind: dialogue
     participants: [protagonist, wakaharu]
@@ -416,6 +445,7 @@ scenes:
         text: 她說得很慢，但沒有把照片收回去。
 
   - id: scene_2038_wakaharu_portfolio_sent
+    title: 寄出去了
     at: { day: 0, time: "20:38" }
     kind: narration
     participants: [protagonist, wakaharu]
@@ -431,6 +461,7 @@ scenes:
         text: 我看著她身後那扇五年沒換過的窗，第一次覺得活下來不是回到原來的位置。
 
   - id: scene_1831_no_death
+    title: 鐘還是響了
     at: { day: 0, time: "18:31" }
     availableUntil: { day: 0, time: "18:31" }
     kind: narration
@@ -449,6 +480,7 @@ scenes:
         text: 那一刻我才知道，我改掉的可能只是結果。
 
   - id: scene_1842_station_aftermath
+    title: 黃線旁的紙
     at: { day: 0, time: "18:42" }
     kind: narration
     participants: [protagonist, wakaharu, doctor, detective]
@@ -472,6 +504,7 @@ scenes:
         text: 我差點告訴他，若晴在倒下以前說過「18:31 不是死亡時間」。最後我什麼都沒說。
 
   - id: scene_2000_yuan_realtor
+    title: 沒接的電話
     at: { day: 0, time: "20:00" }
     kind: dialogue
     participants: [protagonist, yuan]
@@ -499,6 +532,7 @@ scenes:
         text: 可是「先不要」講久了，也會變成五年。
 
   - id: scene_2030_detective_old_case
+    title: 五年前的摘要
     at: { day: 0, time: "20:30" }
     kind: dialogue
     participants: [protagonist, detective]
@@ -526,6 +560,8 @@ scenes:
         text: 五年前，林知夏死在 18:31。今天，若晴也死在 18:31。
 
   - id: scene_2240_watch_warning
+    title: 錶的後蓋
+    movesTo: old_house
     at: { day: 0, time: "22:40" }
     kind: narration
     participants: [protagonist, yuan]
@@ -553,6 +589,7 @@ scenes:
         text: 我不知道。真正讓我害怕的，是這句話不像留給五年前的我。
 
   - id: scene_2320_kitchen_quiet
+    title: 沒動的便當
     at: { day: 0, time: "23:20" }
     kind: dialogue
     participants: [protagonist, yuan]
@@ -595,6 +632,7 @@ scenes:
         text: 我低頭看著已經冷掉的飯，第一次不知道該怎麼把話題拉回案件。
 
   - id: scene_2359_impossible_bell
+    title: 沒有鐘的鐘聲
     at: { day: 0, time: "23:59" }
     kind: narration
     participants: [protagonist, yuan]
@@ -625,6 +663,7 @@ scenes:
         text: 第十二聲落下時，廚房的燈熄了。
 
   - id: scene_0000_reset
+    title: 回到列車
     at: { day: 1, time: "00:00" }
     kind: transition
     participants: [protagonist]

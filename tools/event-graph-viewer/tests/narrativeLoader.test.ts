@@ -52,7 +52,7 @@ it('fetches each narrative manifest reference exactly once', async () => {
       'knowledge: knowledge/facts.yaml',
       'activities: activities/protagonist.yaml',
       'protagonist_schedule: schedules/protagonist.yaml',
-      'narrative: narrative/loop_01_prologue.yaml',
+      'narrative: narrative/loop_01_player.yaml',
       'artifacts:',
       '  - artifacts/zhixia_letter.yaml',
       '',
@@ -76,7 +76,7 @@ it('fetches each narrative manifest reference exactly once', async () => {
     'story/knowledge/facts.yaml': 'facts: []\n',
     'story/activities/protagonist.yaml': 'activities: []\n',
     'story/schedules/protagonist.yaml': 'character_id: protagonist\nentries: []\n',
-    'story/narrative/loop_01_prologue.yaml': 'scenes: []\n',
+    'story/narrative/loop_01_player.yaml': 'scenes: []\n',
     'story/artifacts/zhixia_letter.yaml': [
       'id: zhixia_letter',
       'kind: letter',

@@ -5,15 +5,17 @@ import {
   parseNarrativeDocument,
 } from './loadSimulationStory';
 import type { NarrativeSceneDefinition } from '../narrative/types';
+import { parseChapterProgression } from '../player/chapters';
 import type { PlayerNarrativeDocument, PlayerStoryBundle } from '../types/playerStory';
 
 function storyPath(path: string): string {
   return path.startsWith('story/') ? path : `story/${path}`;
 }
 
-function loopIdForPath(path: string): number | 'final' {
+function loopIdForPath(path: string): number | 'final' | 'daily' {
   const finalMatch = /(?:^|\/)final_player\.ya?ml$/.exec(path);
   if (finalMatch) return 'final';
+  if (/(?:^|\/)daily_player\.ya?ml$/.test(path)) return 'daily';
   const loopMatch = /(?:^|\/)loop_(\d+)_player\.ya?ml$/.exec(path);
   if (loopMatch) return Number(loopMatch[1]);
   throw new Error(`Cannot derive player narrative loop id from source: ${storyPath(path)}`);
@@ -50,6 +52,9 @@ export async function loadPlayerStoryBundle(manifestPath: string): Promise<Playe
     : [];
   const narrativeDocuments = [...baseDocuments, ...extraDocuments];
   validateUniqueSceneIds(narrativeDocuments);
+  const chapterProgression = manifest.chapter_progression
+    ? parseChapterProgression(await loadYaml(storyPath(manifest.chapter_progression)))
+    : undefined;
 
   return {
     simulation: {
@@ -63,6 +68,9 @@ export async function loadPlayerStoryBundle(manifestPath: string): Promise<Playe
     },
     narrativeDocuments,
     artifacts: simulation.narrative.artifacts,
+    protagonistSchedule: simulation.narrative.protagonistSchedule,
+    activities: simulation.narrative.activities,
+    chapterProgression,
   };
 }
 
