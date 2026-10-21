@@ -286,6 +286,60 @@ scenes:
       - type: monologue
         text: 他們兩個都沒有注意到我。
 
+  - id: scene_1805_entrance_wait
+    title: 員工通道口的若晴
+    at: { day: 0, time: "18:05" }
+    availableUntil: { day: 0, time: "18:17" }
+    kind: dialogue
+    participants: [protagonist, wakaharu]
+    requiresLocation: old_station
+    sourceEventId: evt_1806_entrance_meeting
+    sourceVariantId: met_at_entrance
+    replaces: scene_1805_station_handoff
+    blocks:
+      - type: narration
+        text: 正門拉起了施工的封鎖線，進站的人只能繞到旁邊的員工通道。通道的燈壞了一半。
+      - type: narration
+        text: 若晴從暗的那一半走出來，看見我時停了一步。
+      - type: dialogue
+        speaker: wakaharu
+        text: 妳怎麼會在這裡？
+      - type: narration
+        text: 我沒有解釋，只把外套口袋裡的信拿給她看。她讀到署名那一行，手指壓住了紙角，很久沒有翻面。
+      - type: dialogue
+        speaker: wakaharu
+        text: 妳也收到了。……我還以為只有我。
+        memorable: 我還以為只有我
+      - type: dialogue
+        speaker: wakaharu
+        text: 我答應陳醫生了。東西拿了我就出來。
+      - type: monologue
+        text: 她把信還給我，從我旁邊走進月台。陳醫生已經在另一端等她。
+
+  - id: scene_1812_doctor_watched
+    title: 陳醫生的手錶
+    at: { day: 0, time: "18:12" }
+    availableUntil: { day: 0, time: "18:24" }
+    kind: dialogue
+    participants: [protagonist, doctor]
+    requiresLocation: old_station
+    sourceEventId: evt_1812_doctor_watched
+    sourceVariantId: doctor_watched
+    blocks:
+      - type: narration
+        text: 信封交出去以後，陳醫生沒有走。他把手錶舉到月台上方那座鐘旁邊，比了很久，沒有調。
+        memorable: 比了很久，沒有調
+      - type: narration
+        text: 他看了一眼被封住的正門，又看向員工通道。那扇門今天沒有上鎖。
+        memorable: 那扇門今天沒有上鎖
+      - type: narration
+        text: 然後他發現我在看他。
+      - type: dialogue
+        speaker: doctor
+        text: ……妳站的位置，和林知夏以前一模一樣。
+      - type: monologue
+        text: 我還沒想好要問什麼，他已經轉身走回月台另一頭。
+
   - id: scene_1810_yuan_observation
     title: 路口的予安
     at: { day: 0, time: "18:10" }

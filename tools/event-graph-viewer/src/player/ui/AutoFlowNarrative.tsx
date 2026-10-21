@@ -30,6 +30,9 @@ export function AutoFlowNarrative({ lines, title, reducedMotion = false, onCompl
   const fullyVisible = letters >= line.length;
   const anchoredIds = new Set(sequence.flatMap(text => inlineAnchors(text, excerpts).map(anchor => anchor.id)));
   const unanchored = excerpts.filter(excerpt => !anchoredIds.has(excerpt.id));
+  // Words that already scrolled past stay within reach while the scene is still on stage.
+  const passedIds = new Set(sequence.slice(0, Math.min(index, sequence.length - 1)).flatMap(text => inlineAnchors(text, excerpts).map(anchor => anchor.id)));
+  const recallable = [...excerpts.filter(excerpt => passedIds.has(excerpt.id)), ...unanchored];
 
   useEffect(() => {
     if (paused || finished) return;
@@ -89,9 +92,9 @@ export function AutoFlowNarrative({ lines, title, reducedMotion = false, onCompl
       <p key={index} className="auto-flow-narrative__active">{renderVisibleText(line.slice(0, letters))}{!fullyVisible && <span className="auto-flow-narrative__cursor" aria-hidden="true">▏</span>}</p>
     </div>
     <div className="auto-flow-narrative__transcript" aria-label="完整敘事紀錄">{sequence.map((item, i) => <p key={i}>{item}</p>)}</div>
-    {moreOpen && <div className="auto-flow-narrative__other-clues" aria-label="其他可記住的線索">{unanchored.map(item => <button type="button" key={item.id} disabled={rememberedIds.includes(item.id)} onClick={() => { remember(item.id); setMoreOpen(false); }}>{item.text}</button>)}</div>}
+    {moreOpen && <div className="auto-flow-narrative__other-clues" aria-label="剛才讀過、還能記住的字句">{recallable.map(item => <button type="button" key={item.id} disabled={rememberedIds.includes(item.id)} onClick={() => { remember(item.id); setMoreOpen(false); }}>{item.text}</button>)}</div>}
     <div className="auto-flow-narrative__control">
-      {unanchored.length > 0 && <button type="button" aria-expanded={moreOpen} onClick={() => setMoreOpen(v => !v)}>其他線索</button>}
+      {recallable.length > 0 && <button type="button" aria-expanded={moreOpen} onClick={() => setMoreOpen(v => !v)}>剛才的字句</button>}
       {!finished ? <>
         <button type="button" onClick={handleAdvance} aria-label="顯示完整句子或接續對話">···</button>
         <button type="button" onClick={() => setPaused(v => !v)} aria-pressed={paused}>{paused ? '播放' : '暫停'}</button>

@@ -9,6 +9,7 @@ import { STORY_RECORDS, staticPlayerRecords, type PlayerNarrativeRecord } from '
 import type { PlayerStoryBundle } from '../types/playerStory';
 import { ATTENTION_OBSERVATION_MS, advanceAttention, beginAttention, redirectAttention } from './attention';
 import { isAtOldStation, returnHomeByStory } from './stationTravel';
+import { removeWallRef } from './logic';
 
 const DEFAULT_PRESENCE_WINDOW_MINUTES = 5;
 export const MEMORY_CAPTURE_MS = 1_200;
@@ -74,6 +75,21 @@ export function attendPresenceRecord(
   return true;
 }
 
+/** She can only carry so much across midnight; keeping something new past this means letting something go. */
+export const MEMORY_CAPACITY = 7;
+
+export function memoryFull(save: PlayerSave): boolean {
+  return save.knowledge.memories.length >= MEMORY_CAPACITY;
+}
+
+/** Lets a memory go for good: it leaves the library and the wall, and later loops no longer recall it. */
+export function forgetMemory(save: PlayerSave, id: string): PlayerSave {
+  if (!save.knowledge.memories.some(memory => memory.id === id)) return save;
+  save.knowledge.memories = save.knowledge.memories.filter(memory => memory.id !== id);
+  removeWallRef(save, id);
+  return save;
+}
+
 function memoryId(loop: number, recordId: string): string {
   return `memory:${loop}:${recordId}`;
 }
@@ -91,6 +107,7 @@ export function beginMemoryCapture(
   const candidate = recordSource(loop, records).find(record => record.id === recordId);
   if (!candidate || !entry.perceivedSceneIds.includes(candidate.sceneId)) return false;
   if (save.knowledge.memories.some(memory => memory.id === memoryId(loop, recordId))) return false;
+  if (memoryFull(save)) return false;
   entry.capture = { recordId, startedAtMs: nowMs, endsAtMs: nowMs + MEMORY_CAPTURE_MS };
   entry.attention = beginAttention(undefined, `capture:${recordId}`, nowMs, MEMORY_CAPTURE_MS);
   return true;
@@ -118,6 +135,7 @@ export function rememberNarrativeExcerpt(
   const id = narrativeExcerptMemoryId(loop, record.id, excerptId);
   const existing = save.knowledge.memories.find(memory => memory.id === id);
   if (existing) return existing;
+  if (memoryFull(save)) throw new Error('能帶走的記憶已經滿了。');
   const memory: PersistentMemory = {
     id,
     sourceLoop: loop,
@@ -162,7 +180,7 @@ function settleMemoryCapture(
     title: candidate.title,
     content: [...candidate.body],
   };
-  if (!save.knowledge.memories.some(item => item.id === memory.id)) save.knowledge.memories.push(memory);
+  if (!save.knowledge.memories.some(item => item.id === memory.id) && !memoryFull(save)) save.knowledge.memories.push(memory);
   entry.capture = undefined;
   return memory;
 }

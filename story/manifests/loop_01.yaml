@@ -13,7 +13,9 @@ events:
   - events/loop_01_1640.yaml
   - events/loop_01_1755.yaml
   - events/loop_01_1805.yaml
+  - events/loop_01_1806_entrance.yaml
   - events/loop_01_1810.yaml
+  - events/loop_01_1812_doctor.yaml
   - events/loop_01_1818.yaml
   - events/loop_01_1831.yaml
   - events/loop_01_1910.yaml

@@ -1,6 +1,7 @@
 import { useState, type PointerEvent as ReactPointerEvent } from 'react';
 import { addMemoryToWall, addPlayerNote, connectWallRefs, removeWallRef, unpinExcerpt, submitBridgeHypothesis, BRIDGE_HYPOTHESIS } from './logic';
 import { normalizeSave, type PlayerSave } from './model';
+import { forgetMemory, MEMORY_CAPACITY } from './knowledge';
 import { recordById } from './story';
 
 type Props = { save: PlayerSave; onChange: (save: PlayerSave) => void; onNotice: (text: string) => void };
@@ -74,11 +75,12 @@ export function EvidenceBoard({ save, onChange, onNotice }: Props) {
     <p>記憶庫保存你捕捉到的片段。推理牆只記錄你自己放上去的記憶、連線與註記。</p>
     {feedback && <p role="status" className="board-feedback">{feedback}</p>}
     <section className="memory-library" aria-label="記憶庫">
-      <h3>記憶庫</h3>
+      <h3>記憶庫 <small>{save.knowledge.memories.length}／{MEMORY_CAPACITY}</small></h3>
       {save.knowledge.memories.length ? save.knowledge.memories.map(memory => <div key={memory.id}>
         <strong>{memory.title}</strong><small>第 {memory.sourceLoop} 輪 · {memory.kind}</small>
         <p>{memory.content.join(' ')}</p>
         <button disabled={save.knowledge.wallRefs.includes(memory.id)} onClick={() => { const next = normalizeSave(save, save.lastConfirmedMs); onChange(addMemoryToWall(next, memory.id)); }}>放到推理牆</button>
+        <button onClick={() => { const next = normalizeSave(save, save.lastConfirmedMs); onChange(forgetMemory(next, memory.id)); }}>放下這段記憶</button>
       </div>) : <p>還沒有持久記憶。先在世界裡感知，再選擇捕捉。</p>}
     </section>
     <div className="board-canvas"><svg aria-hidden="true" className="evidence-lines" viewBox="0 0 1200 950">{lines}</svg>

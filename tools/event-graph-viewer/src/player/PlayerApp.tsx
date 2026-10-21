@@ -3,10 +3,10 @@ import { loadPlayerStoryBundle } from '../lib/loadPlayerStoryBundle';
 import type { SimulationDefinition, WorldState } from '../simulator/types';
 import { BELL_MINUTE, clockMinuteAt, displayMinute, isLiveSyncAvailable } from './clock';
 import { entryPresentation, idleLine, entryWindowFor } from './entry';
-import { attendPresenceRecord, availablePresenceRecords, beginMemoryCapture, narrativeExcerptMemoryId, reconcilePlayer, rememberNarrativeExcerpt, visibleRecords } from './knowledge';
+import { attendPresenceRecord, availablePresenceRecords, beginMemoryCapture, forgetMemory, MEMORY_CAPACITY, memoryFull, narrativeExcerptMemoryId, reconcilePlayer, rememberNarrativeExcerpt, visibleRecords } from './knowledge';
 import { knownDiff, pinExcerpt } from './logic';
 import { normalizeSave, type ActionId, type PlayerSave } from './model';
-import { activeLoop, confirmAction, continuePendingBoundary, createNextLoop, isAwayFromTown, PROTECT_AWAY_MESSAGE, replayLoop } from './runtime';
+import { activeLoop, confirmAction, continuePendingBoundary, createNextLoop, isAwayFromTown, DOCTOR_WATCH_UNTIL_MINUTE, PROTECT_AWAY_MESSAGE, replayLoop, STATION_ACTIONS, WAKAHARU_ARRIVES_MINUTE } from './runtime';
 import { LEGACY_KEY, exportSave, importLegacy, readSave, writeSave } from './storage';
 import { EvidenceBoard } from './EvidenceBoard';
 import { WorldlineNotebook } from './WorldlineNotebook';
@@ -18,7 +18,7 @@ import { AutoFlowNarrative } from './ui/AutoFlowNarrative';
 import { WorldlineHud } from './ui/WorldlineHud';
 import { SpatialTextLayer } from './SpatialTextLayer';
 import { markPlayerNarrativeSeen, playerSceneConditions, projectPlayerNarrativeRecords } from './narrativeRecords';
-import { recordById, staticPlayerRecords } from './story';
+import { recordById, staticPlayerRecords, type PlayerNarrativeRecord } from './story';
 import type { PlayerStoryBundle } from '../types/playerStory';
 import { projectPlayerPresentation } from './presentation/projectPlayerPresentation';
 import { PlayerSceneStage } from './ui/PlayerSceneStage';
@@ -61,6 +61,10 @@ const PLACE_NAMES: Record<string, string> = { old_house: '老家', clock_shop: '
 const WALK_LABELS: Record<TownPlace, string> = { clock_shop: '去予安的鐘錶店', cafe: '走去咖啡店', hospital: '去醫院看看' };
 const MINUTE_WORDS: Record<number, string> = { 8: '八', 12: '十二', 18: '十八' };
 
+type PendingKeep =
+  | { kind: 'perception'; recordId: string }
+  | { kind: 'excerpt'; record: PlayerNarrativeRecord; excerptId: string };
+
 export function PlayerApp({ now = Date.now, storage = window.localStorage, loadStory = () => loadPlayerStoryBundle('story/manifests/loop_01.yaml') }: Props) {
   const [save, setSave] = useState<PlayerSave>(() => readSave(storage, now()));
   const [story, setStory] = useState<Story | null>(null);
@@ -75,6 +79,7 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
   const [audioEnabled, setAudioEnabled] = useState(() => getAudioPreference(storage));
   const [currentMs, setCurrentMs] = useState(() => now());
   const [finishedRecordId, setFinishedRecordId] = useState<string | null>(null);
+  const [pendingKeep, setPendingKeep] = useState<PendingKeep | null>(null);
   const opener = useRef<HTMLButtonElement | null>(null);
 
   const commit = useCallback((next: PlayerSave) => { const copy = normalizeSave(next, now()); setSave(copy); writeSave(storage, copy); }, [now, storage]);
@@ -155,6 +160,8 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
   const incoming = records.filter(item => item.acquisition === 'message' && item.revealMinute > 0 && !save.knowledge.opened.includes(`${loopId}:${item.id}`));
   const hasAction = (id: ActionId) => loop.actionIds.includes(id);
   const canAct = clock.minute < 1100;
+  const decidedTonight = (['protect_wakaharu', 'stop_doctor', ...STATION_ACTIONS] as ActionId[]).some(hasAction);
+  const stationChoice = STATION_ACTIONS.find(hasAction);
   const awayFromTown = isAwayFromTown(save, clock.minute);
   const activities = story && isPlayerStoryBundle(story) ? story.activities ?? [] : [];
   const here = protagonistLocationAt(save, loopId, clock.minute);
@@ -201,7 +208,7 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
       && item.revealMinute >= clock.minute - STAGE_FRESH_MINUTES)
     .sort((left, right) => left.revealMinute - right.revealMinute)[0];
   // Once she has answered, the reply lingers like any document and the evening moves on.
-  const holdsDecision = record?.id === 'yu-an-message' && canAct && !hasAction('protect_wakaharu') && !hasAction('stop_doctor');
+  const holdsDecision = record?.id === 'yu-an-message' && canAct && !decidedTonight;
   // The 23:59 bell and the midnight scene play to the end before the reset presentation takes the stage.
   const finalePlaying = Boolean(record && authoredIds.has(record.id) && record.revealMinute >= BELL_MINUTE && finishedRecordId !== record.id);
   const deferReset = resetPending && opened && (finalePlaying || (nextAuthoredScene?.revealMinute ?? 0) >= BELL_MINUTE);
@@ -223,7 +230,8 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
   openRecordRef.current = openRecord;
   const nextSceneId = nextAuthoredScene?.id;
   const stageReadyToMove = Boolean(nextSceneId) && stageIdle && !holdsDecision && finishedRecordId === stageRecordId;
-  const lingerMs = stageRecordId && authoredIds.has(stageRecordId) ? STAGE_LINGER_MS : DOCUMENT_LINGER_MS;
+  // A scene with words still worth keeping stays a little longer, so reaching back for them is possible.
+  const lingerMs = stageRecordId && authoredIds.has(stageRecordId) && !record?.excerpts.some(excerpt => excerpt.id.includes(':memorable:')) ? STAGE_LINGER_MS : DOCUMENT_LINGER_MS;
   useEffect(() => {
     if (!stageReadyToMove || !nextSceneId) return;
     const timer = window.setTimeout(() => openRecordRef.current(nextSceneId), lingerMs);
@@ -254,7 +262,7 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
 
   function showDrawer(value: Drawer, target?: HTMLButtonElement) { opener.current = target ?? null; setDrawer(value); setNote(''); }
   function choose(id: ActionId) {
-    try { const nextSave = normalizeSave(save, now()); confirmAction(nextSave, id, now()); commit(nextSave); setNote(id === 'protect_wakaharu' ? '你答應在若晴出門前陪她留在家裡。' : id === 'stop_doctor' ? '你請予安先到醫院，設法留住陳柏勳。' : '你把兩份紀錄交給予安，請他自行判斷是否調查備援接口。'); }
+    try { const nextSave = normalizeSave(save, now()); confirmAction(nextSave, id, now()); commit(nextSave); setNote(id === 'protect_wakaharu' ? '你答應在若晴出門前陪她留在家裡。' : id === 'wait_for_wakaharu_at_entrance' ? '你決定在入口等若晴。' : id === 'watch_doctor_on_platform' ? '你決定留在月台，看著陳柏勳。' : id === 'stop_doctor' ? '你請予安先到醫院，設法留住陳柏勳。' : '你把兩份紀錄交給予安，請他自行判斷是否調查備援接口。'); }
     catch (e) { setNote(e instanceof Error ? e.message : String(e)); }
   }
   function visitStation() {
@@ -317,9 +325,25 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
     commit(nextSave);
   }
   function capture(id: string) {
+    if (memoryFull(save)) { setPendingKeep({ kind: 'perception', recordId: id }); return; }
     const nextSave = normalizeSave(save, now());
     if (!beginMemoryCapture(nextSave, loopId, id, clock.minute, recordSource, now())) return;
     commit(nextSave);
+  }
+  // Keeping something new once she is full means choosing what to let go; nothing is dropped behind her back.
+  function letGoAndKeep(memoryId: string) {
+    if (!pendingKeep) return;
+    const nextSave = normalizeSave(save, now());
+    const released = nextSave.knowledge.memories.find(memory => memory.id === memoryId);
+    forgetMemory(nextSave, memoryId);
+    try {
+      if (pendingKeep.kind === 'perception') {
+        if (!beginMemoryCapture(nextSave, loopId, pendingKeep.recordId, clock.minute, recordSource, now())) throw new Error('剛才那一幕已經淡掉了。');
+      } else rememberNarrativeExcerpt(nextSave, loopId, pendingKeep.record, pendingKeep.excerptId, clock.minute, now());
+      commit(nextSave);
+      setNote(`放下了「${released?.title ?? '一段記憶'}」。`);
+    } catch (e) { setNote(e instanceof Error ? e.message : String(e)); }
+    setPendingKeep(null);
   }
   function pin(ref: string) {
     try { const nextSave = normalizeSave(save, now()); pinExcerpt(nextSave, ref); commit(nextSave); setNote('已放在推理桌上。'); return true; }
@@ -328,6 +352,10 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
   // Static records keep the legacy table pins; authored scene words become Persistent Memory.
   function rememberExcerpt(target: NonNullable<typeof record>, excerptId: string) {
     if (recordById(target.id)) return pin(`${target.id}:${excerptId}`);
+    if (memoryFull(save) && !save.knowledge.memories.some(memory => memory.id === narrativeExcerptMemoryId(loopId, target.id, excerptId))) {
+      setPendingKeep({ kind: 'excerpt', record: target, excerptId });
+      return false;
+    }
     try { const nextSave = normalizeSave(save, now()); rememberNarrativeExcerpt(nextSave, loopId, target, excerptId, clock.minute, now()); commit(nextSave); setNote('已收進記憶庫。'); return true; }
     catch (e) { setNote(e instanceof Error ? e.message : String(e)); return false; }
   }
@@ -360,7 +388,12 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
         {error ? <p role="alert">無法讀取鎮上的紀錄：{error}</p> : !story ? <p>正在取出案卷……</p> : finalForward ? <div className="opening final-outcome" role="status"><p>鐘聲響完，日期沒有回去。</p><p>{finalSession?.sealMode==='PERMANENT'?'舊站的兩條自動改寫路徑已失去權限。每個人仍保留自己的選擇。':'這一輪已經封存，但改寫權限依然存在。'}</p><p>{finalBoundary?.nextCheckpoint ?? '10/4 00:01'}</p></div> : finalSafetyHold ? <div className="opening final-outcome" role="status"><p>已經切斷的路徑不能自行恢復，但當輪仍未通過安全結案。</p><p>午夜沒有被宣告勝利。等待可靠的確認。</p></div> : resetPending && !deferReset && !resetPresentationComplete ? <ResetTransitionScene reducedMotion={prefersReducedMotion()} onPresentationComplete={() => setResetPresentationComplete(true)} /> : resetPending && !deferReset ? <div className="opening mode-choice"><p>鐘聲落下，今天又回到可以重來的地方。</p><p>下一次進入灰潮鎮時，你要怎麼走進這一天？</p><button onClick={() => chooseMode('LIVE_SYNC')} disabled={modeCommitInFlight || !isLiveSyncAvailable(currentMs)}>跟著現在走<small>{isLiveSyncAvailable(currentMs) ? '從此刻的鎮內時間進入' : '清晨六點以前，鎮上還沒有可以走進去的今天'}</small></button><button onClick={() => chooseMode('ACCELERATED')} disabled={modeCommitInFlight}>回到記憶開始的地方<small>從 06:12 的返程列車開始</small></button>{note && <p className="inline-note" role="status">{note}</p>}</div> : !opened ? <OpeningScene label={entry.label} lines={entry.lines} paperAvailable={opportunities.some(item => item.id === 'paper-word')} onAttendPaper={() => attend('paper-word')} onOpenLetter={() => openRecord('letter')} /> : <div className={`reading-scene reading-scene--immersive attention-${loop.attention.phase}${holdsDecision ? ' reading-scene--deciding' : ''}`} key={`${clock.loop}:${record?.id}`}>
         
         {loop.capture && <div className="memory-capture-status" role="status"><p>你正在把剛才的感覺留下來……</p></div>}
-        {!loop.capture && captureOpen && lastPerceivedRecord && <div className="memory-capture-prompt" role="status"><p>剛才那一幕還留在你心裡。</p><button onClick={() => capture(lastPerceivedRecord.id)}>捕捉這段記憶</button></div>}
+        {pendingKeep && <div className="memory-capture-prompt memory-full" role="group" aria-label="要放下哪一段記憶">
+          <p>能帶過午夜的記憶只有{MEMORY_CAPACITY === 7 ? '七' : MEMORY_CAPACITY}段。要放下哪一段？</p>
+          {save.knowledge.memories.map(memory => <button key={memory.id} type="button" onClick={() => letGoAndKeep(memory.id)}>{memory.title}<small>{memory.content[0]}</small></button>)}
+          <button type="button" className="memory-full__keep" onClick={() => setPendingKeep(null)}>這次不記了</button>
+        </div>}
+        {!pendingKeep && !loop.capture && captureOpen && lastPerceivedRecord && <div className="memory-capture-prompt" role="status"><p>剛才那一幕還留在你心裡。</p><button onClick={() => capture(lastPerceivedRecord.id)}>捕捉這段記憶</button></div>}
         {!loop.capture && lastMemory && now() - lastMemory.capturedAtMs < NOTE_VISIBLE_MS && <div key={lastMemory.id} className="memory-capture-status memory-capture-status--fading" role="status"><p>已將「{lastMemory.title}」收進持久記憶。</p></div>}
         {incoming.length > 0 && <aside className="incoming-records incoming-records--quiet" aria-label="新消息"><span>鎮上有 {incoming.length} 則新消息</span><button type="button" onClick={() => showDrawer('case')}>查看消息 <span aria-hidden="true">↗</span></button></aside>}
         {observingSpatialRecord && <SpatialTextLayer script={observingSpatialRecord.spatialScript!} now={now} />}
@@ -380,21 +413,27 @@ export function PlayerApp({ now = Date.now, storage = window.localStorage, loadS
             : <p className="stage-idle__line">{idleLine(entryWindow)}</p>}
           </section> : <AutoFlowNarrative key={`${clock.loop}:${record?.id}`} title={record?.title} lines={record?.body ?? []} excerpts={record?.excerpts ?? []} rememberedIds={rememberedExcerptIds(record)} onComplete={markStageFinished} onRemember={excerptId => record ? rememberExcerpt(record, excerptId) : false} reducedMotion={prefersReducedMotion()} />}
         </div>}
-        {record?.id !== 'yu-an-message' && canAct && !hasAction('protect_wakaharu') && !hasAction('stop_doctor') && records.some(x => x.id === 'yu-an-message') && <div className="decisions"><p>手機震了一下。予安留了話。</p><button onClick={() => openRecord('yu-an-message')}>讀予安的留言</button></div>}
+        {record?.id !== 'yu-an-message' && canAct && !decidedTonight && records.some(x => x.id === 'yu-an-message') && <div className="decisions"><p>手機震了一下。予安留了話。</p><button onClick={() => openRecord('yu-an-message')}>讀予安的留言</button></div>}
         {record?.id === 'yu-an-message' && canAct ? <DialogueScene
           speaker="予安"
           text="18:20 前，你可以決定今晚要怎麼做。"
           reducedMotion={prefersReducedMotion()}
           choices={[
             { actionId: 'protect_wakaharu', label: hasAction('protect_wakaharu') ? '已和若晴約好' : awayFromTown ? `保護若晴：${PROTECT_AWAY_MESSAGE}` : '保護若晴：「今晚，我陪你留下來。」', disabled: hasAction('protect_wakaharu') || awayFromTown },
-            { actionId: 'stop_doctor', label: hasAction('stop_doctor') ? '予安已答應去醫院' : '請予安：「幫我去醫院。」', disabled: hasAction('stop_doctor') },
+            { actionId: 'stop_doctor', label: hasAction('stop_doctor') ? '予安已答應去醫院' : hasAction('watch_doctor_on_platform') ? '請予安：你已經決定自己盯著陳柏勳。' : '請予安：「幫我去醫院。」', disabled: hasAction('stop_doctor') || hasAction('watch_doctor_on_platform') },
+            ...(here === 'old_station' || stationChoice ? [
+              { actionId: 'wait_for_wakaharu_at_entrance', label: hasAction('wait_for_wakaharu_at_entrance') ? '你在員工通道口等她' : stationChoice ? '在入口等若晴：你只能待在一個地方。' : clock.minute >= WAKAHARU_ARRIVES_MINUTE ? '在入口等若晴：她已經進站了。' : '在入口等若晴，先把信給她看', disabled: Boolean(stationChoice) || clock.minute >= WAKAHARU_ARRIVES_MINUTE },
+              { actionId: 'watch_doctor_on_platform', label: hasAction('watch_doctor_on_platform') ? '你留在月台，看著陳柏勳' : stationChoice ? '留在月台盯著陳柏勳：你只能待在一個地方。' : hasAction('stop_doctor') ? '留在月台盯著陳柏勳：予安已經去醫院留他了。' : clock.minute >= DOCTOR_WATCH_UNTIL_MINUTE ? '留在月台盯著陳柏勳：他已經走遠了。' : '留在月台盯著陳柏勳', disabled: Boolean(stationChoice) || hasAction('stop_doctor') || clock.minute >= DOCTOR_WATCH_UNTIL_MINUTE },
+            ] : []),
             ...(save.knowledge.discoveredEvidence.includes('primary_recovery_both_active') ? [{actionId:'request_backup_inspection',label:hasAction('request_backup_inspection')?'已請予安查證備援接口':'拿著紀錄請予安查證另一條線',disabled:hasAction('request_backup_inspection')}] : []),
           ]}
           onChoose={actionId => choose(actionId as ActionId)}
         /> : null}
-        {record?.id === 'yu-an-message' && (hasAction('protect_wakaharu') || hasAction('stop_doctor')) && <div className="choice-replies" aria-label="今晚的回覆">
+        {record?.id === 'yu-an-message' && decidedTonight && <div className="choice-replies" aria-label="今晚的回覆">
           {hasAction('protect_wakaharu') && <p>若晴回了訊息：「好，我今晚先不去車站。你來的時候，我把信給你看。」</p>}
           {hasAction('stop_doctor') && <p>予安回覆：「我現在去醫院找陳柏勳。會試著留住他，之後再回你。」</p>}
+          {hasAction('wait_for_wakaharu_at_entrance') && <p>你把手機收進口袋，往正門旁邊的員工通道口走。</p>}
+          {hasAction('watch_doctor_on_platform') && <p>你沒有回予安，往月台另一端走近了一些。</p>}
           {hasAction('request_backup_inspection') && <p>予安：「我先去查銘牌上的第二條路。能不能動，我要自己看過才知道。」</p>}
           <small>約定已記下。車站的消息會在鎮上傳來時出現在這裡。</small>
         </div>}

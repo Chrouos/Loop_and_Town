@@ -22,7 +22,7 @@ describe('inline memory capture', () => {
   it('retains unmatched authored clues without putting cards below the text', () => {
     const onRemember = vi.fn();
     render(<AutoFlowNarrative lines={['不要回來。']} excerpts={[{ id: 'postmark', text: '郵戳是昨天的；署名是林知夏。' }]} onRemember={onRemember} />);
-    fireEvent.click(screen.getByRole('button', { name: '其他線索' }));
+    fireEvent.click(screen.getByRole('button', { name: '剛才的字句' }));
     fireEvent.click(screen.getByRole('button', { name: '郵戳是昨天的；署名是林知夏。' }));
     expect(onRemember).toHaveBeenCalledWith('postmark');
   });
@@ -44,4 +44,12 @@ describe('inline memory capture', () => {
     expect(target.className).not.toContain('just-saved');
   });
 
+  it('keeps words that already scrolled past within reach until the scene ends', async () => {
+    const onRemember = vi.fn(() => true);
+    render(<AutoFlowNarrative reducedMotion lines={['她說今晚要去舊車站。', '然後她就走了。']} excerpts={[{ id: 'plan', text: '今晚要去舊車站。' }]} onRemember={onRemember} />);
+    await screen.findByText('然後她就走了。', { selector: '.auto-flow-narrative__active' }, { timeout: 3000 });
+    fireEvent.click(screen.getByRole('button', { name: '剛才的字句' }));
+    fireEvent.click(screen.getByRole('button', { name: '今晚要去舊車站。' }));
+    expect(onRemember).toHaveBeenCalledWith('plan');
+  });
 });

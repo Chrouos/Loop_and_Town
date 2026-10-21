@@ -3,7 +3,7 @@ import { isChapterId, type ChapterId } from './chapters';
 import { FINAL_STEPS, type TimedFinalStep } from './finalGameplay';
 import { TOWN_PLACES, TOWN_TRAVEL_MINUTES, type StationVisit, type TownPlace, type TownVisit } from './stationTravel';
 
-export type ActionId = 'protect_wakaharu' | 'stop_doctor' | 'request_backup_inspection';
+export type ActionId = 'protect_wakaharu' | 'stop_doctor' | 'request_backup_inspection' | 'wait_for_wakaharu_at_entrance' | 'watch_doctor_on_platform';
 export type LoopHistoryEntry = {
   sequence: number;
   simulationMinute: number;
@@ -89,7 +89,8 @@ export type PlayerSave = {
 
 const record = (v: unknown): v is Record<string, unknown> => v !== null && typeof v === 'object' && !Array.isArray(v);
 const strings = (v: unknown): string[] => Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string').slice(0, 250) : [];
-const action = (value: unknown): value is ActionId => value === 'protect_wakaharu' || value === 'stop_doctor' || value === 'request_backup_inspection';
+const action = (value: unknown): value is ActionId => value === 'protect_wakaharu' || value === 'stop_doctor' || value === 'request_backup_inspection'
+  || value === 'wait_for_wakaharu_at_entrance' || value === 'watch_doctor_on_platform';
 const finite = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value);
 const emptyHistory = (value: unknown): LoopHistoryEntry[] => Array.isArray(value)
   ? value.filter(record).map((item, index) => ({
