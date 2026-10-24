@@ -91,7 +91,7 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
   animation: lt-murmur var(--life, 3000ms) linear forwards;
 }
 .lt-p.kind-cue {
-  pointer-events: auto; color: var(--ink-dim);
+  pointer-events: auto; color: var(--ink-dim); z-index: 3; /* above the centre lines, which take taps too */
   padding: 14px 18px;
   animation: lt-fade-in 900ms var(--ease) forwards, lt-breathe 3.6s ease-in-out 900ms infinite;
 }
@@ -103,6 +103,7 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 .lt-p.kind-cue:hover { color: var(--ink-soft); }
 .lt-p.kind-cue.active { color: var(--ink); animation: lt-fade-in 400ms forwards; }
 .lt-p.kind-cue.active::after { width: 30%; background: var(--ink-dim); }
+.lt-p.kind-cue.held { pointer-events: none; opacity: 0.35; animation: none; }
 .lt-hint {
   position: absolute; left: 50%; top: 100%; transform: translateX(-50%);
   font-size: 0.68rem; letter-spacing: 0.3em; color: var(--ink-faint);
@@ -123,11 +124,11 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 
 /* ── choices: what she is about to say ── */
 .lt-choices {
-  position: absolute; left: 50%; top: calc(50% + 92px); transform: translateX(-50%);
+  position: absolute; left: 50%; top: calc(50% + 92px); transform: translateX(-50%); z-index: 4; pointer-events: none;
   width: min(86vw, 560px); display: flex; flex-direction: column; align-items: center; gap: 4px;
 }
 .lt-choice {
-  padding: 10px 18px; font-size: clamp(0.98rem, 1.8vw, 1.12rem); letter-spacing: 0.1em;
+  pointer-events: auto; padding: 10px 18px; font-size: clamp(0.98rem, 1.8vw, 1.12rem); letter-spacing: 0.1em;
   color: var(--ink-dim); opacity: 0; animation: lt-choice-in 700ms var(--ease) forwards;
   transition: color 300ms, letter-spacing 400ms var(--ease);
   text-align: center; line-height: 1.6;

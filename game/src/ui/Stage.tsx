@@ -69,17 +69,21 @@ export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown 
           const style = { left: place.left, top: place.top, ['--life' as string]: `${life}ms` };
           if (item.kind === 'cue') {
             const active = view.focus === item.thread || (view.shiftingTo !== null && view.shiftingTo === item.pos);
+            // While someone is asking her something, she cannot turn away.
+            const held = view.choice !== null && !active;
             return (
               <button
                 key={item.key}
                 type="button"
-                className={`lt-p kind-cue dist-${item.pos.dist}${active ? ' active' : ''}`}
+                className={`lt-p kind-cue dist-${item.pos.dist}${active ? ' active' : ''}${held ? ' held' : ''}`}
                 style={style}
-                aria-label={`轉向聲音：${item.text}`}
+                disabled={held}
+                aria-label={active ? `回到自己：${item.text}` : `轉向聲音：${item.text}`}
                 onClick={(event) => { event.stopPropagation(); director.attend(item.thread!); }}
               >
                 {item.text}
-                {firstCue?.key === item.key && <span className="lt-hint">點一下，轉過去聽</span>}
+                {active && view.focus === item.thread && <span className="lt-hint" key="back">再點一下，回到自己</span>}
+                {!active && firstCue?.key === item.key && <span className="lt-hint">點一下，轉過去聽</span>}
               </button>
             );
           }

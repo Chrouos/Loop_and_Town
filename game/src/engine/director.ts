@@ -211,11 +211,14 @@ export class Director {
     if (run && !run.blocked && run.busyUntil > t && run.busyUntil - t < 4000) this.advanceTo(run.busyUntil);
   }
 
+  /** Turn toward a sound. Turning toward the one already being listened to brings her back to herself. */
   attend(threadId: string): void {
     if (this.view.phase !== 'scene') return;
+    const listening = this.shift ? this.shift.to : this.view.focus;
+    if (threadId !== 'main' && listening === threadId) { this.beginShift('main'); this.bump(); return; }
     const target = this.runs.get(threadId);
-    if (!target || target.done) return;
-    if (this.view.focus === threadId || this.shift?.to === threadId) return;
+    if (!target || (target.done && threadId !== 'main')) return;
+    if (listening === threadId) return;
     if (threadId !== 'main' && this.runs.get('main')?.pendingChoice) return;
     this.beginShift(threadId);
     this.bump();
@@ -411,7 +414,7 @@ export class Director {
   private advanceTo(target: number): void {
     let guard = 0;
     while (guard++ < 5000) {
-      if (this.view.phase === 'scene' && (this.pendingGoto || this.pendingEnd)) { this.flushPending(); continue; }
+      if (this.view.phase === 'scene' && (this.pendingGoto || this.pendingEnd) && !this.listeningAside()) { this.flushPending(); continue; }
       // Next due event at or before target.
       const phaseDue = this.view.phase !== 'scene' && this.afterPhase && this.phaseUntil <= target ? this.phaseUntil : Infinity;
       const timelineDue = this.timeline.length && this.timeline[0].at <= target ? this.timeline[0].at : Infinity;
@@ -455,8 +458,19 @@ export class Director {
         this.step(run);
         if (this.pendingGoto || this.pendingEnd) break;
       }
-      if (this.pendingGoto || this.pendingEnd) { this.flushPending(); return; }
+      if (this.pendingGoto || this.pendingEnd) {
+        if (!this.listeningAside()) this.flushPending();
+        return;
+      }
     }
+  }
+
+  /** The scene is over, but she is still turned toward someone else: let that finish (or let her turn back) first. */
+  private listeningAside(): boolean {
+    const id = this.shift ? this.shift.to : this.view.focus;
+    if (!id || id === 'main') return false;
+    const run = this.runs.get(id);
+    return Boolean(run && !run.done);
   }
 
   private flushPending(): void {
@@ -514,8 +528,8 @@ export class Director {
       case 'if': run.stack.push({ beats: evalCond(beat.cond, this.condContext()) ? beat.then : beat.else, i: 0 }); run.busyUntil = t; return;
       case 'set': beat.flags.forEach((flag) => this.flags.add(flag)); run.busyUntil = t; return;
       case 'learn': beat.ids.forEach((id) => this.learn(id)); run.busyUntil = t; return;
-      case 'goto': if (run.id === 'main') this.pendingGoto = beat.scene; run.busyUntil = t; return;
-      case 'end': if (run.id === 'main') this.pendingEnd = beat.kind; run.busyUntil = t; return;
+      case 'goto': if (run.id === 'main') { this.pendingGoto = beat.scene; run.blocked = true; } run.busyUntil = t; return;
+      case 'end': if (run.id === 'main') { this.pendingEnd = beat.kind; run.blocked = true; } run.busyUntil = t; return;
     }
   }
 
@@ -657,9 +671,13 @@ export class Director {
     run.pendingChoice = undefined;
     run.blocked = false;
     this.view.choice = null;
-    if (option.goto) { this.pendingGoto = option.goto; run.blocked = true; this.bump(); return; }
+    // A spoken option is said out loud first, even when it leads straight to another scene.
     const spoken = /^「(.+)」$/.exec(option.text.trim());
-    const beats: Beat[] = spoken ? [{ k: 'line', kind: 'me', speaker: 'me', text: spoken[1] }, ...option.then] : option.then;
+    const beats: Beat[] = [
+      ...(spoken ? [{ k: 'line', kind: 'me', speaker: 'me', text: spoken[1] } as Beat] : []),
+      ...option.then,
+      ...(option.goto ? [{ k: 'goto', scene: option.goto } as Beat] : []),
+    ];
     run.stack.push({ beats, i: 0 });
     run.busyUntil = t;
     this.bump();

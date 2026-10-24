@@ -738,7 +738,7 @@ scenes:
       - move: { ruoqing: front-left }
       - narr: 她站起來，靠到窗邊。外面的車聲一下子近了，她把信舉得很高。
       - { sfx: strap_click, at: front-left, dist: near, text: 喀 }
-      - narr: 背帶扣喀了一聲，就停了。
+      - narr: 背帶扣只響了一聲。
       - ruoqing: ……欸。底下有字。
       - ruoqing: 鉛筆，很淡。被那些點點壓得坑坑洞洞的。
       - me: 寫什麼？
@@ -910,7 +910,7 @@ scenes:
               - tingan: 鉛筆、筆跡、郵票，這些是有人親手弄的。
               - tingan: 親手弄的東西，通常找得到那隻手。
           - pause: 1.5
-          - narr: 我把信從最左邊拿起來，放到桌子的另一頭。那一列一下子短了一截。
+          - narr: 我把信從最左邊拿起來，放到桌子的另一頭。那一列短了一截。
           - think: 它從來就不在這一列裡。
         else:
           - think: 誰在畫。是我。
@@ -979,7 +979,7 @@ scenes:
     place: 老家，客廳
     ambience: [house_night, night_insects]
     beats:
-      - narr: 我沒有開燈，反正開了也一樣。冰箱又轉了一輪，停了。
+      - narr: 我沒有開燈，反正開了也一樣。冰箱嗡嗡地轉，轉一轉又歇下來。
       - think: 知道我看不見的人，會打點字的人，昨天寄過信的人。
       - think: 我一直在找一個三樣都對得上的名字。
       - { sfx: wind_gust, at: front-left, dist: far, text: 嗚—— }
@@ -1107,8 +1107,8 @@ scenes:
       - yuan: 前天傍晚，丟郵局門口那個郵筒。
       - if: know.k_postmark_yesterday
         then:
-          - think: 郵戳是昨天。第一個今天的下午，是他親口念給我聽的。
-      - think: 那天他捏著這張紙問我，知夏姊會點字嗎？
+          - think: 郵戳是昨天。是他親口念給我聽的。
+      - think: 第一個今天，他捏著這張紙問我：知夏姊會點字嗎？
       - think: 他的手指，就停在他自己打的點上。
       - pause: 2
       - if: know.k_yuan_1758
@@ -1156,8 +1156,8 @@ scenes:
                 - pause: 4
                 - if: flag.c6_at_shop
                   then:
-                    - { sfx: drawer, at: front, dist: near, text: 喀啦 }
-                    - narr: 他從抽屜裡拿出一樣東西，推到我手邊。鋁框，一排一排的小格子。
+                    - { sfx: tools_clink, at: front, dist: near, text: 叮 }
+                    - narr: 他把一樣東西推到我手邊。鋁框，一排一排的小格子。
                   else:
                     - { sfx: cup_set, at: front, dist: near, text: 叩 }
                     - narr: 他把點字板推到我手邊，鋁框碰到我的指尖。
@@ -1174,7 +1174,7 @@ scenes:
       - yuan: 嗯。
       - me: 那你呢？你想要我回來嗎？
       - { wait: 7 }
-      - yuan: ……我寄完的隔天早上，還是去車站了。
+      - yuan: ……寄出去以後，今天早上，我還是去車站了。
       - yuan: 七點多就到了。車還沒來。
       - pause: 2
       - yuan: 我不知道妳會不會下車。

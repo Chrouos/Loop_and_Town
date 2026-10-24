@@ -126,6 +126,59 @@ describe('director', () => {
     expect(director.loopFlags.size).toBe(0);
   });
 
+  it('tapping the cue being listened to turns her back to herself', () => {
+    const { director, run } = make();
+    enterScene(director, run);
+    director.attend('side');
+    run(SHIFT_MS + 50);
+    expect(director.view.focus).toBe('side');
+    director.attend('side');
+    run(SHIFT_MS + 50);
+    expect(director.view.focus).toBe('main');
+  });
+
+  it('lets the sound she turned to finish before the scene moves on, and says a spoken option before leaving', () => {
+    const SIDE = `
+chapter: 1
+title: 側聽
+start: a1
+scenes:
+  - id: a1
+    beats:
+      - { cue: side, at: left, text: 窸窣 }
+      - narr: 短。
+    threads:
+      side:
+        beats:
+          - { woman: 第一句很長很長很長很長很長很長。, learn: k_side_one }
+          - { woman: 第二句也很長很長很長很長很長。, learn: k_side_two }
+    next: a2
+  - id: a2
+    beats:
+      - choice:
+          options:
+            - text: 「我留下來。」
+              goto: a3
+  - id: a3
+    beats: [{ narr: 留下來了。 }, { end: reset }]
+`;
+    const { script, errors } = buildScript([{ name: 'a.yaml', source: SIDE }]);
+    expect(errors).toEqual([]);
+    const director = new Director(script, freshSave(), { audio: silentAudio(), vibrate: () => undefined, persist: () => undefined, wallNow: () => 0 }, { speed: 1 });
+    const tick = (ms: number) => { for (let t = 0; t < ms; t += 50) director.tick(50); };
+    director.start();
+    for (let i = 0; i < 400 && director.view.phase !== 'scene'; i++) tick(50);
+    tick(450);
+    director.attend('side');
+    for (let i = 0; i < 400 && director.view.sceneId === 'a1'; i++) tick(50);
+    expect(director.knows.has('k_side_two')).toBe(true);
+    for (let i = 0; i < 400 && !director.view.choice; i++) tick(50);
+    director.choose(0);
+    const said: string[] = [];
+    for (let i = 0; i < 400 && director.view.sceneId !== 'a3'; i++) { if (director.view.center) said.push(director.view.center.text); tick(50); }
+    expect(said).toContain('我留下來。');
+  });
+
   it('shows the place card only when the area changes', () => {
     const AREAS = `
 chapter: 1
