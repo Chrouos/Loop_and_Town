@@ -71,6 +71,15 @@ describe('director', () => {
     expect(splitPhrases('你……|你怎麼會知道，這件事？').map((part) => part.text)).toEqual(['你……', '你怎麼會知道，', '這件事？']);
   });
 
+  it('draws full stops as rows in narration and breaths in speech', () => {
+    const shown = (text: string, kind: 'narr' | 'think' | 'char') => splitPhrases(text, kind).map((part) => part.text + (part.br ? '⏎' : ''));
+    expect(shown('知夏是我姊。她死了五年了。', 'think')).toEqual(['知夏是我姊⏎', '她死了五年了']);
+    expect(shown('「我想知道。」他很少這樣講話。', 'think')).toEqual(['「我想知道」⏎', '他很少這樣講話']);
+    expect(shown('好。謝謝。', 'char')).toEqual(['好\u3000謝謝']);
+    expect(shown('「資料我先帶回去。妳準備好再找我。」', 'char')).toEqual(['「資料我先帶回去\u3000', '妳準備好再找我」']);
+    expect(shown('妳認識她？我知道。', 'char')).toEqual(['妳認識她？', '我知道']);
+  });
+
   it('only learns what was heard while focused', () => {
     const { director, run } = make();
     enterScene(director, run);
@@ -179,6 +188,48 @@ scenes:
     expect(said).toContain('我留下來。');
   });
 
+  it('fills the scene with background life from its ambience, and keeps quiet rooms quiet', () => {
+    const LIVE = `
+chapter: 1
+title: 背景
+start: a1
+scenes:
+  - id: a1
+    ambience: [cafe]
+    cast: { ruoqing: front }
+    beats:
+      - { wait: 60 }
+      - { sfx: hum_rise, at: right, text: 嗡———— }
+      - { wait: 12 }
+      - goto: a2
+  - id: a2
+    ambience: [room_tone]
+    beats: [{ wait: 40 }, { end: reset }]
+`;
+    const { script, errors } = buildScript([{ name: 'a.yaml', source: LIVE }]);
+    expect(errors).toEqual([]);
+    let state = 7; // seeded, so the background life is the same every run
+    vi.spyOn(Math, 'random').mockImplementation(() => (state = (state * 16807) % 2147483647) / 2147483647);
+    const director = new Director(script, freshSave(), { audio: silentAudio(), vibrate: () => undefined, persist: () => undefined, wallNow: () => 0 }, { speed: 1 });
+    director.start();
+    const seen = new Map<string, { text: string; dir: string; t: number }>();
+    for (let i = 0; i < 4000 && director.view.phase !== 'reset'; i++) {
+      for (const item of director.view.periph) {
+        if ((item.kind === 'life' || item.kind === 'sfx') && !seen.has(`${item.key}`)) seen.set(`${item.key}`, { text: item.text, dir: item.pos.dir, t: director.view.t });
+      }
+      director.tick(50);
+      if (director.view.sceneId === 'a2' && !seen.has('a2')) seen.set('a2', { text: '', dir: '', t: director.view.t });
+    }
+    const all = [...seen.entries()].filter(([key]) => key !== 'a2').map(([, value]) => value);
+    const hum = all.find((item) => item.text === '嗡————')!;
+    const inCafe = all.filter((item) => item.t < hum.t);
+    expect(new Set(inCafe.map((item) => item.text)).size).toBeGreaterThanOrEqual(5);
+    expect(inCafe.some((item) => item.dir === 'front')).toBe(false); // that is where 若晴 sits
+    expect(all.filter((item) => item.t > hum.t && item.t < hum.t + 12000)).toHaveLength(0); // hushed after the anomaly
+    expect(all.filter((item) => item.t > seen.get('a2')!.t)).toHaveLength(0);
+    vi.restoreAllMocks();
+  });
+
   it('shows the place card only when the area changes', () => {
     const AREAS = `
 chapter: 1
@@ -231,6 +282,74 @@ scenes:
       director.capture();
       expect(director.view.keep).not.toBeNull();
     }
+  });
+
+  it('a thread that goes quiet while she is turning toward it just turns her back, without a second shift', () => {
+    const { script, errors } = buildScript([{ name: 'q.yaml', source: `
+chapter: 1
+title: 轉身
+start: a
+scenes:
+  - id: a
+    time: "06:12"
+    place: 房間
+    beats:
+      - { cue: side, at: left, text: 叩叩 }
+      - narr: 這一句很長，長到她轉過去又轉回來都還沒說完，還在繼續慢慢地說下去。
+      - end: reset
+    threads:
+      side:
+        beats:
+          - pause: 0.4
+` }]);
+    expect(errors).toEqual([]);
+    const log: string[] = [];
+    let wall = 0;
+    const director = new Director(script, freshSave(), { audio: silentAudio(log), vibrate: () => undefined, persist: () => undefined, wallNow: () => wall }, { speed: 1 });
+    const run = (ms: number) => { for (let t = 0; t < ms; t += 50) { wall += 50; director.tick(50); } };
+    enterScene(director, run);
+    run(2000);
+    director.attend('side');
+    const turnedAt = director.view.t;
+    run(400);
+    expect(director.view.periph.some((item) => item.kind === 'cue')).toBe(false);
+    expect(director.view.shiftingTo).toBeNull();
+    for (let i = 0; i < 40 && director.view.focus !== 'main'; i++) run(50);
+    expect(director.view.focus).toBe('main');
+    expect(director.view.t - turnedAt).toBeLessThanOrEqual(SHIFT_MS + 50);
+    expect(log.filter((entry) => entry === 'sfx:focus_shift')).toHaveLength(1);
+  });
+
+  it('a sound text still in the air is not wiped when the scene fades out', () => {
+    const { script, errors } = buildScript([{ name: 's.yaml', source: `
+chapter: 1
+title: 門
+start: a
+scenes:
+  - id: a
+    time: "06:12"
+    place: 房間
+    beats:
+      - narr: 我出去了。
+      - { sfx: door_creak, at: front, text: 吱 }
+      - goto: b
+  - id: b
+    time: "07:00"
+    place: 別處
+    beats:
+      - narr: 外面。
+      - end: reset
+` }]);
+    expect(errors).toEqual([]);
+    let wall = 0;
+    const director = new Director(script, freshSave(), { audio: silentAudio(), vibrate: () => undefined, persist: () => undefined, wallNow: () => wall }, { speed: 1 });
+    const run = (ms: number) => { for (let t = 0; t < ms; t += 50) { wall += 50; director.tick(50); } };
+    enterScene(director, run);
+    for (let i = 0; i < 400 && director.view.phase !== 'out'; i++) run(50);
+    expect(director.view.phase).toBe('out');
+    expect(director.view.periph.map((item) => item.text)).toContain('吱');
+    for (let i = 0; i < 400 && director.view.center?.text !== '外面。'; i++) run(50);
+    expect(director.view.periph).toEqual([]);
   });
 
   it('the last line lingers as an echo through a scene change, and only crosses into a continuous scene', () => {

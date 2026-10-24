@@ -17,7 +17,11 @@ scenes:
       - { sfx: train_horn, at: front, dist: far, text: 嗚—— }
       - if: know.c2_ruoqing_died_again
         then:
-          - think: 又是六點十二分。上一次我話講得太多，她還是去了。
+          - if: know.c2_pushed
+            then:
+              - think: 又是六點十二分。上一次我話講得太多，她還是去了。
+            else:
+              - think: 又是六點十二分。上一次我什麼都沒擋住，她還是去了。
           - pause: 1.5
           - think: 這次讓她把話講完。
         else:
@@ -55,8 +59,8 @@ scenes:
       - me: 車沒誤點。
       - yuan: 灰潮鎮唯一還算準時的東西。
       - think: 他接下來會說什麼，我都知道。我把那些話轉小聲，當成隔壁房間的收音機。
-      - yuan: 請、請扶著我的左手肘。前面有樓梯。
-      - narr: 他袖口那股機油和黃銅的味道，又沾到我的手心上。
+      - yuan: 請扶著我的左手肘。前面有樓梯。
+      - narr: 他袖口那股機油和黃銅的味道，沾到我的手心上。
       - { sfx: construction_drill, at: left, dist: far, text: 嗡嗡嗡 }
       - think: 八點鐘樓不會響。這次我不用站在廣場上等它。
     next: c2_house
@@ -64,7 +68,7 @@ scenes:
   # ─────────────────────────────────────────── 08:10
   - id: c2_house
     time: "08:10"
-    place: 老家
+    place: 林家老屋
     ambience: [old_house]
     cast: { yuan: front }
     beats:
@@ -121,7 +125,7 @@ scenes:
       - if: flag.yuan_with_me
         then:
           - ruoqing: 欸，予安哥？兩位喔？
-          - yuan: 兩位。兩杯黑的，不加糖。
+          - { yuan: 兩位。兩杯黑的，不加糖。, learn: k_yuan_no_sugar }
         else:
           - ruoqing: 歡迎光臨，一位嗎？
           - me: 一位。
@@ -131,7 +135,11 @@ scenes:
         then:
           - think: 她每一次都問要不要念菜單，我每一次都說不用。
         else:
-          - think: 上一次最後聽到這個聲音，是在舊車站的大廳裡。
+          - if: know.k_in_station_hall
+            then:
+              - think: 上一次最後聽到這個聲音，是在舊車站的大廳裡。
+            else:
+              - think: 上一次聽到這個聲音，也是在這家店。那天晚上她就死了。
       - { sfx: cup_set, at: front, dist: near, text: 叩 }
       - narr: 她沒有回櫃台，在隔壁桌坐下來，攤開一疊紙。
       - { sfx: paper_rustle, at: front, dist: near, text: 沙、沙 }
@@ -162,6 +170,7 @@ scenes:
           options:
             - text: 「可以說給我聽嗎？」
               then:
+                - set: c2_heard_photos
                 - ruoqing: 說給妳聽喔？
                 - ruoqing: 好啊，我試試看。這張是早上的商店街，一家都還沒開。
                 - ruoqing: 鐵捲門全部拉下來，上面還有昨天晚上的雨。
@@ -235,7 +244,11 @@ scenes:
           - { man: 小姐，前面封起來了喔。, as: 工人 }
           - me: 舊車站進不去了嗎？
           - { man: 正門這個月都封著啦，要進去要繞旁邊。, as: 工人 }
-      - think: 正門封著。上一次我只顧著若晴，根本沒注意到。
+      - if: know.k_in_station_hall
+        then:
+          - think: 正門封著。上一次我只顧著若晴，根本沒注意到。
+        else:
+          - think: 正門封著。上一次，我根本沒有走到這裡。
       - { sfx: truck_reverse, at: front-right, dist: far, text: 嗶、嗶、嗶 }
       - think: 若晴這個時間在幹嘛，我不知道。我只知道她傍晚會去哪裡。
     next: c2_warning
@@ -262,7 +275,11 @@ scenes:
       - think: 再一個多小時，她就要出發了。
       - if: know.c2_ruoqing_died_again
         then:
-          - think: 上一次就是在這裡講壞的。我急著替她把整件事講完。
+          - if: know.c2_pushed
+            then:
+              - think: 上一次就是在這裡講壞的。我急著替她把整件事講完。
+            else:
+              - think: 上一次就是在這裡。我說的話，一句都沒有留住她。
       - choice:
           options:
             - text: 「今天傍晚，不要去舊車站。」
@@ -285,6 +302,7 @@ scenes:
           options:
             - text: 「妳會死。」
               then:
+                - learn: c2_pushed
                 - ruoqing: 蛤？
                 - ruoqing: 妳是要嚇我嗎？
                 - { sfx: strap_click, at: front, dist: near, text: 喀！ }
@@ -292,6 +310,7 @@ scenes:
                 - set: ruoqing_goes
             - text: 「知夏一定也不希望——」
               then:
+                - learn: c2_pushed
                 - ruoqing: 妳不要跟我講她希望什麼。
                 - ruoqing: 她在的時候，妳也沒問過她希望什麼啊。
                 - ruoqing: 我要進去上班了。
@@ -300,7 +319,11 @@ scenes:
               if: mem.m_c2_after_tide
               then:
                 - pause: 2
-                - ruoqing: ……欸，妳記得喔。
+                - if: flag.c2_heard_photos
+                  then:
+                    - ruoqing: ……欸，妳記得喔。
+                  else:
+                    - ruoqing: ……這句我還沒跟別人講過欸。
                 - set: c2_reached
             - text: 「對不起。剛剛那個通知，是攝影的事嗎？」
               if: know.k_ruoqing_portfolio
@@ -310,6 +333,7 @@ scenes:
                 - set: c2_reached
             - text: 「對不起，我不是來替妳決定的。」
               then:
+                - set: c2_sorry
                 - ruoqing: 那妳到底想講什麼？
                 - narr: 我張開嘴，結果什麼都沒說出來。
                 - ruoqing: 我要回去上班了。
@@ -324,7 +348,11 @@ scenes:
           - ruoqing: 說今天晚上以前要回，還要附作品集。
           - ruoqing: 我本來想說晚點再弄。
           - ruoqing: 反正什麼事都可以晚點再弄嘛。
-          - me: 妳的照片，我還沒聽完。
+          - if: flag.c2_heard_photos
+            then:
+              - me: 妳的照片，我還沒聽完。
+            else:
+              - me: 妳的照片，我還一張都沒聽過。
           - { sfx: sigh, at: front, dist: near }
           - ruoqing: 好啦，陳醫生那邊我再跟他講。
           - ruoqing: 欸先講好喔，跟妳叫我不要去沒關係。
@@ -370,7 +398,11 @@ scenes:
       - narr: 牆後面是空掉的大廳，風從破窗鑽進去繞一圈，又鑽出來。
       - { sfx: step, at: front, dist: mid, text: 叩……叩 }
       - narr: 入口前有人來回踱步，皮鞋底磨著碎石，風裡帶著一點消毒水的味道。
-      - think: 陳醫生。
+      - if: know.k_boxun_at_station
+        then:
+          - think: 陳醫生。
+        else:
+          - think: 消毒水。是從醫院來的人。
       - { sfx: phone_hangup, at: front, dist: mid, text: 嘟——嘟—— }
       - boxun: 若晴，我到了。妳方便的時候回我一下。
       - pause: 2
@@ -470,7 +502,7 @@ scenes:
       - if: flag.yuan_with_me
         then:
           - { yuan: 我們先走。, at: back-right }
-          - yuan: 妳在發抖。請……請扶著我的左手肘。
+          - yuan: 妳在發抖。扶著我。
     next: c2_after
 
   # ─────────────────────────────────────────── 18:00 咖啡店
@@ -630,7 +662,11 @@ scenes:
       - clock: "18:30"
       - { sfx: hum_rise, at: right, dist: far, text: 嗡—— }
       - { sfx: light_buzz, at: front, dist: mid, text: 滋滋—— }
-      - think: 右邊，東側那面牆。跟上一次同一個地方。
+      - if: know.k_in_station_hall
+        then:
+          - think: 右邊，東側那面牆。跟上一次同一個地方。
+        else:
+          - think: 右邊，東側那面牆，有東西開始響。
       - choice:
           timeout: 4
           default: 1
@@ -651,6 +687,7 @@ scenes:
       - pause: 2
       - narr: 她沒有回答，背帶扣也沒有再響。
       - { phone: 十八點三十一分。, learn: c2_ruoqing_died_again }
+      - learn: k_in_station_hall
     next: c2_night
 
   - id: c2_goes_stay
@@ -678,7 +715,7 @@ scenes:
   # ─────────────────────────────────────────── 22:40
   - id: c2_night
     time: "22:40"
-    place: 老家，知夏的房間
+    place: 林家老屋，知夏的房間
     ambience: [house_night]
     cast: { yuan: back }
     beats:
@@ -706,7 +743,11 @@ scenes:
             then:
               - { think: 我又替她決定了一次。, mem: m_c2_decided_again }
             else:
-              - think: 我跟她說了對不起，然後讓她一個人走過去。
+              - if: flag.c2_sorry
+                then:
+                  - think: 我跟她說了對不起，然後讓她一個人走過去。
+                else:
+                  - think: 我一句話都沒說，就讓她一個人走過去。
           - think: 她刻的是「看見」，我只聽得到。
           - think: 知夏，妳說的是這個嗎？
       - narr: 我把錶放回桌上，放得很輕，好像怕吵醒誰。
@@ -715,7 +756,7 @@ scenes:
   # ─────────────────────────────────────────── 23:59
   - id: c2_bell
     time: "23:59"
-    place: 老家門口
+    place: 林家老屋門口
     ambience: [night_insects, wind_open]
     beats:
       - { sfx: door_open, at: back, dist: near, text: 吱 }
@@ -738,7 +779,7 @@ scenes:
       - { sfx: bell_toll, at: front-left, text: 噹——, vib: bell }
       - wait: 3
       - { sfx: bell_toll, at: front-left, text: 噹——, vib: bell }
-      - if: know.k_boxun_died
+      - if: seen.c2_station
         then:
           - think: 陳醫生說，應該還過得去。
       - wait: 3
@@ -747,7 +788,9 @@ scenes:
       - { sfx: bell_toll, at: front-left, text: 噹——, vib: bell }
       - wait: 3
       - { sfx: bell_toll, at: front-left, text: 噹——, vib: bell }
-      - think: 我本來以為，只要把第一個人移開就好了。
+      - if: flag.ruoqing_safe
+        then:
+          - think: 我本來以為，只要把第一個人移開就好了。
       - wait: 3
       - { sfx: bell_toll, at: front-left, text: 噹——, vib: bell }
       - wait: 3

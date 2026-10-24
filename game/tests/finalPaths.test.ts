@@ -71,7 +71,7 @@ describe('final chapter paths', () => {
 
   it('pressuring Tingan leaves only 「……再一次。」', () => {
     const result = play((options, sceneId) => {
-      if (sceneId === 'f_tingan') return options.findIndex((text) => text.includes('九點十四分'));
+      if (sceneId === 'f_tingan') return options.findIndex((text) => text.includes('花了半年'));
       return RESPECTFUL_TO_C(options, sceneId);
     });
     expect(result.finalOptions[0]).toEqual(['「……再一次。」']);

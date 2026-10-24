@@ -1,5 +1,6 @@
 import { load } from 'js-yaml';
-import { DISTANCES, isAmbience, isDirection, isSfx, VIBRATIONS, type Distance, type VibrationId, type VoiceId } from '../audio/catalog';
+import { DISTANCES, VOICES, isAmbience, isDirection, isSfx, VIBRATIONS, type Direction, type Distance, type SfxId, type VibrationId, type VoiceId } from '../audio/catalog';
+import type { LifeEvent } from '../engine/life';
 import { parseCond } from './conditions';
 import type { Beat, Chapter, ChoiceOption, EndKind, LineBeat, Pos, Scene } from './types';
 
@@ -199,6 +200,38 @@ function parseBeat(raw: unknown, where: string, errors: Errors): Beat | undefine
   return undefined;
 }
 
+function parseLife(raw: unknown, where: string, errors: Errors): LifeEvent[] | 'off' | undefined {
+  if (raw === 'off' || raw === false) return 'off';
+  if (!Array.isArray(raw)) { errors.push(`${where}：必須是 off 或清單`); return undefined; }
+  const events: LifeEvent[] = [];
+  for (const [index, item] of raw.entries()) {
+    const at = `${where}[${index}]`;
+    if (!isObj(item)) { errors.push(`${at}：必須是 map`); continue; }
+    for (const field of Object.keys(item)) {
+      if (!['text', 'sfx', 'say', 'voice', 'at', 'dist'].includes(field)) errors.push(`${at}：不支援欄位「${field}」`);
+    }
+    const dirs = item.at === undefined ? undefined : list(item.at);
+    const badDir = (dirs ?? []).filter((dir) => !isDirection(dir));
+    if (badDir.length) errors.push(`${at}：未知方位 ${badDir.join(', ')}`);
+    const dist = item.dist === undefined ? undefined : String(item.dist);
+    if (dist !== undefined && !(DISTANCES as readonly string[]).includes(dist)) errors.push(`${at}：未知距離「${dist}」`);
+    const place = { at: dirs?.filter(isDirection) as Direction[] | undefined, dist: dist as Distance | undefined };
+    const say = str(item.say);
+    if (say) {
+      const voice = str(item.voice) ?? 'woman';
+      if (!(voice in VOICES)) { errors.push(`${at}：未知聲音「${voice}」`); continue; }
+      events.push({ say, voice: voice as VoiceId, ...place });
+      continue;
+    }
+    const text = str(item.text);
+    if (!text) { errors.push(`${at}：需要 text 或 say`); continue; }
+    const sfx = item.sfx === undefined ? undefined : String(item.sfx);
+    if (sfx !== undefined && !isSfx(sfx)) { errors.push(`${at}：未知音效「${sfx}」`); continue; }
+    events.push({ text, sfx: sfx as SfxId | undefined, ...place });
+  }
+  return events;
+}
+
 export function parseChapter(source: string, file: string, errors: Errors): Chapter | undefined {
   let doc: unknown;
   try { doc = load(source); } catch (error) { errors.push(`${file}：YAML 錯誤 ${(error as Error).message}`); return undefined; }
@@ -219,7 +252,7 @@ export function parseChapter(source: string, file: string, errors: Errors): Chap
     const where = `${file}.scenes[${index}]`;
     if (!isObj(rawScene)) { errors.push(`${where}：必須是 map`); continue; }
     for (const field of Object.keys(rawScene)) {
-      if (!['id', 'time', 'place', 'ambience', 'cast', 'beats', 'threads', 'next'].includes(field)) errors.push(`${where}：場景未知欄位「${field}」`);
+      if (!['id', 'time', 'place', 'ambience', 'cast', 'beats', 'threads', 'next', 'life'].includes(field)) errors.push(`${where}：場景未知欄位「${field}」`);
     }
     const id = str(rawScene.id);
     if (!id) { errors.push(`${where}：缺少 id`); continue; }
@@ -252,6 +285,7 @@ export function parseChapter(source: string, file: string, errors: Errors): Chap
       beats: parseBeats(rawScene.beats, `${at}.beats`, errors),
       threads,
       next: str(rawScene.next),
+      life: rawScene.life === undefined ? undefined : parseLife(rawScene.life, `${at}.life`, errors),
     });
   }
   return { key, title, start, advance, scenes };

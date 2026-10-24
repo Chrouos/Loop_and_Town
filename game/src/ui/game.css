@@ -6,7 +6,7 @@
   --ink-faint: rgba(236, 230, 218, 0.26);
   --ink-ghost: rgba(236, 230, 218, 0.12);
   --phone: #9db0c4;
-  --serif: 'Noto Serif TC', 'Songti TC', 'PMingLiU', serif;
+  --serif: 'Iansui', 'Noto Serif TC', 'Songti TC', 'PMingLiU', serif;
   --mono: 'IBM Plex Mono', 'SFMono-Regular', ui-monospace, monospace;
   --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
   color-scheme: dark;
@@ -31,6 +31,10 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 .lt-stage.shake .lt-world { animation: lt-shake 420ms var(--ease); }
 .lt-world { position: absolute; inset: 0; transition: opacity 900ms var(--ease), filter 900ms var(--ease); }
 .lt-stage.phase-out .lt-world, .lt-stage.phase-card .lt-world, .lt-stage.phase-reset .lt-world { opacity: 0; filter: blur(6px); }
+/* into a continuous scene: a breath short enough to finish, not a fade cut off halfway */
+.lt-stage.phase-out.brief .lt-world { opacity: 0.6; filter: blur(1.5px); transition-duration: 260ms; }
+/* dropped from the view: fading out from wherever it was (Stage animates it) */
+.gone, .gone * { pointer-events: none !important; }
 
 /* ── centre: the one thing she is listening to ── */
 .lt-center {
@@ -49,7 +53,7 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
   margin-bottom: 0.9em; opacity: 0; animation: lt-fade-in 600ms var(--ease) forwards;
   text-indent: 0.42em;
 }
-.lt-text { margin: 0; font-size: clamp(1.15rem, 2.3vw, 1.6rem); line-height: 1.85; font-weight: 400; letter-spacing: 0.06em; transition: font-size 700ms var(--ease); }
+.lt-text { margin: 0; font-size: clamp(1.15rem, 2.3vw, 1.6rem); line-height: 1.85; font-weight: 400; letter-spacing: 0.06em; text-wrap: balance; transition: font-size 700ms var(--ease); }
 .lt-phrase { display: inline; opacity: 0; filter: blur(7px); animation: lt-phrase 620ms var(--ease) forwards; }
 .lt-line.revealed .lt-phrase { animation-delay: 0ms !important; }
 
@@ -71,7 +75,8 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 }
 .lt-echo .lt-text { font-size: clamp(0.92rem, 1.6vw, 1.08rem); }
 .lt-echo .lt-label { animation: lt-fade-out 400ms var(--ease) forwards; }
-.lt-echo .lt-phrase { animation: none; opacity: 1; filter: none; }
+.lt-echo .lt-phrase { animation-play-state: paused; }
+.lt-echo.revealed .lt-phrase { animation: none; opacity: 1; filter: none; }
 .lt-echo.holding { animation-play-state: paused; opacity: 0.8; filter: none; }
 .lt-echo.leaving { pointer-events: none; }
 
@@ -90,10 +95,17 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
   color: var(--ink-faint); filter: blur(1.6px); font-size: 0.86rem; font-style: italic;
   animation: lt-murmur var(--life, 3000ms) linear forwards;
 }
+/* other people, half-heard: readable, but plainly not hers to answer */
+.lt-p.kind-life {
+  color: var(--ink-dim); font-size: 0.82rem; font-style: italic; letter-spacing: 0.14em; filter: blur(0.4px);
+  white-space: normal; width: max-content; max-width: min(40vw, 320px); text-align: center; line-height: 1.6;
+  animation: lt-sfx var(--life, 3000ms) var(--ease) forwards;
+}
 .lt-p.kind-cue {
   pointer-events: auto; color: var(--ink-dim); z-index: 3; /* above the centre lines, which take taps too */
   padding: 14px 18px;
   animation: lt-fade-in 900ms var(--ease) forwards, lt-breathe 3.6s ease-in-out 900ms infinite;
+  transition: color 500ms var(--ease);
 }
 .lt-p.kind-cue::after {
   content: ''; position: absolute; left: 50%; bottom: 8px; width: 0; height: 1px;
@@ -103,7 +115,7 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 .lt-p.kind-cue:hover { color: var(--ink-soft); }
 .lt-p.kind-cue.active { color: var(--ink); animation: lt-fade-in 400ms forwards; }
 .lt-p.kind-cue.active::after { width: 30%; background: var(--ink-dim); }
-.lt-p.kind-cue.held { pointer-events: none; opacity: 0.35; animation: none; }
+.lt-p.kind-cue.held { pointer-events: none; color: var(--ink-faint); animation-play-state: paused; }
 .lt-hint {
   position: absolute; left: 50%; top: 100%; transform: translateX(-50%);
   font-size: 0.68rem; letter-spacing: 0.3em; color: var(--ink-faint);
@@ -145,16 +157,19 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 }
 .lt-card > * { opacity: 0; animation: lt-card var(--card-ms, 2600ms) var(--ease) forwards; }
 .lt-card-time { font-family: var(--mono); font-size: 0.86rem; letter-spacing: 0.5em; color: var(--ink-dim); text-indent: 0.5em; }
-.lt-card-place { font-size: clamp(1.1rem, 2.2vw, 1.4rem); letter-spacing: 0.6em; text-indent: 0.6em; color: var(--ink-soft); animation-delay: 220ms !important; }
+.lt-card-place { font-size: clamp(1.1rem, 2.2vw, 1.4rem); letter-spacing: 0.6em; text-indent: 0.6em; color: var(--ink-soft); animation-delay: 220ms !important; animation-duration: calc(var(--card-ms, 2600ms) - 220ms) !important; }
 .lt-card-chapter { font-size: 0.8rem; letter-spacing: 0.7em; text-indent: 0.7em; color: var(--ink-dim); }
-.lt-card-title { font-size: clamp(1.6rem, 3.6vw, 2.4rem); letter-spacing: 0.5em; text-indent: 0.5em; font-weight: 300; animation-delay: 400ms !important; }
+.lt-card-title { font-size: clamp(1.6rem, 3.6vw, 2.4rem); letter-spacing: 0.5em; text-indent: 0.5em; font-weight: 300; animation-delay: 400ms !important; animation-duration: calc(var(--card-ms, 2600ms) - 400ms) !important; }
 .lt-card-loop { font-size: 0.92rem; letter-spacing: 0.5em; text-indent: 0.5em; color: var(--ink-dim); }
 
 /* ── where: time and place, quietly in the corner ── */
 .lt-where {
   position: fixed; top: max(18px, env(safe-area-inset-top)); right: max(20px, env(safe-area-inset-right)); z-index: 4;
   display: flex; flex-direction: column; align-items: flex-end; gap: 6px; pointer-events: none; text-align: right;
+  transition: opacity 900ms var(--ease);
 }
+/* the corner fades with the world, and stays put through a continuous scene change */
+.lt-stage.phase-card .lt-where, .lt-stage.phase-reset .lt-where, .lt-stage.phase-out:not(.brief) .lt-where { opacity: 0; transition-duration: 600ms; }
 .lt-where > * { animation: lt-where 2400ms var(--ease) forwards; }
 .lt-where-time { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.3em; color: var(--ink-dim); }
 .lt-where-place { font-size: 0.78rem; letter-spacing: 0.3em; color: var(--ink-dim); max-width: 46vw; }
@@ -237,7 +252,7 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 }
 @keyframes lt-sfx { 0% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); } 12% { opacity: 0.9; transform: translate(-50%, -50%) scale(1); } 70% { opacity: 0.6; } 100% { opacity: 0; transform: translate(-50%, -50%) scale(1.04); } }
 @keyframes lt-murmur { 0% { opacity: 0; } 15% { opacity: 0.4; } 80% { opacity: 0.3; } 100% { opacity: 0; } }
-@keyframes lt-breathe { 0%, 100% { opacity: 0.5; } 50% { opacity: 0.85; } }
+@keyframes lt-breathe { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
 @keyframes lt-ripple { from { transform: scale(0.15); opacity: 0.7; } to { transform: scale(2.4); opacity: 0; } }
 @keyframes lt-choice-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes lt-choice-dim { 0% { color: var(--ink-dim); } 100% { color: var(--ink-ghost); } }

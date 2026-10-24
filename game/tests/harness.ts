@@ -73,10 +73,12 @@ export function autoplay(options: { seed: number; maxLoops: number; startChapter
     }
     if (view.keep) director.skipKeep();
     if (view.center?.perceived && random() < 0.01) director.capture();
-    const before = director.version;
+    // Story progress only: background life keeps the view changing even when the story is stuck.
+    const mark = () => `${director.view.phase}|${director.view.sceneId}|${director.view.center?.key}|${director.view.choice?.key}|${director.view.waiting?.startedAt}|${director.save.loop}`;
+    const before = mark();
     wall += 200;
     director.tick(200);
-    if (director.version !== before) lastProgress = steps;
+    if (mark() !== before) lastProgress = steps;
     if (steps - lastProgress > 20_000) return { chapters, endings: director.save.endings, loops: director.save.loop, scenes, knowledge: new Set(director.save.knowledge), stuck: `${view.phase} ${view.sceneId}` };
   }
   return { chapters, endings: [...director.save.endings], loops: director.save.loop, scenes, knowledge: new Set(director.save.knowledge) };

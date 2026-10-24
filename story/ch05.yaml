@@ -112,7 +112,7 @@ scenes:
                     - me: 猜的。
                     - pause: 1.5
                     - yuan: 那是我爸放的。我以為只有我知道。
-                    - think: 你告訴過我。在商店街，那台貨車擦過去之後。
+                    - think: 你告訴過我。在老街，那台貨車擦過去之後。
                     - think: 今天的你，還沒跟我講過。
                     - set: c5_key
                 - text: （讓他用肩膀頂開）
@@ -174,7 +174,7 @@ scenes:
       - { sfx: drawer, at: front, dist: near, text: 喀 }
       - narr: 指尖先碰到一塊扁平的板子。金屬框，框上一排一排的小方格。
       - narr: 旁邊有一支短短的筆，圓圓的木頭握把，尖端是鈍的。
-      - { narr: 點字板和點字筆。我書桌上也有一組，就是這一種。, learn: k_slate_in_shop }
+      - { narr: 點字板和點字筆。我包包裡那組，就是這一種。, learn: k_slate_in_shop }
       - me: 這是點字板。
       - { sfx: tools_clink, at: front, dist: near, text: 叮 }
       - pause: 1.5
@@ -238,15 +238,26 @@ scenes:
       - { sfx: cup_set, at: front, dist: near, text: 叩 }
       - yuan: 茶。冰的。在妳左手邊。
       - { sfx: glass_clink, at: left, dist: near, text: 叮 }
-      - me: 你自己的咖啡，也不加糖。
-      - pause: 2
-      - narr: 他的杯子沒有落到桌上。過了兩秒，才叩一聲放下。
-      - yuan: ……我以前有加糖。這兩年才不加的。
+      - if: know.k_yuan_no_sugar
+        then:
+          - me: 你自己的咖啡，也不加糖。
+          - pause: 2
+          - narr: 他的杯子沒有落到桌上。過了兩秒，才叩一聲放下。
+          - yuan: ……我以前有加糖。這兩年才不加的。
+        else:
+          - me: 你以前喝咖啡，不是都要加糖？
+          - pause: 2
+          - narr: 他的杯子沒有落到桌上。過了兩秒，才叩一聲放下。
+          - yuan: ……這兩年才不加的。
       - yuan: 我們五年沒見了。
       - if: flag.c5_key
         then:
           - yuan: 妳知道花盆底下有鑰匙。
-      - yuan: 妳知道櫃子少了一個箱子。妳知道我不加糖。
+      - if: know.k_yuan_no_sugar
+        then:
+          - yuan: 妳知道櫃子少了一個箱子。妳知道我不加糖。
+        else:
+          - yuan: 妳知道櫃子少了一個箱子。
       - yuan: 妳到底從哪裡知道這些？
       - narr: 他什麼都不記得。所以在他那邊，我才是奇怪的那個人。
       - choice:
@@ -601,7 +612,7 @@ scenes:
   # ─────────────────────────── 23:59 鐘聲 ───────────────────────────
   - id: c5_bell
     time: "23:50"
-    place: 老家門口
+    place: 林家老屋門口
     ambience: [tower_square_night, night_insects]
     cast: { yuan: back-right }
     beats:

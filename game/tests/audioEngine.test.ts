@@ -4,6 +4,8 @@ import { AMBIENCE_RECIPES, startAmbience } from '../src/audio/ambience';
 import { Graph, type SfxCtx } from '../src/audio/core';
 import { createAudioEngine, createSilentEngine, type AudioEngine, type AudioEngineDebug } from '../src/audio/engine';
 import { AMBIENT_EVENTS, SFX_RECIPES } from '../src/audio/sounds';
+import { AMBIENCE_SAMPLES, SFX_SAMPLES, SampleBank, sampleRecipe, sampleUrl } from '../src/audio/samples';
+import credits from '../public/audio/CREDITS.md?raw';
 
 // ------------------------------------------------------------------ a strict fake Web Audio API
 // It throws (and records) wherever a real browser would throw, so recipe bugs surface here even
@@ -452,5 +454,179 @@ describe('Web Audio engine (fake context)', () => {
     const unstopped = fc.sources.filter((src) => src.started !== null && src.stopAt === null);
     // only the one-sample iOS unlock buffer may be left without an explicit stop
     expect(unstopped.length).toBeLessThanOrEqual(1);
+  });
+});
+
+// ------------------------------------------------------------------ recorded samples
+
+// every audio file that exists under public/audio/ (keys like '../public/audio/sfx/step_1.m4a')
+const ON_DISK = new Set(Object.keys(import.meta.glob('../public/audio/**/*.m4a', { query: '?url', import: 'default' })).map((k) => k.replace('../public/audio/', '')));
+
+describe('sample manifest', () => {
+  it('only uses catalog ids', () => {
+    for (const id of Object.keys(SFX_SAMPLES)) expect(Object.prototype.hasOwnProperty.call(SFX, id), `sfx ${id}`).toBe(true);
+    for (const id of Object.keys(AMBIENCE_SAMPLES)) expect(Object.prototype.hasOwnProperty.call(AMBIENCE, id), `ambience ${id}`).toBe(true);
+  });
+
+  it('points at files that exist on disk', () => {
+    const entries = [...Object.values(SFX_SAMPLES), ...Object.values(AMBIENCE_SAMPLES)];
+    expect(entries.length).toBeGreaterThan(0);
+    for (const e of entries) {
+      expect(e!.files.length).toBeGreaterThan(0);
+      for (const f of e!.files) {
+        expect(ON_DISK.has(f), f).toBe(true);
+        expect(f, f).toMatch(/^(sfx|amb)\/[a-z0-9_]+\.m4a$/);
+      }
+    }
+  });
+
+  it('has sane levels and loop points', () => {
+    for (const [id, e] of Object.entries(SFX_SAMPLES)) {
+      expect(e!.gain > 0 && e!.gain <= 4, id).toBe(true);
+      if (e!.rate !== undefined) expect(e!.rate > 0.25 && e!.rate < 4, id).toBe(true);
+    }
+    for (const [id, e] of Object.entries(AMBIENCE_SAMPLES)) {
+      expect(e!.loop, id).toBe(true);
+      expect(e!.gain > 0 && e!.gain <= 4, id).toBe(true);
+      expect(e!.loopStart >= 0 && e!.loopEnd - e!.loopStart > 10, id).toBe(true);
+      expect(e!.files.length, id).toBe(1);
+    }
+  });
+
+  it('credits every file', () => {
+    for (const e of [...Object.values(SFX_SAMPLES), ...Object.values(AMBIENCE_SAMPLES)]) {
+      for (const f of e!.files) expect(credits.includes('`' + f + '`'), f).toBe(true);
+    }
+  });
+
+  it('resolves urls under the Vite base', () => {
+    expect(sampleUrl('sfx/step_1.m4a')).toMatch(/\/audio\/sfx\/step_1\.m4a$/);
+  });
+});
+
+/** A fake context that can "decode": every file becomes a 2 s buffer. */
+class DecodingContext extends FakeContext {
+  decodeAudioData(_data: ArrayBuffer, ok?: (b: FakeBuffer) => void): Promise<FakeBuffer> {
+    const b = new FakeBuffer(1, this.sampleRate * 2, this.sampleRate);
+    ok?.(b);
+    return Promise.resolve(b);
+  }
+}
+
+describe('Web Audio engine with recorded samples (fake decoder)', () => {
+  const realFetch = globalThis.fetch;
+  let fetched: string[] = [];
+  beforeEach(() => {
+    errors.length = 0;
+    FakeContext.instances.length = 0;
+    fetched = [];
+    vi.useFakeTimers();
+    (window as unknown as { AudioContext?: unknown }).AudioContext = DecodingContext;
+    globalThis.fetch = (async (url: string) => {
+      fetched.push(String(url));
+      return { ok: true, status: 200, arrayBuffer: async () => new ArrayBuffer(8) } as unknown as Response;
+    }) as typeof fetch;
+  });
+  afterEach(() => {
+    delete (window as unknown as { AudioContext?: unknown }).AudioContext;
+    globalThis.fetch = realFetch;
+    vi.useRealTimers();
+  });
+
+  const flush = async (): Promise<void> => {
+    for (let i = 0; i < 20; i++) await Promise.resolve();
+  };
+  const tick = (seconds: number): void => {
+    const fc = FakeContext.instances[0]!;
+    for (let i = 0; i < seconds * 10; i++) {
+      fc.currentTime += 0.1;
+      vi.advanceTimersByTime(100);
+    }
+  };
+
+  it('plays synthesis until a sample is decoded, then the sample; beds crossfade from synth to recording', async () => {
+    const engine = createAudioEngine();
+    const dbg = engine as unknown as AudioEngineDebug;
+    const sampledAmb = Object.keys(AMBIENCE_SAMPLES)[0] as AmbienceId;
+    engine.setAmbience([sampledAmb]);
+    await engine.unlock();
+    // the bed starts synthesized and its recording is requested
+    expect(dbg.stats().layers).toEqual([sampledAmb]);
+    expect(dbg.stats().sampledLayers).toEqual([]);
+    await flush();
+    tick(0.2);
+    await flush();
+    expect(fetched.some((u) => u.endsWith(AMBIENCE_SAMPLES[sampledAmb]!.files[0]!))).toBe(true);
+    expect(dbg.stats().sampledLayers).toEqual([sampledAmb]);
+    // all one-shots were preloaded after unlock
+    for (let i = 0; i < 40; i++) await flush();
+    const s = dbg.stats().samples!;
+    expect(s.sfxReady).toBe(s.sfxTotal);
+    expect(s.failed).toBe(0);
+
+    let i = 0;
+    for (const id of Object.keys(SFX) as SfxId[]) {
+      engine.play(id, POSITIONS[i++ % POSITIONS.length]!, { gain: 0.8 });
+      tick(0.1);
+    }
+    expect(dbg.stats().shots).toBeGreaterThan(0);
+    expect(await dbg.playSource('step', { dir: 'left', dist: 'near' }, 'sample')).toBe(true);
+    expect(await dbg.playSource('step', { dir: 'left', dist: 'near' }, 'synth')).toBe(true);
+    expect(dbg.hasSample('step')).toBe(!!SFX_SAMPLES.step);
+
+    // A/B: synth only, then back to recordings
+    dbg.setSampleMode('synth');
+    tick(4);
+    expect(dbg.stats().sampledLayers).toEqual([]);
+    dbg.setSampleMode('auto');
+    tick(4);
+    expect(dbg.stats().sampledLayers).toEqual([sampledAmb]);
+
+    const others = (Object.keys(AMBIENCE_SAMPLES) as AmbienceId[]).slice(1, 4);
+    engine.setAmbience(others, 500);
+    for (let k = 0; k < 10; k++) await flush();
+    tick(6);
+    expect(dbg.stats().layers.sort()).toEqual([...others].sort());
+
+    engine.silence(500);
+    tick(20);
+    const end = dbg.stats();
+    expect(end.layers).toEqual([]);
+    expect(end.layerTimers).toBe(0);
+    expect(end.shots).toBe(0);
+    expect(errors).toEqual([]);
+    const fc = FakeContext.instances[0]!;
+    const unstopped = fc.sources.filter((src) => src.started !== null && src.stopAt === null);
+    expect(unstopped.length).toBeLessThanOrEqual(1);
+  });
+
+  it('falls back to synthesis forever when loading fails', async () => {
+    globalThis.fetch = (async () => ({ ok: false, status: 404 }) as unknown as Response) as typeof fetch;
+    const engine = createAudioEngine();
+    const dbg = engine as unknown as AudioEngineDebug;
+    await engine.unlock();
+    for (let k = 0; k < 40; k++) await flush();
+    expect(dbg.stats().samples!.sfxReady).toBe(0);
+    engine.play('step', { dir: 'front', dist: 'near' });
+    engine.setAmbience(['rain']);
+    for (let k = 0; k < 10; k++) await flush();
+    tick(3);
+    expect(dbg.stats().layers).toEqual(['rain']);
+    expect(dbg.stats().sampledLayers).toEqual([]);
+    expect(errors).toEqual([]);
+  });
+
+  it('sample recipes schedule valid automation', () => {
+    const ac = new DecodingContext() as unknown as BaseAudioContext;
+    const buf = ac.createBuffer(1, 16000, 16000);
+    for (const [id, e] of Object.entries(SFX_SAMPLES)) {
+      const c = ctxFor(ac, 1);
+      const dur = sampleRecipe(buf, e!).play(c);
+      expect(Number.isFinite(dur) && dur > 0, id).toBe(true);
+      c.g.dispose();
+    }
+    const bank = new SampleBank(ac);
+    expect(bank.supported).toBe(true);
+    expect(errors).toEqual([]);
   });
 });

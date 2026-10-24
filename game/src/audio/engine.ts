@@ -1,5 +1,7 @@
-// The spatial audio engine. All sound is synthesized (sounds.ts / ambience.ts / voice.ts) and placed
-// around a listener at the origin facing -z with HRTF panners.
+// The spatial audio engine. Sounds are recorded samples where samples.ts has one (fetched and
+// decoded lazily) and synthesized otherwise (sounds.ts / ambience.ts / voice.ts); either way they
+// are placed around a listener at the origin facing -z with HRTF panners. A sound whose sample is
+// not decoded yet plays from its synthesis recipe, so nothing ever waits on the network.
 //
 //   ambience layers → ambIn → ambTone(lowpass) → ambDuck ─┐
 //   one-shots ─────────────────────────────── sfxBus ─────┤
@@ -8,9 +10,10 @@
 //   interface sounds (memory_keep, focus_shift, …) ── uiBus ─────────────────────────────┼→ master
 //   master(volume·enabled) → glue compressor → limiter → soft clip → destination ←───────┘
 
-import { AMBIENCE, VOICES, type AmbienceId, type SfxId, type SpatialPos, type VoiceId } from './catalog';
-import { startAmbience, type AmbienceLayer } from './ambience';
+import { AMBIENCE, VOICES, isSfx, type AmbienceId, type SfxId, type SpatialPos, type VoiceId } from './catalog';
+import { startAmbience, type AmbienceLayer, type SampleBed, type SoundResolver } from './ambience';
 import { clamp, expRampTo, glide, hold, impulseResponse, placementOf, softClipCurve, spawnShot, type SfxRecipe, type Shot } from './core';
+import { SampleBank, sampleRecipe, type SampleBankStats } from './samples';
 import { SFX_RECIPES, UI_SFX } from './sounds';
 import { phoneTick, voicePresence } from './voice';
 
@@ -30,14 +33,32 @@ export interface AudioEngine {
   resume(): void;
 }
 
+export type SampleMode = 'auto' | 'synth';
+
 /** Optional diagnostics, implemented by the Web Audio engine (used by the lab page and tests). */
 export interface AudioEngineDebug {
-  stats(): { state: string; layers: string[]; shots: number; voices: number; layerTimers: number; layerShots: number };
+  stats(): {
+    state: string;
+    layers: string[];
+    sampledLayers: string[];
+    shots: number;
+    voices: number;
+    layerTimers: number;
+    layerShots: number;
+    samples: SampleBankStats | null;
+  };
+  /** 'auto' = recordings when decoded (default); 'synth' = synthesis only (A/B in the lab). */
+  setSampleMode(mode: SampleMode): void;
+  /** Play one sound from a chosen source; a sample that is not loaded yet is loaded first. */
+  playSource(id: SfxId, pos: SpatialPos, source: 'sample' | 'synth', opts?: { gain?: number; rate?: number }): Promise<boolean>;
+  hasSample(id: SfxId | AmbienceId): boolean;
 }
 
 const MAX_SFX = 24;
 const MAX_VOICES = 6;
 const DEFAULT_FADE_MS = 2500;
+/** Crossfade from a synthesized bed to its recording once that has been decoded. */
+const SWAP_S = 2.5;
 const OPEN = 20000;
 const MUFFLED = 900;
 /** How long the head turn muffles everything before hearing opens up again. */
@@ -110,6 +131,10 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
   private shots: Shot[] = [];
   private voices: Shot[] = [];
   private attentionTimer: ReturnType<typeof setTimeout> | null = null;
+  private bank: SampleBank | null = null;
+  private sampleMode: SampleMode = 'auto';
+  private preloading = false;
+  private readonly resolver: SoundResolver = (id) => (isSfx(id) ? this.sampleFor(id) : undefined);
 
   constructor(private readonly Ctor: AudioContextCtor) {}
 
@@ -133,6 +158,11 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
         s.connect(ac.destination);
         s.start();
         s.onended = () => s.disconnect();
+      }
+      if (!this.preloading && this.bank && ac.state === 'running') {
+        // fetch the one-shots in the background; until each arrives its recipe plays instead
+        this.preloading = true;
+        void this.bank.preloadSfx().catch(() => undefined);
       }
     } catch {
       // never throw from unlock
@@ -233,6 +263,11 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
 
     this.ac = ac;
     this.bus = { master, world, attention, ambIn, ambTone, ambDuck, sfx, voice, ui, reverbIn };
+    try {
+      this.bank = new SampleBank(ac);
+    } catch {
+      this.bank = null;
+    }
     if (this.wanted.length) this.reconcile(1500);
   }
 
@@ -271,28 +306,81 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
     for (const [id, layer] of this.layers) {
       if (!this.wanted.includes(id) && !layer.stopping) layer.stop(sec);
     }
-    for (const id of this.wanted) {
-      const existing = this.layers.get(id);
-      if (existing && !existing.disposed) {
-        if (existing.stopping) existing.revive(sec);
-        continue;
-      }
-      const layer = startAmbience(ac, id, bus.ambIn, bus.reverbIn, (l) => {
-        if (this.layers.get(l.id) === l) this.layers.delete(l.id);
-      });
-      if (layer) {
-        this.layers.set(id, layer);
-        layer.fadeIn(sec);
-      }
+    for (const id of this.wanted) this.ensureLayer(id, sec);
+    this.bank?.trimBeds(this.wanted);
+  }
+
+  /** The decoded recording for a bed, or null (not in the manifest, not loaded yet, or A/B synth). */
+  private bedFor(id: AmbienceId): SampleBed | null {
+    if (!this.bank || this.sampleMode === 'synth') return null;
+    const entry = this.bank.ambEntry(id);
+    const buffer = entry ? this.bank.amb(id) : null;
+    if (!entry || !buffer) return null;
+    return { buffer, gain: entry.gain, loopStart: entry.loopStart, loopEnd: entry.loopEnd, extras: !!entry.extras };
+  }
+
+  /**
+   * Make sure the wanted layer `id` is running from the best available source. A synthesized
+   * layer whose recording becomes available is crossfaded into the recording.
+   */
+  private ensureLayer(id: AmbienceId, sec: number): void {
+    const ac = this.ac;
+    const bus = this.bus;
+    if (!ac || !bus) return;
+    const bed = this.bedFor(id);
+    const existing = this.layers.get(id);
+    if (existing && !existing.disposed) {
+      if (existing.stopping) existing.revive(sec);
+      if (existing.sampled === !!bed) return;
+      existing.stop(Math.max(sec, SWAP_S));
     }
+    const layer = startAmbience(
+      ac,
+      id,
+      bus.ambIn,
+      bus.reverbIn,
+      (l) => {
+        if (this.layers.get(l.id) === l) this.layers.delete(l.id);
+      },
+      { bed, resolve: this.resolver },
+    );
+    if (layer) {
+      this.layers.set(id, layer);
+      layer.fadeIn(existing ? Math.max(sec, SWAP_S) : sec);
+    }
+    if (!bed && this.bank && this.sampleMode !== 'synth' && this.bank.ambEntry(id)) {
+      void this.bank.loadAmb(id).then((buf) => {
+        if (buf && this.wanted.includes(id)) this.ensureLayer(id, SWAP_S);
+      });
+    }
+  }
+
+  /** A recorded variant of `id` ready to play, or undefined (and its loading is kicked off). */
+  private sampleFor(id: SfxId, force = false): SfxRecipe | undefined {
+    const bank = this.bank;
+    if (!bank || (this.sampleMode === 'synth' && !force)) return undefined;
+    const entry = bank.sfxEntry(id);
+    if (!entry) return undefined;
+    const buf = bank.pickSfx(id);
+    if (!buf) {
+      void bank.loadSfx(id);
+      return undefined;
+    }
+    return sampleRecipe(buf, entry);
   }
 
   play(id: SfxId, pos: SpatialPos, opts?: { gain?: number; rate?: number }): void {
     const ac = this.ac;
     const bus = this.bus;
     if (!ac || !bus || ac.state !== 'running') return;
-    const recipe = (SFX_RECIPES as Record<string, SfxRecipe | undefined>)[id];
-    if (!recipe) return;
+    if (!isSfx(id)) return;
+    this.shoot(id, pos, opts, this.sampleFor(id) ?? SFX_RECIPES[id]);
+  }
+
+  private shoot(id: SfxId, pos: SpatialPos, opts: { gain?: number; rate?: number } | undefined, recipe: SfxRecipe | undefined): void {
+    const ac = this.ac;
+    const bus = this.bus;
+    if (!ac || !bus || !recipe) return;
     try {
       this.shots = this.shots.filter((s) => !s.disposed);
       while (this.shots.length >= MAX_SFX) this.shots.shift()?.kill();
@@ -414,10 +502,38 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
     return {
       state: this.ac?.state ?? 'none',
       layers: [...this.layers.keys()],
+      sampledLayers: [...this.layers.values()].filter((l) => l.sampled && !l.stopping).map((l) => l.id),
       shots: this.shots.filter((s) => !s.disposed).length,
       voices: this.voices.filter((s) => !s.disposed).length,
       layerTimers,
       layerShots,
+      samples: this.bank?.stats() ?? null,
     };
+  }
+
+  setSampleMode(mode: SampleMode): void {
+    const next: SampleMode = mode === 'synth' ? 'synth' : 'auto';
+    if (next === this.sampleMode) return;
+    this.sampleMode = next;
+    for (const id of this.wanted) this.ensureLayer(id, SWAP_S);
+  }
+
+  async playSource(id: SfxId, pos: SpatialPos, source: 'sample' | 'synth', opts?: { gain?: number; rate?: number }): Promise<boolean> {
+    if (!isSfx(id)) return false;
+    if (source === 'synth') {
+      this.shoot(id, pos, opts, SFX_RECIPES[id]);
+      return true;
+    }
+    if (!this.bank?.sfxEntry(id)) return false;
+    await this.bank.loadSfx(id);
+    const recipe = this.sampleFor(id, true);
+    if (!recipe || !this.ac || this.ac.state !== 'running') return false;
+    this.shoot(id, pos, opts, recipe);
+    return true;
+  }
+
+  hasSample(id: SfxId | AmbienceId): boolean {
+    if (!this.bank) return false;
+    return isSfx(id) ? !!this.bank.sfxEntry(id) : !!this.bank.ambEntry(id as AmbienceId);
   }
 }

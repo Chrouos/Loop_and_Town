@@ -1,8 +1,9 @@
 import type { AudioEngine } from '../audio/engine';
-import type { SfxId, VibrationId } from '../audio/catalog';
+import { DIRECTIONS, type AmbienceId, type Direction, type SfxId, type VibrationId } from '../audio/catalog';
 import { evalCond, type CondContext } from '../script/conditions';
 import { CHAPTER_NUMERALS, SPEAKER_LABELS, type Beat, type Chapter, type ChoiceOption, type EndKind, type GameScript, type LineBeat, type LineKind, type Pos, type Scene } from '../script/types';
 import { lineTiming, type Phrase } from './text';
+import { HUSH_MS, HUSH_SFX, isVoice, lifeOf, type LifeEvent } from './life';
 import { MEMORY_CAPACITY, freshSave, type GameSave, type Memory, type Settings } from './save';
 
 // Presentation timings (scene-clock ms). Prototype parameters, core spec §26.
@@ -13,6 +14,9 @@ const CHAPTER_CARD_MS = 4200;
 const RESET_MS = 6500;
 export const ECHO_MS = 4800;
 const SFX_TEXT_MS = 2600;
+const LIFE_CHECK_MS = 1000;
+/** Longest the stage may sit empty before the world fills it a little (unless hushed or silent by design). */
+const LIFE_EMPTY_MS = 3500;
 const CUE_LEAD_MS = 1800;
 
 export type CenterLine = {
@@ -30,12 +34,14 @@ export type CenterLine = {
   mem?: string;
 };
 
-export type Peripheral = { key: number; kind: 'sfx' | 'murmur' | 'cue'; text: string; pos: Pos; thread?: string; until: number };
+export type Peripheral = { key: number; kind: 'sfx' | 'murmur' | 'cue' | 'life'; text: string; pos: Pos; thread?: string; born: number; until: number };
 
 export type Card = { chapter?: string; title?: string; time?: string; place?: string; loopText?: string };
 
 export type View = {
   phase: 'idle' | 'out' | 'card' | 'scene' | 'reset' | 'ending';
+  /** The current 'out' is only a breath into a continuous scene, not a fade to black. */
+  brief: boolean;
   t: number;
   sceneId?: string;
   clock?: string;
@@ -103,6 +109,13 @@ export class Director {
   private paused = false;
   private pendingGoto: string | null = null;
   private pendingEnd: EndKind | null = null;
+  // Background life: strangers and small sounds around her, paced on the scene clock.
+  private ambience: AmbienceId[] = [];
+  private lifeGen = 0;
+  private lifeHushUntil = 0;
+  private lifeNextAt = 0;
+  private lifeBusyAt = 0;
+  private lifeRecent: LifeEvent[] = [];
 
   constructor(script: GameScript, save: GameSave, out: DirectorOutput, options: { speed?: number } = {}) {
     this.script = script;
@@ -300,9 +313,10 @@ export class Director {
     const continuous = !scene.time && !scene.place;
     const outMs = continuous ? 280 : OUT_MS;
     if (!continuous) this.out.audio.duck(0.5, OUT_MS);
+    this.view.brief = continuous;
     this.setPhase('out', outMs, () => {
-      // Only a continuous scene carries the old echo across; anywhere else it is gone with the faded world.
-      if (!continuous) this.view.echo = null;
+      // Only a continuous scene carries the old echo (and sounds still dying away) across; anywhere else they went with the faded world.
+      if (!continuous) { this.view.echo = null; this.view.periph = []; this.view.ripples = []; }
       if (scene.ambience) this.out.audio.setAmbience(scene.ambience, 2600);
       // Only a new area earns the full card; a new room or a later hour just updates the corner.
       const area = scene.place ? areaOf(scene.place) : undefined;
@@ -323,6 +337,8 @@ export class Director {
     this.view.clock = scene.time ?? this.view.clock;
     this.view.place = scene.place ?? this.view.place;
     this.view.focus = 'main';
+    if (scene.ambience) this.ambience = scene.ambience;
+    this.startLife();
     this.save.scene = scene.id;
     this.save.flags = [...this.flags];
     this.save.seen = [...this.seen];
@@ -344,7 +360,8 @@ export class Director {
 
   private clearScene(): void {
     // Leaving a live scene, the last line lingers as an echo so it fades out with the world instead of blinking off.
-    const lingering = this.view.phase !== 'scene' ? null
+    const live = this.view.phase === 'scene';
+    const lingering = !live ? null
       : this.view.center ? { ...this.view.center, until: this.view.t + ECHO_MS } : this.view.echo;
     this.runs.clear();
     this.shift = null;
@@ -352,8 +369,9 @@ export class Director {
     this.pendingEnd = null;
     this.view.center = null;
     this.view.echo = lingering;
-    this.view.periph = [];
-    this.view.ripples = [];
+    // Sounds already in the air finish on their own; only what belonged to the scene's threads goes.
+    this.view.periph = live ? this.view.periph.filter((item) => item.kind === 'sfx' || item.kind === 'life') : [];
+    if (!live) this.view.ripples = [];
     this.view.choice = null;
     this.view.waiting = null;
     this.view.shiftingTo = null;
@@ -513,11 +531,12 @@ export class Director {
         if (beat.text) this.addPeripheral('sfx', beat.text, beat.pos, t + SFX_TEXT_MS * (beat.pos.dist === 'far' ? 1.25 : 1));
         this.ripple(beat.pos);
         if (beat.vib === 'crash' || beat.vib === 'thud') this.view.shake += 1;
+        if (HUSH_SFX.has(beat.id)) this.lifeHushUntil = t + HUSH_MS;
         run.busyUntil = t + (beat.text ? 650 : 150);
         this.bump();
         return;
       }
-      case 'amb': this.out.audio.setAmbience(beat.ids, 2400); run.busyUntil = t; return;
+      case 'amb': this.out.audio.setAmbience(beat.ids, 2400); this.ambience = beat.ids; this.startLife(); run.busyUntil = t; return;
       case 'move': Object.assign(this.cast, beat.moves); run.busyUntil = t; return;
       case 'pause': run.busyUntil = t + beat.seconds * 1000; return;
       case 'wait': this.startWait(run, beat, t, beat.seconds * 1000, topLevelIndex); return;
@@ -642,7 +661,11 @@ export class Director {
       return;
     }
     this.view.periph = this.view.periph.filter((item) => item.thread !== run.id);
-    if (this.view.focus === run.id || this.shift?.to === run.id) this.beginShift('main');
+    if (this.shift?.to === run.id) {
+      // It went quiet while she was still turning: the same turn simply comes back, no second shift.
+      this.shift.to = 'main';
+      this.view.shiftingTo = null;
+    } else if (this.view.focus === run.id) this.beginShift('main');
     this.bump();
   }
 
@@ -680,6 +703,76 @@ export class Director {
     ];
     run.stack.push({ beats, i: 0 });
     run.busyUntil = t;
+    this.bump();
+  }
+
+  // ───────────────────────── background life ─────────────────────────
+
+  private startLife(): void {
+    const gen = ++this.lifeGen;
+    this.lifeHushUntil = 0;
+    this.lifeNextAt = this.view.t + 1500 + Math.random() * 2500;
+    this.lifeBusyAt = this.view.t;
+    this.checkLife(gen);
+  }
+
+  /** Once a second: the next background beat is due, or the screen has gone empty for too long. */
+  private checkLife(gen: number): void {
+    this.schedule(this.view.t + LIFE_CHECK_MS, () => {
+      if (gen !== this.lifeGen || this.view.phase !== 'scene') return;
+      const t = this.view.t;
+      const scene = this.scene;
+      const life = scene?.life === 'off' ? null : lifeOf(this.ambience, scene?.life);
+      if (!life) return;
+      const busy = this.view.center !== null || this.view.choice !== null || this.view.periph.some((item) => item.kind !== 'cue' && item.until > t + 400);
+      if (busy) this.lifeBusyAt = t;
+      const hushed = t < this.lifeHushUntil;
+      const empty = t - this.lifeBusyAt >= LIFE_EMPTY_MS;
+      if (!hushed && (t >= this.lifeNextAt || empty)) {
+        // Thinner while someone is talking to her; busier while she waits.
+        if (!this.focusedLine() || Math.random() < 0.5) { this.lifeBeat(life.events, t); this.lifeBusyAt = t; }
+        const [min, max] = life.every;
+        this.lifeNextAt = t + (min + Math.random() * (max - min)) * 1000 * (this.view.waiting ? 0.45 : 1);
+      }
+      this.checkLife(gen);
+    });
+  }
+
+  private lifeBeat(events: LifeEvent[], t: number): void {
+    const fresh = events.filter((event) => !this.lifeRecent.includes(event));
+    const pool = fresh.length ? fresh : events;
+    const event = pool[Math.floor(Math.random() * pool.length)];
+    this.lifeRecent = [...this.lifeRecent, event].slice(-Math.min(4, Math.max(1, events.length - 2)));
+    // Never on top of someone in the scene or a sound she could turn to — unless the scene put it there itself.
+    const own = Array.isArray(this.scene?.life) && this.scene.life.includes(event);
+    const taken = new Set<string>([
+      ...(own ? [] : Object.values(this.cast).map((pos) => pos.dir)),
+      ...this.view.periph.filter((item) => item.kind === 'cue').map((item) => item.pos.dir),
+    ]);
+    const wanted = (event.at ?? [...DIRECTIONS]).filter((dir) => !taken.has(dir));
+    const open = wanted.length ? wanted : [...DIRECTIONS].filter((dir) => !taken.has(dir));
+    if (!open.length) return;
+    const dir: Direction = open[Math.floor(Math.random() * open.length)];
+    const pos: Pos = { dir, dist: event.dist ?? (isVoice(event) ? 'far' : 'mid') };
+    if (isVoice(event)) {
+      const ms = Math.max(900, [...event.say].length * 110);
+      this.out.audio.voice(event.voice, pos, ms);
+      this.addPeripheral('life', event.say, pos, t + ms + 2600);
+      if (event.reply) {
+        const reply = event.reply;
+        const gen = this.lifeGen;
+        this.schedule(t + ms + 500, () => {
+          if (gen !== this.lifeGen || this.view.phase !== 'scene' || this.view.t < this.lifeHushUntil) return;
+          const replyMs = Math.max(900, [...reply.say].length * 110);
+          this.out.audio.voice(reply.voice, pos, replyMs);
+          this.addPeripheral('life', reply.say, pos, this.view.t + replyMs + 2600);
+          this.bump();
+        });
+      }
+    } else {
+      if (event.sfx) this.out.audio.play(event.sfx, pos, { gain: pos.dist === 'far' ? 0.45 : 0.6 });
+      this.addPeripheral('sfx', event.text, pos, t + SFX_TEXT_MS * (pos.dist === 'far' ? 1.25 : 1));
+    }
     this.bump();
   }
 
@@ -749,7 +842,7 @@ export class Director {
   }
 
   private addPeripheral(kind: Peripheral['kind'], text: string, pos: Pos, until: number, thread?: string): void {
-    this.view.periph = [...this.view.periph.filter((item) => !(kind === 'murmur' && item.kind === 'murmur' && item.thread === thread && thread !== undefined)), { key: this.keyCounter++, kind, text, pos, until, thread }];
+    this.view.periph = [...this.view.periph.filter((item) => !(kind === 'murmur' && item.kind === 'murmur' && item.thread === thread && thread !== undefined)), { key: this.keyCounter++, kind, text, pos, born: this.view.t, until, thread }];
   }
 
   private ripple(pos: Pos): void {
@@ -769,7 +862,7 @@ export class Director {
 
   private emptyView(): View {
     return {
-      phase: 'idle', t: 0, center: null, echo: null, periph: [], ripples: [], choice: null, focus: null, shiftingTo: null,
+      phase: 'idle', brief: false, t: 0, center: null, echo: null, periph: [], ripples: [], choice: null, focus: null, shiftingTo: null,
       waiting: null, keep: null, memoryCount: this.save.memories.length, shake: 0, chapterKey: this.save.chapter, loop: this.save.loop,
     };
   }

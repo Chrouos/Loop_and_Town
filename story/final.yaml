@@ -36,7 +36,11 @@ scenes:
           - pause: 1.5
       - narr: 鐵軌的接縫從腳底一節一節傳上來，喀噠、喀噠。
       - narr: 我沒有站起來，也沒有在腦子裡把今天再排一遍。
-      - think: 若晴六點零五分會走進舊站大廳。陳醫生六點十二分，從側邊的通道下去。
+      - if: know.k_maintenance_passage
+        then:
+          - think: 若晴六點零五分會走進舊站大廳。陳醫生六點十二分，從側邊的通道下去。
+        else:
+          - think: 若晴傍晚會走進舊站大廳。她不去的話，陳醫生會一個人從側邊下去。
       - think: 誰在哪一分鐘走到哪裡，我都背得出來。
       - pause: 1.5
       - think: 知夏以前也背得出來。
@@ -179,7 +183,7 @@ scenes:
                 - pause: 2
                 - narr: 對面的鐵捲門拉上去，嘩啦啦一路響到頂。遠一點有阿伯在喊今天剛到的白帶魚。
                 - narr: 一張紙被風捲過來，貼著我的腳踝停住，又被吹走。
-                - think: 這些都會照原樣發生，不用我去動。
+                - think: 這些都會自己發生，不用我去動。
       - goto: f_hub_pick
 
   # ─────────────────────────── 庭安 ───────────────────────────
@@ -227,7 +231,7 @@ scenes:
                 - tingan: 這句話……妳從哪裡聽來的？
                 - me: 一卷錄音。錄的是妳跟我姊。
                 - me: 妳那時候是對的。我今天不是來跟妳吵這個。
-            - text: 「我知道妳今晚九點十四分，會一個人進研究所。」
+            - text: 「我知道妳花了半年，才找到進研究所的方法。」
               then:
                 - set: f_t_push
                 - pause: 1.5
@@ -393,7 +397,7 @@ scenes:
                     - pause: 2
                     - narr: 他沒有去撿起子，也沒有再問。
                     - yuan: ……嗯。
-                    - think: 那天晚上他在這裡跟我講的事，這一次的他都還沒有講。
+                    - think: 那天晚上他跟我講的事，這一次的他都還沒有講。
                 - text: （什麼都不說，推門出去）
                   then:
                     - { sfx: shop_bell, at: back, dist: near, text: 叮鈴 }
@@ -415,7 +419,7 @@ scenes:
         then:
           - { sfx: phone_buzz, at: front, dist: near, text: 嗡、嗡 }
           - narr: 她的手機在圍裙口袋裡震了兩下，她很快按掉。
-          - think: 兩點那封通知。外地的攝影課。
+          - think: 下午那封通知。外地的攝影課。
       - choice:
           options:
             - text: 「我想請妳說一張照片給我聽。先聽我說完，再決定要不要。」
@@ -440,9 +444,13 @@ scenes:
         then:
           - me: 舊車站東邊，今年春天應該多裝了一個機櫃。
           - me: 十八點三十一分它會醒過來，那附近的人會有危險。
-          - me: 它在哪裡、長什麼樣子，我不知道。沒有人跟我講過。
+          - if: know.k_new_cabinet
+            then:
+              - me: 我知道它是一個灰色的鐵櫃，比人高一點。可是在大廳的哪裡，我不知道。
+            else:
+              - me: 它在哪裡、長什麼樣子，我不知道。沒有人跟我講過。
           - me: 妳的照片，可能是唯一的地圖。
-          - me: 上一次待在大廳裡的人，沒有走出來。
+          - me: 第一個十月三日，待在大廳裡的人沒有走出來。
           - me: 要不要給我，要不要去，妳自己決定。
           - { sfx: strap_click, at: front, dist: near, text: 喀、喀 }
           - think: 背帶的扣。她在找理由的時候，手就會去弄它。
@@ -512,7 +520,12 @@ scenes:
                 - pause: 2
                 - boxun: ……這件事，妳從哪裡知道的？
                 - me: 你告訴我的。我知道這聽起來像什麼。
-            - text: 「這是第幾次？你不用問。上一次，你死在維修通道裡。」
+            - text: 「這是第幾次？你不用問。有一次，你死在維修通道裡。」
+              if: know.k_boxun_which_time && know.k_maintenance_passage
+              then:
+                - set: f_b_push
+            - text: 「你不聽我的，今天就會死在舊車站。」
+              if: "!(know.k_boxun_which_time && know.k_maintenance_passage)"
               then:
                 - set: f_b_push
       - if: "flag.f_b_resp"
@@ -728,14 +741,18 @@ scenes:
     beats:
       - { sfx: cane_tap, at: front, dist: near, text: 叩 }
       - narr: 手杖敲下去，聲音一路飛到很遠的牆，再彈回來。
-      - narr: 這個大廳我來過太多次了。每一次，都有人沒走出去。
+      - narr: 第一個十月三日，若晴就倒在這個大廳裡。
       - if: "flag.ev_ruoqing"
         then:
           - { ruoqing: 我在門口。妳背對正門的話，右手邊第二根柱子。, at: back, dist: mid }
           - { ruoqing: 鐵櫃在柱子後面，比人高一點。, at: back, dist: mid }
           - think: 右邊，東牆。我把她講的位置，記在身體的右邊。
         else:
-          - think: 若晴不在。這面牆後面多了什麼，沒有人跟我講過。
+          - if: know.k_new_cabinet
+            then:
+              - think: 若晴不在。東牆多了一個櫃子，可是我不知道在哪一根柱子後面。
+            else:
+              - think: 若晴不在。這面牆後面多了什麼，沒有人跟我講過。
       - if: "flag.ev_yuan"
         then:
           - { yuan: 我在妳右後方，一步。, at: back-right, dist: near }
@@ -828,7 +845,11 @@ scenes:
               - narr: 我往右走。手杖碰到柱子、碰到牆，又碰到一堆不知道是什麼的鐵。
               - narr: 嗡鳴在右邊，可是整面牆都在右邊。
               - think: 方向我聽得出來。它是什麼、裝在哪裡，我聽不出來。
-              - think: 要是有人拍過這面牆就好了。
+              - if: know.k_new_cabinet
+                then:
+                  - think: 若晴拍過這面牆。今天，她沒有講給我聽。
+                else:
+                  - think: 要是有人拍過這面牆就好了。
             else:
               - think: 是右邊。等我轉過去，已經來不及了。
       - { sfx: hum_fall, at: right, dist: mid, text: ……嗡 }
@@ -1131,13 +1152,17 @@ scenes:
     place: 舊研究所外的台階
     ambience: [wind_open, night_insects]
     cast: { yuan: right, ruoqing: left, tingan: back, zhiyuan: back-left, boxun: back-right }
+    life:
+      - { text: 呼……, sfx: breath, at: [left, right], dist: near }
+      - { text: 沙, sfx: cloth_rustle, at: [right, back, back-left, back-right], dist: mid }
+      - { text: 叩, at: [back, back-left, back-right], dist: mid }
     beats:
       - narr: 我們走到外面。水泥台階還留著一點白天的溫度。
       - narr: 鎮在坡下面。鐘樓在正前方，很遠。
       - if: "flag.ev_yuan"
         then:
           - { sfx: cloth_rustle, at: right, dist: near, text: 沙 }
-          - narr: 予安在我右邊坐下。機油和黃銅的味道。
+          - narr: 予安在我右邊坐下，外套的袖子擦過我的手臂。
       - if: "flag.ev_ruoqing"
         then:
           - { sfx: strap_click, at: left, dist: near, text: 喀 }
