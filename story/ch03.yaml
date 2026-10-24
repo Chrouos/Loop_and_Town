@@ -356,6 +356,10 @@ scenes:
             - text: 「你不給我，我就去報警，說你私自把醫院的東西帶出去。」
               then:
                 - set: c3_b_threat
+            - text: 「傍晚你會從舊車站旁邊那條通道上去。今天不要走那裡。」
+              if: know.k_maintenance_passage || know.c3_boxun_died_again
+              then:
+                - set: c3_b_passage
             - text: （什麼都不說）
       - if: flag.c3_b_bag
         then:
@@ -424,10 +428,41 @@ scenes:
           - pause: 2
           - boxun: 那妳就去吧。
           - boxun: 這份東西我今天就拿回研究所鎖起來。
-      - if: "!flag.c3_b_bag && !flag.c3_b_warn && !flag.c3_b_tomorrow && !flag.c3_b_threat"
+      - if: flag.c3_b_passage
+        then:
+          - pause: 2
+          - narr: 他沒有馬上回答。紙袋在他腋下停住，沒有再響。
+          - boxun: ……妳怎麼知道那條路？
+          - boxun: 那條通道，連醫院裡都沒幾個人知道。
+          - me: 我說了，你也不會信。
+          - me: 我只知道你走進去，就不會出來。
+          - pause: 2.5
+          - boxun: 正門封了，我才想說從旁邊上去比較近。
+          - boxun: ……東西我放回辦公室。今天哪裡都不去。
+          - set: [boxun_stays, c3_bx_wary]
+      - if: "!flag.c3_b_bag && !flag.c3_b_warn && !flag.c3_b_tomorrow && !flag.c3_b_threat && !flag.c3_b_passage"
         then:
           - pause: 2
           - boxun: ……失陪了。
+          - { sfx: step, at: front-right, dist: mid, text: 叩、叩 }
+          - narr: 他的腳步往停車場那邊去。再走幾步，我就分不出是他的還是別人的了。
+          - choice:
+              timeout: 8
+              options:
+                - text: 「陳醫生！」
+                  then:
+                    - { sfx: step, at: front-right, dist: mid, text: 叩 }
+                    - narr: 腳步停了。
+                    - boxun: ……還有什麼事？
+                    - me: 六點半左右，舊車站會停電。我說不出理由，只能拜託你今天不要過去。
+                    - pause: 2
+                    - boxun: 妳剛剛怎麼不說？
+                    - me: 我在想要怎麼說，你才不會走。
+                    - pause: 1.5
+                    - boxun: 結果我還是差點走了。
+                    - boxun: 我回去待到七點。過了六點半，打給我。
+                    - set: [boxun_stays, c3_bx_honest]
+                - text: （讓他走）
       - if: flag.boxun_stays
         then:
           - { sfx: door_close, at: front, dist: near, text: 碰 }

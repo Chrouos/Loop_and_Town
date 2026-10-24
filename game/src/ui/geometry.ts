@@ -5,7 +5,8 @@ const RADIUS: Record<Pos['dist'], number> = { near: 0.68, mid: 0.9, far: 1.04 };
 
 /** Screen placement for a sound around the listener: front = top, back = bottom (an XY plane seen from above). */
 export function placeOf(pos: Pos): { left: string; top: string; x: number; y: number } {
-  if (pos.dir === 'center') return { left: '50%', top: '50%', x: 0, y: 0 };
+  // Her own hands: just below what she is listening to, never on top of it.
+  if (pos.dir === 'center') return { left: '50%', top: 'calc(50% + 0.5 * min(38vh, 380px))', x: 0, y: 0.5 };
   const angle = (DIRECTION_ANGLE[pos.dir] * Math.PI) / 180;
   const r = RADIUS[pos.dist];
   const x = Math.sin(angle) * r;
