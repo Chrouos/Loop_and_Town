@@ -21,7 +21,7 @@ import {
   type SfxRecipe,
   type Shot,
 } from './core';
-import { AMBIENT_EVENTS, HUMAN_SFX, SFX_RECIPES, clockBuffer, type AmbientEventId } from './sounds';
+import { AMBIENT_EVENTS, SFX_RECIPES, clockBuffer, type AmbientEventId } from './sounds';
 
 type FilterSpec = readonly [BiquadFilterType, number, number?];
 
@@ -182,8 +182,6 @@ class Env implements AmbienceEnv {
   shot(sound: Sound, angle: number | null, r: number, o: { t?: number; gain?: number; rate?: number } = {}): void {
     if (this.disposed || this.shots.size >= MAX_LAYER_SHOTS) return;
     const sampled = typeof sound === 'string' ? this.resolver?.(sound) : undefined;
-    // a voice whose recording is not decoded yet is skipped, never synthesized
-    if (!sampled && this.resolver && typeof sound === 'string' && HUMAN_SFX.has(sound as SfxId)) return;
     const recipe = sampled ?? resolve(sound);
     if (!recipe) return;
     const s = spawnShot(this.ac, recipe, {

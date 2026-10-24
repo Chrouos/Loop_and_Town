@@ -420,15 +420,28 @@ describe('Web Audio engine (fake context)', () => {
     expect(dbg.stats().voices).toBe(0);
   });
 
-  it('never synthesizes a human voice: without its recording a laugh or cough stays silent', async () => {
+  it('plays every human sound from synthesis when no recording can be decoded', async () => {
     const engine = createAudioEngine();
     await engine.unlock();
     const dbg = engine as unknown as AudioEngineDebug;
-    for (const id of HUMAN_SFX) engine.play(id, { dir: 'front', dist: 'near' });
-    tick(1);
-    expect(dbg.stats().shots).toBe(0);
-    engine.play('step', { dir: 'front', dist: 'near' }); // a non-voice sound still falls back to synthesis
-    expect(dbg.stats().shots).toBe(1);
+    for (const id of HUMAN_SFX) {
+      const before = dbg.stats().shots;
+      engine.play(id, { dir: 'front', dist: 'near' });
+      expect(dbg.stats().shots, id).toBe(before + 1);
+    }
+    expect(errors).toEqual([]);
+  });
+
+  it('allows synthesized human events in ambience when their recording is unavailable', () => {
+    const ac = fake();
+    const build = vi.spyOn(AMBIENCE_RECIPES.hospital, 'build').mockImplementation((env) => env.shot('cough', 0, 2));
+    try {
+      const layer = startAmbience(ac, 'hospital', ac.destination, null, undefined, { resolve: () => undefined });
+      expect(layer?.stats.shots).toBe(1);
+      layer?.dispose();
+    } finally {
+      build.mockRestore();
+    }
   });
 
   it('unlocks, plays every sound everywhere, crossfades ambience and cleans up', async () => {
@@ -691,6 +704,35 @@ describe('Web Audio engine with recorded samples (fake decoder)', () => {
     expect(dbg.stats().layers).toEqual(['rain']);
     expect(dbg.stats().sampledLayers).toEqual([]);
     expect(errors).toEqual([]);
+  });
+
+  it('prefers loaded human recordings and still allows explicit or forced synthesis', async () => {
+    const engine = createAudioEngine();
+    const dbg = engine as unknown as AudioEngineDebug;
+    await engine.unlock();
+    for (let k = 0; k < 40; k++) await flush();
+    expect(dbg.stats().samples!.sfxReady).toBe(dbg.stats().samples!.sfxTotal);
+    const fc = FakeContext.instances[0]!;
+    const pos: SpatialPos = { dir: 'front', dist: 'near' };
+    const before = fc.sources.length;
+    engine.play('sigh_m', pos);
+    const automatic = fc.sources.slice(before).filter((source): source is FakeBufferSource => source instanceof FakeBufferSource);
+    expect(automatic).toHaveLength(1);
+    expect(automatic[0]!.buffer!.duration).toBe(2);
+
+    const recordingStart = fc.sources.length;
+    expect(await dbg.playSource('sigh_m', pos, 'sample', { variant: 0 })).toBe(true);
+    const sources = fc.sources.slice(recordingStart).filter((source): source is FakeBufferSource => source instanceof FakeBufferSource);
+    expect(sources).toHaveLength(1);
+    expect(sources[0]!.buffer!.duration).toBe(2); // the decoder fixture's recorded clip
+
+    const synthStart = fc.sources.length;
+    expect(await dbg.playSource('sigh_m', pos, 'synth')).toBe(true);
+    expect(fc.sources.slice(synthStart).some((source) => source instanceof FakeOsc)).toBe(true);
+    dbg.setSampleMode('synth');
+    const forcedStart = fc.sources.length;
+    engine.play('sigh_m', pos);
+    expect(fc.sources.slice(forcedStart).some((source) => source instanceof FakeOsc)).toBe(true);
   });
 
   it('sample recipes schedule valid automation', () => {

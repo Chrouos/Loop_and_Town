@@ -250,15 +250,24 @@ sfx('step_wet', ev('376809', 3, a=0.0, b=45, hp=150, max_len=0.45, decay_db=28, 
 sfx('cane_tap', ev('393434', 4, a=0.5, b=27, hp=300, max_len=0.22, decay_db=30, min_gap=0.25, fixed=0.18), [393434], st=-20, peak=-3, hp=150, fout=0.03,
     note='4 single taps of a white cane on a city pavement, cut from a blind person walking')
 sfx('door_open', [C('344360', 0.70, 2.40)], [344360], st=-22, fout=0.15, note='handle and opening swing of a door')
-sfx('door_close', [C('402466', 0.08, 1.78)], [402466], st=-20, hp=50, peak=-6, fin=0.015, fout=0.22,
-    note='a heavy wooden door quietly closing: movement, frame contact and settling retained as one 1.7 s action; sub-50 Hz rumble removed')
+def close_wooden_door():
+    # Handle first, then align the original latch with a heavier wooden panel closing.
+    # Normalizing the components separately keeps the handle audible without a loud slam.
+    handle = fade(proc.norm_st(cut('344360', 0.95, 1.50), -25, -9), 0.01, 0.06)
+    latch = fade(proc.norm_st(lowpass(cut('344360', 4.35, 5.80), 6500, order=2), -22, -8), 0.01, 0.16)
+    panel = fade(proc.norm_st(highpass(cut('402466', 0.08, 1.78), 50), -20, -8), 0.015, 0.22)
+    return mix(mix(handle, latch, at=0.8), panel, at=0.8)
+
+
+sfx('door_close', [close_wooden_door], [344360, 402466], st=-20, hp=50, peak=-6, fin=0.008, fout=0.12,
+    note='2.5 s closing sequence: real handle operation, latch/frame contact and a heavier wooden panel aligned at the closing impact, retaining the natural release; sub-50 Hz rumble removed')
 sfx('door_creak', [C('219499', 0.30, 1.00), C('377552', 0.0, 0.90)], [219499, 377552], st=-21, limit=14, fout=0.08,
     note='two old wooden door creaks')
 sfx('door_slam', [C('395653', 2.72, 4.30)], [395653], st=-17, fout=0.4, note='a door slammed shut')
 sfx('shop_bell', [C('494565', 0.25, 2.30), C('494565', 2.55, 4.45), C('494565', 4.45, 6.70)], [494565], st=-21, fout=0.35,
     note='three rings of a bell on a shop door')
-sfx('key_jingle', [lambda: lowpass(cut('565909', 0.53, 1.18), 4800, order=2), lambda: lowpass(cut('565909', 2.40, 3.03), 4800, order=2), lambda: lowpass(cut('565909', 3.80, 4.62), 4800, order=2)], [565909], st=-22, hp=200, limit=12, peak=-6, fin=0.008, fout=0.08, jitter=0.015,
-    note='three dense rattles of fourteen old keys on a ring; low-passed at 4.8 kHz to soften the thin, chime-like top end, retaining short metal contacts')
+sfx('key_jingle', [lambda: lowpass(cut('565909', 0.53, 1.18), 3500, order=4), lambda: lowpass(cut('565909', 2.40, 3.03), 3500, order=4), lambda: lowpass(cut('565909', 3.80, 4.62), 3500, order=4)], [565909], st=-22, hp=200, limit=12, peak=-6, fin=0.008, fout=0.08, jitter=0.015,
+    note='three dense rattles of fourteen old keys on a ring; low-passed at 3.5 kHz (fourth order) to soften the thin, chime-like top end, retaining short metal contacts')
 sfx('lock_turn', [C('615287', 3.40, 4.72)], [615287], st=-21, hp=100, limit=12, peak=-6, fin=0.01, fout=0.12, jitter=0.01,
     note='a real key-operated door lock: short handling/turning movement into a firm mechanical clack; replaces the electronic hotel-card deadbolt')
 sfx('chair_scrape', [C('219677', 0.25, 1.50), C('219677', 2.25, 3.20)], [219677], st=-21, fout=0.1, note='a wooden chair moved on the floor (two takes)')
