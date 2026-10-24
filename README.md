@@ -1,120 +1,49 @@
 # 灰潮鎮：第七封信
 
-## 玩家端第一個輪迴
+主角看不見。畫面是純黑的，中間是正在聽的那句話，周圍八個方位是聲音。
 
-玩家端與 Event Graph Viewer 在同一個 Vite 專案中，共用 `story/` 的事件定義及 Worldline Simulator。
+她收到一封署名已故姊姊的點字信，信上只有一句「不要回來」。她照原定行程回到灰潮鎮，然後發現這座小鎮困在同一個十月三日。
+
+請戴上耳機。
+
+## 玩
 
 ```bash
-cd tools/event-graph-viewer
+cd game
 npm install
 npm run dev
 ```
 
-開啟 Vite 顯示的網址，根目錄是 manifest-driven 的完整 Story DAG / Worldline author viewer；加上 `/player.html` 進入玩家端。
-`npm test` 執行測試，`npm run build` 同時建立兩個入口。
+開啟 Vite 顯示的網址。
 
-第一輪從鎮內 06:12 的返程列車開始，以加速模式運行（現實 1 分鐘 ≈ 鎮內 12 分鐘，約 62 分鐘後到 18:31 車站事件）。第二輪起可選擇「跟著現在走」（Live Sync，依裝置當地時間進入，06:12 前不可用）或從 06:12 重新開始。離開網頁後按真實經過的時間補算；18:31 與 23:59 照常在玩家離線時發生，只有 00:00 重置需要玩家回來確認。
-世界線歷史只顯示玩家實際取得的紀錄。目前已接入 Loop 01–07 劇情與 Final 機制切片（逐輪遊玩驗證進行中，見 ROADMAP M8），進度只保存在目前瀏覽器，不提供跨裝置同步。
+- 點畫面：讓這句話快一點
+- 點擬聲字：轉過去聽那個聲音
+- 長按一句話：記住它，最多帶七句過午夜
+- 右下角小圓點：記憶與設定
 
-舊案卷若與玩家端位於不同網域，可在舊網站開啟瀏覽器 Console，執行 `copy(localStorage.getItem('ash-town-bible-v1'))`，再到玩家端「存檔」貼上匯入。舊存檔中的推論會保留為個人筆記，不會被當成新世界線發生過的事件。
+測試用網址參數：`?reset` 清除存檔、`?chapter=4` 從第四章開始（自動補上前面章節學到的事）、`?fast=20` 加速、`?mute` 靜音。
 
-以安靜的文字敘事展開的輪迴推理遊戲。
-
-玩家收到已故姊姊寄來的信後回到故鄉，逐漸發現這座小鎮被困在同一天。遊戲時間與現實世界同步，小鎮不會等待玩家；每次介入都可能改變 NPC 行程、關係與後續事件，甚至在數小時後才產生延遲後果。
-
-## 核心玩法
+## 專案結構
 
 ```text
-觀察事件
-→ 建立假設
-→ 介入一個節點
-→ 世界自行運行
-→ Event Card 被改寫
-→ 比較世界線
-→ 找出因果與 Invariant
-→ 下一輪
+story/        劇本：ch01.yaml … ch07.yaml、final.yaml
+game/         遊戲（Vite + React + TypeScript）
+  src/engine/   導演：時間、注意力、感知、等待、記憶、輪迴
+  src/script/   劇本解析與驗證
+  src/audio/    空間音效（錄音素材 + 程序合成備援）
+  src/ui/       舞台畫面
+  tests/        劇本驗證、隨機遊玩可達性、結局路徑、引擎與音效測試
+docs/         story.md（故事）、design.md（體驗與劇本格式）、style.md（文風）、canon/（背景設定）
 ```
 
-核心原則：
-
-> 改得動的，通常是結果；改不動的，才可能接近真相。
-
-## 設計文件
-
-- [`docs/core-gameplay.md`](docs/core-gameplay.md)：核心玩法、世界線、延遲影響、Event Card、Invariant、放置機制。
-- [`docs/worldbuilding.md`](docs/worldbuilding.md)：灰潮鎮、輪迴規則、核心人物與主線 Mystery。
-- [`docs/first-loop-story.md`](docs/first-loop-story.md)：第一輪《第一個今天》故事試稿。
-- [`docs/event-graph-spec.md`](docs/event-graph-spec.md)：Event Graph、Worldline History、視覺化工具與資料管理規格。
-
-## Event Graph
-
-劇情邏輯以機器可讀資料作為 Source of Truth，視覺化工具只負責檢查、比較與模擬。
-
-```text
-YAML 劇情檔
-→ Schema Validation
-→ Event Graph Engine
-→ Graph View / Timeline / Worldline Diff / Simulator
-```
-
-目前範例：
-
-- [`story/events/day_01_1831.yaml`](story/events/day_01_1831.yaml)：18:31 事件與不同世界線 Variant。
-- [`story/schemas/event-graph.schema.json`](story/schemas/event-graph.schema.json)：初版 Event Graph JSON Schema。
-
-## Event Graph Viewer v0.1
-
-[`tools/event-graph-viewer/`](tools/event-graph-viewer/) 已提供第一版 read-only 劇情除錯工具。
-
-目前可查看完整 manifest 指定的 Loop 01–07 與 Final：
-
-```text
-Event Graph
-→ Story DAG 的 Before / After / Reason / Narrative Ref
-
-Timeline
-→ 單一 Loop 真正發生過的事件
-
-Worldline Diff
-→ 比較兩輪同一 Event 如何被改寫
-
-根目錄 `story/` 是唯一 Source of Truth；`npm run sync-story` 會同步部署用的 `public/story/`，viewer 會從 `story/manifests/loop_01.yaml` 載入完整 bundle。
-```
-
-本機啟動：
+## 開發
 
 ```bash
-cd tools/event-graph-viewer
-npm install
-npm run dev
+cd game
+npm test        # 劇本驗證 + 每一章都能玩到下一章 + 三個結局都到得了
+npm run build   # 輸出到 game/dist，GitHub Pages 的網址根目錄就是遊戲
 ```
 
-測試與建置：
+改劇本前先讀 [`docs/story.md`](docs/story.md) 的知識 id 表和 [`docs/style.md`](docs/style.md)。格式在 [`docs/design.md`](docs/design.md) §11。
 
-```bash
-npm test
-npm run build
-```
-
-詳細說明請見 [`tools/event-graph-viewer/README.md`](tools/event-graph-viewer/README.md)。
-
-## 世界線設計方向
-
-同一事件會因玩家行動改寫，例如：
-
-```text
-Loop 01：18:31 許若晴死亡
-Loop 02：18:31 陳柏勳死亡
-Loop 03：18:31 無人死亡
-```
-
-玩家真正要推理的不是單一結果，而是：
-
-- 哪個行動造成分歧。
-- 哪些後果是延遲發生。
-- 哪些條件不論怎麼改都仍然存在。
-- 為什麼 18:31 一直出現。
-
-## 後續開發方向
-
-目前進度與優先順序以 [`ROADMAP.md`](ROADMAP.md) 為準。
+開發時 `/audio-lab.html` 可以逐一試聽每個聲音。音效素材的來源與授權列在 `game/public/audio/CREDITS.md`。
