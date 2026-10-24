@@ -1,6 +1,6 @@
 import { condRefs } from './conditions';
 import { parseChapter } from './parse';
-import { CHAPTER_ORDER, type Beat, type Chapter, type GameScript, type Scene } from './types';
+import { CHAPTER_ORDER, type Beat, type Chapter, type ChoiceOption, type GameScript, type Scene } from './types';
 
 export type ScriptReport = { script: GameScript; errors: string[]; warnings: string[] };
 
@@ -10,16 +10,28 @@ function walk(beats: Beat[], visit: (beat: Beat, depth: number) => void, depth =
   for (const beat of beats) {
     visit(beat, depth);
     if (beat.k === 'if') { walk(beat.then, visit, depth + 1); walk(beat.else, visit, depth + 1); }
-    if (beat.k === 'choice') beat.options.forEach((option) => walk(option.then, visit, depth + 1));
+    if (beat.k === 'locate') { walk(beat.success, visit, depth + 1); walk(beat.fail, visit, depth + 1); }
+    if (beat.k === 'choice') {
+      beat.options.forEach((option) => {
+        walk(option.then, visit, depth + 1);
+        option.recall?.accept.forEach((entry) => walk(entry.then, visit, depth + 1));
+        if (option.recall) walk(option.recall.miss, visit, depth + 1);
+      });
+    }
   }
 }
+
+const recallTerminates = (option: ChoiceOption) =>
+  Boolean(option.recall && option.recall.accept.every((entry) => entry.goto || terminates(entry.then)));
 
 // True when every path through these beats ends in goto / end.
 function terminates(beats: Beat[]): boolean {
   for (const beat of beats) {
     if (beat.k === 'goto' || beat.k === 'end') return true;
     if (beat.k === 'if' && terminates(beat.then) && terminates(beat.else)) return true;
-    if (beat.k === 'choice' && beat.options.every((option) => option.goto || terminates(option.then))) return true;
+    if (beat.k === 'locate' && terminates(beat.success) && terminates(beat.fail)) return true;
+    // A missed recall returns to the same choice, so a recall option ends the path only if every accepted memory does.
+    if (beat.k === 'choice' && beat.options.every((option) => (option.recall ? recallTerminates(option) : option.goto || terminates(option.then)))) return true;
   }
   return false;
 }
@@ -29,7 +41,12 @@ function targets(scene: Scene): string[] {
   if (scene.next) out.push(scene.next);
   walk(scene.beats, (beat) => {
     if (beat.k === 'goto') out.push(beat.scene);
-    if (beat.k === 'choice') beat.options.forEach((option) => option.goto && out.push(option.goto));
+    if (beat.k === 'choice') {
+      beat.options.forEach((option) => {
+        if (option.goto) out.push(option.goto);
+        option.recall?.accept.forEach((entry) => entry.goto && out.push(entry.goto));
+      });
+    }
   });
   return out;
 }
@@ -55,13 +72,26 @@ export function buildScript(files: { name: string; source: string }[]): ScriptRe
 
   const learned = new Set<string>();
   const memIds = new Set<string>();
+  // Earliest chapter (play order) in which each knowledge id can be learned.
+  const firstLearned = new Map<string, number>();
+  const firstMem = new Map<string, number>();
+  const orderOf = (key: string) => CHAPTER_ORDER.indexOf(key as never);
   for (const scene of scenes.values()) {
     const all = [scene.beats, ...Object.values(scene.threads)];
+    const note = (id: string) => {
+      learned.add(id);
+      const at = orderOf(scene.chapter);
+      if (!firstLearned.has(id) || at < firstLearned.get(id)!) firstLearned.set(id, at);
+    };
     for (const beats of all) {
       walk(beats, (beat) => {
-        if (beat.k === 'learn') beat.ids.forEach((id) => learned.add(id));
-        if (beat.k === 'line' && beat.learn) learned.add(beat.learn);
-        if (beat.k === 'line' && beat.mem) memIds.add(beat.mem);
+        if (beat.k === 'learn') beat.ids.forEach(note);
+        if (beat.k === 'line' && beat.learn) note(beat.learn);
+        if (beat.k === 'line' && beat.mem) {
+          memIds.add(beat.mem);
+          const at = orderOf(scene.chapter);
+          if (!firstMem.has(beat.mem) || at < firstMem.get(beat.mem)!) firstMem.set(beat.mem, at);
+        }
       });
     }
   }
@@ -83,9 +113,14 @@ export function buildScript(files: { name: string; source: string }[]): ScriptRe
     const checkRefs = (cond: Parameters<typeof condRefs>[0], where: string) => {
       for (const ref of condRefs(cond)) {
         if (ref.op === 'know' && !learned.has(ref.id)) errors.push(`${where}：know.${ref.id} 從未被 learn`);
+        // A condition can only lean on something the player could already have heard.
+        if (ref.op === 'know' && learned.has(ref.id) && firstLearned.get(ref.id)! > orderOf(chapter.key)) {
+          errors.push(`${where}：know.${ref.id} 要到後面的章節才學得到`);
+        }
         if (ref.op === 'flag' && !flagsSet.has(ref.id)) errors.push(`${where}：flag.${ref.id} 本章從未被 set`);
         if (ref.op === 'seen' && !scenes.has(ref.id)) errors.push(`${where}：seen.${ref.id} 場景不存在`);
         if (ref.op === 'mem' && !memIds.has(ref.id)) errors.push(`${where}：mem.${ref.id} 沒有任何台詞標記這個 mem`);
+        if (ref.op === 'mem' && memIds.has(ref.id) && firstMem.get(ref.id)! > orderOf(chapter.key)) errors.push(`${where}：mem.${ref.id} 要到後面的章節才記得到`);
       }
     };
     chapter.advance.forEach((rule, index) => checkRefs(rule.cond, `${tag}.advance[${index}]`));
@@ -108,6 +143,10 @@ export function buildScript(files: { name: string; source: string }[]): ScriptRe
         if (beat.k === 'if') checkRefs(beat.cond, where);
         if (beat.k === 'choice') {
           beat.options.forEach((option) => option.cond && checkRefs(option.cond, where));
+          beat.options.forEach((option) => option.recall?.accept.forEach((entry) => {
+            if (!memIds.has(entry.mem)) errors.push(`${where}：recall 接受的 ${entry.mem} 沒有任何台詞標記這個 mem`);
+            else if (firstMem.get(entry.mem)! > orderOf(chapter.key)) errors.push(`${where}：recall 接受的 ${entry.mem} 要到後面的章節才記得到`);
+          }));
           if (beat.timeout !== undefined && beat.timeout < 3) warnings.push(`${where}：choice timeout 太短（${beat.timeout}s）`);
         }
         if (beat.k === 'line' && beat.kind === 'char' && !beat.at && !scene.cast[beat.speaker]) {
@@ -120,7 +159,7 @@ export function buildScript(files: { name: string; source: string }[]): ScriptRe
       for (const [name, beats] of Object.entries(scene.threads)) {
         if (!usedThreads.has(name)) errors.push(`${where}：thread「${name}」沒有被 cue`);
         walk(beats, (beat) => {
-          if (['choice', 'goto', 'end', 'wait', 'cue', 'amb'].includes(beat.k)) errors.push(`${where}.threads.${name}：thread 裡不能有 ${beat.k}`);
+          if (['choice', 'goto', 'end', 'wait', 'cue', 'amb', 'touch', 'locate', 'punch'].includes(beat.k)) errors.push(`${where}.threads.${name}：thread 裡不能有 ${beat.k}`);
           if (beat.k === 'if') checkRefs(beat.cond, `${where}.threads.${name}`);
         });
       }

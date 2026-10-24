@@ -5,6 +5,15 @@ export type Pos = { dir: Direction | 'center'; dist: Distance };
 
 export type LineKind = 'narr' | 'me' | 'think' | 'phone' | 'char';
 export type EndKind = 'reset' | 'ending_a' | 'ending_b' | 'ending_c';
+/** Her body on screen: a one-off jolt of the whole stage. */
+export const SHAKE_LEVELS = ['light', 'hard'] as const;
+export type ShakeLevel = (typeof SHAKE_LEVELS)[number];
+/** Her heart, held until changed or the scene ends: the stage pulses with it. */
+export const HEART_LEVELS = ['off', 'slow', 'fast', 'pound'] as const;
+export type HeartLevel = (typeof HEART_LEVELS)[number];
+/** Pain or shock, held until changed or the scene ends: the stage blurs and sways, the world sounds far away. */
+export const DAZE_LEVELS = ['off', 'light', 'heavy'] as const;
+export type DazeLevel = (typeof DAZE_LEVELS)[number];
 
 export type Cond =
   | { op: 'true' }
@@ -23,21 +32,34 @@ export type LineBeat = {
   label?: string;
   learn?: string;
   mem?: string;
+  shake?: ShakeLevel;
 };
 
-export type ChoiceOption = { text: string; cond?: Cond; then: Beat[]; goto?: string };
+/** Memory Input: she says a remembered line out loud. Only the accepted memories change anything. */
+export type RecallAccept = { mem: string; then: Beat[]; goto?: string };
+export type Recall = { accept: RecallAccept[]; miss: Beat[] };
+export type ChoiceOption = { text: string; cond?: Cond; then: Beat[]; goto?: string; recall?: Recall };
 
 export type Beat =
   | LineBeat
-  | { k: 'sfx'; id: SfxId; pos: Pos; text?: string; vib?: VibrationId; gain?: number }
+  | { k: 'sfx'; id: SfxId; pos: Pos; text?: string; vib?: VibrationId; gain?: number; shake?: ShakeLevel }
   | { k: 'amb'; ids: AmbienceId[]; fade?: number }
   | { k: 'move'; moves: Record<string, Pos> }
   | { k: 'pause'; seconds: number }
   | { k: 'wait'; seconds: number; clock?: string; until?: string }
   | { k: 'vib'; id: VibrationId }
+  | { k: 'shake'; level: ShakeLevel }
+  | { k: 'heart'; level: HeartLevel }
+  | { k: 'daze'; level: DazeLevel }
   | { k: 'clock'; time: string }
   | { k: 'cue'; thread: string; pos: Pos; text: string; sfx?: SfxId; grab: boolean }
   | { k: 'choice'; timeout?: number; default?: number; options: ChoiceOption[] }
+  /** 摸讀: drag a finger left to right across cells; each one surfaces only when touched slowly enough. */
+  | { k: 'touch'; cells: string[]; style: 'braille' | 'groove' | 'engrave'; prompt?: string; timeout: number }
+  /** 聽聲辨位: a sound repeats from one direction (with decoys); she points to it. */
+  | { k: 'locate'; sfx: SfxId; at: Direction; decoys: { sfx: SfxId; at: Direction }[]; tries: number; timeout?: number; prompt?: string; success: Beat[]; fail: Beat[] }
+  /** 點字板: punch braille cells from the back of the paper (mirrored); cells are dot numbers as they will be read. */
+  | { k: 'punch'; cells: number[][]; label?: string; prompt?: string; timeout: number }
   | { k: 'if'; cond: Cond; then: Beat[]; else: Beat[] }
   | { k: 'set'; flags: string[] }
   | { k: 'learn'; ids: string[] }

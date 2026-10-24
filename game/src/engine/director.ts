@@ -1,7 +1,7 @@
 import type { AudioEngine } from '../audio/engine';
-import { DIRECTIONS, type AmbienceId, type Direction, type SfxId, type VibrationId } from '../audio/catalog';
+import { DIRECTIONS, DIRECTION_ANGLE, type AmbienceId, type Direction, type SfxId, type VibrationId } from '../audio/catalog';
 import { evalCond, type CondContext } from '../script/conditions';
-import { CHAPTER_NUMERALS, SPEAKER_LABELS, type Beat, type Chapter, type ChoiceOption, type EndKind, type GameScript, type LineBeat, type LineKind, type Pos, type Scene } from '../script/types';
+import { CHAPTER_NUMERALS, SPEAKER_LABELS, type Beat, type Chapter, type ChoiceOption, type EndKind, type DazeLevel, type GameScript, type HeartLevel, type LineBeat, type LineKind, type Pos, type Scene, type ShakeLevel } from '../script/types';
 import { lineTiming, type Phrase } from './text';
 import { HUSH_MS, HUSH_SFX, isVoice, lifeOf, type LifeEvent } from './life';
 import { MEMORY_CAPACITY, freshSave, type GameSave, type Memory, type Settings } from './save';
@@ -18,6 +18,12 @@ const LIFE_CHECK_MS = 1000;
 /** Longest the stage may sit empty before the world fills it a little (unless hushed or silent by design). */
 const LIFE_EMPTY_MS = 3500;
 const CUE_LEAD_MS = 1800;
+/** Her heart: time between beats, how loud it is, how fast the recording plays. */
+const HEART: Record<Exclude<HeartLevel, 'off'>, { ms: number; gain: number; rate: number; vib: boolean }> = {
+  slow: { ms: 920, gain: 0.32, rate: 1, vib: false },
+  fast: { ms: 580, gain: 0.48, rate: 1.15, vib: true },
+  pound: { ms: 430, gain: 0.72, rate: 1.35, vib: true },
+};
 
 export type CenterLine = {
   key: number;
@@ -51,17 +57,32 @@ export type View = {
   echo: (CenterLine & { until: number }) | null;
   periph: Peripheral[];
   ripples: { key: number; pos: Pos }[];
-  choice: { key: number; options: { text: string; index: number }[]; startedAt: number; timeout?: number } | null;
+  choice: { key: number; options: { text: string; index: number; recall?: boolean }[]; startedAt: number; timeout?: number } | null;
+  /** Memory Input picker: which remembered lines she could say right now. */
+  recall: { key: number; memories: Memory[] } | null;
+  /** A hands-or-ears moment the scene is waiting on. */
+  interact: InteractView | null;
   focus: string | null;
   shiftingTo: Pos | null;
   waiting: { startedAt: number; seconds: number; clock?: string; until?: string } | null;
   keep: Memory | null;
   memoryCount: number;
   ending?: 'a' | 'c';
+  /** Bumped once per jolt; Stage plays the shake when it changes. */
   shake: number;
+  shakeLevel: ShakeLevel;
+  /** Her heart while it is loud enough to feel; `beat` counts up with every beat so Stage can pulse in time. */
+  heart: { level: Exclude<HeartLevel, 'off'>; beat: number } | null;
+  /** Pain or shock: the stage blurs and the world goes muffled. */
+  daze: Exclude<DazeLevel, 'off'> | null;
   chapterKey: string;
   loop: number;
 };
+
+export type InteractView =
+  | { type: 'touch'; key: number; cells: string[]; style: 'braille' | 'groove' | 'engrave'; prompt?: string }
+  | { type: 'locate'; key: number; prompt?: string; triesLeft: number; hint: Direction | null; wrong: Direction[] }
+  | { type: 'punch'; key: number; cells: number[][]; label?: string; prompt?: string };
 
 export type DirectorOutput = {
   audio: AudioEngine;
@@ -80,7 +101,8 @@ type Run = {
   blocked: boolean;
   done: boolean;
   pos: Pos;
-  pendingChoice?: { options: ChoiceOption[]; deadline: number; fallback: number };
+  pendingInteract?: { beat: Extract<Beat, { k: 'touch' | 'locate' | 'punch' }>; deadline: number; triesLeft: number };
+  pendingChoice?: { beat: Extract<Beat, { k: 'choice' }>; options: ChoiceOption[]; deadline: number; fallback: number; recallIndex?: number; remaining?: number };
 };
 
 const CENTER: Pos = { dir: 'center', dist: 'near' };
@@ -94,6 +116,7 @@ export class Director {
   private out: DirectorOutput;
   private listeners = new Set<() => void>();
   private flags = new Set<string>();
+  private recallTried = new WeakMap<Beat, Set<string>>();
   private seen = new Set<string>();
   private knowledge = new Set<string>();
   private runs = new Map<string, Run>();
@@ -116,6 +139,7 @@ export class Director {
   private lifeNextAt = 0;
   private lifeBusyAt = 0;
   private lifeRecent: LifeEvent[] = [];
+  private heartGen = 0;
 
   constructor(script: GameScript, save: GameSave, out: DirectorOutput, options: { speed?: number } = {}) {
     this.script = script;
@@ -155,6 +179,7 @@ export class Director {
     this.save = freshSave(this.save);
     this.knowledge = new Set();
     this.flags = new Set();
+    this.recallTried = new WeakMap();
     this.seen = new Set();
     this.persist();
     this.start();
@@ -172,6 +197,7 @@ export class Director {
     }
     this.save.knowledge = [...this.knowledge];
     this.flags = new Set();
+    this.recallTried = new WeakMap();
     this.seen = new Set();
     this.beginChapter(key, true);
   }
@@ -214,7 +240,7 @@ export class Director {
   private hurryInner(): void {
     const t = this.view.t;
     if (this.view.phase === 'card' || this.view.phase === 'out') { this.advanceTo(Math.max(t, this.phaseUntil)); return; }
-    if (this.view.phase !== 'scene' || this.view.waiting || this.view.choice || this.shift) return;
+    if (this.view.phase !== 'scene' || this.view.waiting || this.view.choice || this.view.interact || this.shift) return;
     const line = this.focusedLine();
     if (line) {
       if (t < line.revealEnd) { this.advanceTo(line.revealEnd); return; }
@@ -234,7 +260,7 @@ export class Director {
     const target = this.runs.get(threadId);
     if (!target || (target.done && threadId !== 'main')) return;
     if (listening === threadId) return;
-    if (threadId !== 'main' && this.runs.get('main')?.pendingChoice) return;
+    if (threadId !== 'main' && (this.runs.get('main')?.pendingChoice || this.runs.get('main')?.pendingInteract)) return;
     this.beginShift(threadId);
     this.bump();
   }
@@ -245,8 +271,139 @@ export class Director {
     if (!main || !pending || this.view.focus !== 'main') return;
     const option = pending.options[index];
     if (!option) return;
+    if (option.recall) { this.openRecall(main, index); return; }
     this.applyChoice(main, option);
     this.advanceTo(this.view.t);
+  }
+
+  /** Memory Input: say one remembered line out loud (null = put it back and choose normally). */
+  recallPick(memoryKey: string | null): void {
+    const main = this.runs.get('main');
+    const pending = main?.pendingChoice;
+    if (!main || !pending || pending.recallIndex === undefined || !this.view.recall) return;
+    const option = pending.options[pending.recallIndex];
+    this.view.recall = null;
+    if (memoryKey === null || !option?.recall) {
+      // Back to the choice; its clock starts again where it stopped.
+      pending.deadline = this.view.t + (pending.remaining ?? Infinity);
+      pending.recallIndex = undefined;
+      this.bump();
+      return;
+    }
+    const memory = this.save.memories.find((candidate) => candidate.key === memoryKey);
+    if (!memory) { this.bump(); return; }
+    this.triedRecall(pending.beat).add(memory.key);
+    const accepted = option.recall.accept.find((entry) => entry.mem === memory.id);
+    main.pendingChoice = undefined;
+    main.blocked = false;
+    this.view.choice = null;
+    const beats: Beat[] = accepted
+      ? [...accepted.then, ...(accepted.goto ? [{ k: 'goto', scene: accepted.goto } as Beat] : [])]
+      // A line that doesn't fit: she stops before saying it, and the question is still there.
+      : [...(option.recall.miss.length ? option.recall.miss : [{ k: 'line', kind: 'think', speaker: 'me', text: '……不對。不是這一句。' } as Beat]), pending.beat];
+    main.stack.push({ beats, i: 0 });
+    main.busyUntil = this.view.t;
+    this.bump();
+    this.advanceTo(this.view.t);
+  }
+
+  private openRecall(run: Run, index: number): void {
+    const pending = run.pendingChoice!;
+    const memories = this.recallable(pending.beat);
+    if (memories.length === 0) return;
+    pending.recallIndex = index;
+    pending.remaining = Number.isFinite(pending.deadline) ? Math.max(3000, pending.deadline - this.view.t) : Infinity;
+    pending.deadline = Infinity;
+    this.view.recall = { key: this.keyCounter++, memories };
+    this.out.audio.play('memory_keep', CENTER, { gain: 0.5 });
+    this.bump();
+  }
+
+  private triedRecall(beat: Beat): Set<string> {
+    let tried = this.recallTried.get(beat);
+    if (!tried) { tried = new Set(); this.recallTried.set(beat, tried); }
+    return tried;
+  }
+
+  private recallable(beat: Beat): Memory[] {
+    const tried = this.triedRecall(beat);
+    return this.save.memories.filter((memory) => !tried.has(memory.key));
+  }
+
+  /** 摸讀: a fingertip reached cell i (the UI decides whether it was slow enough to count). */
+  touchCell(index: number, clear: boolean): void {
+    if (this.view.interact?.type !== 'touch') return;
+    this.out.audio.play(clear ? 'braille_stylus' : 'cloth_rustle', CENTER, { gain: clear ? 0.35 : 0.25, rate: 1 + index * 0.03 });
+    if (clear) this.vibrate('tap');
+  }
+
+  touchDone(): void { this.finishInteract('touch', true); }
+
+  punchDot(): void {
+    if (this.view.interact?.type !== 'punch') return;
+    this.out.audio.play('braille_stylus', CENTER, { gain: 0.6 });
+    this.vibrate('tap');
+  }
+
+  punchDone(): void { this.finishInteract('punch', true); }
+
+  /** 聽聲辨位: she points toward where she thinks the sound is. */
+  locatePick(dir: Direction): void {
+    const main = this.runs.get('main');
+    const pending = main?.pendingInteract;
+    const view = this.view.interact;
+    if (!main || !pending || pending.beat.k !== 'locate' || view?.type !== 'locate') return;
+    if (directionsClose(dir, pending.beat.at)) { this.resolveInteract(main, true); this.advanceTo(this.view.t); return; }
+    pending.triesLeft -= 1;
+    this.out.audio.play('focus_shift', { dir, dist: 'mid' }, { gain: 0.5 });
+    if (pending.triesLeft <= 0) { this.resolveInteract(main, false); this.advanceTo(this.view.t); return; }
+    // After a wrong turn the sound is drawn as a faint ripple where it really is (for anyone without headphones).
+    this.view.interact = { ...view, triesLeft: pending.triesLeft, wrong: [...view.wrong, dir], hint: pending.beat.at };
+    this.ripple({ dir: pending.beat.at, dist: 'mid' });
+    this.bump();
+  }
+
+  private finishInteract(type: InteractView['type'], ok: boolean): void {
+    const main = this.runs.get('main');
+    if (!main?.pendingInteract || main.pendingInteract.beat.k !== type) return;
+    this.resolveInteract(main, ok);
+    this.advanceTo(this.view.t);
+  }
+
+  private startInteract(run: Run, beat: Extract<Beat, { k: 'touch' | 'locate' | 'punch' }>, t: number): void {
+    const timeoutMs = beat.k === 'locate' ? (beat.timeout !== undefined ? beat.timeout * 1000 : Infinity) : beat.timeout * 1000;
+    run.blocked = true;
+    run.pendingInteract = { beat, deadline: t + timeoutMs + SHIFT_MS, triesLeft: beat.k === 'locate' ? beat.tries : 1 };
+    if (this.view.focus !== 'main' && this.shift?.to !== 'main') this.beginShift('main');
+    const key = this.keyCounter++;
+    if (beat.k === 'touch') this.view.interact = { type: 'touch', key, cells: beat.cells, style: beat.style, prompt: beat.prompt };
+    if (beat.k === 'punch') this.view.interact = { type: 'punch', key, cells: beat.cells, label: beat.label, prompt: beat.prompt };
+    if (beat.k === 'locate') {
+      this.view.interact = { type: 'locate', key, prompt: beat.prompt, triesLeft: beat.tries, hint: null, wrong: [] };
+      this.repeatLocate(key, beat, t);
+    }
+    this.bump();
+  }
+
+  /** The sound keeps coming back until she points at it (or the moment passes). */
+  private repeatLocate(key: number, beat: Extract<Beat, { k: 'locate' }>, t: number): void {
+    if (this.view.interact?.key !== key) return;
+    this.out.audio.play(beat.sfx, { dir: beat.at, dist: 'mid' });
+    beat.decoys.forEach((decoy, index) => this.schedule(t + 500 + index * 420, () => {
+      if (this.view.interact?.key === key) this.out.audio.play(decoy.sfx, { dir: decoy.at, dist: 'mid' }, { gain: 0.8 });
+    }));
+    this.schedule(t + 2600, () => this.repeatLocate(key, beat, t + 2600));
+  }
+
+  private resolveInteract(run: Run, ok: boolean): void {
+    const pending = run.pendingInteract;
+    if (!pending) return;
+    run.pendingInteract = undefined;
+    run.blocked = false;
+    this.view.interact = null;
+    if (pending.beat.k === 'locate') run.stack.push({ beats: ok ? pending.beat.success : pending.beat.fail, i: 0 });
+    run.busyUntil = this.view.t;
+    this.bump();
   }
 
   /** Long-press: keep the line that is (or just was) heard clearly. */
@@ -296,6 +453,7 @@ export class Director {
     const chapter = this.chapter(key);
     this.save.chapter = chapter.key;
     this.flags = new Set();
+    this.recallTried = new WeakMap();
     this.seen = new Set();
     this.clearScene();
     this.shownArea = undefined;
@@ -361,6 +519,10 @@ export class Director {
   }
 
   private clearScene(): void {
+    this.view.recall = null;
+    this.view.interact = null;
+    this.setHeart('off');
+    this.setDaze('off');
     // Leaving a live scene, the last line lingers as an echo so it fades out with the world instead of blinking off.
     const live = this.view.phase === 'scene';
     const lingering = !live ? null
@@ -414,6 +576,7 @@ export class Director {
     this.save.chapter = nextKey;
     this.save.scene = null;
     this.flags = new Set();
+    this.recallTried = new WeakMap();
     this.seen = new Set();
     this.save.flags = [];
     this.save.seen = [];
@@ -457,6 +620,7 @@ export class Director {
       if (run.done) continue;
       if (run.line && !run.line.learnChecked && run.line.revealEnd <= target) next = Math.min(next, run.line.revealEnd);
       if (run.pendingChoice && run.pendingChoice.deadline <= target) next = Math.min(next, run.pendingChoice.deadline);
+      if (run.pendingInteract && run.pendingInteract.deadline <= target) next = Math.min(next, run.pendingInteract.deadline);
       if (!run.blocked && run.busyUntil <= target) next = Math.min(next, run.busyUntil);
     }
     return next;
@@ -473,6 +637,8 @@ export class Director {
         const option = run.pendingChoice.options[run.pendingChoice.fallback];
         this.applyChoice(run, option);
       }
+      // Hands and ears take their time, but the day does not stop: she gets there on her own, or misses it.
+      if (run.pendingInteract && run.pendingInteract.deadline <= t) this.resolveInteract(run, run.pendingInteract.beat.k !== 'locate');
       while (!run.done && !run.blocked && run.busyUntil <= this.view.t && this.view.phase === 'scene') {
         this.finishLine(run);
         this.step(run);
@@ -532,7 +698,8 @@ export class Director {
         if (beat.vib) this.vibrate(beat.vib);
         if (beat.text) this.addPeripheral('sfx', beat.text, beat.pos, t + SFX_TEXT_MS * (beat.pos.dist === 'far' ? 1.25 : 1));
         this.ripple(beat.pos);
-        if (beat.vib === 'crash' || beat.vib === 'thud') this.view.shake += 1;
+        const jolt = beat.shake ?? (beat.vib === 'crash' ? 'hard' : beat.vib === 'thud' ? 'light' : undefined);
+        if (jolt) this.jolt(jolt);
         if (HUSH_SFX.has(beat.id)) this.lifeHushUntil = t + HUSH_MS;
         run.busyUntil = t + (beat.text ? 650 : 150);
         this.bump();
@@ -543,9 +710,13 @@ export class Director {
       case 'pause': run.busyUntil = t + beat.seconds * 1000; return;
       case 'wait': this.startWait(run, beat, t, beat.seconds * 1000, topLevelIndex); return;
       case 'vib': this.vibrate(beat.id); run.busyUntil = t; return;
+      case 'shake': this.jolt(beat.level); this.vibrate(beat.level === 'hard' ? 'crash' : 'thud'); run.busyUntil = t; this.bump(); return;
+      case 'heart': this.setHeart(beat.level); run.busyUntil = t; return;
+      case 'daze': this.setDaze(beat.level); run.busyUntil = t; return;
       case 'clock': this.view.clock = beat.time; run.busyUntil = t; this.bump(); return;
       case 'cue': this.startThread(beat, t); run.busyUntil = t + 400; return;
       case 'choice': this.offerChoice(run, beat, t); return;
+      case 'touch': case 'locate': case 'punch': this.startInteract(run, beat, t); return;
       case 'if': run.stack.push({ beats: evalCond(beat.cond, this.condContext()) ? beat.then : beat.else, i: 0 }); run.busyUntil = t; return;
       case 'set': beat.flags.forEach((flag) => this.flags.add(flag)); run.busyUntil = t; return;
       case 'learn': beat.ids.forEach((id) => this.learn(id)); run.busyUntil = t; return;
@@ -562,6 +733,7 @@ export class Director {
 
   private startLine(run: Run, beat: LineBeat, t: number): void {
     const timing = lineTiming(beat.text, beat.kind, this.settings.textSpeed);
+    if (beat.shake) this.jolt(beat.shake);
     const pos = this.posFor(run, beat);
     const focused = this.view.focus === run.id && !this.shift;
     const label = beat.kind === 'char' ? beat.label ?? SPEAKER_LABELS[beat.speaker] : beat.kind === 'phone' ? beat.label ?? SPEAKER_LABELS.phone : beat.label;
@@ -673,17 +845,20 @@ export class Director {
 
   private offerChoice(run: Run, beat: Extract<Beat, { k: 'choice' }>, t: number): void {
     const ctx = this.condContext();
-    const options = beat.options.filter((option) => !option.cond || evalCond(option.cond, ctx));
+    const canRecall = this.recallable(beat).length > 0;
+    const options = beat.options.filter((option) => (!option.cond || evalCond(option.cond, ctx)) && (!option.recall || canRecall));
     const original = beat.default !== undefined ? beat.options[beat.default] : undefined;
-    const fallback = original ? Math.max(0, options.indexOf(original)) : options.length - 1;
+    // Silence falls back to the default, or the last ordinary option; never to "想起一句話".
+    const lastPlain = options.map((option) => !option.recall).lastIndexOf(true);
+    const fallback = original ? Math.max(0, options.indexOf(original)) : Math.max(0, lastPlain);
     const timeoutMs = beat.timeout !== undefined ? beat.timeout * 1000 : Infinity;
     run.blocked = true;
-    run.pendingChoice = { options, deadline: t + timeoutMs + SHIFT_MS, fallback };
+    run.pendingChoice = { beat, options, deadline: t + timeoutMs + SHIFT_MS, fallback };
     // Someone is asking her something: attention comes back.
     if (this.view.focus !== 'main' && this.shift?.to !== 'main') this.beginShift('main');
     this.view.choice = {
       key: this.keyCounter++,
-      options: options.map((option, index) => ({ text: option.text, index })),
+      options: options.map((option, index) => ({ text: option.text, index, recall: option.recall ? true : undefined })),
       startedAt: t,
       timeout: beat.timeout,
     };
@@ -852,6 +1027,37 @@ export class Director {
     this.view.ripples = [...this.view.ripples, { key: this.keyCounter++, pos }];
   }
 
+  private jolt(level: ShakeLevel): void {
+    this.view.shake += 1;
+    this.view.shakeLevel = level;
+  }
+
+  /** Her heart keeps beating on the scene clock (so it pauses with the game) until changed or the scene ends. */
+  private setHeart(level: HeartLevel): void {
+    if ((this.view.heart?.level ?? 'off') === level) return;
+    const gen = ++this.heartGen;
+    if (level === 'off') { this.view.heart = null; this.bump(); return; }
+    const beatOnce = () => {
+      if (gen !== this.heartGen || !this.view.heart) return;
+      const heart = HEART[this.view.heart.level];
+      this.out.audio.play('heartbeat', CENTER, { gain: heart.gain, rate: heart.rate });
+      if (heart.vib) this.vibrate('heartbeat');
+      this.view.heart = { ...this.view.heart, beat: this.view.heart.beat + 1 };
+      this.bump();
+      this.schedule(this.view.t + heart.ms, beatOnce);
+    };
+    this.view.heart = { level, beat: this.view.heart?.beat ?? 0 };
+    beatOnce();
+  }
+
+  private setDaze(level: DazeLevel): void {
+    const next = level === 'off' ? null : level;
+    if (this.view.daze === next) return;
+    this.view.daze = next;
+    this.out.audio.setDaze(level === 'heavy' ? 1 : level === 'light' ? 0.55 : 0);
+    this.bump();
+  }
+
   private vibrate(id: VibrationId): void { if (this.settings.vibration) this.out.vibrate(id); }
 
   private persist(): void { this.out.persist(this.save); }
@@ -865,7 +1071,7 @@ export class Director {
   private emptyView(): View {
     return {
       phase: 'idle', brief: false, t: 0, center: null, echo: null, periph: [], ripples: [], choice: null, focus: null, shiftingTo: null,
-      waiting: null, keep: null, memoryCount: this.save.memories.length, shake: 0, chapterKey: this.save.chapter, loop: this.save.loop,
+      waiting: null, keep: null, recall: null, interact: null, memoryCount: this.save.memories.length, shake: 0, shakeLevel: 'light', heart: null, daze: null, chapterKey: this.save.chapter, loop: this.save.loop,
     };
   }
 
@@ -890,7 +1096,8 @@ export function learnIdsOf(chapter: Chapter): string[] {
       if (beat.k === 'learn') ids.push(...beat.ids);
       if (beat.k === 'line' && beat.learn) ids.push(beat.learn);
       if (beat.k === 'if') { visit(beat.then); visit(beat.else); }
-      if (beat.k === 'choice') beat.options.forEach((option) => visit(option.then));
+      if (beat.k === 'locate') { visit(beat.success); visit(beat.fail); }
+      if (beat.k === 'choice') beat.options.forEach((option) => { visit(option.then); option.recall?.accept.forEach((entry) => visit(entry.then)); });
     }
   };
   for (const scene of chapter.scenes) { visit(scene.beats); Object.values(scene.threads).forEach(visit); }
@@ -903,4 +1110,12 @@ export function toChineseNumber(value: number): string {
   if (value < 20) return `十${value % 10 ? DIGITS[value % 10] : ''}`;
   if (value < 100) return `${DIGITS[Math.floor(value / 10)]}十${value % 10 ? DIGITS[value % 10] : ''}`;
   return String(value);
+}
+
+/** Pointing within 45° counts; so does the front/back mirror, which headphones often blur. */
+function directionsClose(picked: Direction, target: Direction): boolean {
+  const diff = (x: number, y: number) => { const d = Math.abs(x - y) % 360; return Math.min(d, 360 - d); };
+  const a = DIRECTION_ANGLE[picked];
+  const b = DIRECTION_ANGLE[target];
+  return diff(a, b) <= 45 || diff(a, (540 - b) % 360) === 0;
 }

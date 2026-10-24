@@ -1,3 +1,4 @@
+import { DIRECTIONS } from '../src/audio/catalog';
 import { Director } from '../src/engine/director';
 import { freshSave, type GameSave } from '../src/engine/save';
 import { loadGameScript } from '../src/script/load';
@@ -22,6 +23,7 @@ export function silentAudio(log: string[] = []): AudioEngine {
     play: (id) => { log.push(`sfx:${id}`); },
     voice: noop,
     setAttention: noop,
+    setDaze: (level: number) => { log.push(`daze:${level}`); },
     duck: noop,
     silence: noop,
     suspend: noop,
@@ -74,6 +76,15 @@ export function autoplay(options: { seed: number; maxLoops: number; startChapter
       director.hurry();
     }
     if (view.keep) director.skipKeep();
+    if (view.interact && random() < 0.3) {
+      if (view.interact.type === 'touch') director.touchDone();
+      else if (view.interact.type === 'punch') director.punchDone();
+      else director.locatePick(DIRECTIONS[Math.floor(random() * DIRECTIONS.length)]);
+    }
+    if (view.recall) {
+      const pick = view.recall.memories[Math.floor(random() * (view.recall.memories.length + 1))];
+      director.recallPick(pick ? pick.key : null);
+    }
     if (view.center?.perceived && random() < 0.01) director.capture();
     // Story progress only: background life keeps the view changing even when the story is stuck.
     const mark = () => `${director.view.phase}|${director.view.sceneId}|${director.view.center?.key}|${director.view.choice?.key}|${director.view.waiting?.startedAt}|${director.save.loop}`;

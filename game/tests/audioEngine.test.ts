@@ -7,6 +7,7 @@ import { AMBIENT_EVENTS, HUMAN_SFX, SFX_RECIPES } from '../src/audio/sounds';
 import { AMBIENCE_SAMPLES, SFX_SAMPLES, SampleBank, sampleRecipe, sampleUrl } from '../src/audio/samples';
 import credits from '../public/audio/CREDITS.md?raw';
 import { ATTRIBUTION_CREDITS } from '../src/audio/credits';
+import { parseSoundSources } from '../src/audio/sourceList';
 
 // ------------------------------------------------------------------ a strict fake Web Audio API
 // It throws (and records) wherever a real browser would throw, so recipe bugs surface here even
@@ -547,6 +548,17 @@ describe('sample manifest', () => {
     for (const line of attributed) {
       const url = line.match(/https:\/\/freesound\.org\/people\/[^ ]+\/sounds\/\d+\//)?.[0];
       expect(ATTRIBUTION_CREDITS.some((credit) => credit.url === url), line.slice(0, 80)).toBe(true);
+    }
+  });
+
+  it('lists every credited recording in the 參考資料 tab', () => {
+    const sources = parseSoundSources(credits);
+    const urls = new Set(credits.match(/https:\/\/freesound\.org\/people\/[^ ;]+\/sounds\/\d+\//g));
+    expect(sources.map((source) => source.url).sort()).toEqual([...urls].sort());
+    for (const source of sources) {
+      expect(source.license, source.url).toMatch(/^(CC0|CC BY [\d.]+)$/);
+      expect(source.title && source.author, source.url).toBeTruthy();
+      for (const use of source.uses) expect(use, source.url).not.toMatch(/^[a-z0-9_]+$/);
     }
   });
 
