@@ -1,3 +1,4 @@
+import type { LifeEvent } from '../engine/life';
 import type { AmbienceId, Direction, Distance, SfxId, VibrationId, VoiceId } from '../audio/catalog';
 
 export type Pos = { dir: Direction | 'center'; dist: Distance };
@@ -53,6 +54,8 @@ export type Scene = {
   beats: Beat[];
   threads: Record<string, Beat[]>;
   next?: string;
+  /** Extra background life for this scene only, or 'off' to keep it silent. */
+  life?: LifeEvent[] | 'off';
 };
 
 export type Chapter = {

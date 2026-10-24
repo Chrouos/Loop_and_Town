@@ -76,7 +76,7 @@ scenes:
   # ─────────────────────────── 08:20 電話 ───────────────────────────
   - id: c6_calls
     time: "08:20"
-    place: 老家，客廳
+    place: 林家老屋，客廳
     ambience: [old_house]
     cast: { ruoqing: right, boxun: right, tingan: right, yuan: front }
     beats:
@@ -129,7 +129,7 @@ scenes:
   # ─────────────────────────── 白天：時段 ───────────────────────────
   - id: c6_h0930
     time: "09:30"
-    place: 老家門口
+    place: 林家老屋門口
     ambience: [street_morning]
     beats:
       - { sfx: door_close, at: back, dist: near, text: 碰 }
@@ -297,8 +297,13 @@ scenes:
 
   # ─────────────────────────── 私人紙本：擦掉的一行 ───────────────────────────
   - id: c6_note
-    place: 老家，知夏的房間
+    place: 林家老屋，知夏的房間
     ambience: [room_tone]
+    life:
+      - { text: 沙啦, sfx: page_turn, at: [front, front-left, front-right], dist: near }
+      - { text: 沙…… 沙……, at: [front], dist: near }
+      - { text: 喀, at: [front-left, front-right], dist: mid }
+      - { text: 唰, sfx: paper_rustle, at: [front], dist: near }
     beats:
       - set: c6_d_note
       - { sfx: door_creak, at: front, dist: near, text: 吱—— }
@@ -378,13 +383,13 @@ scenes:
       - { old_woman: 就周家那個兒子，予安。, as: 館員 }
       - { old_woman: 他說這本在他店裡放了五年，知夏放的，一直沒拿來還。, as: 館員 }
       - { old_woman: 逾期的錢我說不用了啦。五年耶，要算到什麼時候。, as: 館員 }
-      - { old_woman: 他放下書就走了，說要趕郵局最後一次收信。, as: 館員 }
+      - { old_woman: 他放下書就走了，說要去郵局門口丟一封信。, as: 館員 }
       - if: know.k_postmark_yesterday
         then:
           - think: 郵戳是昨天。
       - pause: 1.5
       - me: 他最近常來嗎？
-      - { old_woman: 那個禮拜來好幾次。還跟我們借了點字板。, as: 館員 }
+      - { old_woman: 這禮拜來好幾次。還跟我們借了點字板。, as: 館員 }
       - { old_woman: 樓下無障礙那邊有一塊，鎮公所補助的，從來沒人借過。, as: 館員 }
       - { old_woman: 他說要幫一個客人弄東西。到現在還沒拿回來，我也不好意思催。, as: 館員 }
       - if: know.k_slate_in_shop
@@ -801,14 +806,14 @@ scenes:
           - think: 這是真話。
         else:
           - narr: 我沒有進去。若晴在裡面跟店長說笑，笑到一半咳了兩聲。
-          - think: 東牆，灰色的櫃子。點字底下的鉛筆字。我把它們都帶回家。
+          - think: 東牆，灰色的櫃子，點字底下的鉛筆字。我把它們都帶回家。
       - narr: 天在變涼。我知道，是因為手杖的握把冷了。
     next: c6_table
 
   # ─────────────────────────── 17:40 桌子 ───────────────────────────
   - id: c6_table
     time: "17:40"
-    place: 老家，客廳
+    place: 林家老屋，客廳
     ambience: [old_house]
     cast: { tingan: front-right }
     beats:
@@ -928,7 +933,7 @@ scenes:
   # ─────────────────────────── 18:31 信 ───────────────────────────
   - id: c6_1831
     time: "18:20"
-    place: 老家，客廳
+    place: 林家老屋，客廳
     ambience: [house_night]
     cast: { ruoqing: right, boxun: right }
     beats:
@@ -954,7 +959,7 @@ scenes:
       - pause: 2.5
       - think: 她沒有在紙的另一面回答我。
       - { sfx: paper_rustle, at: center, dist: near, text: 沙 }
-      - narr: 我把信紙翻過來。背面是一格一格的小凹洞。點字板是從這一面壓的，左右要反過來打。
+      - narr: 我把信紙翻過來，背面是一格一格的小凹洞。點字板是從這一面壓的，左右要反過來打。
       - narr: 有幾格壓得特別深，有一格歪了。還有一格摸起來毛毛的，像打錯了，又用指甲把它推平。
       - think: 機器不會打錯。這是一個剛學的人，對著表一格一格壓出來的。
       - if: know.k_pencil_under_braille
@@ -976,7 +981,7 @@ scenes:
   # ─────────────────────────── 20:30 等（兩條線索都沒拿到） ───────────────────────────
   - id: c6_wait
     time: "20:30"
-    place: 老家，客廳
+    place: 林家老屋，客廳
     ambience: [house_night, night_insects]
     beats:
       - narr: 我沒有開燈，反正開了也一樣。冰箱嗡嗡地轉，轉一轉又歇下來。
@@ -990,7 +995,7 @@ scenes:
   # ─────────────────────────── 21:30 他自己來了 ───────────────────────────
   - id: c6_visit
     time: "21:30"
-    place: 老家，客廳
+    place: 林家老屋，客廳
     ambience: [house_night, night_insects]
     cast: { yuan: front }
     beats:
@@ -1030,7 +1035,7 @@ scenes:
       - yuan: ……林家的？這麼晚了。
       - yuan: 請、請坐。椅子在妳左手邊。
       - { sfx: chair_scrape, at: front-left, dist: near, text: 嘎 }
-      - narr: 櫃台上攤滿了東西。紙、鐵盒、一疊收據，邊角軟得像布。他在清抽屜。
+      - narr: 櫃台上攤滿了紙、鐵盒、一疊收據，邊角軟得像布。他在清抽屜。
       - if: know.k_slate_in_shop
         then:
           - narr: 我的手順著櫃台往前，碰到一個鋁框，一排一排的小格子。
@@ -1196,7 +1201,7 @@ scenes:
   # ─────────────────────────── 22:40 ───────────────────────────
   - id: c6_night
     time: "22:40"
-    place: 老家，知夏的房間
+    place: 林家老屋，知夏的房間
     ambience: [house_night, night_insects]
     beats:
       - narr: 窗外的蟲一直叫。我把客廳那些卡收進抽屜，信沒有收，放在枕頭旁邊。
@@ -1213,7 +1218,7 @@ scenes:
   # ─────────────────────────── 23:59 鐘聲 ───────────────────────────
   - id: c6_bell
     time: "23:59"
-    place: 老家門口的台階
+    place: 林家老屋門口的台階
     ambience: [tower_square_night]
     beats:
       - narr: 我坐在門口的台階上，信放在膝蓋上。

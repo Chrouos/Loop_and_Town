@@ -103,7 +103,7 @@ scenes:
   # ─────────────────────────── 08:30 電話（分散） ───────────────────────────
   - id: c4_calls
     time: "08:30"
-    place: 老家，客廳
+    place: 林家老屋，客廳
     ambience: [old_house]
     cast: { ruoqing: right, yuan: left, old_woman: right }
     beats:
@@ -292,6 +292,7 @@ scenes:
       - { cue: radio, at: back-right, text: 嘶嘶——, sfx: static_burst }
       - { sfx: drawer, at: front-right, dist: mid, text: 喀啦 }
       - narr: 抽屜推回去的時候，又卡了兩次。
+      - { wait: 10 }
     next: c4_hospital
 
   # ─────────────────────────── 11:40 醫院 ───────────────────────────
@@ -588,7 +589,7 @@ scenes:
             - text: （聽那排機器）
               then:
                 - { sfx: relay_click, at: left, dist: mid, text: 喀 }
-                - narr: 喀。停。喀。像一個人一直在改主意。
+                - narr: 喀，停，喀。像一個人一直在改主意。
     next: c4_saw
 
   # ─────────────────────────── 17:40 她看過 ───────────────────────────
@@ -639,7 +640,7 @@ scenes:
   # ─────────────────────────── 記憶 ───────────────────────────
   - id: c4_memory
     time: 五年前
-    place: 記憶｜老家玄關
+    place: 記憶｜林家老屋玄關
     ambience: [street_evening]
     cast: { zhixia: front }
     beats:
@@ -838,12 +839,13 @@ scenes:
                 - narr: 他把我的碗，往我這邊推了一點。
       - { cue: kitchen, at: right, text: 鏘、嘶——, sfx: glass_clink }
       - narr: 麵已經不太燙了。我們把它吃完。
+      - { wait: 12 }
     next: c4_bell
 
   # ─────────────────────────── 23:59 鐘聲 ───────────────────────────
   - id: c4_bell
     time: "23:50"
-    place: 老家門口
+    place: 林家老屋門口
     ambience: [tower_square_night, night_insects]
     cast: { yuan: back-right }
     beats:

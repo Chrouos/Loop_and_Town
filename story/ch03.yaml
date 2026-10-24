@@ -53,7 +53,7 @@ scenes:
           - think: 這段我連他在哪裡換氣都背得出來。
         else:
           - think: 像兩個人在對台詞，只是只有我手上拿著劇本。
-      - yuan: 請、請扶著我的左手肘。前面有樓梯。
+      - yuan: 請扶著我的左手肘。前面有樓梯。
       - me: 予安，你今天傍晚可以待在店裡嗎？
       - yuan: 店裡？我晚上八點本來就——
       - me: 八點以前就好。六點到七點，不要出門。
@@ -80,7 +80,7 @@ scenes:
   # ─────────────────────────────────────────── 08:40
   - id: c3_calls_morning
     time: "08:40"
-    place: 老家，客廳
+    place: 林家老屋，客廳
     ambience: [old_house]
     cast: { yuan: front, tingan: right, zhiyuan: right }
     beats:
@@ -152,7 +152,7 @@ scenes:
           - { old_man: 舊城更新工程，本週持續進行……, as: 收音機, at: left }
           - { old_man: 請用路人注意改道標示。, as: 收音機, at: left }
     beats:
-      - yuan: 這邊人多。請扶著……我的左手肘。
+      - yuan: 這邊人多，扶著我。
       - narr: 騎樓底下飄出炸雞排的油味，腳底是新換的地磚，遠一點有人按腳踏車鈴。
       - { cue: radio, at: left, text: 沙沙——, sfx: static_burst }
       - narr: 有台收音機在店門口唱老歌，唱到一半變成新聞。
@@ -653,7 +653,7 @@ scenes:
   # ─────────────────────────────────────────── 22:40
   - id: c3_note
     time: "22:40"
-    place: 老家，知夏的房間
+    place: 林家老屋，知夏的房間
     ambience: [house_night]
     beats:
       - narr: 冰箱在樓下低低地轉，窗外的蟲叫個不停。
@@ -677,7 +677,7 @@ scenes:
   # ─────────────────────────────────────────── 23:10
   - id: c3_visit
     time: "23:10"
-    place: 老家，客廳
+    place: 林家老屋，客廳
     ambience: [house_night]
     cast: { boxun: front }
     beats:
@@ -717,7 +717,7 @@ scenes:
   # ─────────────────────────────────────────── 23:59
   - id: c3_bell
     time: "23:59"
-    place: 老家門外的街上
+    place: 林家老屋門外的街上
     ambience: [tower_square_night]
     cast: { man: right, woman: right }
     threads:

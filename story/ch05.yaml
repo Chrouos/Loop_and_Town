@@ -601,7 +601,7 @@ scenes:
   # ─────────────────────────── 23:59 鐘聲 ───────────────────────────
   - id: c5_bell
     time: "23:50"
-    place: 老家門口
+    place: 林家老屋門口
     ambience: [tower_square_night, night_insects]
     cast: { yuan: back-right }
     beats:

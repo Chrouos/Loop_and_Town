@@ -428,7 +428,7 @@ scenes:
       - think: 不要回來。
       - think: 第一次我以為是惡作劇，後來以為是警告。再後來，我以為她在紙的另一邊等我。
       - think: 昨天晚上，予安說是他寄的。字是她寫的，點是他打的。
-      - narr: 我把指甲放輕，貼著凸點之間的縫往下找。有一道很淺的凹痕，往下走，轉了一個彎。
+      - narr: 我把信紙翻到背面，指甲放輕，貼著那些小凹洞之間的縫往下找。有一道很淺的凹痕，往下走，轉了一個彎。
       - if: know.k_erased_line
         then:
           - think: 跟筆記本那一頁是同一個轉彎。連鉛筆，她都壓得出痕跡。
@@ -691,7 +691,7 @@ scenes:
             - text: （不回答，把整疊信推到他那邊）
               then:
                 - narr: 信封的邊角擦過玻璃櫃台，沙的一聲停在他手邊。
-      - yuan: 請、請等我一下。我拿拆信刀。
+      - yuan: 等我一下，我拿拆信刀。
       - { sfx: drawer, at: front, dist: near, text: 喀啦 }
       - yuan: 照郵戳的順序？
       - me: 嗯。
@@ -883,7 +883,7 @@ scenes:
   # ─────────────────────────── 22:50 ───────────────────────────
   - id: c7_night
     time: "22:50"
-    place: 老家，知夏的房間
+    place: 林家老屋，知夏的房間
     ambience: [house_night, night_insects]
     beats:
       - { sfx: door_creak, at: front, dist: near, text: 吱—— }
@@ -893,7 +893,7 @@ scenes:
       - think: 第六封說，妳一定要自己選。第七封說，不要回來。
       - think: 同一個秋天，她寫了這兩句。一句寄給我，一句交給予安。
       - pause: 2
-      - think: 十四，十九，二十三。每一個數字，都是一個她覺得還不夠好的今天。所以她再試一次。
+      - think: 十四，十九，二十三。每一個數字，都是一個她覺得還不夠好的今天，所以她再試一次。
       - think: 我也是。
       - pause: 2
       - think: 知夏在算，我也在算。沒有人問過那些被算的人，要不要被算。
@@ -905,7 +905,7 @@ scenes:
   # ─────────────────────────── 23:59 鐘聲 ───────────────────────────
   - id: c7_bell
     time: "23:59"
-    place: 老家，知夏的房間，窗邊
+    place: 林家老屋，知夏的房間，窗邊
     ambience: [tower_square_night]
     beats:
       - { sfx: wind_gust, at: front-left, dist: mid, text: 颯 }

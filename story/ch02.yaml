@@ -55,7 +55,7 @@ scenes:
       - me: 車沒誤點。
       - yuan: 灰潮鎮唯一還算準時的東西。
       - think: 他接下來會說什麼，我都知道。我把那些話轉小聲，當成隔壁房間的收音機。
-      - yuan: 請、請扶著我的左手肘。前面有樓梯。
+      - yuan: 請扶著我的左手肘。前面有樓梯。
       - narr: 他袖口那股機油和黃銅的味道，又沾到我的手心上。
       - { sfx: construction_drill, at: left, dist: far, text: 嗡嗡嗡 }
       - think: 八點鐘樓不會響。這次我不用站在廣場上等它。
@@ -64,7 +64,7 @@ scenes:
   # ─────────────────────────────────────────── 08:10
   - id: c2_house
     time: "08:10"
-    place: 老家
+    place: 林家老屋
     ambience: [old_house]
     cast: { yuan: front }
     beats:
@@ -470,7 +470,7 @@ scenes:
       - if: flag.yuan_with_me
         then:
           - { yuan: 我們先走。, at: back-right }
-          - yuan: 妳在發抖。請……請扶著我的左手肘。
+          - yuan: 妳在發抖。扶著我。
     next: c2_after
 
   # ─────────────────────────────────────────── 18:00 咖啡店
@@ -678,7 +678,7 @@ scenes:
   # ─────────────────────────────────────────── 22:40
   - id: c2_night
     time: "22:40"
-    place: 老家，知夏的房間
+    place: 林家老屋，知夏的房間
     ambience: [house_night]
     cast: { yuan: back }
     beats:
@@ -715,7 +715,7 @@ scenes:
   # ─────────────────────────────────────────── 23:59
   - id: c2_bell
     time: "23:59"
-    place: 老家門口
+    place: 林家老屋門口
     ambience: [night_insects, wind_open]
     beats:
       - { sfx: door_open, at: back, dist: near, text: 吱 }
