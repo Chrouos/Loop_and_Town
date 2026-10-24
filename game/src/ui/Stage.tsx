@@ -1,6 +1,7 @@
 import { Fragment, cloneElement, useEffect, useLayoutEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactElement } from 'react';
 import { ECHO_MS, type Card, type CenterLine, type Director, type Peripheral, type View } from '../engine/director';
 import { interpolateClock, leanOf, placeLabel, type Box } from './geometry';
+import { Interaction } from './Interactions';
 import type { Pos } from '../script/types';
 
 const HOLD_MS = 560;
@@ -154,19 +155,21 @@ function placeSounds(root: HTMLElement, periph: Peripheral[], ripples: View['rip
 type Props = { director: Director; view: View; onCapture: () => void; firstCueHint: boolean; onCueHintShown: () => void };
 
 export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown }: Props) {
-  const [shaking, setShaking] = useState(false);
+  const [shaking, setShaking] = useState<View['shakeLevel'] | null>(null);
   const lastShake = useRef(view.shake);
   useEffect(() => {
     if (view.shake === lastShake.current) return;
     lastShake.current = view.shake;
-    setShaking(true);
-    const timer = window.setTimeout(() => setShaking(false), 440);
+    setShaking(view.shakeLevel);
+    const timer = window.setTimeout(() => setShaking(null), view.shakeLevel === 'hard' ? 760 : 380);
     return () => window.clearTimeout(timer);
-  }, [view.shake]);
+  }, [view.shake]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Two identical animations swapped every beat, so each beat restarts the pulse.
+  const heart = view.heart ? ` heart-${view.heart.level} beat-${view.heart.beat % 2}` : '';
 
   const shifting = view.shiftingTo !== null || (view.phase === 'scene' && view.focus === null);
   const focusPos = view.focus && view.focus !== 'main' ? view.periph.find((item) => item.kind === 'cue' && item.thread === view.focus)?.pos : undefined;
-  const className = ['lt-stage', `phase-${view.phase}`, view.phase === 'out' && view.brief ? 'brief' : '', shifting ? 'shifting' : '', shaking ? 'shake' : ''].join(' ');
+  const className = ['lt-stage', `phase-${view.phase}`, view.phase === 'out' && view.brief ? 'brief' : '', shifting ? 'shifting' : '', shaking ? `shake shake-${shaking}` : '', director.settings.motion ? '' : 'still'].join(' ');
   const firstCue = firstCueHint ? view.periph.find((item) => item.kind === 'cue' && item.thread !== view.focus) : undefined;
 
   useEffect(() => { if (firstCue) onCueHintShown(); }, [firstCue?.key]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -212,31 +215,39 @@ export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown 
 
   return (
     <div className={className} ref={root}>
+      <div className={`lt-heart${heart}`} aria-hidden="true" />
       <div className="lt-world">
-        {view.ripples.map((ripple) => <div key={ripple.key} data-key={ripple.key} className={`lt-ripple dist-${ripple.pos.dist}`} />)}
-        {turn && <div className={`lt-turn${turnGone ? ' gone' : ''}`} />}
+        <div className={`lt-daze${view.daze ? ` daze-${view.daze}` : ''}`}>
+          <div className={`lt-body${heart}`}>
+            {view.ripples.map((ripple) => <div key={ripple.key} data-key={ripple.key} className={`lt-ripple dist-${ripple.pos.dist}`} />)}
+            {turn && <div className={`lt-turn${turnGone ? ' gone' : ''}`} />}
 
-        {periph.map(({ item, gone }) => {
-          const looked = lastLook.current.get(item.key);
-          if (gone && looked) {
-            return cloneElement(looked, { className: `${looked.props.className as string} gone`, disabled: true, tabIndex: -1, onClick: undefined, 'aria-hidden': true });
-          }
-          if (gone) return null;
-          const element = renderPeriph(item);
-          lastLook.current.set(item.key, element);
-          return element;
-        })}
+            {periph.map(({ item, gone }) => {
+              const looked = lastLook.current.get(item.key);
+              if (gone && looked) {
+                return cloneElement(looked, { className: `${looked.props.className as string} gone`, disabled: true, tabIndex: -1, onClick: undefined, 'aria-hidden': true });
+              }
+              if (gone) return null;
+              const element = renderPeriph(item);
+              lastLook.current.set(item.key, element);
+              return element;
+            })}
 
-        <div className="lt-center">
-          <div className="lt-center-inner" style={{ transform: focusPos ? leanOf(focusPos) : undefined }}>
-            {lines.map(({ line, role }) => <Line key={line.key} line={line} role={role} director={director} view={view} onCapture={onCapture} />)}
+            <div className="lt-center">
+              <div className="lt-center-inner" style={{ transform: focusPos ? leanOf(focusPos) : undefined }}>
+                {lines.map(({ line, role }) => <Line key={line.key} line={line} role={role} director={director} view={view} onCapture={onCapture} />)}
+              </div>
+            </div>
+
+            {choice && !view.recall && <Choices director={director} choice={choice} gone={choiceGone} />}
+            {waiting && <Waiting gone={waitingGone} />}
           </div>
         </div>
-
-        {choice && <Choices director={director} choice={choice} gone={choiceGone} />}
-        {waiting && <Waiting gone={waitingGone} />}
       </div>
 
+      {/* What her hands do stays still and sharp, even while her body shakes or the room swims. */}
+      {view.recall && <RecallPicker director={director} recall={view.recall} />}
+      {view.interact && <Interaction director={director} interact={view.interact} />}
       {card && <CardView card={card} phase={cardPhase.current} gone={cardGone} />}
       {(view.clock || view.place) && view.phase !== 'idle' && (
         <div className="lt-where" aria-hidden="true">
@@ -385,7 +396,7 @@ function Choices({ director, choice, gone }: { director: Director; choice: NonNu
         <button
           key={index}
           type="button"
-          className="lt-choice"
+          className={`lt-choice${option.recall ? ' recall' : ''}`}
           disabled={gone}
           style={{ animationDelay: `${index * 140}ms, ${index * 140}ms` }}
           onClick={(event) => { event.stopPropagation(); director.choose(option.index); }}
@@ -394,6 +405,30 @@ function Choices({ director, choice, gone }: { director: Director; choice: NonNu
         </button>
       ))}
       {timeoutMs > 0 && <div className="lt-timer" />}
+    </div>
+  );
+}
+
+const RECALL_HINT_KEY = 'listening-town-recall-hint';
+
+/** Memory Input: the lines she carried past midnight, one of which she may say out loud. */
+export function RecallPicker({ director, recall }: { director: Director; recall: NonNullable<View['recall']> }) {
+  const [firstTime] = useState(() => { try { return localStorage.getItem(RECALL_HINT_KEY) !== 'done'; } catch { return false; } });
+  useEffect(() => { try { localStorage.setItem(RECALL_HINT_KEY, 'done'); } catch { /* ignore */ } }, []);
+  return (
+    <div className="lt-recall" key={recall.key} role="dialog" aria-label="想起一句話" onPointerUp={(event) => event.stopPropagation()}>
+      <div className="lt-recall-head">想起一句話</div>
+      {firstTime && <div className="lt-recall-hint">挑一句妳記得的話，說出口。對方聽不懂也沒關係，可以再選別的。</div>}
+      <div className="lt-recall-list">
+        {recall.memories.map((memory, index) => (
+          <button key={memory.key} type="button" className="lt-recall-item" onClick={() => director.recallPick(memory.key)}>
+            <span className="lt-key">{index + 1}</span>
+            <span className="lt-recall-text">{memory.kind === 'me' ? `「${memory.text}」` : memory.text}</span>
+            <span className="lt-recall-meta">{[memory.label, memory.clock, memory.place].filter(Boolean).join(' · ')}</span>
+          </button>
+        ))}
+      </div>
+      <button type="button" className="lt-recall-cancel" onClick={() => director.recallPick(null)}>算了</button>
     </div>
   );
 }

@@ -2,11 +2,11 @@ import { load } from 'js-yaml';
 import { DISTANCES, VOICES, isAmbience, isDirection, isSfx, VIBRATIONS, type Direction, type Distance, type SfxId, type VibrationId, type VoiceId } from '../audio/catalog';
 import type { LifeEvent } from '../engine/life';
 import { parseCond } from './conditions';
-import type { Beat, Chapter, ChoiceOption, EndKind, LineBeat, Pos, Scene } from './types';
+import { DAZE_LEVELS, HEART_LEVELS, SHAKE_LEVELS, type Beat, type Chapter, type ChoiceOption, type DazeLevel, type EndKind, type HeartLevel, type LineBeat, type Pos, type Scene, type ShakeLevel } from './types';
 
 export const CHARACTER_KEYS = ['yuan', 'ruoqing', 'boxun', 'tingan', 'zhiyuan', 'zhixia', 'man', 'woman', 'child', 'old_man', 'old_woman', 'announcer'] as const;
 const LINE_KEYS = new Set<string>(['narr', 'me', 'think', 'phone', ...CHARACTER_KEYS]);
-const LINE_ATTRS = new Set(['at', 'as', 'learn', 'mem', 'dist']);
+const LINE_ATTRS = new Set(['at', 'as', 'learn', 'mem', 'dist', 'shake']);
 const END_KINDS: EndKind[] = ['reset', 'ending_a', 'ending_b', 'ending_c'];
 
 type Errors = string[];
@@ -54,6 +54,13 @@ function vib(value: unknown, where: string, errors: Errors): VibrationId | undef
   return id as VibrationId;
 }
 
+function shake(value: unknown, where: string, errors: Errors): ShakeLevel | undefined {
+  if (value === undefined) return undefined;
+  const level = String(value);
+  if (!(SHAKE_LEVELS as readonly string[]).includes(level)) { errors.push(`${where}：未知震動強度「${level}」（${SHAKE_LEVELS.join('／')}）`); return undefined; }
+  return level as ShakeLevel;
+}
+
 function parseLine(key: string, raw: Obj, where: string, errors: Errors): LineBeat | undefined {
   const text = str(raw[key]);
   if (!text || text.trim().length === 0) { errors.push(`${where}：「${key}」沒有文字`); return undefined; }
@@ -67,6 +74,7 @@ function parseLine(key: string, raw: Obj, where: string, errors: Errors): LineBe
   if (raw.as !== undefined) line.label = String(raw.as);
   if (raw.learn !== undefined) line.learn = String(raw.learn);
   if (raw.mem !== undefined) line.mem = String(raw.mem);
+  if (raw.shake !== undefined) line.shake = shake(raw.shake, where, errors);
   return line;
 }
 
@@ -102,7 +110,7 @@ function parseBeat(raw: unknown, where: string, errors: Errors): Beat | undefine
     return { k: 'cue', thread: String(raw.cue), pos, text: text ?? '……', sfx: sfx && isSfx(sfx) ? sfx : undefined, grab: raw.grab === true };
   }
   if ('sfx' in raw) {
-    allow('sfx', 'at', 'dist', 'text', 'vib', 'gain');
+    allow('sfx', 'at', 'dist', 'text', 'vib', 'gain', 'shake');
     let id = String(raw.sfx);
     let posRaw: unknown = raw.at ?? 'center';
     if (id.includes('@')) {
@@ -114,7 +122,7 @@ function parseBeat(raw: unknown, where: string, errors: Errors): Beat | undefine
     const pos = parsePos(posRaw, where, errors, (str(raw.dist) as Distance) ?? 'mid');
     if (!pos) return undefined;
     if (raw.dist !== undefined && typeof posRaw === 'string' && !posRaw.includes(':')) pos.dist = String(raw.dist) as Distance;
-    return { k: 'sfx', id, pos, text: str(raw.text), vib: vib(raw.vib, where, errors), gain: typeof raw.gain === 'number' ? raw.gain : undefined };
+    return { k: 'sfx', id, pos, text: str(raw.text), vib: vib(raw.vib, where, errors), gain: typeof raw.gain === 'number' ? raw.gain : undefined, shake: shake(raw.shake, where, errors) };
   }
   if ('amb' in raw) {
     allow('amb', 'fade');
@@ -153,9 +161,66 @@ function parseBeat(raw: unknown, where: string, errors: Errors): Beat | undefine
     const id = vib(raw.vib, where, errors);
     return id ? { k: 'vib', id } : undefined;
   }
+  if ('shake' in raw) {
+    allow('shake');
+    const level = shake(raw.shake, where, errors);
+    return level ? { k: 'shake', level } : undefined;
+  }
+  if ('heart' in raw) {
+    allow('heart');
+    const level = String(raw.heart);
+    if (!(HEART_LEVELS as readonly string[]).includes(level)) { errors.push(`${where}：未知心跳「${level}」（${HEART_LEVELS.join('／')}）`); return undefined; }
+    return { k: 'heart', level: level as HeartLevel };
+  }
+  if ('daze' in raw) {
+    allow('daze');
+    const level = String(raw.daze);
+    if (!(DAZE_LEVELS as readonly string[]).includes(level)) { errors.push(`${where}：未知恍惚「${level}」（${DAZE_LEVELS.join('／')}）`); return undefined; }
+    return { k: 'daze', level: level as DazeLevel };
+  }
   if ('clock' in raw) {
     allow('clock');
     return { k: 'clock', time: String(raw.clock) };
+  }
+  if ('touch' in raw) {
+    allow('touch');
+    const spec = raw.touch;
+    if (!isObj(spec) || !Array.isArray(spec.cells) || spec.cells.length === 0) { errors.push(`${where}：touch 需要 cells`); return undefined; }
+    for (const key of Object.keys(spec)) if (!['cells', 'style', 'prompt', 'timeout'].includes(key)) errors.push(`${where}：touch 未知欄位「${key}」`);
+    const style = String(spec.style ?? 'braille');
+    if (!['braille', 'groove', 'engrave'].includes(style)) errors.push(`${where}：touch style 只能是 braille／groove／engrave`);
+    return { k: 'touch', cells: spec.cells.map((cell) => String(cell)), style: style as 'braille', prompt: str(spec.prompt), timeout: Number(spec.timeout ?? 45) };
+  }
+  if ('locate' in raw) {
+    allow('locate');
+    const spec = raw.locate;
+    if (!isObj(spec)) { errors.push(`${where}：locate 必須是 map`); return undefined; }
+    for (const key of Object.keys(spec)) if (!['sfx', 'at', 'decoys', 'tries', 'timeout', 'prompt', 'success', 'fail'].includes(key)) errors.push(`${where}：locate 未知欄位「${key}」`);
+    const sfx = String(spec.sfx);
+    const at = String(spec.at);
+    if (!isSfx(sfx)) errors.push(`${where}：未知音效「${sfx}」`);
+    if (!isDirection(at)) errors.push(`${where}：locate 的 at 必須是八個方位之一`);
+    const decoys = (Array.isArray(spec.decoys) ? spec.decoys : []).flatMap((decoy, n) => {
+      if (!isObj(decoy) || !isSfx(String(decoy.sfx)) || !isDirection(String(decoy.at))) { errors.push(`${where}.decoys[${n}]：需要合法的 sfx 與 at`); return []; }
+      return [{ sfx: String(decoy.sfx) as never, at: String(decoy.at) as never }];
+    });
+    return {
+      k: 'locate', sfx: sfx as never, at: at as never, decoys,
+      tries: Math.max(1, Number(spec.tries ?? 2)),
+      timeout: spec.timeout === undefined ? undefined : Number(spec.timeout),
+      prompt: str(spec.prompt),
+      success: parseBeats(spec.success, `${where}.success`, errors),
+      fail: parseBeats(spec.fail, `${where}.fail`, errors),
+    };
+  }
+  if ('punch' in raw) {
+    allow('punch');
+    const spec = raw.punch;
+    if (!isObj(spec) || !Array.isArray(spec.cells) || spec.cells.length === 0) { errors.push(`${where}：punch 需要 cells`); return undefined; }
+    for (const key of Object.keys(spec)) if (!['cells', 'label', 'prompt', 'timeout'].includes(key)) errors.push(`${where}：punch 未知欄位「${key}」`);
+    const cells = spec.cells.map((cell) => (Array.isArray(cell) ? cell.map(Number) : []));
+    if (cells.some((cell) => cell.length === 0 || cell.some((dot) => !(dot >= 1 && dot <= 6)))) errors.push(`${where}：punch 每一格是 1–6 的點號清單`);
+    return { k: 'punch', cells, label: str(spec.label), prompt: str(spec.prompt), timeout: Number(spec.timeout ?? 90) };
   }
   if ('choice' in raw) {
     allow('choice');
@@ -166,22 +231,39 @@ function parseBeat(raw: unknown, where: string, errors: Errors): Beat | undefine
     choice.options.forEach((option, index) => {
       const at = `${where}.options[${index}]`;
       if (!isObj(option)) { errors.push(`${at}：選項必須是 map`); return; }
-      for (const key of Object.keys(option)) if (!['text', 'if', 'then', 'goto'].includes(key)) errors.push(`${at}：選項未知欄位「${key}」`);
-      const text = str(option.text);
+      for (const key of Object.keys(option)) if (!['text', 'if', 'then', 'goto', 'recall'].includes(key)) errors.push(`${at}：選項未知欄位「${key}」`);
+      let recall: ChoiceOption['recall'];
+      if (option.recall !== undefined) {
+        if (!isObj(option.recall) || !Array.isArray(option.recall.accept) || option.recall.accept.length === 0) {
+          errors.push(`${at}：recall 需要 accept 清單`);
+        } else {
+          for (const key of Object.keys(option.recall)) if (!['accept', 'miss'].includes(key)) errors.push(`${at}：recall 未知欄位「${key}」`);
+          const accept = option.recall.accept.flatMap((entry, n) => {
+            const where2 = `${at}.recall.accept[${n}]`;
+            if (!isObj(entry) || typeof entry.mem !== 'string') { errors.push(`${where2}：需要 mem`); return []; }
+            for (const key of Object.keys(entry)) if (!['mem', 'then', 'goto'].includes(key)) errors.push(`${where2}：未知欄位「${key}」`);
+            return [{ mem: entry.mem, then: parseBeats(entry.then, `${where2}.then`, errors), goto: entry.goto === undefined ? undefined : String(entry.goto) }];
+          });
+          recall = { accept, miss: parseBeats(option.recall.miss, `${at}.recall.miss`, errors) };
+        }
+      }
+      const text = str(option.text) ?? (recall ? '（想起一句話……）' : undefined);
       if (!text) { errors.push(`${at}：選項沒有文字`); return; }
+      if (recall && (option.then !== undefined || option.goto !== undefined)) errors.push(`${at}：recall 選項的結果寫在 accept 裡，不要用 then／goto`);
       options.push({
         text,
         cond: option.if === undefined ? undefined : cond(option.if, at, errors),
         then: parseBeats(option.then, `${at}.then`, errors),
         goto: option.goto === undefined ? undefined : String(option.goto),
+        recall,
       });
     });
     if (options.length === 0) errors.push(`${where}：choice 沒有選項`);
-    if (!options.some((option) => !option.cond)) errors.push(`${where}：至少要有一個沒有 if 的選項`);
+    if (!options.some((option) => !option.cond && !option.recall)) errors.push(`${where}：至少要有一個沒有 if、也不是 recall 的選項`);
     const timeout = choice.timeout === undefined ? undefined : Number(choice.timeout);
     const fallback = choice.default === undefined ? undefined : Number(choice.default);
     if (fallback !== undefined && (fallback < 0 || fallback >= options.length)) errors.push(`${where}：default 超出範圍`);
-    if (fallback !== undefined && options[fallback]?.cond) errors.push(`${where}：default 選項不能有 if`);
+    if (fallback !== undefined && (options[fallback]?.cond || options[fallback]?.recall)) errors.push(`${where}：default 選項不能有 if 或 recall`);
     return { k: 'choice', timeout, default: fallback, options };
   }
   if ('if' in raw) {

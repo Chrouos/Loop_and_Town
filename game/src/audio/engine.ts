@@ -5,9 +5,10 @@
 //
 //   ambience layers → ambIn(ambience volume) → ambTone(lowpass) → ambDuck ─┐
 //   one-shots ─────────────────────────────── sfxBus(sfx volume) ──────────┤
-//   voice presence ─────────────────────────── voiceBus ──┼→ world → attention(lowpass) ─┐
+//   voice presence ─────────────────────────── voiceBus ──┼→ world → attention(lowpass) → daze(lowpass·gain) ─┐
 //   reverb sends (ambience/sfx sends scaled like their buses) → room convolver → reverbOut ┘ │
-//   interface sounds (memory_keep, focus_shift, …) ── uiBus ─────────────────────────────┼→ master
+//   interface sounds (memory_keep, focus_shift, …) ── uiBus ─────────────────────────────┤
+//   her own body (heartbeat, tinnitus) ── bodyBus: stays clear when the world is dazed ──┼→ master
 //   master(volume·enabled) → glue compressor → limiter → soft clip → destination ←───────┘
 
 import { AMBIENCE, isSfx, type AmbienceId, type SfxId, type SpatialPos, type VoiceId } from './catalog';
@@ -32,6 +33,8 @@ export interface AudioEngine {
   /** A line spoken by `speaker` ('life' = a passer-by in the background). People make no vocal sound, only a small real one. */
   voice(speaker: VoiceId, pos: SpatialPos, durationMs: number, kind?: 'line' | 'life'): void;
   setAttention(level: number): void;
+  /** Pain or shock: 0 = clear, 1 = the world comes through as if under water. Her own body stays clear. */
+  setDaze(level: number): void;
   duck(amount: number, ms: number): void;
   silence(ms: number): void;
   suspend(): void;
@@ -68,6 +71,10 @@ const TURN_GAP_S = 8;
 const SWAP_S = 2.5;
 const OPEN = 20000;
 const MUFFLED = 900;
+/** Fully dazed: the world through a wall. */
+const DAZED = 520;
+/** Sounds of her own body, which pain does not muffle. */
+const BODY_SFX: ReadonlySet<SfxId> = new Set<SfxId>(['heartbeat', 'tinnitus']);
 /** How long the head turn muffles everything before hearing opens up again. */
 const TURN_MS = 700;
 
@@ -83,6 +90,7 @@ class SilentEngine implements AudioEngine {
   play(): void {}
   voice(): void {}
   setAttention(): void {}
+  setDaze(): void {}
   duck(): void {}
   silence(): void {}
   suspend(): void {}
@@ -111,6 +119,9 @@ interface Buses {
   master: GainNode;
   world: GainNode;
   attention: BiquadFilterNode;
+  daze: BiquadFilterNode;
+  dazeGain: GainNode;
+  body: GainNode;
   ambIn: GainNode;
   ambTone: BiquadFilterNode;
   ambDuck: GainNode;
@@ -238,7 +249,12 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
     attention.frequency.value = OPEN;
     attention.Q.value = 0.5;
     const world = gain(1);
-    world.connect(attention).connect(master);
+    const daze = ac.createBiquadFilter();
+    daze.type = 'lowpass';
+    daze.frequency.value = OPEN;
+    daze.Q.value = 0.7;
+    const dazeGain = gain(1);
+    world.connect(attention).connect(daze).connect(dazeGain).connect(master);
 
     const ambIn = gain(ambienceGain(this.ambienceVolume));
     const ambTone = ac.createBiquadFilter();
@@ -254,6 +270,8 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
     voice.connect(world);
     const ui = gain(sfxGain(this.sfxVolume) * UI_TRIM);
     ui.connect(master);
+    const body = gain(sfxGain(this.sfxVolume));
+    body.connect(master);
 
     const reverbIn = gain(1);
     const ambVerb = gain(ambienceGain(this.ambienceVolume));
@@ -287,7 +305,7 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
     }
 
     this.ac = ac;
-    this.bus = { master, world, attention, ambIn, ambTone, ambDuck, ambVerb, sfx, sfxVerb, voice, ui, reverbIn };
+    this.bus = { master, world, attention, daze, dazeGain, body, ambIn, ambTone, ambDuck, ambVerb, sfx, sfxVerb, voice, ui, reverbIn };
     try {
       this.bank = new SampleBank(ac);
     } catch {
@@ -327,6 +345,7 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
     glide(this.bus.sfx.gain, g, this.ac.currentTime, 0.05);
     glide(this.bus.sfxVerb.gain, g, this.ac.currentTime, 0.05);
     glide(this.bus.ui.gain, g * UI_TRIM, this.ac.currentTime, 0.05);
+    glide(this.bus.body.gain, g, this.ac.currentTime, 0.05);
   }
 
   private applyMaster(tc: number): void {
@@ -429,8 +448,8 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
       this.shots = this.shots.filter((s) => !s.disposed);
       while (this.shots.length >= MAX_SFX) this.shots.shift()?.kill();
       const shot = spawnShot(ac, recipe, {
-        dest: UI_SFX.has(id) ? bus.ui : bus.sfx,
-        reverb: bus.sfxVerb,
+        dest: UI_SFX.has(id) ? bus.ui : BODY_SFX.has(id) ? bus.body : bus.sfx,
+        reverb: BODY_SFX.has(id) ? null : bus.sfxVerb,
         place: placementOf(pos),
         t: ac.currentTime + 0.01,
         gain: clamp(opts?.gain ?? 1, 0, 4),
@@ -498,6 +517,17 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
     } catch {
       // ignore
     }
+  }
+
+  setDaze(level: number): void {
+    const ac = this.ac;
+    const bus = this.bus;
+    if (!ac || !bus) return;
+    const l = clamp(Number.isFinite(level) ? level : 0, 0, 1);
+    const now = ac.currentTime;
+    // sinking in is quick, coming back takes a while
+    expRampTo(bus.daze.frequency, OPEN * Math.pow(DAZED / OPEN, l), now, l > 0 ? 0.5 : 1.6);
+    glide(bus.dazeGain.gain, 1 - 0.5 * l, now, l > 0 ? 0.4 : 1.2);
   }
 
   setAttention(level: number): void {

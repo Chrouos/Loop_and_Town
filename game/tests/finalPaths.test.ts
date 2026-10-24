@@ -1,3 +1,4 @@
+import type { Direction } from '../src/audio/catalog';
 import { Director } from '../src/engine/director';
 import { freshSave, type GameSave } from '../src/engine/save';
 import { loadScriptFromDisk, silentAudio } from './harness';
@@ -5,7 +6,10 @@ import { loadScriptFromDisk, silentAudio } from './harness';
 // Deterministic walks through the final chapter: a policy picks options by their text.
 type Policy = (options: string[], sceneId: string) => number;
 
-function play(policy: Policy, maxLoops = 1) {
+// 18:31 at the old station: where she points, in order. The east wall hums on her right.
+const EAST_WALL: Direction[] = ['right'];
+
+function play(policy: Policy, maxLoops = 1, station: Direction[] = EAST_WALL) {
   const { script, errors } = loadScriptFromDisk();
   if (errors.length) throw new Error(errors.join('\n'));
   let wall = 0;
@@ -14,6 +18,7 @@ function play(policy: Policy, maxLoops = 1) {
   director.jumpToChapter('final', true);
   const finalOptions: string[][] = [];
   const scenes: string[] = [];
+  let pointed = 0;
   for (let steps = 0; steps < 200_000; steps++) {
     const view = director.view;
     if (view.phase === 'ending' || director.save.loop > maxLoops) break;
@@ -22,6 +27,12 @@ function play(policy: Policy, maxLoops = 1) {
       const texts = view.choice.options.map((option) => option.text);
       if (view.sceneId === 'f_choice') finalOptions.push(texts);
       director.choose(policy(texts, view.sceneId ?? ''));
+    } else if (view.interact?.type === 'touch') {
+      director.touchDone();
+    } else if (view.interact?.type === 'punch') {
+      director.punchDone();
+    } else if (view.interact?.type === 'locate') {
+      director.locatePick(station[pointed++ % station.length]);
     } else {
       director.hurry();
     }
@@ -37,7 +48,7 @@ const pick = (pattern: RegExp, fallback = 0): Policy => (options) => {
 };
 
 // The first option of every visit is the respectful one; the hub lists visits first.
-const RESPECTFUL_TO_C = pick(/右邊——東牆|撤銷所有改寫/);
+const RESPECTFUL_TO_C = pick(/撤銷所有改寫/);
 
 describe('final chapter paths', () => {
   it('a respectful day that hears the east wall can reach Ending C', () => {
@@ -48,13 +59,13 @@ describe('final chapter paths', () => {
   });
 
   it('the same day can choose to seal only today (Ending A)', () => {
-    const result = play(pick(/右邊——東牆|只封存這一個今天/));
+    const result = play(pick(/只封存這一個今天/));
     expect(result.ending).toBe('a');
     expect(result.scenes).toContain('f_epilogue_a');
   });
 
   it('「……再一次。」 records Ending B and replays the final day', () => {
-    const result = play(pick(/右邊——東牆|再一次/), 1);
+    const result = play(pick(/再一次/), 1);
     expect(result.endings).toContain('b');
     expect(result.loop).toBe(2);
     expect(result.knowledge.has('f_again')).toBe(true);
@@ -78,11 +89,13 @@ describe('final chapter paths', () => {
     expect(result.endings).toContain('b');
   });
 
+  it('one wrong direction at 18:31 still leaves time to find the east wall', () => {
+    const result = play(RESPECTFUL_TO_C, 1, ['left', 'right']);
+    expect(result.finalOptions[0]).toContain('「撤銷所有改寫，然後封存今天。」');
+  });
+
   it('two wrong directions at 18:31 lose G1', () => {
-    const result = play((options, sceneId) => {
-      if (sceneId === 'f_station') return options.findIndex((text) => !text.includes('右邊'));
-      return RESPECTFUL_TO_C(options, sceneId);
-    });
+    const result = play(RESPECTFUL_TO_C, 1, ['left', 'front']);
     expect(result.finalOptions[0]).not.toContain('「撤銷所有改寫，然後封存今天。」');
   });
 });

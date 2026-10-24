@@ -3,6 +3,7 @@ import { createAudioEngine, type AudioEngine } from './audio/engine';
 import { VIBRATIONS, type VibrationId } from './audio/catalog';
 import { ATTRIBUTION_CREDITS } from './audio/credits';
 import { sampleUrl } from './audio/samples';
+import { parseSoundSources, type SoundSource } from './audio/sourceList';
 import { Director, toChineseNumber } from './engine/director';
 import { MEMORY_CAPACITY, readSave, writeSave, type GameSave, type Memory } from './engine/save';
 import { loadGameScript } from './script/load';
@@ -111,6 +112,12 @@ export function GameApp({ storage = safeStorage() }: { storage?: Storage }) {
     if (screen !== 'play') return;
     let holdTimer: number | null = null;
     const down = (event: KeyboardEvent) => {
+      if (view.recall) {
+        if (event.key === 'Escape') { director.recallPick(null); return; }
+        const memory = /^[1-9]$/.test(event.key) ? view.recall.memories[Number(event.key) - 1] : undefined;
+        if (memory) director.recallPick(memory.key);
+        return;
+      }
       if (event.key === 'Escape') { setMenu((open) => !open); return; }
       if (menu) return;
       const onButton = (event.target as HTMLElement | null)?.tagName === 'BUTTON';
@@ -131,7 +138,7 @@ export function GameApp({ storage = safeStorage() }: { storage?: Storage }) {
     window.addEventListener('keydown', down);
     window.addEventListener('keyup', up);
     return () => { window.removeEventListener('keydown', down); window.removeEventListener('keyup', up); };
-  }, [director, menu, screen, view.choice]);
+  }, [director, menu, screen, view.choice, view.recall]);
 
   if (report.errors.length) {
     return (
@@ -151,7 +158,7 @@ export function GameApp({ storage = safeStorage() }: { storage?: Storage }) {
       onPointerUp={(event) => {
         if (menu) return;
         const target = event.target as HTMLElement;
-        if (target.closest('button')) return;
+        if (target.closest('button') || target.closest('.lt-interact') || director.view.interact) return;
         director.hurry();
       }}
     >
@@ -255,7 +262,7 @@ function memoryMeta(memory: Memory): string {
 }
 
 function Menu({ director, onClose, onTitle, onSettings }: { director: Director; onClose: () => void; onTitle: () => void; onSettings: () => void }) {
-  const [tab, setTab] = useState<'memory' | 'settings'>('memory');
+  const [tab, setTab] = useState<'memory' | 'settings' | 'refs'>('memory');
   const [confirm, setConfirm] = useState(false);
   const save = director.save;
   const settings = director.settings;
@@ -265,6 +272,7 @@ function Menu({ director, onClose, onTitle, onSettings }: { director: Director; 
       <div className="lt-tabs">
         <button type="button" className={`lt-tab${tab === 'memory' ? ' on' : ''}`} onClick={() => setTab('memory')}>記憶</button>
         <button type="button" className={`lt-tab${tab === 'settings' ? ' on' : ''}`} onClick={() => setTab('settings')}>設定</button>
+        <button type="button" className={`lt-tab${tab === 'refs' ? ' on' : ''}`} onClick={() => setTab('refs')}>參考資料</button>
       </div>
       {tab === 'memory' && (
         <div className="lt-panel">
@@ -288,6 +296,7 @@ function Menu({ director, onClose, onTitle, onSettings }: { director: Director; 
           <div className="lt-row"><span>環境音</span><input className="lt-range" type="range" min={0} max={1} step={0.05} value={settings.ambience} onChange={(event) => set({ ambience: Number(event.target.value) })} /></div>
           <div className="lt-row"><span>音效</span><input className="lt-range" type="range" min={0} max={1} step={0.05} value={settings.sfx} onChange={(event) => set({ sfx: Number(event.target.value) })} /></div>
           <div className="lt-row"><span>震動</span><Toggle on={settings.vibration} onChange={(vibration) => set({ vibration })} /></div>
+          <div className="lt-row"><span>畫面晃動</span><Toggle on={settings.motion} onChange={(motion) => set({ motion })} /></div>
           <div className="lt-row"><span>文字速度</span>
             <div className="lt-opts">
               {(['slow', 'normal', 'fast'] as const).map((speed) => (
@@ -307,22 +316,95 @@ function Menu({ director, onClose, onTitle, onSettings }: { director: Director; 
               ? <button type="button" className="lt-opt lt-danger" onClick={() => { setConfirm(false); director.newGame(); onClose(); }}>確定，全部忘記</button>
               : <button type="button" className="lt-opt" onClick={() => setConfirm(true)}>重新開始</button>}
           </div>
-          <div className="lt-credits">
-            <div className="lt-credits-head">聲音素材</div>
-            {ATTRIBUTION_CREDITS.map((credit) => (
-              <div className="lt-credit" key={credit.url}>
-                <span className="lt-credit-use">{credit.use}</span>
-                <a href={credit.url} target="_blank" rel="noreferrer">{credit.title}</a>
-                <span> — {credit.author}，</span>
-                <a href={credit.licenseUrl} target="_blank" rel="noreferrer">{credit.license}</a>
-                <span>，已裁切、濾波、調整音量</span>
-              </div>
-            ))}
-            <div className="lt-credit">其餘錄音皆為 Freesound 上的 CC0 作品，<a href={sampleUrl('CREDITS.md')} target="_blank" rel="noreferrer">完整清單</a></div>
-          </div>
         </div>
       )}
+      {tab === 'refs' && <References />}
       <button type="button" className="lt-close" onClick={onClose}>回到聲音裡</button>
+    </div>
+  );
+}
+
+const FONTS = [
+  { name: '芫荽 Iansui', author: 'But Ko', url: 'https://github.com/ButTaiwan/iansui' },
+  { name: 'Noto Serif TC', author: 'Google', url: 'https://fonts.google.com/noto/specimen/Noto+Serif+TC' },
+  { name: 'IBM Plex Mono', author: 'IBM', url: 'https://github.com/IBM/plex' },
+];
+
+const WRITING = [
+  { name: 'speak-human-tw', author: 'Raymondhou0917', url: 'https://github.com/Raymondhou0917/speak-human-tw', note: '去掉 AI 腔，用台灣的說法' },
+  { name: 'i-have-adhd-zh-tw', author: 'panda850819', url: 'https://github.com/panda850819/i-have-adhd-zh-tw', note: '先講重點，句子短而完整' },
+];
+
+// CREDITS.md is fetched once per session, the first time the tab opens.
+let soundSources: Promise<SoundSource[]> | undefined;
+function loadSoundSources(): Promise<SoundSource[]> {
+  soundSources ??= fetch(sampleUrl('CREDITS.md'))
+    .then((res) => { if (!res.ok) throw new Error(String(res.status)); return res.text(); })
+    .then(parseSoundSources)
+    .catch((error: unknown) => { soundSources = undefined; throw error; });
+  return soundSources;
+}
+
+function References() {
+  const [sources, setSources] = useState<SoundSource[] | 'loading' | 'failed'>('loading');
+  useEffect(() => {
+    let live = true;
+    loadSoundSources().then((list) => { if (live) setSources(list); }, () => { if (live) setSources('failed'); });
+    return () => { live = false; };
+  }, []);
+  const link = (url: string, text: string) => <a href={url} target="_blank" rel="noreferrer">{text}</a>;
+  const sourceGroup = (kind: SoundSource['kind'], head: string) => Array.isArray(sources) && (
+    <div className="lt-credits">
+      <div className="lt-credits-head">{head}</div>
+      {sources.filter((source) => source.kind === kind).map((source) => (
+        <div className="lt-credit" key={source.url}>
+          <span className="lt-credit-use">{source.uses.join('、')}</span>
+          {link(source.url, source.title)}
+          <span> — {source.author}{source.license === 'CC0' ? '' : `，${source.license}`}</span>
+        </div>
+      ))}
+    </div>
+  );
+  return (
+    <div className="lt-panel">
+      <div className="lt-credits">
+        <div className="lt-credits-head">聲音</div>
+        <div className="lt-credit">
+          錄音都來自 {link('https://freesound.org', 'Freesound')}，大多是 CC0，不必標示作者，這裡還是全部列出。每段都經過裁切、淡入淡出、調整音量；沒有錄音或錄音還沒載入的聲音，由瀏覽器當場合成。
+        </div>
+      </div>
+      <div className="lt-credits">
+        <div className="lt-credits-head">需要標示作者的錄音</div>
+        {ATTRIBUTION_CREDITS.map((credit) => (
+          <div className="lt-credit" key={credit.url}>
+            <span className="lt-credit-use">{credit.use}</span>
+            {link(credit.url, credit.title)}
+            <span> — {credit.author}，</span>
+            {link(credit.licenseUrl, credit.license)}
+            <span>，已裁切、濾波、調整音量</span>
+          </div>
+        ))}
+      </div>
+      {sources === 'loading' && <div className="lt-credits"><div className="lt-credit">清單讀取中……</div></div>}
+      {sources === 'failed' && <div className="lt-credits"><div className="lt-credit">清單讀不到，可以直接看{link(sampleUrl('CREDITS.md'), '完整清單')}。</div></div>}
+      {sourceGroup('amb', '環境音')}
+      {sourceGroup('sfx', '音效')}
+      {Array.isArray(sources) && <div className="lt-credits"><div className="lt-credit">每段錄音怎麼處理，寫在{link(sampleUrl('CREDITS.md'), '完整清單')}裡。</div></div>}
+      <div className="lt-credits">
+        <div className="lt-credits-head">字型</div>
+        {FONTS.map((font) => (
+          <div className="lt-credit" key={font.url}>{link(font.url, font.name)}<span> — {font.author}，SIL Open Font License 1.1</span></div>
+        ))}
+      </div>
+      <div className="lt-credits">
+        <div className="lt-credits-head">寫作參考</div>
+        {WRITING.map((ref) => (
+          <div className="lt-credit" key={ref.url}>
+            <span className="lt-credit-use">{ref.note}</span>
+            {link(ref.url, ref.name)}<span> — {ref.author}</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

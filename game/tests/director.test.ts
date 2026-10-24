@@ -397,4 +397,107 @@ scenes:
     until(() => director.view.center?.text === '換了地方。');
     expect(director.view.echo).toBeNull();
   });
+
+  it('her heart keeps beating until it is changed or the scene ends, and a jolt shakes the stage', () => {
+    const { script, errors } = buildScript([{ name: 'h.yaml', source: `
+chapter: 1
+title: 心跳
+start: a
+scenes:
+  - id: a
+    time: "06:12"
+    place: 樓梯
+    beats:
+      - heart: fast
+      - narr: 我捶著自己的胸口。
+      - { sfx: thud, at: front, dist: near, text: 匡啷, shake: hard }
+      - pause: 3
+      - heart: pound
+      - pause: 2
+      - goto: b
+  - id: b
+    time: "07:00"
+    place: 別處
+    beats:
+      - { me: 不要！, shake: light }
+      - pause: 2
+      - end: reset
+` }]);
+    expect(errors).toEqual([]);
+    const log: string[] = [];
+    let wall = 0;
+    const director = new Director(script, freshSave(), { audio: silentAudio(log), vibrate: () => undefined, persist: () => undefined, wallNow: () => wall }, { speed: 1 });
+    const run = (ms: number) => { for (let t = 0; t < ms; t += 50) { wall += 50; director.tick(50); } };
+    enterScene(director, run);
+    run(1500);
+    expect(director.view.heart?.level).toBe('fast');
+    const shook = director.view.shake;
+    for (let i = 0; i < 400 && director.view.shake === shook; i++) run(50);
+    expect(director.view.shakeLevel).toBe('hard');
+    for (let i = 0; i < 400 && director.view.heart?.level !== 'pound'; i++) run(50);
+    const beats = () => log.filter((entry) => entry === 'sfx:heartbeat').length;
+    const before = beats();
+    run(1800);
+    expect(beats() - before).toBeGreaterThanOrEqual(3);
+    for (let i = 0; i < 400 && director.view.center?.text !== '不要！'; i++) run(50);
+    expect(director.view.heart).toBeNull();
+    expect(director.view.shakeLevel).toBe('light');
+    const after = beats();
+    run(1500);
+    expect(beats()).toBe(after);
+  });
+
+  it('pain dazes her until it is lifted or the scene ends, muffling the world', () => {
+    const { script, errors } = buildScript([{ name: 'd.yaml', source: `
+chapter: 1
+title: 痛
+start: a
+scenes:
+  - id: a
+    time: "06:12"
+    place: 月台
+    beats:
+      - daze: heavy
+      - narr: 耳朵裡嗡嗡的，誰在說話都像隔著一面牆。
+      - daze: light
+      - narr: 聲音慢慢回來一點。
+      - goto: b
+  - id: b
+    time: "07:00"
+    place: 別處
+    beats:
+      - narr: 外面。
+      - end: reset
+` }]);
+    expect(errors).toEqual([]);
+    const log: string[] = [];
+    let wall = 0;
+    const director = new Director(script, freshSave(), { audio: silentAudio(log), vibrate: () => undefined, persist: () => undefined, wallNow: () => wall }, { speed: 1 });
+    const run = (ms: number) => { for (let t = 0; t < ms; t += 50) { wall += 50; director.tick(50); } };
+    enterScene(director, run);
+    run(300);
+    expect(director.view.daze).toBe('heavy');
+    for (let i = 0; i < 400 && director.view.daze !== 'light'; i++) run(50);
+    expect(director.view.daze).toBe('light');
+    for (let i = 0; i < 400 && director.view.center?.text !== '外面。'; i++) run(50);
+    expect(director.view.daze).toBeNull();
+    expect(log.filter((entry) => entry.startsWith('daze:'))).toEqual(['daze:1', 'daze:0.55', 'daze:0']);
+  });
+
+  it('rejects unknown shake and heart levels', () => {
+    const { errors } = buildScript([{ name: 'x.yaml', source: `
+chapter: 1
+title: 錯
+start: a
+scenes:
+  - id: a
+    beats:
+      - heart: racing
+      - shake: huge
+      - { narr: 好。, shake: big }
+      - end: reset
+` }]);
+    expect(errors.join('\n')).toMatch(/未知心跳「racing」/);
+    expect(errors.filter((error) => error.includes('未知震動強度'))).toHaveLength(2);
+  });
 });
