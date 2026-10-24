@@ -598,16 +598,21 @@ scenes:
       - { sfx: step_heels, at: front-left, text: 叩叩叩 }
       - { sfx: cloth_rustle, at: front-left, dist: near, text: 沙沙 }
       - narr: 有人走得很快，雨衣的布料一路沙沙響，在我面前停下。
+      - { sfx: thud, at: front-left, dist: near, text: 咚 }
+      - narr: 她換了一邊肩膀。一個很重的包撞到她身上，裡面有東西喀啦響。
       - { tingan: 不好意思——請問，妳是林家的人嗎？, as: 陌生的女聲 }
       - me: ……妳是？
       - { tingan: 我是記者。在做灰潮鎮人口外流的採訪。, as: 陌生的女聲 }
       - { tingan: 還有舊研究所。妳知道那個地方嗎？, as: 陌生的女聲 }
       - think: 語速很快。每一句都是問句。
+      - if: know.k_photo_tingan
+        then:
+          - think: 予安說，照片裡站在知夏旁邊的女生，揹著很大的包包。背景是舊研究所。
       - { tingan: 聽說妳回來處理老房子。可以耽誤妳五分鐘嗎？, as: 陌生的女聲 }
       - choice:
           timeout: 12
           options:
-            - text: 「妳在我姊的照片裡。」
+            - text: 「我姊桌上有一張照片。她旁邊的女生揹著很大的包包，背後是舊研究所。」
               if: know.k_photo_tingan
               then:
                 - pause: 2.5
@@ -828,13 +833,15 @@ scenes:
       - { wait: 20, clock: "18:20", until: "18:30" }
       - clock: "18:31"
       - { sfx: blackout, at: front, dist: far, text: ——, vib: thud }
-      - narr: 冰箱停了。
-      - narr: 整間屋子安靜得像突然被抽掉一層。
+      - { amb: [night_insects], fade: 0.1 }
+      - narr: 隔壁冰箱那個一直在的低低嗡聲，斷了。屋子安靜得像被抽掉一層。
       - { sfx: light_buzz, at: front, dist: near, text: 滋 }
       - { sfx: dog_bark, at: right, dist: far, text: 汪、汪 }
       - pause: 2
       - { sfx: power_up, at: back, text: 嗡 }
-      - narr: 冰箱又響起來。
+      - { sfx: relay_click, at: left, dist: mid, text: 喀 }
+      - { amb: [house_night], fade: 0.8 }
+      - narr: 冰箱的壓縮機喀了一聲，又嗡嗡地轉起來。
       - { sfx: phone_buzz, at: right, dist: near, text: 嗡 }
       - phone: 十八點三十一分。
       - think: 像整座鎮停了一拍。

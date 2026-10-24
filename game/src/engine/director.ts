@@ -536,7 +536,7 @@ export class Director {
         this.bump();
         return;
       }
-      case 'amb': this.out.audio.setAmbience(beat.ids, 2400); this.ambience = beat.ids; this.startLife(); run.busyUntil = t; return;
+      case 'amb': this.out.audio.setAmbience(beat.ids, beat.fade !== undefined ? beat.fade * 1000 : 2400); this.ambience = beat.ids; this.startLife(); run.busyUntil = t; return;
       case 'move': Object.assign(this.cast, beat.moves); run.busyUntil = t; return;
       case 'pause': run.busyUntil = t + beat.seconds * 1000; return;
       case 'wait': this.startWait(run, beat, t, beat.seconds * 1000, topLevelIndex); return;

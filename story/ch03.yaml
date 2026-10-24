@@ -747,6 +747,7 @@ scenes:
       - narr: 我伸手摸那張紙。影印的碳粉平平的，摸不到任何凹痕。
       - boxun: 今天真的沒有人死嗎？
       - me: 至少我知道的人都活著。
+      - { amb: [night_insects], fade: 0.8 }
       - narr: 樓下冰箱的馬達停了，屋子一下子安靜下來。
       - { boxun: 那不一定是同一回事。, mem: m_c3_not_same }
       - { sfx: step, at: back, dist: mid, text: 叩、叩 }
@@ -783,7 +784,7 @@ scenes:
       - narr: 街上有人在遛狗，有人在笑。
       - wait: 3
       - { sfx: bell_toll, at: front-left, text: 噹——, vib: bell }
-      - think: 沒有一個人停下來抬頭。
+      - think: 遛狗的腳步沒有停，笑聲也沒有斷。沒有人聽見。
       - wait: 3
       - { sfx: bell_toll, at: front-left, text: 噹——, vib: bell }
       - wait: 3

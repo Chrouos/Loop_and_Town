@@ -215,7 +215,7 @@ scenes:
                   then:
                     - me: 第一次，停電，還有相機背帶的扣子一直響。
                   else:
-                    - me: 第一次，整座鎮停了一拍。冰箱停掉，又自己響起來。
+                    - me: 第一次，整座鎮停了一拍。冰箱的嗡嗡聲斷掉，過一下又自己轉起來。
                 - if: know.k_maintenance_passage
                   then:
                     - me: 第二次，很深的地方有東西倒下來。
@@ -461,7 +461,7 @@ scenes:
                 - tingan: ……這幾個詞，誰跟妳講的？
                 - me: 妳。
                 - set: c4_ta_shaken
-            - text: 「妳在我姊的照片裡。站在她旁邊，揹著很大的包包。」
+            - text: 「我姊桌上有一張照片。予安說，她旁邊站著一個短頭髮、揹大包包的女生。」
               if: know.k_photo_tingan
               then:
                 - pause: 2

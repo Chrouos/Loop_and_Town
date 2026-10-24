@@ -1090,6 +1090,7 @@ scenes:
         then:
           - narr: 滴答聲裡，我聽得出他在哪裡。他的呼吸放得很慢，像怕吵到什麼。
         else:
+          - { amb: [night_insects], fade: 0.8 }
           - narr: 冰箱的馬達剛好停了。屋子裡只剩他的呼吸，跟窗外的蟲。
       - { wait: 8 }
       - yuan: ……嗯。
