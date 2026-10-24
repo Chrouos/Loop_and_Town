@@ -30,7 +30,7 @@ export type ChoiceOption = { text: string; cond?: Cond; then: Beat[]; goto?: str
 export type Beat =
   | LineBeat
   | { k: 'sfx'; id: SfxId; pos: Pos; text?: string; vib?: VibrationId; gain?: number }
-  | { k: 'amb'; ids: AmbienceId[] }
+  | { k: 'amb'; ids: AmbienceId[]; fade?: number }
   | { k: 'move'; moves: Record<string, Pos> }
   | { k: 'pause'; seconds: number }
   | { k: 'wait'; seconds: number; clock?: string; until?: string }

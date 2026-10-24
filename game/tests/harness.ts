@@ -16,6 +16,8 @@ export function silentAudio(log: string[] = []): AudioEngine {
     setEnabled: noop,
     setVolume: noop,
     setVoiceVolume: noop,
+    setAmbienceVolume: noop,
+    setSfxVolume: noop,
     setAmbience: (ids) => { log.push(`amb:${ids.join(',')}`); },
     play: (id) => { log.push(`sfx:${id}`); },
     voice: noop,

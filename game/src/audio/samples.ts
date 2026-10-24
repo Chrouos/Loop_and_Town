@@ -43,17 +43,23 @@ export const SFX_SAMPLES: Partial<Record<SfxId, SfxSample>> = {
   bell_toll_far: { files: ['sfx/bell_toll_far.m4a'], gain: 1, rate: 0.84, jitter: 0.004, wet: 0.6 },
   bicycle_bell: { files: ['sfx/bicycle_bell_1.m4a', 'sfx/bicycle_bell_2.m4a'], gain: 1 },
   blackout: { files: ['sfx/blackout.m4a'], gain: 1 },
+  box_close: { files: ['sfx/box_close.m4a'], gain: 1 },
+  box_open: { files: ['sfx/box_open_1.m4a', 'sfx/box_open_2.m4a', 'sfx/box_open_3.m4a'], gain: 1 },
+  braille_stylus: { files: ['sfx/braille_stylus_1.m4a', 'sfx/braille_stylus_2.m4a', 'sfx/braille_stylus_3.m4a'], gain: 1 },
+  breath: { files: ['sfx/breath_1.m4a', 'sfx/breath_2.m4a', 'sfx/breath_3.m4a'], gain: 1 },
+  breath_m: { files: ['sfx/breath_m_1.m4a', 'sfx/breath_m_2.m4a', 'sfx/breath_m_3.m4a'], gain: 1 },
   bus_hiss: { files: ['sfx/bus_hiss.m4a'], gain: 1 },
   camera_shutter: { files: ['sfx/camera_shutter_1.m4a', 'sfx/camera_shutter_2.m4a'], gain: 1 },
   cane_tap: { files: ['sfx/cane_tap_1.m4a', 'sfx/cane_tap_2.m4a', 'sfx/cane_tap_3.m4a', 'sfx/cane_tap_4.m4a'], gain: 1 },
   car_pass: { files: ['sfx/car_pass_1.m4a', 'sfx/car_pass_2.m4a'], gain: 1, move: [-70, 70, 2.2] },
   chair_scrape: { files: ['sfx/chair_scrape_1.m4a', 'sfx/chair_scrape_2.m4a'], gain: 1 },
+  choice_appear: { files: ['sfx/choice_appear_1.m4a', 'sfx/choice_appear_2.m4a', 'sfx/choice_appear_3.m4a'], gain: 1 },
   clock_chime: { files: ['sfx/clock_chime.m4a'], gain: 1 },
   clock_wind: { files: ['sfx/clock_wind_1.m4a', 'sfx/clock_wind_2.m4a'], gain: 1 },
   cloth_rustle: { files: ['sfx/cloth_rustle_1.m4a', 'sfx/cloth_rustle_2.m4a'], gain: 1 },
   coffee_grind: { files: ['sfx/coffee_grind.m4a'], gain: 1 },
   construction_drill: { files: ['sfx/construction_drill.m4a'], gain: 1 },
-  cough: { files: ['sfx/cough.m4a'], gain: 1 },
+  cough: { files: ['sfx/cough_1.m4a', 'sfx/cough_2.m4a', 'sfx/cough_3.m4a'], gain: 1 },
   crow: { files: ['sfx/crow_1.m4a', 'sfx/crow_2.m4a', 'sfx/crow_3.m4a'], gain: 1 },
   cup_set: { files: ['sfx/cup_set_1.m4a', 'sfx/cup_set_2.m4a', 'sfx/cup_set_3.m4a', 'sfx/cup_set_4.m4a'], gain: 1 },
   dog_bark: { files: ['sfx/dog_bark_1.m4a', 'sfx/dog_bark_2.m4a', 'sfx/dog_bark_3.m4a'], gain: 1 },
@@ -63,46 +69,61 @@ export const SFX_SAMPLES: Partial<Record<SfxId, SfxSample>> = {
   door_slam: { files: ['sfx/door_slam.m4a'], gain: 1 },
   drawer: { files: ['sfx/drawer.m4a'], gain: 1 },
   envelope: { files: ['sfx/envelope.m4a'], gain: 1 },
+  focus_shift: { files: ['sfx/focus_shift_1.m4a', 'sfx/focus_shift_2.m4a', 'sfx/focus_shift_3.m4a'], gain: 1 },
   gasp_crowd: { files: ['sfx/gasp_crowd.m4a'], gain: 1 },
   glass_break: { files: ['sfx/glass_break.m4a'], gain: 1 },
   glass_clink: { files: ['sfx/glass_clink_1.m4a', 'sfx/glass_clink_2.m4a', 'sfx/glass_clink_3.m4a'], gain: 1 },
   hammer: { files: ['sfx/hammer_1.m4a', 'sfx/hammer_2.m4a'], gain: 1 },
   heartbeat: { files: ['sfx/heartbeat_1.m4a', 'sfx/heartbeat_2.m4a', 'sfx/heartbeat_3.m4a'], gain: 1 },
+  huddle_rustle: { files: ['sfx/huddle_rustle_1.m4a', 'sfx/huddle_rustle_2.m4a', 'sfx/huddle_rustle_3.m4a'], gain: 1 },
   hum_fall: { files: ['sfx/hum_fall.m4a'], gain: 1, jitter: 0.01 },
   hum_rise: { files: ['sfx/hum_rise.m4a'], gain: 1, jitter: 0.01 },
   kettle: { files: ['sfx/kettle.m4a'], gain: 1 },
-  key_jingle: { files: ['sfx/key_jingle.m4a'], gain: 1 },
+  key_jingle: { files: ['sfx/key_jingle_1.m4a', 'sfx/key_jingle_2.m4a', 'sfx/key_jingle_3.m4a'], gain: 1, jitter: 0.015 },
   kid_laugh: { files: ['sfx/kid_laugh_1.m4a', 'sfx/kid_laugh_2.m4a'], gain: 1 },
+  laugh_soft: { files: ['sfx/laugh_soft_1.m4a', 'sfx/laugh_soft_2.m4a'], gain: 1 },
+  laugh_soft_m: { files: ['sfx/laugh_soft_m_1.m4a', 'sfx/laugh_soft_m_2.m4a'], gain: 1 },
   light_buzz: { files: ['sfx/light_buzz.m4a'], gain: 1 },
   lighter: { files: ['sfx/lighter.m4a'], gain: 1 },
-  lock_turn: { files: ['sfx/lock_turn.m4a'], gain: 1 },
+  lock_turn: { files: ['sfx/lock_turn.m4a'], gain: 1, jitter: 0.01 },
+  memory_keep: { files: ['sfx/memory_keep_1.m4a', 'sfx/memory_keep_2.m4a', 'sfx/memory_keep_3.m4a'], gain: 1 },
   metal_crash: { files: ['sfx/metal_crash.m4a'], gain: 1 },
-  murmur_crowd: { files: ['sfx/murmur_crowd.m4a'], gain: 1 },
   page_turn: { files: ['sfx/page_turn_1.m4a', 'sfx/page_turn_2.m4a', 'sfx/page_turn_3.m4a'], gain: 1 },
   paper_rustle: { files: ['sfx/paper_rustle_1.m4a', 'sfx/paper_rustle_2.m4a'], gain: 1 },
-  pen_scratch: { files: ['sfx/pen_scratch.m4a'], gain: 1 },
+  pen_scratch: { files: ['sfx/pen_scratch_1.m4a', 'sfx/pen_scratch_2.m4a', 'sfx/pen_scratch_3.m4a'], gain: 1 },
   phone_buzz: { files: ['sfx/phone_buzz.m4a'], gain: 1 },
   phone_ring: { files: ['sfx/phone_ring.m4a'], gain: 1 },
   power_up: { files: ['sfx/power_up.m4a'], gain: 1 },
+  radio_noise: { files: ['sfx/radio_noise.m4a'], gain: 1 },
   rain_burst: { files: ['sfx/rain_burst.m4a'], gain: 1 },
   recorder_click: { files: ['sfx/recorder_click_1.m4a', 'sfx/recorder_click_2.m4a', 'sfx/recorder_click_3.m4a'], gain: 1 },
+  relay_click: { files: ['sfx/relay_click_1.m4a', 'sfx/relay_click_2.m4a', 'sfx/relay_click_3.m4a'], gain: 1 },
   seagull: { files: ['sfx/seagull_1.m4a', 'sfx/seagull_2.m4a'], gain: 1 },
   shop_bell: { files: ['sfx/shop_bell_1.m4a', 'sfx/shop_bell_2.m4a', 'sfx/shop_bell_3.m4a'], gain: 1 },
+  sigh: { files: ['sfx/sigh_1.m4a', 'sfx/sigh_2.m4a'], gain: 1 },
+  sigh_m: { files: ['sfx/sigh_m_1.m4a', 'sfx/sigh_m_2.m4a', 'sfx/sigh_m_3.m4a'], gain: 1 },
   siren_far: { files: ['sfx/siren_far.m4a'], gain: 1 },
   spark: { files: ['sfx/spark_1.m4a', 'sfx/spark_2.m4a', 'sfx/spark_3.m4a'], gain: 1 },
   spoon_stir: { files: ['sfx/spoon_stir_1.m4a', 'sfx/spoon_stir_2.m4a'], gain: 1 },
   static_burst: { files: ['sfx/static_burst_1.m4a', 'sfx/static_burst_2.m4a', 'sfx/static_burst_3.m4a'], gain: 1 },
+  station_chime: { files: ['sfx/station_chime.m4a'], gain: 1, jitter: 0, wet: 0.3 },
   steam_hiss: { files: ['sfx/steam_hiss.m4a'], gain: 1 },
   step: { files: ['sfx/step_1.m4a', 'sfx/step_2.m4a', 'sfx/step_3.m4a', 'sfx/step_4.m4a'], gain: 1 },
   step_heels: { files: ['sfx/step_heels_1.m4a', 'sfx/step_heels_2.m4a', 'sfx/step_heels_3.m4a'], gain: 1 },
   step_run: { files: ['sfx/step_run_1.m4a', 'sfx/step_run_2.m4a'], gain: 1 },
   step_wet: { files: ['sfx/step_wet_1.m4a', 'sfx/step_wet_2.m4a', 'sfx/step_wet_3.m4a'], gain: 1 },
   strap_click: { files: ['sfx/strap_click_1.m4a', 'sfx/strap_click_2.m4a'], gain: 1 },
+  tape_hiss: { files: ['sfx/tape_hiss_1.m4a', 'sfx/tape_hiss_2.m4a'], gain: 1 },
   tape_rewind: { files: ['sfx/tape_rewind.m4a'], gain: 1 },
   thud: { files: ['sfx/thud.m4a'], gain: 1 },
   thunder_far: { files: ['sfx/thunder_far.m4a'], gain: 1, jitter: 0.05 },
+  title_tone: { files: ['sfx/title_tone.m4a'], gain: 1, rate: 0.71, jitter: 0 },
+  tools_clink: { files: ['sfx/tools_clink_1.m4a', 'sfx/tools_clink_2.m4a', 'sfx/tools_clink_3.m4a'], gain: 1 },
   train_brake: { files: ['sfx/train_brake.m4a'], gain: 1, jitter: 0.02 },
   train_door: { files: ['sfx/train_door.m4a'], gain: 1 },
+  train_horn: { files: ['sfx/train_horn.m4a'], gain: 1, jitter: 0.03 },
+  truck_pass_quiet: { files: ['sfx/truck_pass_quiet_1.m4a', 'sfx/truck_pass_quiet_2.m4a'], gain: 1, move: [-60, 60, 1.4] },
+  truck_reverse: { files: ['sfx/truck_reverse.m4a'], gain: 1, jitter: 0.01 },
   typing: { files: ['sfx/typing_1.m4a', 'sfx/typing_2.m4a'], gain: 1 },
   umbrella: { files: ['sfx/umbrella.m4a'], gain: 1 },
   watch_tick: { files: ['sfx/watch_tick.m4a'], gain: 1 },
@@ -124,7 +145,7 @@ export const AMBIENCE_SAMPLES: Partial<Record<AmbienceId, AmbienceSample>> = {
   platform: { files: ['amb/platform.m4a'], gain: 1, loop: true, loopStart: 0.25, loopEnd: 60.25, extras: true },
   police_office: { files: ['amb/police_office.m4a'], gain: 1, loop: true, loopStart: 0.25, loopEnd: 45.25, extras: true },
   rain: { files: ['amb/rain.m4a'], gain: 1, loop: true, loopStart: 0.25, loopEnd: 60.25, extras: true },
-  rain_on_window: { files: ['amb/rain_on_window.m4a'], gain: 1, loop: true, loopStart: 0.25, loopEnd: 44.25, extras: true },
+  rain_on_window: { files: ['amb/rain_on_window.m4a'], gain: 1, loop: true, loopStart: 0.25, loopEnd: 50.25, extras: true },
   research_facility: { files: ['amb/research_facility.m4a'], gain: 1, loop: true, loopStart: 0.25, loopEnd: 60.25, extras: true },
   restaurant: { files: ['amb/restaurant.m4a'], gain: 1, loop: true, loopStart: 0.25, loopEnd: 55.25, extras: true },
   room_tone: { files: ['amb/room_tone.m4a'], gain: 1, loop: true, loopStart: 0.25, loopEnd: 60.25 },
@@ -184,6 +205,8 @@ function decode(ac: BaseAudioContext, data: ArrayBuffer): Promise<AudioBuffer> {
   });
 }
 
+const RETRY_MS = 3000;
+
 export interface SampleBankStats {
   sfxReady: number;
   sfxTotal: number;
@@ -199,7 +222,9 @@ export interface SampleBankStats {
 export class SampleBank {
   private readonly buffers = new Map<string, AudioBuffer>();
   private readonly pending = new Map<string, Promise<AudioBuffer | null>>();
-  private readonly failed = new Set<string>();
+  /** Path → when its last load failed. A failure is retried after RETRY_MS, never remembered for good:
+   *  one dropped request (a dev-server reload, a flaky network) must not silence a sound for the session. */
+  private readonly failed = new Map<string, number>();
   private readonly lastPick = new Map<string, number>();
   /** Decoded beds are large (~20 MB per minute of stereo), so only a few stay cached. */
   private readonly bedUse = new Map<string, number>();
@@ -226,7 +251,9 @@ export class SampleBank {
   load(path: string): Promise<AudioBuffer | null> {
     const ready = this.buffers.get(path);
     if (ready) return Promise.resolve(ready);
-    if (!this.supported || this.failed.has(path)) return Promise.resolve(null);
+    if (!this.supported) return Promise.resolve(null);
+    const failedAt = this.failed.get(path);
+    if (failedAt !== undefined && Date.now() - failedAt < RETRY_MS) return Promise.resolve(null);
     const inflight = this.pending.get(path);
     if (inflight) return inflight;
     const p = (async (): Promise<AudioBuffer | null> => {
@@ -235,9 +262,10 @@ export class SampleBank {
         if (!res.ok) throw new Error(`${res.status}`);
         const buf = await decode(this.ac, await res.arrayBuffer());
         this.buffers.set(path, buf);
+        this.failed.delete(path);
         return buf;
       } catch {
-        this.failed.add(path);
+        this.failed.set(path, Date.now());
         return null;
       } finally {
         this.pending.delete(path);

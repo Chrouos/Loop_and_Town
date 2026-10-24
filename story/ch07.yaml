@@ -27,7 +27,7 @@ scenes:
       - narr: 後面有人咳嗽。斜後方有人在剝橘子，皮一撕開，味道就散到整節車廂。
       - think: 他們都在自己的位置上，不是我放的。
       - pause: 1.5
-      - { sfx: box_open, at: front-left, dist: near, text: 叩 }
+      - { sfx: thud, at: front-left, dist: near, gain: 0.18, text: 叩 }
       - narr: 頭上的行李架，我的行李箱跟著車廂輕輕撞。最底層那六封信，橡皮筋還綁著。
       - think: 五年了，我一封都沒有讓人念過。
       - think: 今天想去聽她最後寫了什麼。寫在紙上的，跟寄給我的。
@@ -72,7 +72,7 @@ scenes:
       - tingan: 誰跟妳說的？
       - me: 妳。在一個妳不會記得的今天。
       - pause: 1.5
-      - me: 我不是要妳食言。要不要知道，我想自己決定。
+      - me: 我知道妳答應過她。可是那是我的事，妳能不能也聽我說一次？
       - pause: 2.5
       - tingan: ……研究所。八點半。
       - { sfx: phone_hangup, at: right, dist: near, text: 嘟 }
@@ -117,6 +117,7 @@ scenes:
       - tingan: 她最後一批筆記。我一直沒有公開。
       - tingan: 拿出去，看起來會像一份名單。誰可以死。
       - { sfx: paper_rustle, at: front, dist: near, text: 沙沙 }
+      - tingan: 這些是五年前的紀錄。她改過的日子不只一天，編號也不是重過同一天的次數。
       - tingan: 第十四。
       - tingan: 若晴，存活。陳柏勳，死亡。
       - pause: 2
@@ -140,7 +141,8 @@ scenes:
       - tingan: 「不要直接改他的行程。」
       - think: 先問他。
       - { sfx: page_turn, at: front, dist: near, text: 沙啦 }
-      - narr: 我往後翻。凹痕越來越淺，字越寫越小、越快，像在填一張表。
+      - narr: 我往後翻。凹痕越來越淺，一筆和下一筆幾乎黏在一起。
+      - tingan: 字越寫越小了。每個名字後面，都列著時間跟路線。
       - tingan: 後面……她開始用英文寫名字。
       - pause: 1.5
       - tingan: Ruoqing。十七點四十到十八點十分。Unavailable。
@@ -173,7 +175,7 @@ scenes:
               then:
                 - narr: 字不多，凹痕很深。這一頁她寫得很用力。
                 - narr: 第一個字我認得，是我的姓。後面兩個字是我的名字。
-                - think: 她很少寫我的全名。小時候幫我簽聯絡簿，簽過幾次。
+                - think: 小時候她幫我填聯絡簿封面，寫過很多次。我的姓名那一欄，她總比我自己寫得整齊。
                 - narr: 下一行是數字。一、八，冒號，三、一。
                 - narr: 最後兩個字筆畫很多。我的指腹在上面來回走了好幾趟。
                 - { think: 死亡。, learn: k_my_death_page, mem: m_c7_my_death }
@@ -257,7 +259,7 @@ scenes:
       - { sfx: box_open, at: front, dist: near, text: 喀 }
       - narr: 一台很小的錄音機放在我面前的桌上。塑膠殼，按鍵很硬。
       - tingan: 五年前的研究會議。那天最後只剩我們兩個。
-      - tingan: 我按了錄音，就忘了關。
+      - tingan: 我按了錄音，就忘了關。機器留在桌上，隔天才回來拿。
       - pause: 2
       - tingan: 裡面有她的聲音。
       - pause: 3
@@ -370,11 +372,11 @@ scenes:
       - narr: 最後一頁只有一行。凹痕很淺，像寫字的人已經按不下去了。
       - { phone: 不要再找「最好的一天」。, learn: k_not_best_day, mem: m_c7_not_best_day }
       - pause: 4
-      - think: 最好的一天。第三次的時候，我站在舊車站對面，笑了一下。
+      - think: 最好的一天。那次我站在舊車站對面，笑了一下。
       - think: 我以為我找到了。
       - if: know.k_note_not_success
         then:
-          - think: 不要把「沒有人死」當成成功。她早就寫過，我也讀過，我還是笑了。
+          - think: 不要把「沒有人死」當成成功。我是那天晚上才讀到的。要是早幾個鐘頭讀到，我會信嗎？
     next: c7_promise
 
   # ─────────────────────────── 15:40 如果她回來 ───────────────────────────
@@ -461,7 +463,8 @@ scenes:
       - tingan: ……重來。
       - me: 妳不用信。
       - tingan: 我跟她共事過。我比妳以為的還容易信。
-      - me: 研究所在那一分鐘會怎樣，我不知道。我從來沒有在這裡等過。
+      - me: 我在研究所等過那一分鐘，聽過機器的聲音變高，也聽過山坡下的警笛。
+      - me: 可是今天會不會一樣，我不知道。
       - choice:
           timeout: 15
           options:
@@ -508,7 +511,7 @@ scenes:
       - choice:
           timeout: 14
           options:
-            - text: 「我不能說我怎麼知道。可是我可以說，我知道什麼。」
+            - text: 「這個今天，我已經過了好幾次。妳先聽我說完。」
               then:
                 - set: c7_r_full
             - text: 「今天不要去。」
@@ -524,7 +527,7 @@ scenes:
         else:
           - me: 那裡死過人，不只一次。
       - me: 為什麼會這樣，今天會不會一樣，我都不知道。
-      - me: 陳醫生要給妳的是什麼，我也不知道。我只知道那是妳的。
+      - me: 陳醫生那袋東西，我只聽過幾行，其他的我不知道。他今天約的是妳，要不要收是妳的事。
       - pause: 3
       - ruoqing: 妳說「不只一次」。
       - me: 嗯。
@@ -750,7 +753,8 @@ scenes:
       - yuan: 「如果妳讀到這封……」
       - narr: 他停在這裡。下一行在他手上，他沒有念。
       - clock: "17:58"
-      - narr: 他的手機放在櫃台上，螢幕朝下，離他的手不到一個巴掌。
+      - narr: 他把手機翻過來，扣在玻璃櫃台上。殼角碰到玻璃，叩的一聲。
+      - phone: 十七點五十八分。
       - if: know.k_yuan_1758
         then:
           - think: 十七點五十八分。五年前的這一分鐘，知夏打給他，他沒有接。
@@ -774,7 +778,7 @@ scenes:
           timeout: 18
           default: 2
           options:
-            - text: 「還有一封。第七封，我收到了。」
+            - text: 「還有一封。第七封，你打的點字，我收到了。」
               then:
                 - pause: 2
                 - { sfx: tools_clink, at: front, dist: near, text: 叮 }
@@ -803,6 +807,7 @@ scenes:
                 - narr: 他從抽屜裡找出一條新的，放進我手心。
       - pause: 2
       - yuan: ……妳知道現在幾點嗎？
+      - phone: 十七點五十九分。
       - me: 五點五十九。
       - yuan: 嗯。
       - pause: 2
@@ -821,7 +826,7 @@ scenes:
       - me: 沒有。
       - pause: 1.5
       - yuan: ……妳以前就是這樣。什麼都講，然後說「隨便你」。
-      - { sfx: laugh_soft, at: front, dist: near, text: 呵 }
+      - { sfx: laugh_soft_m, at: front, dist: near, text: 呵 }
       - me: 你八點有約。
       - yuan: ……妳怎麼知道？
       - me: 你可以去，也可以不去。
@@ -891,7 +896,7 @@ scenes:
       - me: 我幫你。
       - yuan: ……妳看不——
       - me: 我聽得出哪一個走得快。
-      - { sfx: laugh_soft, at: front, dist: near, text: 呵 }
+      - { sfx: laugh_soft_m, at: front, dist: near, text: 呵 }
     next: c7_night
 
   # ─────────────────────────── 22:50 ───────────────────────────
@@ -907,7 +912,7 @@ scenes:
       - think: 第六封說，妳一定要自己選。第七封說，不要回來。
       - think: 同一個秋天，她寫了這兩句。一句寄給我，一句交給予安。
       - pause: 2
-      - think: 十四，十九，二十三。每一個數字，都是一個她覺得還不夠好的今天，所以她再試一次。
+      - think: 十四，十九，二十三。她把改過的日子一個個編上號，還是沒有找到一個能讓她停下來的結果。
       - think: 我也是。
       - pause: 2
       - think: 知夏在算，我也在算。沒有人問過那些被算的人，要不要被算。

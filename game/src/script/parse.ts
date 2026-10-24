@@ -117,11 +117,13 @@ function parseBeat(raw: unknown, where: string, errors: Errors): Beat | undefine
     return { k: 'sfx', id, pos, text: str(raw.text), vib: vib(raw.vib, where, errors), gain: typeof raw.gain === 'number' ? raw.gain : undefined };
   }
   if ('amb' in raw) {
-    allow('amb');
+    allow('amb', 'fade');
     const ids = list(raw.amb);
     const bad = ids.filter((id) => !isAmbience(id));
     if (bad.length) errors.push(`${where}：未知環境聲 ${bad.join(', ')}`);
-    return { k: 'amb', ids: ids.filter(isAmbience) };
+    const fade = raw.fade === undefined ? undefined : Number(raw.fade);
+    if (fade !== undefined && !(fade >= 0)) errors.push(`${where}：fade 必須是秒數`);
+    return { k: 'amb', ids: ids.filter(isAmbience), fade };
   }
   if ('move' in raw) {
     allow('move');

@@ -1,6 +1,7 @@
 import { Fragment, cloneElement, useEffect, useLayoutEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactElement } from 'react';
 import { ECHO_MS, type Card, type CenterLine, type Director, type Peripheral, type View } from '../engine/director';
-import { interpolateClock, leanOf, placeOf } from './geometry';
+import { interpolateClock, leanOf, placeLabel, type Box } from './geometry';
+import type { Pos } from '../script/types';
 
 const HOLD_MS = 560;
 const MOVE_MS = 700;
@@ -39,22 +40,31 @@ function useLinger<T>(value: T | null): [T | null, boolean] {
 }
 
 // Same for the periphery, keeping the old order so no element is moved (a moved node restarts its CSS animations).
-function useDeparting(items: Peripheral[]): { item: Peripheral; gone: boolean }[] {
-  const [state, setState] = useState(() => ({ items, list: items.map((item) => ({ item, gone: false })) }));
+type Departing = { item: Peripheral; gone: boolean; goneAt?: number };
+function useDeparting(items: Peripheral[]): Departing[] {
+  const [state, setState] = useState(() => ({ items, list: items.map((item): Departing => ({ item, gone: false })) }));
   let list = state.list;
   if (state.items !== items) {
     const live = new Map(items.map((item) => [item.key, item]));
-    list = state.list.map((entry) => live.has(entry.item.key) ? { item: live.get(entry.item.key)!, gone: false } : { item: entry.item, gone: true });
+    const now = performance.now();
+    list = state.list.map((entry) => live.has(entry.item.key) ? { item: live.get(entry.item.key)!, gone: false }
+      : entry.gone ? entry : { item: entry.item, gone: true, goneAt: now });
     const known = new Set(state.list.map((entry) => entry.item.key));
     list.push(...items.filter((item) => !known.has(item.key)).map((item) => ({ item, gone: false })));
     setState({ items, list });
   }
   const anyGone = list.some((entry) => entry.gone);
+  // Swept on a steady beat, so a busy scene that keeps changing still lets faded ones go.
   useEffect(() => {
     if (!anyGone) return;
-    const timer = window.setTimeout(() => setState((current) => ({ ...current, list: current.list.filter((entry) => !entry.gone) })), GONE_MS + 80);
-    return () => window.clearTimeout(timer);
-  }, [list, anyGone]);
+    const timer = window.setInterval(() => {
+      const cutoff = performance.now() - GONE_MS - 80;
+      setState((current) => current.list.some((entry) => entry.gone && entry.goneAt! <= cutoff)
+        ? { ...current, list: current.list.filter((entry) => !entry.gone || entry.goneAt! > cutoff) }
+        : current);
+    }, 250);
+    return () => window.clearInterval(timer);
+  }, [anyGone]);
   return list;
 }
 
@@ -66,6 +76,79 @@ function fadeAway(el: HTMLElement) {
     [{ opacity: style.opacity, filter: style.filter === 'none' ? 'blur(0px)' : style.filter }, { opacity: 0, filter: 'blur(3px)' }],
     { duration: GONE_MS, easing: 'ease-out', fill: 'forwards' },
   );
+}
+
+// Sounds are placed once, measured, the moment they appear: around what she is reading, never on top of it.
+// Already placed ones stay put (unless the screen changed size) and count as taken.
+function placeSounds(root: HTMLElement, periph: Peripheral[], ripples: View['ripples'], turn: Pos | null, again: boolean) {
+  const W = root.clientWidth;
+  const H = root.clientHeight;
+  const origin = root.getBoundingClientRect();
+  const gap = 14;
+  // A long line on a narrow screen runs past where the choices start: let the choices step down below it.
+  const choices = root.querySelector<HTMLElement>('.lt-choices');
+  const said = root.querySelector('.lt-line:not(.lt-echo) .lt-text');
+  if (choices) {
+    choices.style.top = '';
+    if (said) {
+      const below = said.getBoundingClientRect().bottom - origin.top + 28;
+      if (below > choices.getBoundingClientRect().top - origin.top) choices.style.top = `${below}px`;
+    }
+  }
+  const boxOf = (el: Element, pad = gap): Box => {
+    const r = el.getBoundingClientRect();
+    return { l: r.left - origin.left - pad, t: r.top - origin.top - pad, r: r.right - origin.left + pad, b: r.bottom - origin.top + pad };
+  };
+  // Room for a typical three-row line with its label and echo, even before a longer one arrives.
+  const lineH = Math.min(Math.max(18.4, 0.023 * W), 25.6) * 1.85;
+  const halfW = Math.min(0.38 * W, 340);
+  const keepOut: Box[] = [{ l: W / 2 - halfW - gap, r: W / 2 + halfW + gap, t: H / 2 - 3.5 * lineH - 30, b: H / 2 + 1.5 * lineH + 26 + gap }];
+  root.querySelectorAll('.lt-line:not(.leaving) .lt-text, .lt-line:not(.leaving) .lt-label, .lt-choice, .lt-wait, .lt-where').forEach((el) => keepOut.push(boxOf(el)));
+  const corner = document.querySelector('.lt-corner');
+  if (corner) keepOut.push(boxOf(corner));
+
+  // Measured things only (not the room kept for a longer line), unpadded: a label merely brushing the margin stays put.
+  const fixed = keepOut.length;
+  const hits = (a: Box, b: Box) => a.l < b.r && a.r > b.l && a.t < b.b && a.b > b.t;
+  const byKey = new Map(periph.map((item) => [String(item.key), item]));
+  const centres = new Map<Pos, { x: number; y: number }>();
+  root.querySelectorAll<HTMLElement>('.lt-p[data-key]').forEach((el) => {
+    const item = byKey.get(el.dataset.key!);
+    if (!item) return;
+    // Already placed, but the choices (or a longer line) have since landed on it: it slides aside.
+    const live = !el.classList.contains('gone');
+    const crowdedOut = live && el.dataset.placed !== undefined && !again && keepOut.slice(1, fixed)
+      .some((box) => hits(boxOf(el, 0), { l: box.l + gap, t: box.t + gap, r: box.r - gap, b: box.b - gap }));
+    if (crowdedOut) el.style.transition = 'left 450ms var(--ease), top 450ms var(--ease)';
+    if (again || crowdedOut || el.dataset.placed === undefined) {
+      const { x, y, crowded } = placeLabel(item.pos, el.offsetWidth, el.offsetHeight, W, H, keepOut);
+      el.style.left = `${x}px`;
+      el.style.top = `${y}px`;
+      // Strangers' talk is only colour: with no room left it is heard, not written over what she is reading.
+      el.classList.toggle('crowded', Boolean(crowded) && item.kind === 'life');
+      el.dataset.placed = '';
+    }
+    const x = parseFloat(el.style.left);
+    const y = parseFloat(el.style.top);
+    centres.set(item.pos, { x, y });
+    // One already fading out is about to be gone; it does not hold its spot.
+    if (!el.classList.contains('gone')) keepOut.push({ l: x - el.offsetWidth / 2 - 6, r: x + el.offsetWidth / 2 + 6, t: y - el.offsetHeight / 2 - 6, b: y + el.offsetHeight / 2 + 6 });
+  });
+
+  // A ripple rises where its sound's word is; a voice without a word gets a spot of its own.
+  const ripplePos = new Map(ripples.map((ripple) => [String(ripple.key), ripple.pos]));
+  root.querySelectorAll<HTMLElement>('.lt-ripple[data-key]').forEach((el) => {
+    if (!again && el.dataset.placed !== undefined) return;
+    const pos = ripplePos.get(el.dataset.key!);
+    if (!pos) return;
+    const at = centres.get(pos) ?? placeLabel(pos, 64, 40, W, H, keepOut);
+    el.style.left = `${at.x}px`;
+    el.style.top = `${at.y}px`;
+    el.dataset.placed = '';
+  });
+  const glow = root.querySelector<HTMLElement>('.lt-turn');
+  const at = turn ? centres.get(turn) : undefined;
+  if (glow && at) { glow.style.left = `${at.x}px`; glow.style.top = `${at.y}px`; }
 }
 
 type Props = { director: Director; view: View; onCapture: () => void; firstCueHint: boolean; onCueHintShown: () => void };
@@ -100,6 +183,8 @@ export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown 
   const [turn, turnGone] = useLinger(view.shiftingTo);
   const [choice, choiceGone] = useLinger(view.choice && view.focus === 'main' ? view.choice : null);
   const [waiting, waitingGone] = useLinger(view.waiting);
+  // During a real wait the corner clock walks from the wait's start time to its end, minute by minute.
+  const clockShown = useWaitClock(view, director.speed) ?? view.clock;
   const carded = view.phase === 'card' || view.phase === 'reset';
   const cardPhase = useRef(view.phase);
   if (carded) cardPhase.current = view.phase;
@@ -109,8 +194,18 @@ export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown 
   const lastLook = useRef(new Map<number, ReactElement<Record<string, unknown>>>());
 
   const root = useRef<HTMLDivElement>(null);
+  const [screen, setScreen] = useState(0);
+  const placedFor = useRef(screen);
+  useEffect(() => {
+    const onResize = () => setScreen((value) => value + 1);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
   useLayoutEffect(() => {
-    root.current?.querySelectorAll<HTMLElement>('.gone:not([data-fading])').forEach(fadeAway);
+    if (!root.current) return;
+    placeSounds(root.current, periph.map((entry) => entry.item), view.ripples, turn, placedFor.current !== screen);
+    placedFor.current = screen;
+    root.current.querySelectorAll<HTMLElement>('.gone:not([data-fading])').forEach(fadeAway);
     const mounted = new Set(periph.map((entry) => entry.item.key));
     for (const key of lastLook.current.keys()) if (!mounted.has(key)) lastLook.current.delete(key);
   });
@@ -118,11 +213,8 @@ export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown 
   return (
     <div className={className} ref={root}>
       <div className="lt-world">
-        {view.ripples.map((ripple) => {
-          const place = placeOf(ripple.pos);
-          return <div key={ripple.key} className={`lt-ripple dist-${ripple.pos.dist}`} style={{ left: place.left, top: place.top }} />;
-        })}
-        {turn && (() => { const place = placeOf(turn); return <div className={`lt-turn${turnGone ? ' gone' : ''}`} style={{ left: place.left, top: place.top }} />; })()}
+        {view.ripples.map((ripple) => <div key={ripple.key} data-key={ripple.key} className={`lt-ripple dist-${ripple.pos.dist}`} />)}
+        {turn && <div className={`lt-turn${turnGone ? ' gone' : ''}`} />}
 
         {periph.map(({ item, gone }) => {
           const looked = lastLook.current.get(item.key);
@@ -142,13 +234,13 @@ export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown 
         </div>
 
         {choice && <Choices director={director} choice={choice} gone={choiceGone} />}
-        {waiting && <Waiting view={view} waiting={waiting} gone={waitingGone} speed={director.speed} />}
+        {waiting && <Waiting gone={waitingGone} />}
       </div>
 
       {card && <CardView card={card} phase={cardPhase.current} gone={cardGone} />}
       {(view.clock || view.place) && view.phase !== 'idle' && (
         <div className="lt-where" aria-hidden="true">
-          {view.clock && <span key={view.clock} className="lt-where-time">{view.clock}</span>}
+          {clockShown && <span key={view.clock} className="lt-where-time">{clockShown}</span>}
           {view.place && <span key={view.place} className="lt-where-place">{view.place}</span>}
         </div>
       )}
@@ -157,13 +249,10 @@ export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown 
   );
 
   function renderPeriph(item: Peripheral): ReactElement<Record<string, unknown>> {
-    const place = placeOf(item.pos);
     // Fixed at birth: recomputing it on every render would shorten a running animation and make it jump ahead.
     const life = Number.isFinite(item.until) ? Math.max(400, (item.until - item.born) / director.speed) : 0;
-    // Overheard talk can be long: keep its whole box on screen.
-    const style = item.kind === 'life'
-      ? { left: `clamp(min(20vw, 160px), ${place.left}, calc(100% - min(20vw, 160px)))`, top: `clamp(10vh, ${place.top}, 90vh)`, ['--life' as string]: `${life}ms` }
-      : { left: place.left, top: place.top, ['--life' as string]: `${life}ms` };
+    // Where it sits is worked out after it is measured (placeSounds), so no left/top here.
+    const style = { ['--life' as string]: `${life}ms` };
     if (item.kind === 'cue') {
       const active = view.focus === item.thread || (view.shiftingTo !== null && view.shiftingTo === item.pos);
       // While someone is asking her something, she cannot turn away.
@@ -171,6 +260,7 @@ export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown 
       return (
         <button
           key={item.key}
+          data-key={item.key}
           type="button"
           className={`lt-p kind-cue dist-${item.pos.dist}${active ? ' active' : ''}${held ? ' held' : ''}`}
           style={style}
@@ -184,7 +274,7 @@ export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown 
         </button>
       );
     }
-    return <span key={item.key} className={`lt-p kind-${item.kind} dist-${item.pos.dist}`} style={style} aria-hidden="true">{item.text}</span>;
+    return <span key={item.key} data-key={item.key} className={`lt-p kind-${item.kind} dist-${item.pos.dist}`} style={style} aria-hidden="true">{item.text}</span>;
   }
 }
 
@@ -308,21 +398,32 @@ function Choices({ director, choice, gone }: { director: Director; choice: NonNu
   );
 }
 
-function Waiting({ view, waiting, gone, speed }: { view: View; waiting: NonNullable<View['waiting']>; gone: boolean; speed: number }) {
+/** The clock a running wait has reached (null when not waiting, or the wait has no end time). */
+function useWaitClock(view: View, speed: number): string | undefined {
+  const waiting = view.waiting;
   const [, setTick] = useState(0);
   useEffect(() => {
+    if (!waiting?.until) return;
     const interval = window.setInterval(() => setTick((value) => value + 1), 1000);
     return () => window.clearInterval(interval);
-  }, []);
-  const total = waiting.seconds * 1000;
+  }, [waiting?.startedAt, waiting?.until]);
   // view.t only refreshes on render; approximate progress from wall time since this wait was shown.
-  const started = useRef(performance.now() - Math.max(0, view.t - waiting.startedAt) / speed);
-  const fraction = gone ? 1 : Math.min(1, ((performance.now() - started.current) * speed) / total);
-  const clock = waiting.until ? interpolateClock(waiting.clock ?? view.clock, waiting.until, fraction) : undefined;
+  const started = useRef<{ key: number; at: number } | null>(null);
+  if (!waiting?.until) {
+    started.current = null;
+    return undefined;
+  }
+  if (started.current?.key !== waiting.startedAt) {
+    started.current = { key: waiting.startedAt, at: performance.now() - Math.max(0, view.t - waiting.startedAt) / speed };
+  }
+  const fraction = Math.min(1, ((performance.now() - started.current.at) * speed) / (waiting.seconds * 1000));
+  return interpolateClock(waiting.clock ?? view.clock, waiting.until, fraction);
+}
+
+function Waiting({ gone }: { gone: boolean }) {
   return (
     <div className={`lt-wait${gone ? ' gone' : ''}`} aria-hidden="true">
       <div className="lt-wait-breath" />
-      {clock && <div className="lt-wait-clock">{clock}</div>}
     </div>
   );
 }

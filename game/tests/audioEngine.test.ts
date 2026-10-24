@@ -3,9 +3,10 @@ import { AMBIENCE, DIRECTIONS, DISTANCES, SFX, VOICES, type AmbienceId, type Sfx
 import { AMBIENCE_RECIPES, startAmbience } from '../src/audio/ambience';
 import { Graph, type SfxCtx } from '../src/audio/core';
 import { createAudioEngine, createSilentEngine, type AudioEngine, type AudioEngineDebug } from '../src/audio/engine';
-import { AMBIENT_EVENTS, SFX_RECIPES } from '../src/audio/sounds';
+import { AMBIENT_EVENTS, HUMAN_SFX, SFX_RECIPES } from '../src/audio/sounds';
 import { AMBIENCE_SAMPLES, SFX_SAMPLES, SampleBank, sampleRecipe, sampleUrl } from '../src/audio/samples';
 import credits from '../public/audio/CREDITS.md?raw';
+import { ATTRIBUTION_CREDITS } from '../src/audio/credits';
 
 // ------------------------------------------------------------------ a strict fake Web Audio API
 // It throws (and records) wherever a real browser would throw, so recipe bugs surface here even
@@ -299,6 +300,8 @@ describe('engine without Web Audio (jsdom)', () => {
         e.setEnabled(true);
         e.setVolume(0.5);
         e.setVoiceVolume(0.5);
+        e.setAmbienceVolume(0.3);
+        e.setSfxVolume(1);
         e.setAmbience(['rain', 'cafe']);
         e.setAmbience([], 100);
         e.play('step', { dir: 'left', dist: 'near' });
@@ -401,6 +404,33 @@ describe('Web Audio engine (fake context)', () => {
     }
   };
 
+  it('places a speaker with one rustle per turn, never a voice', async () => {
+    const engine = createAudioEngine();
+    await engine.unlock();
+    const dbg = engine as unknown as AudioEngineDebug;
+    const at = { dir: 'right', dist: 'near' } as const;
+    engine.voice('yuan', at, 1500); // a new speaker: one rustle
+    engine.voice('me', at, 1500); // the protagonist makes no sound and does not end his turn
+    engine.voice('yuan', at, 1500); // the same conversation: nothing
+    expect(dbg.stats().shots).toBe(1);
+    engine.voice('ruoqing', at, 1500); // someone else starts talking
+    expect(dbg.stats().shots).toBe(2);
+    engine.voice('woman', at, 1500, 'life'); // a passer-by: clothes and shifting weight
+    expect(dbg.stats().shots).toBe(3);
+    expect(dbg.stats().voices).toBe(0);
+  });
+
+  it('never synthesizes a human voice: without its recording a laugh or cough stays silent', async () => {
+    const engine = createAudioEngine();
+    await engine.unlock();
+    const dbg = engine as unknown as AudioEngineDebug;
+    for (const id of HUMAN_SFX) engine.play(id, { dir: 'front', dist: 'near' });
+    tick(1);
+    expect(dbg.stats().shots).toBe(0);
+    engine.play('step', { dir: 'front', dist: 'near' }); // a non-voice sound still falls back to synthesis
+    expect(dbg.stats().shots).toBe(1);
+  });
+
   it('unlocks, plays every sound everywhere, crossfades ambience and cleans up', async () => {
     const engine = createAudioEngine();
     engine.setAmbience(['rain']); // before unlock: remembered
@@ -420,12 +450,17 @@ describe('Web Audio engine (fake context)', () => {
     expect(dbg.stats().shots).toBeGreaterThan(0);
     expect(dbg.stats().shots).toBeLessThanOrEqual(24);
     for (const v of Object.keys(VOICES) as VoiceId[]) engine.voice(v, POSITIONS[i++ % POSITIONS.length]!, 1500);
-    expect(dbg.stats().voices).toBeLessThanOrEqual(6);
+    // people's lines are silent (no synthesized voices); only the phone's screen reader ticks
+    expect(dbg.stats().voices).toBe(1);
 
     // malformed input never throws
     engine.play('nope' as SfxId, { dir: 'up' as never, dist: 'very' as never });
     engine.voice('ghost' as VoiceId, { dir: 'left', dist: 'near' }, Number.NaN);
     engine.setVolume(Number.NaN);
+    engine.setAmbienceVolume(Number.NaN);
+    engine.setSfxVolume(Number.POSITIVE_INFINITY);
+    engine.setAmbienceVolume(0.4);
+    engine.setSfxVolume(0.9);
     engine.setAmbience(['not_a_layer' as AmbienceId, 'cafe', 'cafe']);
 
     engine.setAttention(1);
@@ -493,6 +528,15 @@ describe('sample manifest', () => {
     }
   });
 
+  it('shows every CC BY recording in the game, not only in CREDITS.md', () => {
+    const attributed = credits.split('\n').filter((line) => / — CC BY /.test(line));
+    expect(attributed.length).toBeGreaterThan(0);
+    for (const line of attributed) {
+      const url = line.match(/https:\/\/freesound\.org\/people\/[^ ]+\/sounds\/\d+\//)?.[0];
+      expect(ATTRIBUTION_CREDITS.some((credit) => credit.url === url), line.slice(0, 80)).toBe(true);
+    }
+  });
+
   it('credits every file', () => {
     for (const e of [...Object.values(SFX_SAMPLES), ...Object.values(AMBIENCE_SAMPLES)]) {
       for (const f of e!.files) expect(credits.includes('`' + f + '`'), f).toBe(true);
@@ -543,6 +587,25 @@ describe('Web Audio engine with recorded samples (fake decoder)', () => {
       vi.advanceTimersByTime(100);
     }
   };
+
+  it('auditions an exact recording variant and rejects invalid version indices', async () => {
+    const engine = createAudioEngine();
+    const dbg = engine as unknown as AudioEngineDebug;
+    await engine.unlock();
+    const pos: SpatialPos = { dir: 'center', dist: 'near' };
+    const buffers: Array<FakeBuffer | null> = [];
+    for (const variant of [0, 1, 0]) {
+      expect(await dbg.playSource('step', pos, 'sample', { variant })).toBe(true);
+      const source = FakeContext.instances[0]!.sources.at(-1) as FakeBufferSource;
+      buffers.push(source.buffer);
+    }
+    expect(buffers[0]).not.toBeNull();
+    expect(buffers[0]).not.toBe(buffers[1]);
+    expect(buffers[0]).toBe(buffers[2]);
+    for (const variant of [-1, 0.5, 99, NaN]) {
+      expect(await dbg.playSource('step', pos, 'sample', { variant })).toBe(false);
+    }
+  });
 
   it('plays synthesis until a sample is decoded, then the sample; beds crossfade from synth to recording', async () => {
     const engine = createAudioEngine();
@@ -598,6 +661,20 @@ describe('Web Audio engine with recorded samples (fake decoder)', () => {
     const fc = FakeContext.instances[0]!;
     const unstopped = fc.sources.filter((src) => src.started !== null && src.stopAt === null);
     expect(unstopped.length).toBeLessThanOrEqual(1);
+  });
+
+  it('retries a recording whose load failed once, after a short wait', async () => {
+    let fail = true;
+    globalThis.fetch = (async () =>
+      (fail ? { ok: false, status: 503 } : { ok: true, status: 200, arrayBuffer: async () => new ArrayBuffer(8) }) as unknown as Response) as typeof fetch;
+    const bank = new SampleBank(new DecodingContext() as unknown as BaseAudioContext);
+    const file = SFX_SAMPLES.step!.files[2]!;
+    expect(await bank.load(file)).toBeNull();
+    fail = false;
+    expect(await bank.load(file)).toBeNull(); // still waiting before a retry
+    vi.advanceTimersByTime(3100);
+    expect(await bank.load(file)).not.toBeNull();
+    expect(bank.stats().failed).toBe(0);
   });
 
   it('falls back to synthesis forever when loading fails', async () => {

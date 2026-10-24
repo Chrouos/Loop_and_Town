@@ -165,7 +165,7 @@ scenes:
 | 角色說話（覆寫） | `- { yuan: 比我想的早。, at: left, as: 陌生的男聲, learn: k_x, mem: m_x }` | `at` 方位、`as` 標籤、`learn` 聽清楚才得到的知識、`mem` 記憶 id |
 | 手機讀屏 | `- phone: 六點十二分。` | |
 | 音效 | `- sfx: step@front-left` 或 `- { sfx: step, at: front-left, dist: far, text: 叩、叩, vib: tap }` | `text` 是畫面上的擬聲字；省略則只有聲音 |
-| 換環境聲 | `- amb: [cafe, rain_on_window]` | |
+| 換環境聲 | `- amb: [cafe, rain_on_window]` 或 `- { amb: [night_insects], fade: 0.1 }` | `fade` 是淡入淡出秒數，預設 2.4；停電這種瞬間斷掉的聲音用 0.1 |
 | 移動 | `- move: { yuan: left }` | |
 | 停頓 | `- pause: 1.5` | 秒 |
 | 真實等待 | `- { wait: 60, clock: "18:20", until: "18:31" }` | 不能跳過；只能放在主線最外層 |

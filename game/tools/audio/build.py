@@ -101,7 +101,30 @@ def build_amb(id, a):
 def load_report():
     if os.path.exists(REPORT):
         return json.load(open(REPORT))
-    return {'sfx': {}, 'amb': {}}
+    return reindex()
+
+
+def reindex():
+    """Rebuild the report (it is not in git) from the manifest in samples.ts and the files on disk,
+    so building a few ids never loses the others."""
+    src = open(os.path.join(GAME, 'src', 'audio', 'samples.ts')).read()
+    block = re.search(r'// <generated manifest>\n(.*?)// </generated manifest>', src, re.S).group(1)
+    sfx_part, amb_part = block.split('AMBIENCE_SAMPLES')
+    rep = {'sfx': {}, 'amb': {}}
+    for id, files in re.findall(r"^  ([a-z0-9_]+): \{ files: \[([^\]]*)\]", sfx_part, re.M):
+        stats = []
+        for f in re.findall(r"'([^']+)'", files):
+            m = measure_m4a(os.path.join(PUB, f))
+            m['bytes'] = os.path.getsize(os.path.join(PUB, f))
+            m['file'] = f
+            stats.append(m)
+        rep['sfx'][id] = {'files': [m['file'] for m in stats], 'stats': stats}
+    for id, f, a, b in re.findall(r"^  ([a-z0-9_]+): \{ files: \['([^']+)'\].*?loopStart: ([0-9.]+), loopEnd: ([0-9.]+)", amb_part, re.M):
+        m = measure_m4a(os.path.join(PUB, f))
+        m.update(bytes=os.path.getsize(os.path.join(PUB, f)), file=f, loopStart=float(a), loopEnd=float(b))
+        rep['amb'][id] = m
+    print('report.json was missing: reindexed %d sfx ids and %d beds from samples.ts' % (len(rep['sfx']), len(rep['amb'])))
+    return rep
 
 
 def ts_num(v):
@@ -145,17 +168,26 @@ def write_manifest(rep):
     open(p, 'w').write(new)
 
 
+def license_of(m):
+    """'CC0', or the attribution license recorded by hand in meta.json (`page_lic`) after reading the page."""
+    lic = 'CC0' if m.get('page_cc0') else m.get('page_lic')
+    assert lic, 'license not verified for %s' % m.get('id')
+    return lic
+
+
 def credit_line(sid, meta):
     m = meta[str(sid)]
-    assert m.get('page_cc0'), 'license not verified for %s' % sid
+    license_of(m)
     return '%s by %s, %s' % (m['title'], m['user'], m['url'])
 
 
 def write_credits(rep):
     meta = json.load(open(os.path.join(HERE, 'meta.json')))
     out = ['# Audio credits', '',
-           'Every recording here is **CC0 1.0 (public domain dedication)**, taken from [Freesound](https://freesound.org)',
-           '(HQ previews of sounds whose page states Creative Commons 0). CC0 does not require credit; it is given anyway.',
+           'Every recording here is from [Freesound](https://freesound.org). Most are **CC0 1.0 (public domain dedication)**,',
+           'which does not require credit (it is given anyway). Lines marked **CC BY** are Creative Commons Attribution:',
+           'they may be used commercially, but the credit on that line must ship with the game.',
+           'Sources are HQ previews unless a line says it was made from the original file.',
            'All files were trimmed / faded / level-normalized and re-encoded to AAC (.m4a); ambience beds were turned',
            'into seamless loops with a baked crossfade. Further processing is noted per line.', '',
            'Format: `file` — id — "title" by author — source URL — license — processing.', '', '## One-shots (`sfx/`)', '']
@@ -165,10 +197,11 @@ def write_credits(rep):
         s = SFX[id]
         r = rep['sfx'][id]
         srcs = '; '.join('"%s" by %s — %s' % (meta[str(x)]['title'], meta[str(x)]['user'], meta[str(x)]['url']) for x in s['sources'])
+        lic = ' + '.join(sorted({license_of(meta[str(x)]) for x in s['sources']}))
         n = len(r['files'])
         for i, (f, st) in enumerate(zip(r['files'], r['stats'])):
             var = ('variant %d of %d: ' % (i + 1, n)) if n > 1 else ''
-            out.append('- `%s` — %s — %s — CC0 — %s%s (%.2f s; RMS %.1f dBFS, peak %.1f dBFS, loudest 50 ms %.1f dBFS)' % (f, id, srcs, var, s['note'] or 'trimmed, faded, normalized', st['dur'], st['rms'], st['peak'], st['st50']))
+            out.append('- `%s` — %s — %s — %s — %s%s (%.2f s; RMS %.1f dBFS, peak %.1f dBFS, loudest 50 ms %.1f dBFS)' % (f, id, srcs, lic, var, s['note'] or 'trimmed, faded, normalized', st['dur'], st['rms'], st['peak'], st['st50']))
     out += ['', '## Ambience beds (`amb/`)', '']
     for id in sorted(rep['amb']):
         if id not in AMB:
@@ -176,10 +209,11 @@ def write_credits(rep):
         a = AMB[id]
         r = rep['amb'][id]
         srcs = '; '.join('"%s" by %s — %s' % (meta[str(x)]['title'], meta[str(x)]['user'], meta[str(x)]['url']) for x in a['sources'])
-        out.append('- `%s` — %s — %s — CC0 — %s (loop %.1f s, RMS %.1f dBFS, peak %.1f dBFS)' % (r['file'], id, srcs, a['note'] or 'seamless loop', r['loopEnd'] - r['loopStart'], r['rms'], r['peak']))
+        lic = ' + '.join(sorted({license_of(meta[str(x)]) for x in a['sources']}))
+        out.append('- `%s` — %s — %s — %s — %s (loop %.1f s, RMS %.1f dBFS, peak %.1f dBFS)' % (r['file'], id, srcs, lic, a['note'] or 'seamless loop', r['loopEnd'] - r['loopStart'], r['rms'], r['peak']))
     for s in list(SFX.values()) + list(AMB.values()):
         for x in s['sources']:
-            assert meta[str(x)].get('page_cc0'), 'license not verified for %s' % x
+            license_of(meta[str(x)])
     open(os.path.join(PUB, 'CREDITS.md'), 'w').write('\n'.join(out) + '\n')
 
 
@@ -199,20 +233,27 @@ def main():
         m = build_amb(id, a)
         rep['amb'][id] = m
         print('amb %-18s %.1fs loop  rms %.1f pk %.1f  %dkB' % (id, m['loopEnd'] - m['loopStart'], m['rms'], m['peak'], m['bytes'] // 1024))
-    # drop entries no longer in the spec, and their files
+    # drop entries no longer in the spec, and the files only they used
+    dropped = set()
     for kind, table in (('sfx', SFX), ('amb', AMB)):
         for id in list(rep[kind]):
             if id not in table:
-                del rep[kind][id]
+                r = rep[kind].pop(id)
+                dropped.update(r['files'] if kind == 'sfx' else [r['file']])
     keep = set()
     for r in rep['sfx'].values():
         keep.update(r['files'])
     for r in rep['amb'].values():
         keep.add(r['file'])
+    for f in sorted(dropped - keep):
+        if os.path.exists(os.path.join(PUB, f)):
+            os.remove(os.path.join(PUB, f))
+            print('removed', f)
+    # anything else unreferenced is only reported: a missing report must never delete files
     for kind in ('sfx', 'amb'):
-        for f in os.listdir(os.path.join(PUB, kind)):
+        for f in sorted(os.listdir(os.path.join(PUB, kind))):
             if '%s/%s' % (kind, f) not in keep:
-                os.remove(os.path.join(PUB, kind, f))
+                print('warning: %s/%s is not in the manifest (left in place)' % (kind, f))
     json.dump(rep, open(REPORT, 'w'), indent=1)
     write_manifest(rep)
     write_credits(rep)

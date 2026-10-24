@@ -4,3 +4,6 @@ out/
 report.json
 .last_request
 __pycache__/
+originals/
+meta.json.lock
+meta.json.tmp

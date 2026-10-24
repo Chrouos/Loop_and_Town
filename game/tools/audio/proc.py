@@ -1,5 +1,6 @@
 """Processing primitives (numpy only) used by build.py."""
 import os
+import subprocess
 import numpy as np
 import ana
 
@@ -9,8 +10,18 @@ _cache = {}
 
 
 def src(sid):
+    """Source <sid> as 44.1 kHz audio. dl/<sid>.wav is only a cache: when it is missing it is made
+    from a hand-downloaded original in originals/ (named <sid>__author__title.ext, as Freesound names them)."""
     if sid not in _cache:
-        x, sr = ana.read(os.path.join(HERE, 'dl', '%s.wav' % sid))
+        wav = os.path.join(HERE, 'dl', '%s.wav' % sid)
+        if not os.path.exists(wav):
+            orig = os.path.join(HERE, 'originals')
+            found = [f for f in (os.listdir(orig) if os.path.isdir(orig) else []) if f.startswith('%s__' % sid)]
+            if not found:
+                raise FileNotFoundError('%s: no dl/%s.wav and no originals/%s__*; fetch it with fs.py get %s' % (sid, sid, sid, sid))
+            os.makedirs(os.path.dirname(wav), exist_ok=True)
+            subprocess.run(['afconvert', '-f', 'WAVE', '-d', 'LEI16@44100', os.path.join(orig, found[0]), wav], check=True)
+        x, sr = ana.read(wav)
         assert sr == SR
         _cache[sid] = x
     return _cache[sid].copy()

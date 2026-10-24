@@ -15,4 +15,7 @@ python3 build.py bell_toll                     # 依 spec.py 裁切、正規化�
 - `build.py`：處理與輸出；會重新產生 `src/audio/samples.ts` 的 manifest 區塊，手動改過的 gain/rate 會被覆蓋，要改就改 `spec.py`
 - `ana.py`、`proc.py`、`events.py`：量測與處理工具
 - `meta.json`：每個來源音檔的標題、作者、網址、授權（產生 CREDITS.md 用）
-- `dl/`、`cache/`、`out/` 是下載與中間檔，不進版控
+- `originals/`：從 Freesound 下載的原始檔（檔名保留 Freesound 的 `<id>__<作者>__<標題>`），比 `fs.py get` 抓的 HQ 預覽音質好。spec 用到某個 id 時，`dl/<id>.wav` 不存在就會自動從這裡轉出來。不進版控
+- `dl/`、`cache/`、`out/` 是下載與中間檔，不進版控；`dl/` 可以隨時整個刪掉
+- 遊戲只載入 `public/audio/` 裡裁好、壓好的 m4a（一個環境音約 1 MB），原始檔再大都不會進遊戲
+- `report.json` 不見時，`build.py` 會從 `samples.ts` 的 manifest 重建；只會刪掉從 `spec.py` 移除的聲音的檔案，其他沒對上的檔案只會印警告

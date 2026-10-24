@@ -35,7 +35,7 @@ scenes:
       - { announcer: 下一站，灰潮鎮。, as: 廣播 }
       - think: 這一次，若晴不能去舊車站。
       - narr: 外套口袋裡的信還在。我用指腹壓過那一行凸點，每一顆都在原來的位置。
-      - think: 一封叫我不要回來的信，被我帶著回來第二次。
+      - think: 一封叫我不要回來的信，又被我帶回來了。
       - { sfx: train_brake, at: front, dist: mid, text: 嘰—— }
     next: c2_arrival
 
@@ -143,7 +143,7 @@ scenes:
       - { sfx: cup_set, at: front, dist: near, text: 叩 }
       - narr: 她沒有回櫃台，在隔壁桌坐下來，攤開一疊紙。
       - { sfx: paper_rustle, at: front, dist: near, text: 沙、沙 }
-      - { cue: manager, at: back-left, text: 窸窸窣窣, sfx: whisper }
+      - { cue: manager, at: back-left, text: 窸窸窣窣, sfx: huddle_rustle }
       - narr: 紙一張一張翻過去。翻到某幾張的時候，她的呼吸會跟著慢下來。
       - { sfx: strap_click, at: front, dist: near, text: 喀 }
       - pause: 2
@@ -204,7 +204,7 @@ scenes:
     cast: { yuan: right, child: front-left }
     beats:
       - { sfx: cane_tap, at: front, dist: near, text: 叩 }
-      - narr: 老街的地磚是去年換的，手杖敲上去比我記得的清脆。
+      - narr: 老街的地磚換過了，手杖敲上去比五年前清脆。
       - { sfx: bicycle_bell, at: left, dist: mid, text: 叮叮 }
       - if: know.k_truck
         then:
@@ -352,7 +352,7 @@ scenes:
             then:
               - me: 妳的照片，我還沒聽完。
             else:
-              - me: 妳的照片，我還一張都沒聽過。
+              - me: 妳的照片，我還想多聽幾張。
           - { sfx: sigh, at: front, dist: near }
           - ruoqing: 好啦，陳醫生那邊我再跟他講。
           - ruoqing: 欸先講好喔，跟妳叫我不要去沒關係。
@@ -407,7 +407,7 @@ scenes:
       - boxun: 若晴，我到了。妳方便的時候回我一下。
       - pause: 2
       - { sfx: phone_hangup, at: front, dist: mid, text: 嘟——嘟—— }
-      - { sfx: sigh, at: front, dist: mid }
+      - { sfx: sigh_m, at: front, dist: mid }
       - me: 陳醫生。
       - pause: 1.5
       - boxun: ……請問妳是？
@@ -524,7 +524,7 @@ scenes:
           options:
             - text: 「若晴，妳手機在響。」
               then:
-                - ruoqing: 等一下啦，我手上都是咖啡粉！
+                - ruoqing: 等一下啦，這一頁填到一半！
                 - { sfx: step_run, at: left, dist: mid, text: 噠噠 }
                 - narr: 她跑出來的時候，震動剛好停了。
                 - ruoqing: 喔，陳醫生。等一下回他。
@@ -642,7 +642,7 @@ scenes:
     ambience: [old_station_hall]
     cast: { ruoqing: front, boxun: front-right }
     beats:
-      - narr: 我遠遠跟在她後面，遠到她聽不見我的手杖。
+      - narr: 我循著她的腳步跟到圍欄旁，手杖碰到圍欄的轉角。她從側邊繞進去，我等她走遠，才跟著進去。
       - { sfx: step, at: front, dist: mid, text: 叩、叩 }
       - ruoqing: 陳醫生。
       - boxun: 妳來了。這是知夏留下的。

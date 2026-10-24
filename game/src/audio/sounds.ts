@@ -20,7 +20,7 @@ import {
   type SfxCtx,
   type SfxRecipe,
 } from './core';
-import { glottalWave, murmurRig, whisper } from './voice';
+import { glottalWave, murmurRig } from './voice';
 
 type Pts = ReadonlyArray<readonly [number, number]>;
 type Part = readonly [ratio: number, amp: number, t60: number];
@@ -351,12 +351,13 @@ function stepRecipe(o: { weight?: number; bright?: number; level?: number; heels
     play(c) {
       const t = c.t;
       if (o.heels) {
-        const d = wetDry(c, 0.18);
+        const d = wetDry(c, 0.12);
         const lv = rand(0.75, 1);
-        const e1 = click(c, d, t, vary(2600, 0.15) * c.p, 0.55 * lv, 2.2, 0.03);
-        const e2 = modal(c, d, t, vary(1750, 0.08) * c.p, [[1, 1, 0.045], [2.2, 0.4, 0.03]], 0.05 * lv);
-        const e3 = thump(c, d, t, 170 * c.p, 95 * c.p, 0.045, 0.22 * lv);
-        const e4 = click(c, d, t + rand(0.06, 0.09), vary(3200, 0.15) * c.p, 0.2 * lv, 1.5, 0.015);
+        // A bright, short heel strike with just enough body to keep it grounded.
+        const e1 = click(c, d, t, vary(3800, 0.12) * c.p, 0.62 * lv, 2.2, 0.018);
+        const e2 = modal(c, d, t, vary(2350, 0.08) * c.p, [[1, 1, 0.03], [2.2, 0.4, 0.018]], 0.08 * lv);
+        const e3 = thump(c, d, t, 210 * c.p, 125 * c.p, 0.028, 0.11 * lv);
+        const e4 = click(c, d, t + rand(0.06, 0.09), vary(4400, 0.12) * c.p, 0.22 * lv, 1.5, 0.012);
         return endOf(c, e1, e2, e3, e4);
       }
       return endOf(c, footstep(c, c.out, t, { weight: o.weight, bright: o.bright, level: o.level ?? 1 }));
@@ -420,14 +421,15 @@ export const SFX_RECIPES: Record<SfxId, SfxRecipe> = {
   door_close: {
     play(c) {
       const t = c.t;
-      const d = wetDry(c, 0.2);
-      const hit = t + vary(0.28, 0.1);
-      const e1 = nshape(c, d, t, { kind: 'pink', type: 'lowpass', f: 500, pts: [[0, 0], [0.2, 0.09], [hit - t, 0.04]] });
-      const e2 = thump(c, d, hit, 72 * c.p, 44 * c.p, 0.18, 0.7);
-      const e3 = nburst(c, d, hit, { kind: 'pink', type: 'bandpass', f: vary(220, 0.15), q: 1.4, t60: 0.09, level: 0.55 });
-      const e4 = click(c, d, hit + 0.01, vary(2000, 0.1), 0.24, 2.5, 0.015);
-      const e5 = modal(c, d, hit + 0.01, vary(1700, 0.05), [[1, 1, 0.06], [2.3, 0.5, 0.04]], 0.035);
-      return endOf(c, e1, e2, e3, e4, e5);
+      const d = wetDry(c, 0.12);
+      const hit = t + vary(0.62, 0.08);
+      const e1 = nshape(c, d, t, { kind: 'pink', type: 'lowpass', f: 650, pts: [[0, 0], [0.2, 0.13], [hit - t - 0.04, 0.16], [hit - t, 0]] });
+      const e2 = thump(c, d, hit, 90 * c.p, 55 * c.p, 0.3, 0.65);
+      const e3 = nburst(c, d, hit, { kind: 'pink', type: 'bandpass', f: vary(300, 0.12), q: 0.9, t60: 0.2, level: 0.5 });
+      const e4 = click(c, d, hit + 0.025, vary(1300, 0.1), 0.38, 1.1, 0.025);
+      const e5 = modal(c, d, hit, vary(330, 0.08), [[1, 1, 0.28], [1.7, 0.45, 0.19], [2.9, 0.2, 0.1]], 0.08);
+      const e6 = click(c, d, hit + 0.065, 950 * c.p, 0.12, 1, 0.018);
+      return endOf(c, e1, e2, e3, e4, e5, e6);
     },
   },
   door_creak: {
@@ -477,26 +479,28 @@ export const SFX_RECIPES: Record<SfxId, SfxRecipe> = {
   key_jingle: {
     play(c) {
       const t = c.t;
+      const d = lp(c, 5200);
       let e = t;
       const n = 10 + Math.floor(Math.random() * 7);
       for (let i = 0; i < n; i++) {
         const s = t + (i < n / 2 ? rand(0, 0.25) : rand(0.3, 0.65));
-        e = Math.max(e, modal(c, c.out, s, rand(2600, 6800) * c.p, [[1, 1, rand(0.04, 0.14)], [2.3, 0.4, 0.05]], rand(0.015, 0.04)));
+        e = Math.max(e, modal(c, d, s, rand(1100, 3400) * c.p, [[1, 1, rand(0.015, 0.035)], [1.57, 0.35, 0.018], [2.19, 0.2, 0.01]], rand(0.012, 0.025)));
+        e = Math.max(e, click(c, d, s, rand(1400, 2800) * c.p, rand(0.08, 0.14), 0.7, rand(0.006, 0.012)));
       }
-      e = Math.max(e, nshape(c, c.out, t, { kind: 'white', type: 'highpass', f: 3500, pts: [[0, 0], [0.05, 0.035], [0.25, 0.01], [0.32, 0.03], [0.7, 0]] }));
+      e = Math.max(e, nshape(c, d, t, { kind: 'white', type: 'bandpass', f: 1800, q: 0.5, pts: [[0, 0], [0.05, 0.025], [0.25, 0.008], [0.32, 0.022], [0.7, 0]] }));
       return endOf(c, e);
     },
   },
   lock_turn: {
     play(c) {
       const t = c.t;
-      const e1 = nburst(c, c.out, t, { type: 'bandpass', f: 3000, f2: 1800, q: 2, att: 0.03, t60: 0.15, level: 0.1 });
-      const s = t + vary(0.24, 0.1);
-      const e2 = click(c, c.out, s, 1800 * c.p, 0.32, 4, 0.012);
-      const e3 = modal(c, c.out, s, vary(2600, 0.05) * c.p, [[1, 1, 0.04], [2.3, 0.5, 0.03]], 0.06);
-      const e4 = thump(c, c.out, s + 0.07, 180 * c.p, 110 * c.p, 0.06, 0.32);
-      const e5 = nburst(c, c.out, s + 0.07, { type: 'bandpass', f: 700, q: 1.5, t60: 0.05, level: 0.28 });
-      const e6 = click(c, c.out, s + 0.11, 2400 * c.p, 0.12, 3, 0.01);
+      const e1 = nburst(c, c.out, t, { kind: 'pink', type: 'bandpass', f: 1300, f2: 800, q: 0.8, att: 0.04, t60: 0.26, level: 0.14 });
+      const s = t + vary(0.42, 0.08);
+      const e2 = click(c, c.out, s, 1300 * c.p, 0.65, 0.8, 0.025);
+      const e3 = modal(c, c.out, s, vary(850, 0.05) * c.p, [[1, 1, 0.055], [2.3, 0.3, 0.025]], 0.05);
+      const e4 = thump(c, c.out, s + 0.002, 260 * c.p, 150 * c.p, 0.065, 0.32, 0.001);
+      const e5 = nburst(c, c.out, s, { type: 'bandpass', f: 700, q: 0.8, t60: 0.035, level: 0.3 });
+      const e6 = click(c, c.out, s + 0.045, 1800 * c.p, 0.2, 1, 0.012);
       return endOf(c, e1, e2, e3, e4, e5, e6);
     },
   },
@@ -542,25 +546,12 @@ export const SFX_RECIPES: Record<SfxId, SfxRecipe> = {
       return endOf(c, e);
     },
   },
-  whisper: {
+  // people leaning in to talk, heard without their words: cloth and small shifts of weight
+  huddle_rustle: {
     play(c) {
-      return endOf(c, whisper(c.g, c.out, c.t, rand(2.0, 3.0), { level: 0.11 }));
-    },
-  },
-  murmur_crowd: {
-    play(c) {
-      const t = c.t;
-      const dur = rand(3.6, 4.6);
-      const bus = shaped(c, wetDry(c, 0.3), t, [[0, 0], [0.8, 1], [dur - 0.8, 1], [dur + 0.3, 0]]);
-      const pitches = [105, 120, 140, 185, 210, 230];
-      for (let i = 0; i < 6; i++) {
-        const pan = c.g.pan(-0.85 + (1.7 * i) / 5 + rand(-0.1, 0.1));
-        pan.connect(bus);
-        const rig = murmurRig(c.g, pan, t, t + dur + 0.4, { pitch: pitches[i]! * vary(1, 0.06), breath: 0.35, level: 0.07, bright: 1100 });
-        rig.speak(t + rand(0, 0.5), dur - 0.4);
-      }
-      nshape(c, bus, t, { kind: 'pink', type: 'bandpass', f: 700, q: 0.6, pts: [[0, 0.02], [dur, 0.02]] });
-      return dur + 0.5;
+      let e = c.t;
+      for (let s = c.t; s < c.t + 2.4; s += rand(0.3, 0.7)) e = Math.max(e, s + SFX_RECIPES.cloth_rustle.play({ ...c, t: s }));
+      return endOf(c, e);
     },
   },
   gasp_crowd: {
@@ -621,6 +612,8 @@ export const SFX_RECIPES: Record<SfxId, SfxRecipe> = {
       return endOf(c, e1, t + 1.6);
     },
   },
+  sigh_m: { play: (c) => SFX_RECIPES.sigh.play({ ...c, p: c.p * 0.62 }) },
+  breath_m: { play: (c) => SFX_RECIPES.breath.play(c) }, // breath is unpitched noise; only a recording tells them apart
   breath: {
     play(c) {
       const t = c.t;
@@ -649,6 +642,16 @@ export const SFX_RECIPES: Record<SfxId, SfxRecipe> = {
         e = s + 0.25;
       }
       return endOf(c, e);
+    },
+  },
+  // Men's versions: the same synthesis lower, used until (or unless) a recording is decoded.
+  laugh_soft_m: { play: (c) => SFX_RECIPES.laugh_soft.play({ ...c, p: c.p * 0.58 }) },
+  // until the recording is decoded: three small sharp clicks
+  braille_stylus: {
+    play(c) {
+      let end = c.t;
+      for (let i = 0; i < 3; i++) end = Math.max(end, c.t + i * 0.28 + SFX_RECIPES.relay_click.play({ ...c, t: c.t + i * 0.28, p: c.p * 1.4 }));
+      return end - c.t;
     },
   },
   kid_laugh: {
@@ -680,10 +683,10 @@ export const SFX_RECIPES: Record<SfxId, SfxRecipe> = {
       const t = c.t;
       const dur = rand(0.45, 0.75);
       const pts: [number, number][] = [[0, 0]];
-      for (let i = 1; i < 7; i++) pts.push([(dur * i) / 7, rand(0.02, 0.12)]);
+      for (let i = 1; i < 7; i++) pts.push([(dur * i) / 7, rand(0.06, 0.28)]);
       pts.push([dur, 0]);
       const e1 = nshape(c, c.out, t, { kind: 'white', type: 'bandpass', f: 2600, q: 0.6, pts });
-      const e2 = crackle(c, c.out, t, { type: 'highpass', f: 2500, pts: [[0, 0], [0.03, 0.3], [dur * 0.6, 0.2], [dur, 0]] });
+      const e2 = crackle(c, c.out, t, { type: 'highpass', f: 2500, pts: [[0, 0], [0.03, 0.1], [dur * 0.6, 0.07], [dur, 0]] });
       return endOf(c, e1, e2);
     },
   },
@@ -701,12 +704,13 @@ export const SFX_RECIPES: Record<SfxId, SfxRecipe> = {
   envelope: {
     play(c) {
       const t = c.t;
-      const e1 = nshape(c, c.out, t, { kind: 'white', type: 'bandpass', f: 1900, q: 0.9, fpts: [[0.6, 2600]], pts: [[0, 0], [0.1, 0.06], [0.45, 0.09], [0.7, 0]] });
-      const e2 = crackle(c, c.out, t, { type: 'highpass', f: 2200, pts: [[0, 0], [0.1, 0.1], [0.6, 0.06], [0.7, 0]] });
+      const e1 = nshape(c, c.out, t, { kind: 'white', type: 'bandpass', f: 1900, q: 0.9, fpts: [[0.6, 2600]], pts: [[0, 0], [0.1, 0.1], [0.45, 0.16], [0.7, 0]] });
+      const e2 = crackle(c, c.out, t, { type: 'highpass', f: 2200, pts: [[0, 0], [0.1, 0.05], [0.6, 0.03], [0.7, 0]] });
       const s = t + 0.8;
-      const e3 = crackle(c, c.out, s, { type: 'bandpass', f: 2600, q: 0.8, rate: 0.7, pts: [[0, 0], [0.03, 0.5], [0.22, 0.35], [0.3, 0]] });
+      const e3 = crackle(c, c.out, s, { type: 'bandpass', f: 2600, q: 0.8, rate: 0.7, pts: [[0, 0], [0.03, 0.18], [0.22, 0.12], [0.3, 0]] });
       const e4 = nburst(c, c.out, s + 0.3, { kind: 'pink', type: 'lowpass', f: 900, t60: 0.05, level: 0.1 });
-      return endOf(c, e1, e2, e3, e4);
+      const e5 = nshape(c, c.out, s, { kind: 'white', type: 'bandpass', f: 2600, q: 0.8, pts: [[0, 0], [0.03, 0.11], [0.22, 0.08], [0.3, 0]] });
+      return endOf(c, e1, e2, e3, e4, e5);
     },
   },
   pen_scratch: {
@@ -815,9 +819,9 @@ export const SFX_RECIPES: Record<SfxId, SfxRecipe> = {
     play(c) {
       const t = c.t;
       const one = (s: number, f: number, lv: number): number => {
-        const e1 = nburst(c, c.out, s, { type: 'bandpass', f: f * c.p, q: 1.2, att: 0.0005, t60: 0.012, level: 0.6 * lv });
-        const e2 = nburst(c, c.out, s, { type: 'bandpass', f: 1200 * c.p, q: 2, att: 0.0008, t60: 0.02, level: 0.3 * lv });
-        const e3 = thump(c, c.out, s, 140, 90, 0.02, 0.14 * lv, 0.001);
+        const e1 = nburst(c, c.out, s, { type: 'bandpass', f: f * c.p, q: 1.2, att: 0.001, t60: 0.035, level: 0.38 * lv });
+        const e2 = nburst(c, c.out, s, { type: 'bandpass', f: 1200 * c.p, q: 2, att: 0.0008, t60: 0.05, level: 0.3 * lv });
+        const e3 = thump(c, c.out, s, 140, 90, 0.06, 0.22 * lv, 0.002);
         const e4 = modal(c, c.out, s, 4300 * c.p, [[1, 1, 0.03], [2.1, 0.6, 0.025]], 0.035 * lv);
         return Math.max(e1, e2, e3, e4);
       };
@@ -903,6 +907,15 @@ export const SFX_RECIPES: Record<SfxId, SfxRecipe> = {
       const e4 = thump(c, c.out, s, 260, 180, 0.03, 0.14);
       const e5 = nburst(c, c.out, s, { type: 'bandpass', f: 900, q: 1.2, t60: 0.03, level: 0.14 });
       return endOf(c, e1, e2, e3, e4, e5);
+    },
+  },
+  box_close: {
+    play(c) {
+      const t = c.t;
+      const e1 = thump(c, c.out, t, 260 * c.p, 180 * c.p, 0.04, 0.22, 0.001);
+      const e2 = click(c, c.out, t, 1800 * c.p, 0.3, 1.2, 0.014);
+      const e3 = modal(c, c.out, t, 1200 * c.p, [[1, 1, 0.045], [2.3, 0.3, 0.025]], 0.06);
+      return endOf(c, e1, e2, e3);
     },
   },
   umbrella: {
@@ -1072,6 +1085,15 @@ export const SFX_RECIPES: Record<SfxId, SfxRecipe> = {
       return endOf(c, e1, e2);
     },
   },
+  radio_noise: {
+    play(c) {
+      const t = c.t;
+      const dur = rand(3.5, 4.5);
+      const src = c.g.noise('pink', t, t + dur + 0.1);
+      src.connect(c.g.filter('bandpass', 1100, 0.6)).connect(shaped(c, c.out, t, [[0, 0], [0.4, 0.06], [dur - 0.6, 0.05], [dur, 0]]));
+      return dur + 0.1;
+    },
+  },
   static_burst: {
     play(c) {
       const t = c.t;
@@ -1080,10 +1102,10 @@ export const SFX_RECIPES: Record<SfxId, SfxRecipe> = {
       const bp = c.g.filter('bandpass', 2500, 0.5);
       const g = c.g.gain(0);
       g.gain.setValueAtTime(0, t);
-      for (let s = t; s < t + dur; s += rand(0.01, 0.03)) g.gain.linearRampToValueAtTime(rand(0.02, 0.16), s);
+      for (let s = t + 0.005; s < t + dur; s += rand(0.01, 0.03)) g.gain.linearRampToValueAtTime(rand(0.04, 0.32), s);
       g.gain.linearRampToValueAtTime(0, t + dur + 0.02);
       src.connect(bp).connect(g).connect(c.out);
-      const e2 = crackle(c, c.out, t, { type: 'highpass', f: 1500, rate: 1.3, pts: [[0, 0.5], [dur * 0.8, 0.35], [dur, 0]] });
+      const e2 = crackle(c, c.out, t, { type: 'highpass', f: 1500, rate: 1.3, pts: [[0, 0], [0.005, 0.15], [dur * 0.8, 0.11], [dur, 0]] });
       return endOf(c, t + dur + 0.05, e2);
     },
   },
@@ -1509,7 +1531,8 @@ export const SFX_RECIPES: Record<SfxId, SfxRecipe> = {
       out.connect(c.out);
       saw.connect(filt).connect(drive).connect(out);
       sub.connect(c.g.gain(0.6)).connect(out);
-      return endOf(c, end);
+      // The lowpass keeps a short release after the oscillators stop.
+      return endOf(c, end + 0.08);
     },
   },
   light_buzz: {
@@ -2000,31 +2023,6 @@ export const AMBIENT_EVENTS = {
       return endOf(c, e);
     },
   },
-  pa_voice: {
-    play(c) {
-      const t = c.t;
-      const dur = rand(2.8, 4);
-      const hp = c.g.filter('highpass', 400, 0.7);
-      const pk = c.g.filter('peaking', 1800, 1, 6);
-      hp.connect(pk).connect(lp(c, 3500, wetDry(c, 0.6)));
-      const rig = murmurRig(c.g, hp, t, t + dur + 0.5, { pitch: 160, breath: 0.2, level: 0.1, bright: 2800, rate: 4 });
-      rig.speak(t, dur);
-      return dur + 0.5;
-    },
-  },
-  distant_chatter: {
-    play(c) {
-      const t = c.t;
-      const dur = rand(1.8, 3);
-      for (let i = 0; i < 2; i++) {
-        const pan = c.g.pan(i ? 0.4 : -0.4);
-        pan.connect(c.out);
-        const rig = murmurRig(c.g, pan, t, t + dur + 1, { pitch: rand(110, 230), breath: 0.35, level: 0.07, bright: 1300 });
-        rig.speak(t + i * rand(0.3, 0.9), dur);
-      }
-      return dur + 1;
-    },
-  },
   tower_groan: {
     play(c) {
       const t = c.t;
@@ -2057,63 +2055,86 @@ export const AMBIENT_EVENTS = {
 export type AmbientEventId = keyof typeof AMBIENT_EVENTS;
 
 /**
- * Level trims, calibrated by rendering every recipe offline and comparing short-term loudness
- * (loudest 50 ms window) against a plain footstep at centre (~-20 dBFS). Tune by ear here.
+ * Level trims: physical fallbacks are matched to their recordings using the loudest 50 ms
+ * windows from three offline renders (2026-10-24). Boosts retain 6 dB of sampled peak
+ * headroom. Human/UI recipes keep their existing trims.
+ * This is an energy calibration; timbre and perceived loudness still need listening.
  */
 const TRIM: Partial<Record<SfxId, number>> = {
   // big impacts: keep headroom for the limiter
-  heartbeat: 0.6,
-  thud: 0.65,
-  door_slam: 0.75,
-  metal_crash: 0.75,
-  blackout: 0.85,
+  heartbeat: 0.366,
+  thud: 0.274,
+  door_slam: 0.285,
+  metal_crash: 0.324,
+  blackout: 0.234,
   hum_rise: 0.8,
   hum_fall: 0.8,
   train_door: 0.7,
-  construction_drill: 0.8,
+  construction_drill: 0.42,
   hammer: 0.8,
   dog_bark: 0.8,
   wave: 0.9,
   // small, detailed sounds that came out too faint
   choice_appear: 7,
   focus_shift: 4.8,
-  cloth_rustle: 3,
+  cloth_rustle: 9.487,
   laugh_soft: 3,
+  laugh_soft_m: 3,
   kid_laugh: 2.5,
-  pen_scratch: 2.5,
-  typing: 2.5,
+  pen_scratch: 9.396,
+  typing: 7.046,
   clock_wind: 4.5,
-  key_jingle: 2,
+  key_jingle: 4.635,
   door_open: 2,
-  whisper: 2,
+  huddle_rustle: 6.125,
   breath: 1.6,
-  page_turn: 1.6,
-  envelope: 2,
-  strap_click: 1.6,
-  seagull: 2,
+  breath_m: 1.6,
+  page_turn: 4.832,
+  envelope: 4.582,
+  strap_click: 3.547,
+  seagull: 3.476,
   siren_far: 1.5,
   tinnitus: 1.3,
-  wind_gust: 2,
-  light_buzz: 1.6,
+  wind_gust: 4.083,
+  light_buzz: 5.298,
   memory_keep: 1.3,
-  camera_shutter: 1.8,
-  relay_click: 1.5,
-  static_burst: 1.6,
-  paper_rustle: 1.3,
-  cane_tap: 1.6,
-  step_heels: 2,
+  camera_shutter: 1.4,
+  relay_click: 2.35,
+  static_burst: 2,
+  paper_rustle: 2.449,
+  cane_tap: 2.394,
+  step_heels: 3.281,
   train_horn: 2.5,
-  bicycle_bell: 1.6,
-  crow: 1.8,
-  door_creak: 1.5,
-  chair_scrape: 1.3,
-  tools_clink: 1.3,
-  box_open: 1.3,
-  lighter: 1.3,
+  bicycle_bell: 2.625,
+  crow: 3.718,
+  door_creak: 3.063,
+  chair_scrape: 2.259,
+  tools_clink: 2.944,
+  box_open: 2.929,
+  box_close: 1.6,
+  lighter: 2.877,
   tape_hiss: 1.3,
-  spoon_stir: 1.3,
+  spoon_stir: 3.793,
+  braille_stylus: 2.065,
+  coffee_grind: 2.851,
+  door_close: 0.367,
+  glass_clink: 1.905,
+  phone_buzz: 1.95,
+  power_up: 1.622,
+  radio_noise: 7.079,
+  spark: 1.429,
+  station_chime: 1.622,
+  steam_hiss: 2.065,
+  thunder_far: 0.417,
+  train_brake: 0.61,
+  truck_reverse: 2.163,
 };
 for (const [id, v] of Object.entries(TRIM) as Array<[SfxId, number]>) SFX_RECIPES[id].level = (SFX_RECIPES[id].level ?? 1) * v;
+
+/** Human vocal sounds: these only ever play from a recording, never from synthesis (a synthesized voice reads as uncanny). */
+export const HUMAN_SFX: ReadonlySet<SfxId> = new Set<SfxId>([
+  'gasp_crowd', 'cough', 'sigh', 'sigh_m', 'breath', 'breath_m', 'laugh_soft', 'laugh_soft_m', 'kid_laugh', 'choice_appear',
+]);
 
 /** Sounds that belong to the "interface" (they bypass the attention muffle). */
 export const UI_SFX: ReadonlySet<SfxId> = new Set<SfxId>(['memory_keep', 'focus_shift', 'choice_appear', 'title_tone']);

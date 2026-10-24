@@ -42,3 +42,62 @@ export function interpolateClock(from: string | undefined, to: string | undefine
   const minutes = Math.floor(a + (b - a) * Math.max(0, Math.min(1, fraction)));
   return `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
 }
+
+export type Box = { l: number; t: number; r: number; b: number };
+
+// How far out along its free stretch a sound sits: near ones hug what she is listening to, far ones the edge of the screen.
+const REACH: Record<Pos['dist'], number> = { near: 0.18, mid: 0.5, far: 0.85 };
+
+/**
+ * Where a sound of size `w`×`h` goes on a `W`×`H` screen: along its own direction, outside every `keepOut` box
+ * (the line she is listening to, its echo, the choices, other sounds), inside the screen. When its own direction
+ * has no room (a phone has none beside the text), it turns a little toward front or back until there is.
+ */
+export function placeLabel(pos: Pos, w: number, h: number, W: number, H: number, keepOut: Box[]): { x: number; y: number; crowded?: boolean } {
+  const margin = 10;
+  const cx = W / 2;
+  const cy = H / 2;
+  const fits = (x: number, y: number) => {
+    if (x - w / 2 < margin || x + w / 2 > W - margin || y - h / 2 < margin || y + h / 2 > H - margin) return false;
+    return !keepOut.some((box) => x + w / 2 > box.l && x - w / 2 < box.r && y + h / 2 > box.t && y - h / 2 < box.b);
+  };
+  const reach = Math.hypot(W, H) / 2;
+  // First free stretch along a ray from the centre; null when the ray never gets clear.
+  const stretch = (degrees: number): [number, number] | null => {
+    const sx = Math.sin((degrees * Math.PI) / 180);
+    const sy = -Math.cos((degrees * Math.PI) / 180);
+    let start = -1;
+    for (let t = 0; t <= reach; t += 3) {
+      const ok = fits(cx + sx * t, cy + sy * t);
+      if (ok && start < 0) start = t;
+      if (!ok && start >= 0) return [start, t - 3];
+    }
+    return start >= 0 ? [start, reach] : null;
+  };
+  const along = (degrees: number, t: number) => ({ x: cx + Math.sin((degrees * Math.PI) / 180) * t, y: cy - Math.cos((degrees * Math.PI) / 180) * t });
+
+  // Her own hands: the first free spot straight below.
+  if (pos.dir === 'center') {
+    const run = stretch(180);
+    if (run) return along(180, run[0]);
+  } else {
+    const angle = DIRECTION_ANGLE[pos.dir];
+    const signed = angle > 180 ? angle - 360 : angle;
+    // Turn toward whichever of front/back is nearer, then try the other way.
+    const toward = Math.abs(signed) <= 90 ? -Math.sign(signed) || 1 : Math.sign(signed) || 1;
+    // Its own direction first; past 75° it no longer reads as that direction, but anywhere clear beats covering the text.
+    for (const step of [0, 15, 30, 45, 60, 75, 90, 105, 120, 135, 150, 165, 180]) {
+      for (const turn of step ? [toward, -toward] : [1]) {
+        const degrees = signed + turn * step;
+        const run = stretch(degrees);
+        if (!run) continue;
+        return along(degrees, run[0] + (run[1] - run[0]) * REACH[pos.dist]);
+      }
+    }
+  }
+  // Nowhere clear at all (a small screen full of choices): the old ellipse, kept on screen, marked so it can step aside.
+  const fallback = placeOf(pos);
+  const x = Math.min(Math.max(cx + fallback.x * Math.min(0.4 * W, 560), w / 2 + margin), W - w / 2 - margin);
+  const y = Math.min(Math.max(cy + fallback.y * Math.min(0.38 * H, 380), h / 2 + margin), H - h / 2 - margin);
+  return { x, y, crowded: true };
+}
