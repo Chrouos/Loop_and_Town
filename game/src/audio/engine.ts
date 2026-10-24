@@ -14,7 +14,7 @@ import { AMBIENCE, isSfx, type AmbienceId, type SfxId, type SpatialPos, type Voi
 import { startAmbience, type AmbienceLayer, type SampleBed, type SoundResolver } from './ambience';
 import { clamp, expRampTo, glide, hold, impulseResponse, placementOf, softClipCurve, spawnShot, type SfxRecipe, type Shot } from './core';
 import { SampleBank, sampleRecipe, type SampleBankStats } from './samples';
-import { HUMAN_SFX, SFX_RECIPES, UI_SFX } from './sounds';
+import { SFX_RECIPES, UI_SFX } from './sounds';
 import { phoneTick } from './voice';
 
 export interface AudioEngine {
@@ -52,7 +52,7 @@ export interface AudioEngineDebug {
     layerShots: number;
     samples: SampleBankStats | null;
   };
-  /** 'auto' = recordings when decoded (default); 'synth' = synthesis only (A/B in the lab). */
+  /** 'auto' = recordings when decoded, synthesis otherwise; 'synth' = synthesis only. */
   setSampleMode(mode: SampleMode): void;
   /** Play one sound from a chosen source; a sample that is not loaded yet is loaded first. */
   playSource(id: SfxId, pos: SpatialPos, source: 'sample' | 'synth', opts?: { gain?: number; rate?: number; variant?: number }): Promise<boolean>;
@@ -64,8 +64,6 @@ const MAX_VOICES = 6;
 const DEFAULT_FADE_MS = 2500;
 /** A speaker who talks again after this long a silence gets their turn-taking rustle again. */
 const TURN_GAP_S = 8;
-/** A recorded voice that arrives later than this after it was asked for is dropped (it would land on the wrong moment). */
-const VOICE_LATE_S = 0.6;
 /** Crossfade from a synthesized bed to its recording once that has been decoded. */
 const SWAP_S = 2.5;
 const OPEN = 20000;
@@ -420,21 +418,7 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
     if (!isSfx(id)) return;
     const sampled = this.sampleFor(id);
     if (sampled) this.shoot(id, pos, opts, sampled);
-    else if (HUMAN_SFX.has(id)) this.playWhenLoaded(id, pos, opts);
     else this.shoot(id, pos, opts, SFX_RECIPES[id]);
-  }
-
-  /** Voices never fall back to synthesis: wait briefly for the recording, or stay silent. */
-  private playWhenLoaded(id: SfxId, pos: SpatialPos, opts: { gain?: number; rate?: number } | undefined): void {
-    const ac = this.ac;
-    const bank = this.bank;
-    if (!ac || !bank?.sfxEntry(id)) return;
-    const asked = ac.currentTime;
-    void bank.loadSfx(id).then(() => {
-      if (this.ac !== ac || ac.state !== 'running' || ac.currentTime - asked > VOICE_LATE_S) return;
-      const recipe = this.sampleFor(id, true);
-      if (recipe) this.shoot(id, pos, opts, recipe);
-    });
   }
 
   private shoot(id: SfxId, pos: SpatialPos, opts: { gain?: number; rate?: number } | undefined, recipe: SfxRecipe | undefined): void {

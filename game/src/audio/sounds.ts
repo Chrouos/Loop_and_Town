@@ -365,6 +365,37 @@ function stepRecipe(o: { weight?: number; bright?: number; level?: number; heels
   };
 }
 
+// Keep existing male timbres independent when refining the other vocal effects.
+function maleSigh(c: SfxCtx): number {
+  const t = c.t;
+  const e1 = nshape(c, c.out, t, { kind: 'pink', type: 'bandpass', f: 1300, q: 1.1, fpts: [[1.5, 650]], pts: [[0, 0], [0.35, 0.22], [0.8, 0.15], [1.55, 0]] });
+  const f0 = vary(150, 0.15) * c.p * 0.62;
+  const v = c.g.osc(glottalWave(c.g.ac), f0, t + 0.2, t + 1.5);
+  sweep(v.frequency, t + 0.2, f0, [[1.2, f0 * 0.75]]);
+  v.connect(lp(c, 650, shaped(c, c.out, t + 0.2, [[0, 0], [0.3, 0.035], [1.2, 0]])));
+  return endOf(c, e1, t + 1.6);
+}
+
+function maleChuckle(c: SfxCtx): number {
+  const t = c.t;
+  const n = 3 + Math.floor(Math.random() * 2);
+  let e = t;
+  let f0 = rand(190, 230) * c.p * 0.58;
+  for (let i = 0; i < n; i++) {
+    const s = t + i * vary(0.17, 0.1);
+    const lv = 1 - i * 0.18;
+    nburst(c, c.out, s, { kind: 'white', type: 'bandpass', f: 1400, q: 1, att: 0.01, t60: 0.1, level: 0.08 * lv });
+    const v = c.g.osc(glottalWave(c.g.ac), f0, s + 0.01, s + 0.22);
+    sweep(v.frequency, s + 0.01, f0, [[0.12, f0 * 0.9]]);
+    const g = envGain(c, c.out, s + 0.01, 0.06 * lv, 0.02, 0.12);
+    v.connect(c.g.filter('bandpass', 750, 4)).connect(g);
+    v.connect(c.g.filter('bandpass', 1250, 5)).connect(g);
+    f0 *= 0.95;
+    e = s + 0.25;
+  }
+  return endOf(c, e);
+}
+
 export const SFX_RECIPES: Record<SfxId, SfxRecipe> = {
   // ------------------------------------------------------------ people & movement
   step: stepRecipe({}),
@@ -422,14 +453,16 @@ export const SFX_RECIPES: Record<SfxId, SfxRecipe> = {
     play(c) {
       const t = c.t;
       const d = wetDry(c, 0.12);
-      const hit = t + vary(0.62, 0.08);
+      const hit = t + vary(0.95, 0.06);
       const e1 = nshape(c, d, t, { kind: 'pink', type: 'lowpass', f: 650, pts: [[0, 0], [0.2, 0.13], [hit - t - 0.04, 0.16], [hit - t, 0]] });
       const e2 = thump(c, d, hit, 90 * c.p, 55 * c.p, 0.3, 0.65);
       const e3 = nburst(c, d, hit, { kind: 'pink', type: 'bandpass', f: vary(300, 0.12), q: 0.9, t60: 0.2, level: 0.5 });
       const e4 = click(c, d, hit + 0.025, vary(1300, 0.1), 0.38, 1.1, 0.025);
       const e5 = modal(c, d, hit, vary(330, 0.08), [[1, 1, 0.28], [1.7, 0.45, 0.19], [2.9, 0.2, 0.1]], 0.08);
       const e6 = click(c, d, hit + 0.065, 950 * c.p, 0.12, 1, 0.018);
-      return endOf(c, e1, e2, e3, e4, e5, e6);
+      const e7 = click(c, d, t + 0.02, 1700 * c.p, 0.2, 1.2, 0.018);
+      const e8 = click(c, d, t + 0.09, 1100 * c.p, 0.14, 1, 0.022);
+      return endOf(c, e1, e2, e3, e4, e5, e6, e7, e8);
     },
   },
   door_creak: {
@@ -586,33 +619,46 @@ export const SFX_RECIPES: Record<SfxId, SfxRecipe> = {
   cough: {
     play(c) {
       const t = c.t;
-      const d = wetDry(c, 0.15);
-      const one = (s: number, lv: number): number => {
-        const e1 = nburst(c, d, s, { kind: 'white', type: 'bandpass', f: vary(950, 0.2), q: 0.8, att: 0.008, t60: 0.18, level: 0.5 * lv });
-        const e2 = nburst(c, d, s, { kind: 'pink', type: 'lowpass', f: 450, att: 0.006, t60: 0.1, level: 0.35 * lv });
-        const f0 = vary(150, 0.2) * c.p;
-        const v = c.g.osc(glottalWave(c.g.ac), f0, s, s + 0.25);
-        sweep(v.frequency, s, f0, [[0.15, f0 * 0.8]]);
-        v.connect(c.g.filter('bandpass', 600, 2)).connect(envGain(c, d, s, 0.25 * lv, 0.01, 0.12));
-        return Math.max(e1, e2, s + 0.25);
-      };
-      const e1 = one(t, 1);
-      const e2 = chance(0.7) ? one(t + rand(0.2, 0.28), 0.6) : t;
-      return endOf(c, e1, e2);
+      const d = wetDry(c, 0.055);
+      // One glottal release: compressed air first, then an irregular voiced throat tail.
+      const s = t + 0.055;
+      const e0 = nshape(c, d, t, { kind: 'pink', type: 'bandpass', f: 1400, q: 0.8, pts: [[0, 0], [0.015, 0.04], [0.035, 0.02], [0.045, 0]] });
+      const e1 = nshape(c, d, s, {
+        kind: 'white', type: 'bandpass', f: 1800 * c.p, q: 0.65,
+        fpts: [[0.045, 1200 * c.p], [0.14, 800 * c.p]],
+        pts: [[0, 0], [0.002, 0.9], [0.018, 0.72], [0.05, 0.3], [0.105, 0.06], [0.16, 0]],
+      });
+      const e2 = nshape(c, d, s, { kind: 'pink', type: 'bandpass', f: 500 * c.p, q: 0.8, pts: [[0, 0], [0.004, 0.45], [0.022, 0.28], [0.065, 0.1], [0.115, 0]] });
+      const throat = s + 0.045;
+      const f0 = vary(145, 0.12) * c.p;
+      const v = c.g.osc(glottalWave(c.g.ac), f0, throat, throat + 0.15);
+      sweep(v.frequency, throat, f0, [[0.035, f0 * 0.83], [0.12, f0 * 0.65]]);
+      c.g.lfo(v.frequency, 29, 9 * c.p, throat, throat + 0.15);
+      const voice = shaped(c, d, throat, [[0, 0], [0.008, 0.12], [0.018, 0.025], [0.028, 0.1], [0.04, 0.02], [0.052, 0.06], [0.08, 0.018], [0.13, 0]]);
+      v.connect(c.g.filter('bandpass', 550 * c.p, 1.1)).connect(voice);
+      v.connect(c.g.filter('bandpass', 1450 * c.p, 1.5)).connect(c.g.gain(0.5)).connect(voice);
+      v.connect(c.g.filter('bandpass', 2600 * c.p, 1.8)).connect(c.g.gain(0.2)).connect(voice);
+      const e3 = nshape(c, d, s + 0.14, { kind: 'pink', type: 'bandpass', f: 1100 * c.p, q: 0.7, pts: [[0, 0], [0.02, 0.08], [0.07, 0.025], [0.14, 0]] });
+      return endOf(c, e0, e1, e2, throat + 0.15, e3);
     },
   },
   sigh: {
     play(c) {
       const t = c.t;
-      const e1 = nshape(c, c.out, t, { kind: 'pink', type: 'bandpass', f: 1300, q: 1.1, fpts: [[1.5, 650]], pts: [[0, 0], [0.35, 0.22], [0.8, 0.15], [1.55, 0]] });
-      const f0 = vary(150, 0.15) * c.p;
-      const v = c.g.osc(glottalWave(c.g.ac), f0, t + 0.2, t + 1.5);
-      sweep(v.frequency, t + 0.2, f0, [[1.2, f0 * 0.75]]);
-      v.connect(lp(c, 650, shaped(c, c.out, t + 0.2, [[0, 0], [0.3, 0.035], [1.2, 0]])));
-      return endOf(c, e1, t + 1.6);
+      const e0 = nshape(c, c.out, t, { kind: 'white', type: 'bandpass', f: 1800 * c.p, q: 0.65, pts: [[0, 0], [0.07, 0.14], [0.15, 0.08], [0.21, 0]] });
+      const s = t + 0.26;
+      const e1 = nshape(c, c.out, s, { kind: 'pink', type: 'bandpass', f: 1000 * c.p, q: 0.65, fpts: [[0.6, 700 * c.p], [1.3, 450 * c.p]], pts: [[0, 0], [0.035, 0.38], [0.17, 0.28], [0.6, 0.16], [1.05, 0.045], [1.35, 0]] });
+      const e2 = nshape(c, c.out, s, { kind: 'white', type: 'bandpass', f: 2200 * c.p, q: 0.65, pts: [[0, 0], [0.04, 0.18], [0.2, 0.14], [0.7, 0.06], [1.1, 0]] });
+      const f0 = vary(210, 0.08) * c.p;
+      const v = c.g.osc(glottalWave(c.g.ac), f0, s, s + 0.3);
+      sweep(v.frequency, s, f0, [[0.1, f0 * 0.9], [0.28, f0 * 0.72]]);
+      const g = shaped(c, c.out, s, [[0, 0], [0.025, 0.045], [0.08, 0.025], [0.16, 0.01], [0.28, 0]]);
+      v.connect(c.g.filter('bandpass', 650 * c.p, 1)).connect(g);
+      v.connect(c.g.filter('bandpass', 1300 * c.p, 1.3)).connect(c.g.gain(0.35)).connect(g);
+      return endOf(c, e0, e1, e2, s + 0.3);
     },
   },
-  sigh_m: { play: (c) => SFX_RECIPES.sigh.play({ ...c, p: c.p * 0.62 }) },
+  sigh_m: { play: maleSigh },
   breath_m: { play: (c) => SFX_RECIPES.breath.play(c) }, // breath is unpitched noise; only a recording tells them apart
   breath: {
     play(c) {
@@ -626,26 +672,29 @@ export const SFX_RECIPES: Record<SfxId, SfxRecipe> = {
   laugh_soft: {
     play(c) {
       const t = c.t;
-      const n = 3 + Math.floor(Math.random() * 2);
+      const n = chance(0.45) ? 3 : 2;
       let e = t;
-      let f0 = rand(190, 230) * c.p;
+      let s = t;
+      const base = vary(225, 0.1) * c.p;
       for (let i = 0; i < n; i++) {
-        const s = t + i * vary(0.17, 0.1);
-        const lv = 1 - i * 0.18;
-        nburst(c, c.out, s, { kind: 'white', type: 'bandpass', f: 1400, q: 1, att: 0.01, t60: 0.1, level: 0.08 * lv });
-        const v = c.g.osc(glottalWave(c.g.ac), f0, s + 0.01, s + 0.22);
-        sweep(v.frequency, s + 0.01, f0, [[0.12, f0 * 0.9]]);
-        const g = envGain(c, c.out, s + 0.01, 0.06 * lv, 0.02, 0.12);
-        v.connect(c.g.filter('bandpass', 750, 4)).connect(g);
-        v.connect(c.g.filter('bandpass', 1250, 5)).connect(g);
-        f0 *= 0.95;
-        e = s + 0.25;
+        const len = rand(0.13, 0.17);
+        const lv = (1 - i * 0.22) * rand(0.85, 1);
+        const f0 = base * rand(0.94, 1.06);
+        const breath = nburst(c, c.out, s, { kind: 'pink', type: 'bandpass', f: 1800 * c.p, q: 0.65, att: 0.008, t60: 0.08, level: 0.13 * lv });
+        const v = c.g.osc(glottalWave(c.g.ac), f0, s + 0.006, s + len);
+        sweep(v.frequency, s + 0.006, f0, [[0.03, f0 * 1.05], [len - 0.02, f0 * 0.87]]);
+        c.g.lfo(v.frequency, 19, 3 * c.p, s + 0.006, s + len);
+        const g = shaped(c, c.out, s, [[0, 0], [0.012, 0.12 * lv], [0.036, 0.08 * lv], [0.08, 0.035 * lv], [len, 0]]);
+        v.connect(c.g.filter('bandpass', 320 * c.p, 1.2)).connect(g);
+        v.connect(c.g.filter('bandpass', 1500 * c.p, 1.7)).connect(c.g.gain(0.25)).connect(g);
+        v.connect(c.g.filter('bandpass', 2400 * c.p, 1.8)).connect(c.g.gain(0.15)).connect(g);
+        e = Math.max(e, breath, s + len + 0.03);
+        s += len + rand(0.035, 0.075);
       }
       return endOf(c, e);
     },
   },
-  // Men's versions: the same synthesis lower, used until (or unless) a recording is decoded.
-  laugh_soft_m: { play: (c) => SFX_RECIPES.laugh_soft.play({ ...c, p: c.p * 0.58 }) },
+  laugh_soft_m: { play: maleChuckle },
   // until the recording is decoded: three small sharp clicks
   braille_stylus: {
     play(c) {
@@ -2057,7 +2106,7 @@ export type AmbientEventId = keyof typeof AMBIENT_EVENTS;
 /**
  * Level trims: physical fallbacks are matched to their recordings using the loudest 50 ms
  * windows from three offline renders (2026-10-24). Boosts retain 6 dB of sampled peak
- * headroom. Human/UI recipes keep their existing trims.
+ * headroom. Human and UI recipes are tuned separately.
  * This is an energy calibration; timbre and perceived loudness still need listening.
  */
 const TRIM: Partial<Record<SfxId, number>> = {
@@ -2078,13 +2127,13 @@ const TRIM: Partial<Record<SfxId, number>> = {
   choice_appear: 7,
   focus_shift: 4.8,
   cloth_rustle: 9.487,
-  laugh_soft: 3,
+  laugh_soft: 1.6,
   laugh_soft_m: 3,
   kid_laugh: 2.5,
   pen_scratch: 9.396,
   typing: 7.046,
   clock_wind: 4.5,
-  key_jingle: 4.635,
+  key_jingle: 8.75,
   door_open: 2,
   huddle_rustle: 6.125,
   breath: 1.6,
@@ -2131,7 +2180,7 @@ const TRIM: Partial<Record<SfxId, number>> = {
 };
 for (const [id, v] of Object.entries(TRIM) as Array<[SfxId, number]>) SFX_RECIPES[id].level = (SFX_RECIPES[id].level ?? 1) * v;
 
-/** Human vocal sounds: these only ever play from a recording, never from synthesis (a synthesized voice reads as uncanny). */
+/** Human effects allow both recordings and synthesis, including immediate synthesis while recordings load. */
 export const HUMAN_SFX: ReadonlySet<SfxId> = new Set<SfxId>([
   'gasp_crowd', 'cough', 'sigh', 'sigh_m', 'breath', 'breath_m', 'laugh_soft', 'laugh_soft_m', 'kid_laugh', 'choice_appear',
 ]);

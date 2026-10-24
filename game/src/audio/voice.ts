@@ -1,5 +1,5 @@
-// Speech-shaped noise for the few crowd sounds that still synthesize as a fallback (an unvoiced murmur rig,
-// never a pitched voice), and the phone screen reader's tick.
+// Vocal building blocks for synthesized human effects, an unvoiced background murmur rig,
+// and the phone screen reader's tick. Dialogue itself remains text with spatial presence cues.
 
 import { cached, clamp, Graph, pick, rand, vary, type SfxCtx } from './core';
 

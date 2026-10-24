@@ -1,0 +1,67 @@
+[
+  {
+    "file": "door_close",
+    "before": {
+      "duration": 1.6,
+      "above6kPercent": 32.3,
+      "energy90Span": 0.503
+    },
+    "after": {
+      "duration": 2.5,
+      "above6kPercent": 5.2,
+      "energy90Span": 1.273
+    }
+  },
+  {
+    "file": "key_jingle_1",
+    "before": {
+      "duration": 0.9,
+      "above6kPercent": 88.0,
+      "energy90Span": 0.431
+    },
+    "after": {
+      "duration": 0.65,
+      "above6kPercent": 4.7,
+      "energy90Span": 0.45
+    }
+  },
+  {
+    "file": "key_jingle_2",
+    "before": {
+      "duration": 0.79,
+      "above6kPercent": 92.4,
+      "energy90Span": 0.38
+    },
+    "after": {
+      "duration": 0.63,
+      "above6kPercent": 4.8,
+      "energy90Span": 0.336
+    }
+  },
+  {
+    "file": "key_jingle_3",
+    "before": {
+      "duration": 0.74,
+      "above6kPercent": 84.6,
+      "energy90Span": 0.427
+    },
+    "after": {
+      "duration": 0.82,
+      "above6kPercent": 12.5,
+      "energy90Span": 0.627
+    }
+  },
+  {
+    "file": "lock_turn",
+    "before": {
+      "duration": 0.691,
+      "above6kPercent": 15.4,
+      "energy90Span": 0.054
+    },
+    "after": {
+      "duration": 1.32,
+      "above6kPercent": 8.1,
+      "energy90Span": 0.866
+    }
+  }
+]

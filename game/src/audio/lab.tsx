@@ -17,7 +17,6 @@ import {
 } from './catalog';
 import { createAudioEngine, type AudioEngineDebug, type SampleMode } from './engine';
 import { AMBIENCE_SAMPLES, SFX_SAMPLES } from './samples';
-import { HUMAN_SFX } from './sounds';
 
 const GROUPS: ReadonlyArray<readonly [label: string, first: SfxId]> = [
   ['人與移動', 'step'],
@@ -262,7 +261,7 @@ function Lab() {
         ))}
       </div>
       <p style={css.small}>來源篩選與搜尋同時套用於環境音及音效。版本數表示目前音檔數，並非修改歷史。</p>
-      <p style={css.small}>遊戲通常優先播放已載入錄音，否則使用合成。標示「遊戲僅用錄音」的音效例外：合成只供實驗室比較。</p>
+      <p style={css.small}>遊戲預設錄音優先，未載入時立即使用合成；呼吸、嘆氣、笑聲、咳嗽等人聲音效也適用。每個錄音版本與合成配方都可用按鈕直接試聽，「全部合成」模式會強制使用合成。</p>
 
       <h2 style={css.h2}>手機讀屏 · 合成 1 套配方</h2>
       <p style={css.small}>手機讀屏提示的小滴答。</p>
@@ -315,7 +314,6 @@ function Lab() {
                   {id}
                   <span style={css.small}>{SFX[id]}</span>
                 </Btn>
-                {HUMAN_SFX.has(id) ? <span style={css.tag}>遊戲僅用錄音</span> : null}
                 <div style={{ ...css.small, marginTop: 8 }}>錄音 · {SFX_SAMPLES[id]?.files.length ?? 0} 個版本</div>
                 <div style={{ ...css.pair, flexWrap: 'wrap' }}>
                   {SFX_SAMPLES[id]?.files.map((file, variant) => (
@@ -324,7 +322,7 @@ function Lab() {
                 </div>
                 <div style={{ ...css.small, marginTop: 8 }}>合成 · 1 套配方（隨機變化）</div>
                 <div style={css.pair}>
-                  <Btn onClick={() => playFrom(id, 'synth')} style={{ ...css.mini, ...pressedStyle(`${id}:synth:`) }}>▶ 合成{HUMAN_SFX.has(id) ? '（實驗室限定）' : ''}</Btn>
+                  <Btn onClick={() => playFrom(id, 'synth')} style={{ ...css.mini, ...pressedStyle(`${id}:synth:`) }}>▶ 合成</Btn>
                 </div>
               </div>
             ))}
