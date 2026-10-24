@@ -53,7 +53,7 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
   margin-bottom: 0.9em; opacity: 0; animation: lt-fade-in 600ms var(--ease) forwards;
   text-indent: 0.42em;
 }
-.lt-text { margin: 0; font-size: clamp(1.15rem, 2.3vw, 1.6rem); line-height: 1.85; font-weight: 400; letter-spacing: 0.06em; text-wrap: balance; transition: font-size 700ms var(--ease); }
+.lt-text { margin: 0; font-size: clamp(1.15rem, 2.3vw, 1.6rem); line-height: 1.85; font-weight: 400; letter-spacing: 0.06em; text-wrap: balance; }
 .lt-phrase { display: inline; opacity: 0; filter: blur(7px); animation: lt-phrase 620ms var(--ease) forwards; }
 .lt-line.revealed .lt-phrase { animation-delay: 0ms !important; }
 
@@ -73,7 +73,11 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
   animation: lt-echo var(--echo-ms, 4800ms) linear forwards;
   pointer-events: auto;
 }
-.lt-echo .lt-text { font-size: clamp(0.92rem, 1.6vw, 1.08rem); }
+/* Shrinking a line by font size re-wraps it halfway (two rows snap into one). Scale the whole line instead,
+   so it keeps its rows and just gets smaller toward the bottom edge it sits on. */
+.lt-line.lt-echo { transform: scale(0.66); transform-origin: 50% 100%; }
+.lt-line.kind-me.lt-echo { transform: translateY(26px) scale(0.66); }
+.lt-line.kind-narr.lt-echo, .lt-line.kind-phone.lt-echo { transform: scale(0.82); }
 .lt-echo .lt-label { animation: lt-fade-out 400ms var(--ease) forwards; }
 .lt-echo .lt-phrase { animation-play-state: paused; }
 .lt-echo.revealed .lt-phrase { animation: none; opacity: 1; filter: none; }
@@ -101,6 +105,7 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
   white-space: normal; width: max-content; max-width: min(40vw, 320px); text-align: center; line-height: 1.6;
   animation: lt-sfx var(--life, 3000ms) var(--ease) forwards;
 }
+.lt-p.kind-life.crowded { visibility: hidden; }
 .lt-p.kind-cue {
   pointer-events: auto; color: var(--ink-dim); z-index: 3; /* above the centre lines, which take taps too */
   padding: 14px 18px;
@@ -115,7 +120,8 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 .lt-p.kind-cue:hover { color: var(--ink-soft); }
 .lt-p.kind-cue.active { color: var(--ink); animation: lt-fade-in 400ms forwards; }
 .lt-p.kind-cue.active::after { width: 30%; background: var(--ink-dim); }
-.lt-p.kind-cue.held { pointer-events: none; color: var(--ink-faint); animation-play-state: paused; }
+/* held still while she is being asked something: the breathing pauses, the fade-in still finishes */
+.lt-p.kind-cue.held { pointer-events: none; color: var(--ink-faint); animation-play-state: running, paused; }
 .lt-hint {
   position: absolute; left: 50%; top: 100%; transform: translateX(-50%);
   font-size: 0.68rem; letter-spacing: 0.3em; color: var(--ink-faint);
@@ -176,7 +182,6 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 
 /* ── waiting ── */
 .lt-wait { position: absolute; left: 50%; bottom: 12vh; transform: translateX(-50%); text-align: center; pointer-events: none; }
-.lt-wait-clock { font-family: var(--mono); font-size: 0.78rem; letter-spacing: 0.5em; color: var(--ink-faint); text-indent: 0.5em; }
 .lt-wait-breath {
   width: 6px; height: 6px; border-radius: 50%; background: var(--ink-faint); margin: 0 auto 16px;
   animation: lt-breath 4.2s ease-in-out infinite;
@@ -214,6 +219,12 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 .lt-opt { color: var(--ink-faint); font-size: 0.86rem; letter-spacing: 0.2em; }
 .lt-opt.on { color: var(--ink); }
 .lt-range { width: 140px; accent-color: #9a958c; }
+.lt-credits { padding: 22px 0 6px; font-size: 0.72rem; line-height: 1.9; letter-spacing: 0.08em; color: var(--ink-faint); overflow-wrap: anywhere; }
+.lt-credits-head { letter-spacing: 0.3em; color: var(--ink-dim); margin-bottom: 8px; }
+.lt-credit + .lt-credit { margin-top: 6px; }
+.lt-credit-use { color: var(--ink-dim); margin-right: 0.8em; }
+.lt-credits a { color: inherit; text-decoration: underline; text-decoration-color: var(--ink-ghost); text-underline-offset: 3px; }
+.lt-credits a:hover { color: var(--ink-soft); }
 .lt-close { margin-top: 6vh; font-size: 0.8rem; letter-spacing: 0.5em; color: var(--ink-dim); padding: 10px; }
 .lt-danger { color: rgba(220, 170, 160, 0.7); }
 
