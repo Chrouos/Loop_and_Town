@@ -518,7 +518,11 @@ scenes:
                 - think: 我又來了。
                 - me: ……對不起。我重講一次。
       - me: 十八點三十一分，那裡會停電。
-      - me: 我在那裡聽過一個人倒下，不只一次。
+      - if: know.k_in_station_hall && (know.k_maintenance_passage || know.c3_boxun_died_again)
+        then:
+          - me: 我在那裡聽過一個人倒下，不只一次。
+        else:
+          - me: 那裡死過人，不只一次。
       - me: 為什麼會這樣，今天會不會一樣，我都不知道。
       - me: 陳醫生要給妳的是什麼，我也不知道。我只知道那是妳的。
       - pause: 3
@@ -563,12 +567,22 @@ scenes:
         then:
           - boxun: ……若晴剛剛打給我，說改在咖啡店。是妳的意思？
           - me: 是她的意思。
-      - me: 舊車站側邊有一條停用的維修通道。
-      - me: 十八點三十一分，那裡面會有東西倒下來。我聽過。
-      - me: 我不知道是什麼，也不知道今天會不會。
-      - pause: 2.5
-      - boxun: 妳聽過。
-      - me: 嗯。
+      - if: know.k_maintenance_passage
+        then:
+          - me: 舊車站側邊有一條停用的維修通道。
+        else:
+          - me: 舊車站側邊有一條通道。你知道是哪一條。
+      - if: know.k_maintenance_passage || know.c3_boxun_died_again
+        then:
+          - me: 十八點三十一分，那裡面會有東西倒下來。我聽過。
+          - me: 我不知道是什麼，也不知道今天會不會。
+          - pause: 2.5
+          - boxun: 妳聽過。
+          - me: 嗯。
+        else:
+          - me: 十八點三十一分，那裡面會有東西倒下來。有人死在那裡過。
+          - me: 我不知道是什麼，也不知道今天會不會。
+          - pause: 2.5
       - choice:
           timeout: 12
           options:

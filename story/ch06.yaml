@@ -309,7 +309,11 @@ scenes:
       - { sfx: door_creak, at: front, dist: near, text: 吱—— }
       - narr: 書桌左邊缺了一個角，我的手先碰到它。筆記本在老地方。
       - { sfx: page_turn, at: front, dist: near, text: 沙啦 }
-      - narr: 十八點三十一分，一行接一行。這幾頁我已經摸到會背了。
+      - if: know.k_notebook_1831
+        then:
+          - narr: 十八點三十一分，一行接一行。這幾頁我已經摸到會背了。
+        else:
+          - narr: 前面幾頁的紙背是凸的。我一行一行摸過去，一、八，冒號，三、一，每一行都一樣。
       - think: 這一次，我不找數字。
       - narr: 我一頁一頁翻，先用整個手掌壓平，再用指腹慢慢走過去。
       - { wait: 14 }
@@ -364,7 +368,7 @@ scenes:
       - { sfx: door_open, at: back, dist: near, text: 吱 }
       - narr: 冷氣開得很強。紙的味道比老家的乾，還混著一點樟腦。
       - { cue: reader, at: back-left, text: 沙……, sfx: page_turn }
-      - think: 知夏以前在這裡打工，每天都等到關燈才走。
+      - think: 知夏以前在這裡打工。
       - { old_woman: 妹妹，要找書喔？, as: 館員 }
       - me: 我想查一個人的借閱紀錄。林知夏。
       - pause: 1.5
@@ -398,7 +402,7 @@ scenes:
           - think: 在他的抽屜裡。他說，是客人寄修的。
         else:
           - narr: 我的手指記得那個形狀。鋁框，一排一排的小格子，筆要從背面一格一格壓下去。
-          - think: 我自己就有一塊，放在城市那張書桌上。
+          - think: 我包包裡就有一塊，出門都帶著。
       - me: 那本書還在嗎？
       - { sfx: step, at: front-right, dist: far, text: 叩、叩 }
       - narr: 她走開，又走回來。一本很重的書放進我手裡，布面精裝，書脊裂了一道。
@@ -605,9 +609,15 @@ scenes:
       - tingan: ……林家的？妳一個人上來？妳不是約我五點四十？
       - me: 我等不到五點四十。
       - pause: 1
-      - me: 五年前，妳燒過一份東西。
-      - narr: 風還在吹，雨衣的沙沙聲停了。
-      - tingan: 誰告訴妳的？
+      - if: know.k_burned_copy
+        then:
+          - me: 五年前，妳燒過一份東西。
+          - narr: 風還在吹，雨衣的沙沙聲停了。
+          - tingan: 誰告訴妳的？
+        else:
+          - me: 我姊走了以後，她桌上那些紙，後來去哪裡了？
+          - narr: 風還在吹，雨衣的沙沙聲停了。
+          - tingan: ……誰叫妳來問這個的？
       - choice:
           timeout: 10
           options:
@@ -617,7 +627,7 @@ scenes:
                 - me: 我知道。
                 - tingan: ……那妳不可能知道。
                 - me: 對。
-            - text: 「我猜的。」
+            - text: 「沒有人。我猜妳知道。」
               then:
                 - tingan: 妳猜得也太準了吧。
             - text: （等她說下去）
@@ -832,7 +842,11 @@ scenes:
       - if: know.k_watch_engraving
         then:
           - { sfx: glass_clink, at: front, dist: near, text: 叮 }
-          - narr: 手錶，停在十八點三十一分。背面刻著：不要先救第一個死者。
+          - if: know.k_watch_1831
+            then:
+              - narr: 手錶，停在十八點三十一分。背面刻著：不要先救第一個死者。
+            else:
+              - narr: 手錶。背面刻著：不要先救第一個死者。
       - if: know.k_postmark_yesterday
         then:
           - narr: 一張卡：郵戳，昨天。
@@ -848,7 +862,7 @@ scenes:
           - narr: 一張卡：點字底下的鉛筆字。地址，另一個人的字。
       - if: know.k_recorder_voice
         then:
-          - narr: 一張卡：錄音裡，還在路上的周警官。
+          - narr: 一張卡：錄音裡的男聲，那時候還在路上。
       - if: know.k_tape_1803
         then:
           - narr: 一張卡：十八點零三分撥出，十八點零三分收到。
@@ -889,8 +903,13 @@ scenes:
               if: know.k_erased_line
               then:
                 - tingan: 一個凸的，一個凹的。好。
-                - tingan: 那其他的呢？郵戳、通話、櫃子，它們說了什麼？
-                - me: ……昨天。十八點零三分。
+                - if: know.k_tape_1803
+                  then:
+                    - tingan: 那其他的呢？郵戳、通話、櫃子，它們說了什麼？
+                    - me: ……昨天。十八點零三分。
+                  else:
+                    - tingan: 那其他的呢？桌上其他這些，它們說了什麼？
+                    - me: ……十八點三十一分。
                 - tingan: 那是時間，不是一句話。
             - text: 「沒有。」
               then:

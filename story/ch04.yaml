@@ -185,6 +185,23 @@ scenes:
                 - me: 我知道。
                 - set: c4_zy_shaken
             - text: 「她的錶停在六點三十一分。筆記本背面，寫滿了同一個時間。」
+              if: know.k_watch_1831 && know.k_notebook_1831
+              then:
+                - zhiyuan: 那是妳家的東西。妳摸得到，不代表什麼。
+                - me: 那你呢？你到現場的時候，是幾點？
+                - pause: 2
+                - zhiyuan: ……比那更晚。
+                - set: c4_zy_details
+            - text: 「她的錶，停在六點三十一分。」
+              if: know.k_watch_1831 && !know.k_notebook_1831
+              then:
+                - zhiyuan: 那是妳家的東西。妳摸得到，不代表什麼。
+                - me: 那你呢？你到現場的時候，是幾點？
+                - pause: 2
+                - zhiyuan: ……比那更晚。
+                - set: c4_zy_details
+            - text: 「她的筆記本背面，寫滿了十八點三十一分。」
+              if: know.k_notebook_1831 && !know.k_watch_1831
               then:
                 - zhiyuan: 那是妳家的東西。妳摸得到，不代表什麼。
                 - me: 那你呢？你到現場的時候，是幾點？
@@ -244,7 +261,11 @@ scenes:
       - narr: 先是沙沙聲，像有人拿很細的砂紙在磨桌面。
       - { sfx: wind_gust, at: front-left, dist: far, text: 嗚—— }
       - narr: 然後是風。風從破掉的窗灌進挑高的大廳，繞一圈，又從別的地方出去。
-      - think: 這個回音我聽過。舊車站的大廳。
+      - if: know.k_in_station_hall
+        then:
+          - think: 這個回音我聽過。舊車站的大廳。
+        else:
+          - think: 這個風聲我聽過。在舊車站對面，從破窗灌進大廳的就是這種風。
       - { sfx: step, at: front, dist: far, text: 叩……叩…… }
       - narr: 很遠的地方有腳步，踩在碎玻璃上。
       - pause: 1.5
@@ -732,7 +753,7 @@ scenes:
           - narr: 警笛從山坡下面很遠的地方傳上來，一直沒停。
           - tingan: 舊車站那邊？
           - think: 我沒接她的話。我在算時間。
-          - think: 六點零五分，若晴到了。六點零七分，陳醫生把紙袋交給她。
+          - think: 若晴照原本的時間到了舊車站，陳醫生也是。
           - think: 我什麼都沒動。
       - pause: 2
       - tingan: 我送妳下山。
