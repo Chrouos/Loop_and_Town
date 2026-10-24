@@ -1,5 +1,6 @@
-// Dev-only audition page for the procedural audio engine: `npm run dev` → /audio-lab.html.
-// Not part of the production build inputs.
+// Dev-only audition page for the audio engine: `npm run dev` → /audio-lab.html.
+// Every sound that has a recording can be played from the recording (錄音) or from its synthesis
+// recipe (合成) side by side; ambience beds switch source globally. Not part of the production build.
 
 import { StrictMode, useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
@@ -15,7 +16,8 @@ import {
   type SpatialPos,
   type VoiceId,
 } from './catalog';
-import { createAudioEngine, type AudioEngineDebug } from './engine';
+import { createAudioEngine, type AudioEngineDebug, type SampleMode } from './engine';
+import { AMBIENCE_SAMPLES, SFX_SAMPLES } from './samples';
 
 const GROUPS: ReadonlyArray<readonly [label: string, first: SfxId]> = [
   ['人與移動', 'step'],
@@ -61,6 +63,9 @@ const css = {
   cell: { width: 44, height: 44, fontSize: 18, textAlign: 'center', padding: 0 },
   list: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))', gap: 6 },
   small: { display: 'block', color: '#6c7169', fontSize: 11 },
+  pair: { display: 'flex', gap: 4, marginTop: 6 },
+  mini: { padding: '2px 8px', fontSize: 12 },
+  tag: { marginLeft: 6, fontSize: 10, color: '#7fae8a', letterSpacing: '0.1em' },
   stats: { position: 'fixed', right: 12, bottom: 10, color: '#4d524c', font: '11px ui-monospace, monospace' },
 } satisfies Record<string, CSSProperties>;
 
@@ -87,6 +92,9 @@ function Lab() {
   const [fadeMs, setFadeMs] = useState(2500);
   const [last, setLast] = useState('');
   const [stats, setStats] = useState('');
+  const [mode, setMode] = useState<SampleMode>('auto');
+  const [sampled, setSampled] = useState<string[]>([]);
+  const [bank, setBank] = useState('');
   const sweepTimers = useRef<number[]>([]);
 
   useEffect(() => {
@@ -95,6 +103,8 @@ function Lab() {
       if (dbg.stats) {
         const s = dbg.stats();
         setStats(`${s.state} · layers ${s.layers.length} · sfx ${s.shots} · voices ${s.voices} · layer events ${s.layerShots} · timers ${s.layerTimers}`);
+        setSampled(s.sampledLayers);
+        setBank(s.samples ? `錄音已載入：音效 ${s.samples.sfxReady}/${s.samples.sfxTotal} · 環境 ${s.samples.ambReady}/${s.samples.ambTotal}${s.samples.failed ? ` · 失敗 ${s.samples.failed}` : ''}` : '');
       }
       setReady(engine.ready);
     }, 500);
@@ -121,6 +131,21 @@ function Lab() {
     setLast(`${id} @ ${p.dir}/${p.dist}`);
   };
 
+  const playFrom = (id: SfxId, source: 'sample' | 'synth') => {
+    void unlock().then(async () => {
+      const dbg = engine as Partial<AudioEngineDebug>;
+      const p = pos();
+      const ok = dbg.playSource ? await dbg.playSource(id, p, source, { gain, rate }) : false;
+      setLast(`${id} @ ${p.dir}/${p.dist} · ${source === 'sample' ? '錄音' : '合成'}${ok ? '' : '（無法播放）'}`);
+    });
+  };
+
+  const switchMode = (m: SampleMode) => {
+    void unlock();
+    setMode(m);
+    (engine as Partial<AudioEngineDebug>).setSampleMode?.(m);
+  };
+
   const sweep = (id: SfxId) => {
     for (const t of sweepTimers.current) window.clearTimeout(t);
     sweepTimers.current = DIRECTIONS.map((d, i) => window.setTimeout(() => play(id, { dir: d, dist }), i * 900));
@@ -144,7 +169,10 @@ function Lab() {
   return (
     <div style={css.page}>
       <h1 style={css.h1}>灰潮鎮 · Audio Lab</h1>
-      <div style={css.muted}>所有聲音皆為即時合成。建議戴耳機。點選聲音即在選定方位播放；Shift+點 = 繞八個方位一圈。</div>
+      <div style={css.muted}>
+        有錄音的聲音標示「錄」：按「錄音」或「合成」可以並排比較；直接點名稱 = 遊戲裡的實際行為（錄音已載入就用錄音，否則用合成）。建議戴耳機。Shift+點 = 繞八個方位一圈。
+      </div>
+      <div style={{ ...css.muted, marginTop: 4 }}>{bank || '（啟用聲音後開始載入錄音）'}</div>
 
       <div style={{ ...css.row, marginTop: 16 }}>
         <Btn on={ready} onClick={() => void unlock()}>
@@ -209,6 +237,16 @@ function Lab() {
 
       <h2 style={css.h2}>環境層</h2>
       <div style={{ ...css.row, marginBottom: 8 }}>
+        <span>來源</span>
+        <Btn on={mode === 'auto'} onClick={() => switchMode('auto')}>
+          錄音（有錄音的層）
+        </Btn>
+        <Btn on={mode === 'synth'} onClick={() => switchMode('synth')}>
+          全部合成
+        </Btn>
+        <span style={css.muted}>切換時交叉淡化約 2.5 秒</span>
+      </div>
+      <div style={{ ...css.row, marginBottom: 8 }}>
         <label>
           淡入淡出 {fadeMs} ms <input type="range" min={100} max={6000} step={100} value={fadeMs} onChange={(e) => setFadeMs(+e.target.value)} />
         </label>
@@ -217,6 +255,7 @@ function Lab() {
         {(Object.keys(AMBIENCE) as AmbienceId[]).map((id) => (
           <Btn key={id} on={layers.includes(id)} onClick={() => toggleLayer(id)}>
             {id}
+            {AMBIENCE_SAMPLES[id] ? <span style={css.tag}>{sampled.includes(id) ? '錄 ▶' : '錄'}</span> : null}
             <span style={css.small}>{AMBIENCE[id]}</span>
           </Btn>
         ))}
@@ -227,10 +266,23 @@ function Lab() {
           <h2 style={css.h2}>{label}</h2>
           <div style={css.list}>
             {ids.map((id) => (
-              <Btn key={id} onClick={(e) => (e.shiftKey ? sweep(id) : play(id))}>
-                {id}
-                <span style={css.small}>{SFX[id]}</span>
-              </Btn>
+              <div key={id} style={{ ...css.btn, cursor: 'default' }}>
+                <Btn onClick={(e) => (e.shiftKey ? sweep(id) : play(id))} style={{ border: 'none', padding: 0, background: 'transparent' }}>
+                  {id}
+                  {SFX_SAMPLES[id] ? <span style={css.tag}>錄{SFX_SAMPLES[id]!.files.length > 1 ? ` ×${SFX_SAMPLES[id]!.files.length}` : ''}</span> : null}
+                  <span style={css.small}>{SFX[id]}</span>
+                </Btn>
+                {SFX_SAMPLES[id] ? (
+                  <div style={css.pair}>
+                    <Btn onClick={() => playFrom(id, 'sample')} style={css.mini}>
+                      錄音
+                    </Btn>
+                    <Btn onClick={() => playFrom(id, 'synth')} style={css.mini}>
+                      合成
+                    </Btn>
+                  </div>
+                ) : null}
+              </div>
             ))}
           </div>
         </section>
