@@ -1,0 +1,83 @@
+import { Director } from '../src/engine/director';
+import { freshSave, type GameSave } from '../src/engine/save';
+import { loadGameScript } from '../src/script/load';
+import type { AudioEngine } from '../src/audio/engine';
+
+// story/*.yaml through the same Vite glob the game uses.
+export function loadScriptFromDisk() {
+  return loadGameScript();
+}
+
+export function silentAudio(log: string[] = []): AudioEngine {
+  const noop = () => undefined;
+  return {
+    ready: true,
+    unlock: async () => undefined,
+    setEnabled: noop,
+    setVolume: noop,
+    setVoiceVolume: noop,
+    setAmbience: (ids) => { log.push(`amb:${ids.join(',')}`); },
+    play: (id) => { log.push(`sfx:${id}`); },
+    voice: noop,
+    setAttention: noop,
+    duck: noop,
+    silence: noop,
+    suspend: noop,
+    resume: noop,
+  } as AudioEngine;
+}
+
+function rng(seed: number) {
+  let state = seed >>> 0 || 1;
+  return () => {
+    state ^= state << 13; state >>>= 0;
+    state ^= state >>> 17;
+    state ^= state << 5; state >>>= 0;
+    return state / 0x100000000;
+  };
+}
+
+export type PlayResult = { chapters: string[]; endings: string[]; loops: number; scenes: Set<string>; knowledge: Set<string>; stuck?: string };
+
+/** Plays with a random policy: random choices, sometimes turns toward cues, sometimes taps. */
+export function autoplay(options: { seed: number; maxLoops: number; startChapter?: string; grantKnowledge?: boolean; stopAtChapter?: string; attendRate?: number }): PlayResult {
+  const { script, errors } = loadScriptFromDisk();
+  if (errors.length) throw new Error(errors.join('\n'));
+  const random = rng(options.seed);
+  let wall = 0;
+  let save: GameSave = freshSave();
+  const director = new Director(script, save, { audio: silentAudio(), vibrate: () => undefined, persist: (next) => { save = next; }, wallNow: () => wall }, { speed: 1 });
+  if (options.startChapter) director.jumpToChapter(options.startChapter, options.grantKnowledge ?? true);
+  else director.start();
+  const chapters: string[] = [director.view.chapterKey];
+  const scenes = new Set<string>();
+  const attendRate = options.attendRate ?? 0.35;
+  let lastProgress = 0;
+  let steps = 0;
+  while (steps++ < 400_000) {
+    const view = director.view;
+    if (view.phase === 'ending') break;
+    if (director.save.loop > options.maxLoops) break;
+    if (view.sceneId) scenes.add(view.sceneId);
+    if (chapters[chapters.length - 1] !== director.save.chapter) {
+      chapters.push(director.save.chapter);
+      if (options.stopAtChapter && director.save.chapter === options.stopAtChapter) break;
+    }
+    if (view.choice && view.focus === 'main' && random() < 0.6) {
+      director.choose(Math.floor(random() * view.choice.options.length));
+    } else if (view.phase === 'scene' && random() < 0.02) {
+      const cues = view.periph.filter((item) => item.kind === 'cue' && item.thread);
+      if (cues.length && random() < attendRate) director.attend(cues[Math.floor(random() * cues.length)].thread!);
+    } else if (random() < 0.3) {
+      director.hurry();
+    }
+    if (view.keep) director.skipKeep();
+    if (view.center?.perceived && random() < 0.01) director.capture();
+    const before = director.version;
+    wall += 200;
+    director.tick(200);
+    if (director.version !== before) lastProgress = steps;
+    if (steps - lastProgress > 20_000) return { chapters, endings: director.save.endings, loops: director.save.loop, scenes, knowledge: new Set(director.save.knowledge), stuck: `${view.phase} ${view.sceneId}` };
+  }
+  return { chapters, endings: [...director.save.endings], loops: director.save.loop, scenes, knowledge: new Set(director.save.knowledge) };
+}

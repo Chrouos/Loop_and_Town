@@ -1,160 +1,26 @@
-# Documentation Guide
+# 文件索引
 
-這個目錄同時包含目前 Canon、Story 文件、Author tooling 規格，以及過去的設計 / implementation history。
+## 現行（以這三份為準）
 
-為避免舊文件重新覆蓋最新玩法，開發前先依本頁判斷文件優先級。
+| 文件 | 內容 |
+| --- | --- |
+| [`story.md`](story.md) | 故事核心：失明的主角、第七封信的真相、全局時間線、跨章知識 id、各章大綱、寫作守則 |
+| [`design.md`](design.md) | 遊戲體驗：純黑舞台、八方位聲音、注意力、等待、記憶、動畫、音效、震動，以及劇本 YAML 格式 |
+| [`style.md`](style.md) | 文風：旁白怎麼寫、各角色怎麼講話、要避開的 AI 痕跡 |
 
-## Precedence
+劇本本身在 [`../story/`](../story/)，遊戲程式在 [`../game/`](../game/)。
 
-遇到內容衝突時依下列順序判定：
+## 背景 Canon（`canon/`）
 
-```text
-Core Gameplay Spec
-        ↓
-Story Canon
-        ↓
-Active subsystem spec
-        ↓
-ROADMAP / active implementation PR
-        ↓
-Historical dated plan / spec
-```
+`canon/` 是改版前的世界觀與章節設計：研究計畫、Reality Rewrite、Fixed Anchor、18:31 Cascade、午夜 Recovery、結局 A／B／C 的機制，以及人物設定。
 
-### 1. Core Gameplay — highest priority
+`story.md` 沒有改到的部分，照這些文件走。兩邊衝突時以 `story.md` 為準。
 
-- `core-gameplay-spec-v0.1.md`
-- `core-gameplay.md`：快速摘要，不能覆蓋完整 Spec
+這些文件寫於舊版玩家端與 Event Graph 作者工具還在的時候，裡面提到 Event Graph、Author tooling、Investigation Wall、即時同步時鐘的段落都已經不適用。
 
-目前最重要 invariants：
+最常用的幾份：
 
-- World Never Waits
-- Single Main Action
-- Single Focus
-- Faded ≠ Paused
-- Attention Shift Takes Time
-- Perception Boundary
-- Memory Is Player-selected
-- No Auto Deduction
-- Finite Information
-- Asymmetric Loop Persistence
-
-任何文件若違反上述規則，視為舊設計。
-
-## 2. Story Canon
-
-- `story-canon-background.md`：灰潮鎮社會背景、研究所原始目的、18:31 與故事核心反轉
-- `story-canon-rewrite-anchor.md`：**Reality Rewrite、Causal Pivot 與 Fixed Anchor 的最新高層機制**
-- `story-canon-mechanism.md`：**18:31 Cascade、00:00 Recovery、Ending A／B／C 的高層因果機制；Runtime 尚待實作**
-- `story-canon-return-and-reactivation.md`：主角返鄉原因、地方更新、五年後系統重新連線與「不要回來」警告信
-- `story-canon-memory.md`
-- `story-canon-time.md`
-- `character-bible.md`
-- `relationship-map.md`
-- `main-story.md`
-- chapter / final story documents
-- `worldbuilding.md`：世界觀快速導覽，不可覆蓋上列完整 Canon
-
-Story Canon 可以定義人物、事件與特殊劇情例外，但不能重新定義 Core Gameplay。
-
-若其他 active 故事文件把 Anchor 的存在或記憶保留原因整體標成 TBD，以 `story-canon-rewrite-anchor.md` 已鎖定的 `Pivot Repeat Bug → Persistent Reference Lock → Fixed Anchor` 為準；只有工程／演算法細節仍 TBD。
-
-18:31 的跨 Epoch Feedback Mismatch、未結案 Correction、00:00 Recovery Retry，以及 Ending C 的雙路隔離／Epoch Fencing／Forward Seal，現在已由 `story-canon-mechanism.md` 高層定案；不能再將整套 Recovery / Shutdown 原因標作 TBD。底層物理、設備與 Runtime 仍待完成。
-
-`Residual`（當輪微弱感知）與 `Rewrite Echo`（跨 Reality 的模糊感知）不可混用。
-
-例如：
-
-```text
-知夏曾是特殊記憶持有者
-```
-
-可以是 Story Exception；不能因此推出：
-
-```text
-所有 NPC 都有 memory_residue
-```
-
-## 3. Author / Debug tooling
-
-- `event-graph-spec.md`
-- Event Graph / Causal Timeline related specs
-
-Author tooling 可以知道：
-
-- exact causal edges
-- hidden conditions
-- downstream effects
-- convergence inputs
-- cross-worldline truth
-
-Player UI 不能直接繼承這些答案。
-
-```text
-Author causal truth ≠ Player Investigation Wall
-```
-
-## 4. Development Roadmap
-
-Repo root：`ROADMAP.md`
-
-Roadmap 決定目前實作順序與 PR dependency，但不能改寫 Gameplay Canon。
-
-## Historical documents
-
-`docs/superpowers/plans/**` 與 `docs/superpowers/specs/**` 是當時的設計與實作紀錄。
-
-它們可用來了解：
-
-- 為什麼某段 code 存在
-- 當時驗收目標
-- schema / migration 歷史
-- 已被替換方案的背景
-
-但**不能單獨作為最新 gameplay requirement**。
-
-### Known superseded assumptions
-
-下列舊假設曾出現在 historical docs，目前已被取代：
-
-- Event Card / Truth Card 由系統自動核發或改寫給玩家
-- Character Insight 自動解鎖正確推理
-- generic NPC `memory_residue`
-- Player Worldline Diff 直接顯示真正 causal difference
-- Offline Report 自動列出錯過的重要情報
-- 固定 `Continue` / case-reader / web-app-style narrative 作為最終 Player UI
-- fixed per-character Typewriter 作為 canonical speech model
-- 傳統 Skip / Fast-forward 改變 World Time
-- 閱讀、對話、選擇或 Attention 凍結 World Time
-- Attention Redirect 等同 True Interrupt
-- 只允許「系統認為重要」的資訊成為 Memory
-
-### Historical document rule
-
-如果 dated document 與最新 Core Gameplay 衝突：
-
-> 保留它作為歷史紀錄，但衝突段落不具規範效力。
-
-若該文件仍被 active implementation 直接引用，應更新該文件或在文件頂部加入 superseded notice，而不是靠開發者自行猜測。
-
-## Before implementing Player gameplay
-
-至少確認：
-
-```text
-1. 我正在實作的是 Author tool 還是 Player experience？
-2. World Event 是否被錯當成 Player Knowledge？
-3. 玩家是否真的 Perceive 過？
-4. Persistent Memory 是否來自 Player Capture？
-5. 是否偷偷自動提示重要性 / 因果 / 矛盾？
-6. 是否讓 World Time 因 UI 行為停止？
-7. 是否讓 NPC 記住不該跨 Loop 的事情？
-```
-
-只要其中一題有疑問，先回到 `core-gameplay-spec-v0.1.md`。
-## Player Runtime authority (P0)
-
-- **Playable source of truth:** `src/player/PlayerApp.tsx` and `src/player/{runtime,clock,model,knowledge}` via `player.html`. It already supports single-focus Attention and player-selected Memory Capture.
-- **Legacy experimental renderer:** `src/playerNarrative/` remains for narrative component compatibility, but is **not** a second clock or canonical save owner. Its foreground scene state cannot pause world time; newly initialized sessions begin at 06:12 on the inbound train. Historic v2/v3 sessions preserve their progressed minute.
-- **Mechanism simulator:** `src/simulator/correctionSession.ts` and `recoveryBoundary.ts` own author truth; no CorrectionSession internals become player knowledge without observed/captured sources.
-- Player Save v2 remains the durable owner of Captured Memory and Investigation Wall. Legacy narrative Save v3 is not silently combined or reset into it; optional import requires an explicit migration and user intent.
-- P1–P4 implementation follows this canonical path; do not implement two competing midnight transitions.
+- `canon/character-bible.md`：人物的過去、恐懼、秘密
+- `canon/story-canon-mechanism.md`：18:31、午夜 Recovery、結局 C 的五道關卡
+- `canon/story-canon-rewrite-anchor.md`：Reality Rewrite 與 Fixed Anchor
+- `canon/main-story.md`、`canon/chapter-*.md`、`canon/final-1831.md`：原本的章節設計

@@ -1,0 +1,890 @@
+# 第四章｜五年前
+# 盲眼主角版。格式見 docs/listening-town-design.md §11；故事見 docs/listening-town-story.md §5。
+chapter: 4
+title: 五年前
+start: c4_train
+advance:
+  - if: know.k_recorder_voice && know.k_medical_records && know.k_research_purpose && know.k_zhixia_saw_my_death
+    to: 5
+
+scenes:
+  # ─────────────────────────── 06:12 列車 ───────────────────────────
+  - id: c4_train
+    time: "06:12"
+    place: 返鄉列車
+    ambience: [train_interior]
+    cast: { announcer: front }
+    threads:
+      gossip:
+        beats:
+          - { old_man: 鐘樓那邊這禮拜也在拉線。, at: back-left, as: 後座的老先生 }
+          - { old_woman: 鐘都拆了，還拉什麼線？, at: back-left, as: 後座的老太太 }
+          - { old_man: 說是舊的線路要接回去。防災用的。, at: back-left, as: 後座的老先生 }
+          - { old_woman: 五年前也說是防災用的。, at: back-left, as: 後座的老太太 }
+          - pause: 1
+          - { narr: 塑膠袋窸窣了一陣，老太太把橘子皮包起來，沒有再接話。 }
+    beats:
+      - { sfx: phone_buzz, at: right, dist: near, text: 嗡, vib: buzz }
+      - phone: 六點十二分。
+      - if: chloop >= 2
+        then:
+          - narr: 後座那聲咳嗽準時響了，橘子皮的味道也是。
+          - think: 我讓它們照原樣過去。
+          - if: know.c4_let_it_happen
+            then:
+              - think: 有一次，我沒有動任何人。
+              - think: 若晴的名字，是在餐館的電視裡聽見的。
+              - pause: 1.5
+          - think: 五年前那一天，我還有一大半沒聽到。再走一次。
+        else:
+          - narr: 我醒來的時候，手已經在外套口袋裡了。
+          - narr: 指尖壓著那一行凸點。不、要、回、來。
+          - pause: 1.5
+          - think: 十八點三十一分，我已經聽過三次。
+          - think: 有人死，午夜會重來。沒有人死，午夜也照樣敲十二下。
+          - think: 那我在今天裡面把誰挪到哪裡，好像都沒有差。
+          - pause: 1
+          - { think: 為什麼偏偏是十八點三十一分？, mem: m_c4_why_1831 }
+          - think: 五年前，到底發生了什麼？
+          - { sfx: cough, at: back-left, dist: mid, text: 咳 }
+          - narr: 後面有人咳嗽，跟前三次是同一個時候。
+          - { cue: gossip, at: back-left, text: 窸窸窣窣, sfx: whisper }
+      - think: 下車之前，我得先想好今天要不要動別人。
+      - choice:
+          timeout: 14
+          options:
+            - text: （像上次那樣，先把所有人移開）
+              then:
+                - set: dispersed
+                - think: 若晴、陳醫生、予安。先一通一通打電話，把他們放到不會出事的地方。
+                - think: 然後再去問五年前的事。
+            - text: （這次，不動任何人）
+              then:
+                - set: c4_baseline
+                - think: 上次我把所有人都移開，一整天安安靜靜，什麼也沒問到。
+                - pause: 1.5
+                - think: 六點三十一分舊車站會發生什麼，我知道。
+                - think: 若晴會去。這次我不打那通電話。
+      - { sfx: station_chime, at: front, dist: far, text: 叮咚—— }
+      - { announcer: 下一站，灰潮鎮。, as: 廣播 }
+      - { sfx: train_brake, at: front, dist: mid, text: 嘰—— }
+    next: c4_platform
+
+  # ─────────────────────────── 07:40 月台 ───────────────────────────
+  - id: c4_platform
+    time: "07:40"
+    place: 灰潮鎮站
+    ambience: [platform]
+    cast: { yuan: front-right }
+    beats:
+      - { sfx: train_door, at: right, dist: near, text: 嘶——喀 }
+      - { sfx: step, at: front-right, dist: mid, text: 叩、叩 }
+      - yuan: 比我想的早。
+      - me: 車沒誤點。
+      - narr: 接下來那幾句，我讓它們從耳邊滑過去。
+      - yuan: 請扶著我的左手肘。前面有階梯。
+      - narr: 他袖子上有機油和黃銅的味道。
+      - me: 予安。九點以後，可以帶我去派出所嗎？
+      - pause: 1
+      - yuan: 派出所？
+      - yuan: ……妳一下車就要去報案喔？
+      - me: 我想問我姊的事。
+      - pause: 2
+      - yuan: 好。
+      - narr: 他沒有問為什麼。手肘往下沉了一點，腳步放得比剛才慢。
+      - { sfx: construction_drill, at: left, dist: far, text: 噠噠噠 }
+      - if: flag.dispersed
+        then:
+          - goto: c4_calls
+      - think: 這一次，我一通電話也不打。
+      - think: 今天每個人都照自己原本的行程走。
+    next: c4_police
+
+  # ─────────────────────────── 08:30 電話（分散） ───────────────────────────
+  - id: c4_calls
+    time: "08:30"
+    place: 老家，客廳
+    ambience: [old_house]
+    cast: { ruoqing: right, yuan: left, old_woman: right }
+    beats:
+      - { sfx: door_creak, at: front, dist: near, text: 碰——吱呀 }
+      - narr: 門還是卡住，他還是用肩膀頂開。灰塵落在我的手背上。
+      - narr: 予安去買早餐了。客廳只剩我和手機。
+      - phone: 撥號中。老街咖啡店。
+      - { sfx: phone_ring, at: right, dist: near, text: 嘟——嘟—— }
+      - { old_woman: 喂，咖啡店你好。, as: 店長 }
+      - me: 請問若晴在嗎？
+      - { old_woman: 若晴！電話！, as: 店長 }
+      - pause: 1.5
+      - ruoqing: 喂？請問哪位？
+      - me: 妳不認識我。我是林知夏的妹妹。
+      - pause: 1.5
+      - { sfx: strap_click, at: right, dist: near, text: 喀 }
+      - narr: 電話那頭，金屬扣響了一下。
+      - me: 今天傍晚，不要去舊車站。
+      - ruoqing: ……妳怎麼知道我要去？
+      - me: 拜託妳。過了六點半再決定。
+      - pause: 2
+      - ruoqing: 欸……好啦。我跟陳醫生說改天。
+      - ruoqing: 可是妳欠我一個解釋喔。
+      - { sfx: phone_hangup, at: right, dist: near, text: 嘟 }
+      - phone: 撥號中。周予安。
+      - { sfx: phone_ring, at: left, dist: mid, text: 嘟—— }
+      - yuan: 我在排隊。蛋餅要不要加蛋？
+      - me: 今天傍晚六點到七點，你待在店裡。
+      - pause: 1
+      - yuan: ……好的。
+      - narr: 他平常會先答應，再問為什麼。這次電話裡只有煎台滋滋響，他什麼都沒問。
+      - { sfx: phone_hangup, at: left, dist: mid, text: 嘟 }
+      - think: 陳醫生，中午再當面跟他說。
+      - pause: 1.5
+      - { think: 我又一次替所有人安排好今天。, mem: m_c4_arranged }
+      - think: 像把桌上的杯子，一個一個推離桌緣。
+    next: c4_police
+
+  # ─────────────────────────── 09:10 派出所 ───────────────────────────
+  - id: c4_police
+    time: "09:10"
+    place: 灰潮鎮派出所
+    ambience: [police_office]
+    cast: { zhiyuan: front, yuan: back, man: back-right }
+    threads:
+      radio:
+        beats:
+          - { sfx: static_burst, at: back-right, dist: mid, text: 嘶嘶 }
+          - { man: 北區巡邏，施工路段改道，請注意。, as: 無線電, at: back-right }
+          - { man: 舊車站正門那邊還封著，行人走側邊。, as: 無線電, at: back-right }
+          - { man: 收到。, as: 另一個員警, at: back-right }
+    beats:
+      - { sfx: door_open, at: back, dist: near, text: 吱 }
+      - narr: 電扇在頭頂轉。裡面有人用兩根手指打字，一個鍵一個鍵慢慢敲。
+      - narr: 有菸味，可是沒有打火機的聲音，也沒有人在吸。
+      - think: 是他。
+      - yuan: 我在外面等。
+      - { sfx: door_close, at: back, dist: mid, text: 碰 }
+      - { sfx: chair_scrape, at: front, dist: near, text: 嘎 }
+      - zhiyuan: 小姐，什麼事？
+      - me: 我姓林。林知夏是我姊。
+      - me: 我想聽她的案子。
+      - pause: 1.5
+      - zhiyuan: ……我姓周。
+      - zhiyuan: 案子結了。
+      - zhiyuan: 意外。家屬當年有簽名。
+      - narr: 他說完「結了」，椅背嘎一聲往後靠。
+      - choice:
+          timeout: 16
+          options:
+            - text: 「你抽屜最深的那一格，有一台沒有登錄的錄音機。」
+              if: know.k_recorder_voice
+              then:
+                - pause: 3
+                - narr: 電扇轉過來，又轉過去。他一直沒有開口。
+                - zhiyuan: 誰跟妳講的。
+                - me: 你。
+                - zhiyuan: 這件事我沒跟任何人講過。
+                - me: 我知道。
+                - set: c4_zy_shaken
+            - text: 「她的錶停在六點三十一分。筆記本背面，寫滿了同一個時間。」
+              then:
+                - zhiyuan: 那是妳家的東西。妳摸得到，不代表什麼。
+                - me: 那你呢？你到現場的時候，是幾點？
+                - pause: 2
+                - zhiyuan: ……比那更晚。
+                - set: c4_zy_details
+            - text: 「十八點三十一分。我已經聽過三次了。」
+              then:
+                - zhiyuan: 什麼意思？
+                - if: know.k_zhixia_note_1831
+                  then:
+                    - me: 第一次，停電，還有相機背帶的扣子一直響。
+                  else:
+                    - me: 第一次，整座鎮停了一拍。冰箱停掉，又自己響起來。
+                - if: know.k_maintenance_passage
+                  then:
+                    - me: 第二次，很深的地方有東西倒下來。
+                  else:
+                    - me: 第二次，咖啡機斷電，然後很遠的地方有警笛。
+                - me: 第三次什麼都沒有，只有一個嗡鳴。
+                - pause: 3
+                - zhiyuan: 五年前那次停電，報告裡有寫。
+                - zhiyuan: 沒有對外公開。
+                - set: c4_zy_truth
+            - text: （什麼都不說，等他）
+              then:
+                - pause: 4
+                - narr: 他的指節在桌面敲了一下，隔了好一陣子才敲第二下。
+                - zhiyuan: ……妳還不走？
+                - me: 你是第一批到場的人。那份摘要，你不用翻就背得出來。
+                - zhiyuan: ……誰跟妳講的？
+                - me: 沒有人。
+      - pause: 2
+      - { sfx: chair_scrape, at: front, dist: near, text: 嘎—— }
+      - { sfx: step, at: front-right, dist: mid, text: 叩、叩 }
+      - narr: 他站起來往右走，腳步越過檔案櫃，停在更裡面的地方。
+      - { sfx: key_jingle, at: front-right, dist: mid, text: 鏘 }
+      - { sfx: drawer, at: front-right, dist: mid, text: 喀啦啦 }
+      - narr: 那個抽屜很少被拉開，卡了兩次才出來。
+      - { sfx: step, at: front, dist: near, text: 叩 }
+      - narr: 一個很小的東西，叩一聲放在我面前的桌上。
+      - zhiyuan: 這個沒有登錄。
+      - zhiyuan: 五年前在現場撿到的。計時停在十八點三十一分。
+      - zhiyuan: 來源不明。時間碼可疑。
+      - zhiyuan: 我跟自己說，先確認，再登錄。
+      - pause: 1.5
+      - zhiyuan: 然後就五年了。
+      - pause: 2
+      - narr: 我摸到它。塑膠殼的邊角磨圓了，按鍵有點黏。
+      - zhiyuan: 妳要聽嗎？
+      - me: 要。
+      - { sfx: tape_rewind, at: front, dist: near, text: 嘰嘰嘰嘰—— }
+      - { sfx: recorder_click, at: front, dist: near, text: 喀嚓 }
+      - pause: 1
+      - { sfx: tape_hiss, at: front, dist: near, text: 沙———— }
+      - pause: 2.5
+      - narr: 先是沙沙聲，像有人拿很細的砂紙在磨桌面。
+      - { sfx: wind_gust, at: front-left, dist: far, text: 嗚—— }
+      - narr: 然後是風。風從破掉的窗灌進挑高的大廳，繞一圈，又從別的地方出去。
+      - think: 這個回音我聽過。舊車站的大廳。
+      - { sfx: step, at: front, dist: far, text: 叩……叩…… }
+      - narr: 很遠的地方有腳步，踩在碎玻璃上。
+      - pause: 1.5
+      - { sfx: bell_toll_far, at: front-left, dist: far, text: 噹—— }
+      - pause: 2.5
+      - narr: 錄音裡，有鐘聲。
+      - think: 那時候，鐘樓還有鐘。
+      - pause: 2
+      - think: 我以為，下一個聲音會是她。
+      - pause: 2
+      - { zhiyuan: ……有人嗎？聽得到嗎？, as: 錄音裡的男聲, at: front, dist: far }
+      - { sfx: static_burst, at: front, dist: near, text: 嘶 }
+      - pause: 1
+      - narr: 聲音很低，一個字一個字分得很開。
+      - me: 這是你的聲音。
+      - { sfx: recorder_click, at: front, dist: near, text: 喀 }
+      - pause: 3
+      - { zhiyuan: ……我那時候還在路上。, learn: k_recorder_voice, mem: m_c4_on_the_way }
+      - zhiyuan: 通報是六點四十幾分進來的。我到現場，又過了二十分鐘。
+      - zhiyuan: 可是這台機器，停在十八點三十一分。
+      - pause: 2
+      - zhiyuan: 時間碼壞掉、有人剪接、機器被調包，我都想過。
+      - zhiyuan: 都有可能。所以我一個都不能寫進報告。
+      - choice:
+          timeout: 12
+          options:
+            - text: 「你怕交出去以後，被查的人變成你。」
+              then:
+                - pause: 2
+                - zhiyuan: ……對。
+                - zhiyuan: 這不是什麼好理由。我知道。
+            - text: 「謝謝你沒有丟掉它。」
+              then:
+                - pause: 1.5
+                - zhiyuan: 我也沒交出去。不用謝我。
+            - text: （再聽一次那陣風）
+              then:
+                - { sfx: recorder_click, at: front, dist: near, text: 喀嚓 }
+                - { sfx: tape_hiss, at: front, dist: near, text: 沙—— }
+                - { sfx: bell_toll_far, at: front-left, dist: far, text: 噹—— }
+                - narr: 風聲裡夾著那一下鐘。我把它們一起記住。
+                - { sfx: recorder_click, at: front, dist: near, text: 喀 }
+      - zhiyuan: 這個不能讓妳帶走。
+      - me: 不用帶。我已經記住了。
+      - { cue: radio, at: back-right, text: 嘶嘶——, sfx: static_burst }
+      - { sfx: drawer, at: front-right, dist: mid, text: 喀啦 }
+      - narr: 抽屜推回去的時候，又卡了兩次。
+    next: c4_hospital
+
+  # ─────────────────────────── 11:40 醫院 ───────────────────────────
+  - id: c4_hospital
+    time: "11:40"
+    place: 灰潮鎮醫院，診間
+    ambience: [hospital]
+    cast: { boxun: front, woman: back-right, tingan: right }
+    threads:
+      ward:
+        beats:
+          - { sfx: step, at: back-right, dist: mid, text: 叩叩叩 }
+          - { woman: 三號病房的阿伯又要自己下床了！, as: 走廊上的護理師, at: back-right }
+          - { woman: 床欄拉起來，對，拉好。, as: 走廊上的護理師, at: back-right }
+          - { old_woman: 他就說要去廁所嘛……, as: 家屬, at: back-right }
+          - { sfx: door_close, at: back-right, dist: far, text: 碰 }
+    beats:
+      - narr: 予安送我到醫院門口，就回店裡了。
+      - { sfx: door_open, at: back, dist: near, text: 喀 }
+      - narr: 消毒水的味道。冷氣在頭頂右邊嘶嘶地吹。
+      - { woman: 陳醫生，十一點四十那位到了。, as: 護理師, at: back }
+      - { sfx: door_close, at: back, dist: near, text: 碰 }
+      - pause: 1.5
+      - boxun: ……請坐。
+      - think: 他開口之前，總會先空一拍。跟上次一樣長。
+      - me: 我不是來看病的。
+      - boxun: 我知道。妳掛號的時候說了，妳是林知夏的妹妹。
+      - pause: 1
+      - boxun: 病人的事，我不能談。她已經不在了，也一樣。
+      - choice:
+          timeout: 15
+          options:
+            - text: 「你問過我：這是第幾次？」
+              if: know.k_boxun_which_time
+              then:
+                - pause: 3
+                - narr: 筆尖在紙上的沙沙聲停了。
+                - boxun: ……我不記得我們見過。
+                - me: 你不記得。我記得。
+                - pause: 2
+                - boxun: 知夏以前，也說過一模一樣的話。
+                - set: c4_bx_shaken
+            - text: 「她跟你說過，她記得還沒發生的事。」
+              then:
+                - boxun: 誰告訴妳的？
+                - me: 沒有人。
+                - me: 因為我現在也是。
+                - pause: 2.5
+                - boxun: ……我不會把推測當成事實。
+                - boxun: 妳說的也一樣。
+            - text: 「我只想知道，她最後幾個月在怕什麼。」
+              then:
+                - pause: 2
+                - boxun: 怕。
+                - boxun: ……我不確定那叫怕。
+                - boxun: 她每次來，都在數日子。哪一天、幾點，數得很清楚。
+      - pause: 2
+      - { sfx: drawer, at: front-right, dist: near, text: 喀啦 }
+      - { sfx: paper_rustle, at: front, dist: near, text: 沙沙 }
+      - boxun: 這是我自己留的影本。不在系統裡。
+      - boxun: 我念。妳不要問我為什麼願意念。我也還沒想好。
+      - pause: 1.5
+      - boxun: 諮詢紀錄，第一次。
+      - { boxun: 「個案堅稱，記得尚未發生的事件。」, mem: m_c4_insists }
+      - { sfx: page_turn, at: front, dist: near, text: 沙啦 }
+      - boxun: 個案的原話是：
+      - { boxun: 「我記得一段，現在沒有發生過的對話。」, mem: m_c4_conversation }
+      - boxun: 「我知道這次和上次不一樣。可是沒有人記得上次。」
+      - pause: 2.5
+      - think: 沒有人記得上次。
+      - think: 姊，我現在也是這樣。
+      - boxun: 睡眠、壓力、神經檢查、藥物，我都排除過。
+      - boxun: 結果都正常。
+      - pause: 1
+      - { sfx: page_turn, at: front, dist: near, text: 沙 }
+      - boxun: 第四次。星期一。
+      - boxun: 個案表示，三號病房的鄭阿姨，星期四會從床上摔下來。
+      - boxun: 右手腕。
+      - pause: 2
+      - boxun: 星期四晚上，她摔下來了。右手腕骨折。
+      - boxun: 那天值班的是我。
+      - pause: 2.5
+      - boxun: 我沒有寫她能預知未來。
+      - { boxun: 我只寫：事後與實際情形相符。原因不明。, learn: k_medical_records }
+      - pause: 1.5
+      - boxun: 她是怎麼提前知道的，我後來一直在找。
+      - boxun: 目前還沒有答案。
+      - { cue: ward, at: back-right, text: 叩叩叩, sfx: step_run }
+      - if: flag.dispersed
+        then:
+          - me: 陳醫生。今天傍晚，請你留在醫院。
+          - me: 那個紙袋要給誰，過了六點半再決定。
+          - pause: 2
+          - boxun: ……妳連那個也知道。
+          - boxun: 我有病人，到七點。
+          - boxun: 我留下來，是因為我有病人。
+          - think: 不是因為我。這我知道。
+        else:
+          - think: 五點四十，他會從後門出去，手裡拿著要給若晴的紙袋。
+          - think: 我什麼都沒說。
+      - { sfx: phone_buzz, at: right, dist: near, text: 嗡 }
+      - narr: 走出診間，我撥了一個已經背起來的號碼。
+      - { sfx: phone_ring, at: right, dist: near, text: 嘟——嘟—— }
+      - tingan: 喂？哪位？
+      - me: 葉小姐。我是林知夏的妹妹。
+      - pause: 1.5
+      - tingan: ……妳怎麼會有我的號碼？
+      - me: 一點十分。圖書館，地方史室。
+      - { sfx: phone_hangup, at: right, dist: near, text: 嘟 }
+    next: c4_library
+
+  # ─────────────────────────── 13:10 圖書館 ───────────────────────────
+  - id: c4_library
+    time: "13:10"
+    place: 鎮立圖書館，地方史室
+    ambience: [library]
+    cast: { tingan: front-left, old_woman: back }
+    threads:
+      librarian:
+        beats:
+          - { old_woman: 葉小姐又來啦？, as: 館員, at: back }
+          - { old_woman: 這位是……林家的？, as: 館員, at: back }
+          - { old_woman: 妳姊以前都坐這張桌子。, as: 館員, at: back }
+          - { old_woman: 關燈了才肯走。我都要趕她。, as: 館員, at: back }
+          - { sfx: page_turn, at: back, dist: mid, text: 沙 }
+    beats:
+      - { sfx: door_open, at: back, dist: near, text: 吱 }
+      - narr: 舊紙的霉味。冷氣開得很強，遠處的書架那邊有人在翻頁。
+      - think: 知夏以前在這裡上班。
+      - { sfx: cloth_rustle, at: front-left, dist: near, text: 沙沙 }
+      - narr: 左前方有雨衣的布料在響。她比我早到。
+      - tingan: 妳怎麼有我的號碼？誰給妳的？妳要談什麼？
+      - me: 坐下來再問。
+      - { sfx: chair_scrape, at: front-left, dist: near, text: 嘎 }
+      - me: 研究所五年前在做什麼？
+      - tingan: 我是記者。我在做人口外流的——
+      - choice:
+          timeout: 14
+          options:
+            - text: 「颱風封路。醫院分流。停電備援。」
+              if: know.k_research_purpose
+              then:
+                - pause: 2.5
+                - narr: 雨衣的聲音停了。
+                - tingan: ……這幾個詞，誰跟妳講的？
+                - me: 妳。
+                - set: c4_ta_shaken
+            - text: 「妳在我姊的照片裡。站在她旁邊，揹著很大的包包。」
+              if: know.k_photo_tingan
+              then:
+                - pause: 2
+                - tingan: 那張照片……還在？
+                - me: 在她桌上。
+                - tingan: ……她連那張都留著。
+            - text: 「我姊死前十二天，有另一個人死在十八點三十一分。」
+              if: know.k_record_12days
+              then:
+                - pause: 2.5
+                - tingan: 妳從哪裡聽來的？陳醫生？
+                - me: 他念給我聽的。在一個妳不會記得的晚上。
+                - tingan: ……
+            - text: 「妳不只是記者。」
+              then:
+                - tingan: 我有記者證。妳要摸摸看嗎？
+                - me: 妳從剛剛到現在一直在問。問得越多，妳自己講得越少。
+                - pause: 2
+                - tingan: ……好。
+      - pause: 1.5
+      - tingan: 我以前是研究助理。在研究所。
+      - tingan: 外面的人都以為，那裡在研究時間旅行。
+      - tingan: 沒有。
+      - pause: 1
+      - tingan: 我們在做一個灰潮鎮。用資料做的。
+      - tingan: 道路、電網、醫院有幾張床、車站每個鐘頭有多少人進出。
+      - tingan: 颱風來了，哪條路先封？醫院滿了，病人往哪裡送？
+      - tingan: 局部停電的時候，備援電力先給誰？
+      - { tingan: 災害和城市韌性的數位孿生。不是時間旅行。, learn: k_research_purpose, mem: m_c4_twin }
+      - tingan: 小地方，資源很少。我們想讓下一次災害，少死一點人。
+      - pause: 2
+      - think: 少死一點人。
+      - think: 我這幾天在做的，也是這件事。
+      - me: 我姊不是工程師。
+      - { sfx: page_turn, at: front-left, dist: near, text: 沙啦 }
+      - tingan: 她是地方史的資料協力。這間房間，她最熟。
+      - tingan: 舊路怎麼改的、哪幾年淹過水、車站改建過幾次，還有阿嬤們講的那些。
+      - tingan: 我第一次跟她吵架，就在這張桌子。
+      - tingan: 我說，這些沒有標準格式，不能直接進模型。
+      - pause: 1
+      - tingan: 她就說：
+      - { tingan: 「不能直接餵給機器，不代表它不是資料。」, mem: m_c4_not_data }
+      - narr: 庭安學她說話的時候，速度慢了下來。
+      - think: 我記得這個語氣。知夏要贏的時候，都講得很慢。
+      - { cue: librarian, at: back, text: 叩、叩, sfx: step }
+      - pause: 2
+      - tingan: 走吧。剩下的我不想在這裡講。
+    next: c4_slope
+
+  # ─────────────────────────── 15:30 坡道 ───────────────────────────
+  - id: c4_slope
+    time: "15:30"
+    place: 往舊研究所的坡道
+    ambience: [wind_open, sea_far]
+    cast: { tingan: left }
+    beats:
+      - { sfx: seagull, at: right, dist: far, text: 嘎——嘎 }
+      - narr: 坡很陡。柏油裂開的地方，手杖尖會卡一下。
+      - narr: 海在右邊很遠的地方。風把鹽吹到嘴唇上。
+      - tingan: 要不要扶？
+      - choice:
+          timeout: 8
+          options:
+            - text: （扶住她的手臂）
+              then:
+                - narr: 雨衣底下的手臂很瘦。她走得比我想的慢。
+                - set: c4_held_tingan
+            - text: 「我自己可以。」
+              then:
+                - tingan: 好。我走妳左邊。
+                - { sfx: cloth_rustle, at: left, dist: near, text: 沙沙 }
+      - { sfx: cane_tap, at: front, dist: near, text: 叩 }
+      - tingan: 後來，研究從預測，走到介入。
+      - tingan: 先算出哪裡會出事。再改一個變數，看結果會不會比較好。
+      - tingan: 有一陣子，模擬裡的結果跟現實對不上。
+      - tingan: 現實發生了一件事。可是有些紀錄，還留著另一個版本。
+      - pause: 2
+      - tingan: 知夏說，她記得那一個版本。
+      - tingan: 一開始只是小事。她叫一個人別走某條路，那個人就沒事。
+      - tingan: 後來事情變大了。救了一個，別的地方就出事。
+      - me: 妳們後來為什麼鬧翻？
+      - pause: 2
+      - { sfx: wave, at: right, dist: far, text: 嘩—— }
+      - tingan: 有一天，她要我幫她改一個人的行程。
+      - tingan: 不告訴他。只是讓他那天，晚一點出門。
+      - tingan: 我問她為什麼。
+      - { tingan: 她說：「我已經看過如果不改會怎樣。」, mem: m_c4_seen_it }
+      - pause: 1.5
+      - tingan: 我就問她：
+      - { tingan: 「可是這一輪的他知道嗎？」, learn: k_zhixia_tingan_split, mem: m_c4_this_round }
+      - pause: 3
+      - { sfx: wind_gust, at: back, dist: mid, text: 颯—— }
+      - narr: 風從坡下面推上來，把她的雨衣吹得啪啪響。
+      - if: flag.dispersed
+        then:
+          - think: 今天早上，我也沒有問若晴知不知道。
+          - think: 我只說：拜託妳。
+        else:
+          - think: 今天早上，我誰也沒問。
+          - think: 我只是決定不打那通電話。
+      - tingan: 她沒有回答我。
+      - tingan: 那是我們最後一次，一起走上這個坡。
+    next: c4_institute
+
+  # ─────────────────────────── 16:20 研究所 ───────────────────────────
+  - id: c4_institute
+    time: "16:20"
+    place: 舊研究所，備用機房
+    ambience: [research_facility]
+    cast: { tingan: front-right }
+    beats:
+      - { sfx: door_creak, at: back, dist: near, text: 嘎——吱 }
+      - narr: 門後的空氣比外面冷，有東西在低低地轉。
+      - { sfx: relay_click, at: left, dist: mid, text: 喀、喀 }
+      - narr: 左邊一整排機器，風扇的聲音疊在一起。
+      - me: 這裡還有電？
+      - tingan: 備援線路。說是防災用的，一直沒斷。
+      - tingan: 我花了半年，才找到進來的方法。不要問。
+      - { sfx: typing, at: front-right, dist: near, text: 噠噠噠 }
+      - tingan: 系統的目標，寫在最上面。我念給妳聽。
+      - tingan: 降低死亡。降低重傷。降低醫療超載。降低公共系統失效。
+      - tingan: 結果不好，就改一個介入。再算一次。
+      - tingan: 還是不好，再改。找損失更低的那一個。
+      - pause: 2.5
+      - think: 我把若晴留在咖啡店，陳醫生就走進了通道。
+      - think: 我把陳醫生攔在醫院，再一通一通打電話，確認每個人在哪裡。
+      - think: 不好，就換一個人挪。再過一次今天。
+      - pause: 1.5
+      - { think: 我在做一樣的事。, mem: m_c4_same_thing }
+      - tingan: 知夏後來也是。
+      - tingan: 她開始這樣講話：某某人，五點四十以前不能在那裡。
+      - tingan: 像在排班表。
+      - pause: 2
+      - choice:
+          timeout: 12
+          options:
+            - text: 「妳恨她嗎？」
+              then:
+                - pause: 2
+                - tingan: ……這個我想了五年。
+                - tingan: 還沒想出來。
+            - text: 「她是想救人。」
+              then:
+                - tingan: 我知道啊。
+                - tingan: 就是因為知道，才很難講。
+            - text: （聽那排機器）
+              then:
+                - { sfx: relay_click, at: left, dist: mid, text: 喀 }
+                - narr: 喀。停。喀。像一個人一直在改主意。
+    next: c4_saw
+
+  # ─────────────────────────── 17:40 她看過 ───────────────────────────
+  - id: c4_saw
+    time: "17:40"
+    place: 舊研究所，備用機房
+    ambience: [research_facility]
+    cast: { tingan: front-right }
+    beats:
+      - { sfx: typing, at: front-right, dist: near, text: 噠、噠 }
+      - narr: 鍵盤的聲音停了。只剩機器在低低地響。
+      - tingan: 妳為什麼要回來？
+      - me: 賣房子。
+      - tingan: 她不希望妳回來。
+      - choice:
+          timeout: 12
+          options:
+            - text: 「我知道。信上寫了。」
+              then:
+                - tingan: 什麼信？
+                - me: 點字的。只有一行，不要回來。信封上寫的是她的名字。
+                - pause: 2.5
+                - tingan: ……她不會點字。
+                - tingan: 不是我寄的喔。我沒有寄過任何東西給妳。
+                - narr: 雨衣沒有動。她講這兩句的速度，跟平常一樣快。
+            - text: 「妳怎麼知道？」
+              then:
+                - tingan: 她跟我講過。不只一次。
+      - pause: 1.5
+      - tingan: 我答應過她一件事。
+      - tingan: 如果妳回來，不讓妳知道她做過什麼。
+      - pause: 2
+      - tingan: 我現在要食言了。
+      - pause: 2
+      - tingan: 妳離開那年，她跟妳吵的那一架。
+      - tingan: 她不是突然變成那樣的。
+      - pause: 2
+      - { tingan: 她看過妳死。, learn: k_zhixia_saw_my_death, mem: m_c4_saw_you_die }
+      - tingan: 在這裡。十八點三十一分。
+      - tingan: 所以她才那樣對妳。
+      - { sfx: heartbeat, at: center, dist: near, vib: heartbeat }
+      - pause: 3
+      - { sfx: tinnitus, at: center }
+      - narr: 機器的聲音一下子退得很遠。
+      - narr: 耳朵裡只剩耳鳴，和老家玄關那扇門的聲音。
+    next: c4_memory
+
+  # ─────────────────────────── 記憶 ───────────────────────────
+  - id: c4_memory
+    time: 五年前
+    place: 記憶｜老家玄關
+    ambience: [street_evening]
+    cast: { zhixia: front }
+    beats:
+      - { sfx: silence_drop, at: center }
+      - pause: 1.5
+      - narr: 五年前。那時候我還看得見。
+      - { sfx: door_open, at: front, dist: near, text: 吱—— }
+      - narr: 玄關的門開著。傍晚的光從外面灌進來，很亮。
+      - narr: 她背著光站在門口。我記得她頭髮的邊緣，一圈發亮的細毛。
+      - narr: 臉是暗的，那時候我就看不清楚。
+      - think: 我一直以為是光的關係。
+      - pause: 1.5
+      - { sfx: key_jingle, at: front, dist: near, text: 鏘 }
+      - narr: 她手上拿著我的鑰匙。
+      - zhixia: 妳以為我幫妳找學校，是在支持妳？
+      - pause: 1.5
+      - zhixia: 我只是想要妳走。
+      - pause: 1
+      - zhixia: 走了，就不要再回來。
+      - pause: 3
+      - narr: 我回了很難聽的話。現在一句都想不起來。
+      - narr: 只記得她沒有回嘴。
+      - { sfx: key_jingle, at: front-right, dist: near, text: 叩 }
+      - narr: 她把鑰匙放在鞋櫃上，往旁邊讓開。
+      - narr: 光整片照進來。
+      - pause: 2
+      - narr: 那是我記得的，她最後的樣子。
+      - { sfx: door_slam, at: back, dist: near, text: 碰！, vib: thud }
+      - pause: 2.5
+      - { sfx: relay_click, at: left, dist: mid, text: 喀 }
+      - narr: 機器的聲音回來了，還有冷氣，和旁邊雨衣布料的摩擦聲。
+      - think: 那幾句話，她是挑過的。
+      - think: 她知道我最受不了哪一種話。
+      - pause: 1.5
+      - { think: 只要我恨她，我就會活著。, mem: m_c4_hate_her }
+      - think: 她是這樣算的。
+    next: c4_1831
+
+  # ─────────────────────────── 18:31 研究所 ───────────────────────────
+  - id: c4_1831
+    time: "18:27"
+    place: 舊研究所，備用機房
+    ambience: [research_facility]
+    cast: { tingan: front-right }
+    beats:
+      - tingan: ……妳還好嗎？
+      - choice:
+          timeout: 10
+          options:
+            - text: 「她為什麼不直接告訴我？」
+              then:
+                - tingan: 她覺得跟妳講了，妳就會留下來。
+                - pause: 1
+                - tingan: 她大概沒想錯。
+            - text: 「謝謝妳食言。」
+              then:
+                - pause: 1.5
+                - tingan: ……不要謝我。我也替她瞞了五年。
+            - text: （不說話）
+              then:
+                - pause: 3
+                - { sfx: cloth_rustle, at: right, dist: near, text: 窸窣 }
+                - narr: 她沒有再問。雨衣響了一下，她坐得離我近了一點。
+      - { sfx: phone_buzz, at: right, dist: near, text: 嗡 }
+      - phone: 十八點三十分。
+      - { sfx: hum_rise, at: left, dist: mid, text: 嗡———— }
+      - narr: 左邊那排機器的聲音，往上爬了一點。
+      - tingan: 又來了。每天這個時間都這樣。
+      - clock: "18:31"
+      - if: flag.dispersed
+        then:
+          - phone: 十八點三十一分。
+          - { sfx: hum_fall, at: left, dist: mid, text: ……嗡 }
+          - narr: 然後又落回去。除此之外，什麼都沒有。
+          - pause: 2
+          - { sfx: phone_notify, at: right, dist: near, text: 叮 }
+          - phone: 許若晴：我在家。妳到底是誰？
+          - think: 若晴在家，陳醫生在病房，予安在店裡。
+          - think: 我把今天放好了。
+          - think: 可是這排機器，還是在同一分鐘喘了一口氣。
+        else:
+          - { sfx: light_buzz, at: front, dist: near, text: 滋——滋 }
+          - { sfx: blackout, at: front, dist: mid, text: 啪, vib: thud }
+          - narr: 燈管閃了一下。
+          - { sfx: power_up, at: left, dist: mid, text: 嗡——喀 }
+          - phone: 十八點三十一分。
+          - pause: 3
+          - { sfx: siren_far, at: back, dist: far, text: 喔咿——喔咿—— }
+          - narr: 警笛從山坡下面很遠的地方傳上來，一直沒停。
+          - tingan: 舊車站那邊？
+          - think: 我沒接她的話。我在算時間。
+          - think: 六點零五分，若晴到了。六點零七分，陳醫生把紙袋交給她。
+          - think: 我什麼都沒動。
+      - pause: 2
+      - tingan: 我送妳下山。
+    next: c4_dinner
+
+  # ─────────────────────────── 20:40 小餐館 ───────────────────────────
+  - id: c4_dinner
+    time: "20:40"
+    place: 老街小餐館
+    ambience: [restaurant]
+    cast: { yuan: front, old_man: back-left, old_woman: right }
+    threads:
+      kitchen:
+        beats:
+          - { sfx: glass_clink, at: right, dist: mid, text: 鏘 }
+          - { old_woman: 欸，蔥給我！, as: 老闆娘, at: right }
+          - { old_man: 自己拿啦，我手上兩鍋。, as: 廚房裡的聲音, at: back-right }
+          - { old_woman: 每天都這樣講。, as: 老闆娘, at: right }
+          - { sfx: kettle, at: back-right, dist: mid, text: 嘶嘶—— }
+    beats:
+      - { sfx: door_open, at: back, dist: near, text: 吱 }
+      - narr: 油鍋滋滋響，碗筷碰來碰去。角落那台電視開得太大聲。
+      - narr: 下山的時候我打給予安。他說，老街那家麵店。
+      - narr: 庭安送我到門口就走了。予安已經坐在裡面。
+      - yuan: 這裡。靠牆，第二張。
+      - { sfx: chair_scrape, at: front, dist: near, text: 嘎 }
+      - yuan: 房仲剛走。說下禮拜再來估價。
+      - yuan: 我點了兩碗麵。妳的不加蔥。
+      - think: 我沒有跟他說過我不吃蔥。
+      - think: 他記得的，是五年前的我。
+      - if: "!flag.dispersed"
+        then:
+          - { old_man: ……今晚六點半左右，灰潮鎮舊車站發生意外。, as: 電視, at: back-left }
+          - { old_man: 一名二十三歲女性，送醫後不治……, as: 電視, at: back-left }
+          - { sfx: cup_set, at: right, dist: mid, text: 叩 }
+          - { old_woman: 是咖啡店的若晴啦。造孽喔。, as: 老闆娘 }
+          - pause: 3
+          - yuan: ……咖啡店那個女生。
+          - yuan: 她高中的時候，常來店裡寫功課。
+          - yuan: 我都跟她說，後面有椅子。冰箱有茶。
+          - pause: 2
+          - narr: 他把筷子擱在碗邊，叩一聲，之後就沒有再拿起來。
+          - think: 我知道會這樣。
+          - { think: 我知道，我還是讓它發生了。, mem: m_c4_let_it }
+          - learn: c4_let_it_happen
+          - pause: 2
+        else:
+          - yuan: 六點到七點，我真的待在店裡。
+          - yuan: 很無聊。修了兩只錶。
+          - yuan: 所以，可以跟我說為什麼要我待著了嗎？
+          - me: 因為我不想再聽見你出事。
+          - pause: 2
+          - yuan: ……「再」？
+          - narr: 我沒有解釋。他也沒有追問，把醋瓶推到我手邊。
+      - { sfx: spoon_stir, at: front, dist: near, text: 叮 }
+      - yuan: 妳今天一整天，派出所、醫院、圖書館，還跑上山。
+      - yuan: 妳不是只回來賣房子的吧。
+      - me: 也是回來賣房子的。
+      - pause: 1
+      - { sfx: laugh_soft, at: front, dist: near, text: 呵 }
+      - narr: 他笑了一聲。很輕，從鼻子出氣的那種。
+      - yuan: 妳這五年，到底都跑去哪裡了？
+      - choice:
+          timeout: 12
+          options:
+            - text: 「很遠的地方。」
+              then:
+                - yuan: 城市有那麼遠？
+                - me: 比城市遠。
+            - text: 「說來話長。」
+              then:
+                - yuan: 我有時間。
+                - pause: 1.5
+                - me: 今天不夠長。
+            - text: （摸自己的手杖）
+              then:
+                - narr: 杖身的接縫，一節一節。
+                - yuan: ……眼睛的事，也是這五年的事？
+                - me: 兩年前。
+                - yuan: 我都不知道。……應該要知道的。
+      - pause: 1.5
+      - yuan: 那這樣。
+      - { yuan: 如果真的還有明天，再跟我講妳這五年到底跑去哪裡了。, learn: k_yuan_tomorrow, mem: m_c4_tomorrow }
+      - pause: 3
+      - think: 明天。
+      - think: 明天早上七點四十分，他會在月台說：比我想的早。
+      - think: 他不會記得今天問過我這件事。
+      - choice:
+          timeout: 10
+          options:
+            - text: 「好。我答應你。」
+              then:
+                - yuan: 一言為定。
+                - think: 我答應了一件我做不到的事。
+                - think: 可是我想答應。
+            - text: 「如果沒有明天呢？」
+              then:
+                - yuan: 那就今天講。
+                - pause: 2
+                - yuan: ……不講也沒關係。我在。
+            - text: （點頭）
+              then:
+                - { sfx: cup_set, at: front, dist: near, text: 叩 }
+                - narr: 他把我的碗，往我這邊推了一點。
+      - { cue: kitchen, at: right, text: 鏘、嘶——, sfx: glass_clink }
+      - narr: 麵已經不太燙了。我們把它吃完。
+    next: c4_bell
+
+  # ─────────────────────────── 23:59 鐘聲 ───────────────────────────
+  - id: c4_bell
+    time: "23:50"
+    place: 老家門口
+    ambience: [tower_square_night, night_insects]
+    cast: { yuan: back-right }
+    beats:
+      - { sfx: step, at: back-right, dist: near, text: 叩、叩 }
+      - yuan: 到了。門檻在妳腳前面。
+      - yuan: 那，明天見。
+      - { sfx: step, at: back-right, dist: far, text: 叩……叩…… }
+      - narr: 他的腳步往巷口走。左腳比右腳重一點。
+      - pause: 2
+      - clock: "23:59"
+      - { sfx: phone_buzz, at: right, dist: near, text: 嗡 }
+      - phone: 二十三點五十九分。
+      - { sfx: bell_toll, at: front-left, text: 噹——, vib: bell }
+      - wait: 3.2
+      - { sfx: bell_toll, at: front-left, text: 噹—— }
+      - wait: 3.2
+      - think: 明天見。
+      - { sfx: bell_toll, at: front-left, text: 噹——, vib: bell }
+      - wait: 3.2
+      - { sfx: bell_toll, at: front-left, text: 噹—— }
+      - wait: 3.2
+      - { sfx: bell_toll, at: front-left, text: 噹——, vib: bell }
+      - wait: 3.2
+      - think: 錄音裡那一下鐘，也是從這個方向來的嗎。
+      - { sfx: bell_toll, at: front-left, text: 噹—— }
+      - wait: 3.2
+      - { sfx: bell_toll, at: front-left, text: 噹——, vib: bell }
+      - wait: 3.2
+      - { sfx: bell_toll, at: front-left, text: 噹—— }
+      - wait: 3.2
+      - think: 走了，就不要再回來。
+      - { sfx: bell_toll, at: front-left, text: 噹——, vib: bell }
+      - wait: 3.2
+      - { sfx: bell_toll, at: front-left, text: 噹—— }
+      - wait: 3.2
+      - { sfx: bell_toll, at: front-left, text: 噹——, vib: bell }
+      - wait: 3.4
+      - think: 姊。
+      - { sfx: bell_toll, at: front-left, dist: near, text: 噹———, vib: long }
+      - pause: 2
+      - { sfx: silence_drop, at: center }
+      - pause: 1.5
+      - { sfx: heartbeat, at: center, vib: heartbeat }
+      - end: reset
