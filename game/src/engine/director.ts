@@ -181,6 +181,8 @@ export class Director {
     this.save.settings = { ...this.save.settings, ...patch };
     this.out.audio.setEnabled(this.save.settings.audio);
     this.out.audio.setVolume(this.save.settings.volume);
+    this.out.audio.setAmbienceVolume(this.save.settings.ambience);
+    this.out.audio.setSfxVolume(this.save.settings.sfx);
     this.out.audio.setVoiceVolume(this.save.settings.voice);
     this.persist();
     this.bump();
@@ -756,7 +758,7 @@ export class Director {
     const pos: Pos = { dir, dist: event.dist ?? (isVoice(event) ? 'far' : 'mid') };
     if (isVoice(event)) {
       const ms = Math.max(900, [...event.say].length * 110);
-      this.out.audio.voice(event.voice, pos, ms);
+      this.out.audio.voice(event.voice, pos, ms, 'life');
       this.addPeripheral('life', event.say, pos, t + ms + 2600);
       if (event.reply) {
         const reply = event.reply;
@@ -764,7 +766,7 @@ export class Director {
         this.schedule(t + ms + 500, () => {
           if (gen !== this.lifeGen || this.view.phase !== 'scene' || this.view.t < this.lifeHushUntil) return;
           const replyMs = Math.max(900, [...reply.say].length * 110);
-          this.out.audio.voice(reply.voice, pos, replyMs);
+          this.out.audio.voice(reply.voice, pos, replyMs, 'life');
           this.addPeripheral('life', reply.say, pos, this.view.t + replyMs + 2600);
           this.bump();
         });

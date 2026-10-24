@@ -1,5 +1,5 @@
-// Speech-like textures without words: syllable planning, whispered noise speech and a muffled
-// "voiced murmur" rig (used for voice presence, crowds, café chatter, TVs and station PA).
+// Speech-shaped noise for the few crowd sounds that still synthesize as a fallback (an unvoiced murmur rig,
+// never a pitched voice), and the phone screen reader's tick.
 
 import { cached, clamp, Graph, pick, rand, vary, type SfxCtx } from './core';
 
@@ -75,52 +75,7 @@ export function glottalWave(ac: BaseAudioContext): PeriodicWave {
   });
 }
 
-export interface WhisperOpts {
-  level: number;
-  rate?: number;
-  /** Formant scale (≥1 = smaller vocal tract). */
-  shift?: number;
-}
 
-/** Hushed, unintelligible speech: noise through moving formants, with syllabic rhythm and sibilants. */
-export function whisper(g: Graph, dest: AudioNode, t: number, dur: number, o: WhisperOpts): number {
-  const end = t + dur + 0.3;
-  const shift = o.shift ?? 1;
-  const src = g.noise('white', t, end);
-  const amp = g.gain(0);
-  const tone = g.filter('highpass', 350, 0.7);
-  const f1 = g.filter('bandpass', 800 * shift, 4);
-  const f2 = g.filter('bandpass', 1800 * shift, 6);
-  const f3 = g.filter('bandpass', 2900 * shift, 7);
-  const m1 = g.gain(0.7);
-  const m2 = g.gain(1.0);
-  const m3 = g.gain(0.55);
-  src.connect(tone);
-  tone.connect(f1).connect(m1).connect(amp);
-  tone.connect(f2).connect(m2).connect(amp);
-  tone.connect(f3).connect(m3).connect(amp);
-  amp.connect(dest);
-
-  const sib = g.noise('white', t, end);
-  const sibF = g.filter('highpass', 4800, 0.8);
-  const sibG = g.gain(0);
-  sib.connect(sibF).connect(sibG).connect(dest);
-
-  const syl = planSyllables(t, dur, { rate: o.rate ?? 4.4, phraseMin: 0.6, phraseMax: 1.5, gapMin: 0.12, gapMax: 0.38 });
-  applySyllables(amp.gain, t, syl, o.level * 2.2, 0.3);
-  sibG.gain.setValueAtTime(0, t);
-  for (const y of syl) {
-    const [v1, v2] = pick(VOWELS);
-    // whispered formants sit a little higher than voiced ones
-    f1.frequency.setTargetAtTime(v1 * 1.15 * shift, y.s, 0.025);
-    f2.frequency.setTargetAtTime(v2 * 1.08 * shift, y.s, 0.03);
-    if (Math.random() < 0.28) {
-      sibG.gain.setTargetAtTime(o.level * rand(0.25, 0.5), y.s, 0.01);
-      sibG.gain.setTargetAtTime(0, y.s + Math.min(0.09, y.len * 0.5), 0.02);
-    }
-  }
-  return end;
-}
 
 export interface MurmurOpts {
   pitch: number;
@@ -146,13 +101,12 @@ export interface MurmurRig {
 export function murmurRig(g: Graph, dest: AudioNode, t0: number, t1: number | undefined, o: MurmurOpts): MurmurRig {
   const shift = o.shift ?? clamp(Math.pow(o.pitch / 120, 0.25), 0.9, 1.35);
   const breath = clamp(o.breath, 0, 1);
-  const vox = g.osc(glottalWave(g.ac), o.pitch, t0, t1);
-  const voxG = g.gain(1 - breath * 0.75);
+  // Unvoiced only: a pitched glottal oscillator through formants read as an uncanny robot voice, so the
+  // murmur is breath noise shaped by the moving formants (indistinct people, never a synthesized voice).
   const air = g.noise('pink', t0, t1);
   const airHp = g.filter('highpass', 500, 0.7);
-  const airG = g.gain(breath * 2.4);
+  const airG = g.gain(0.6 + breath * 1.8);
   const pre = g.gain(1);
-  vox.connect(voxG).connect(pre);
   air.connect(airHp).connect(airG).connect(pre);
   const f1 = g.filter('bandpass', 550 * shift, 3.5);
   const f2 = g.filter('bandpass', 1500 * shift, 5);
@@ -169,35 +123,16 @@ export function murmurRig(g: Graph, dest: AudioNode, t0: number, t1: number | un
     speak(t: number, dur: number, gain = 1): number {
       const syl = planSyllables(t, dur, { rate: o.rate ?? 3.6, phraseMin: 0.9, phraseMax: 2.4, gapMin: 0.18, gapMax: 0.5 });
       applySyllables(amp.gain, t, syl, o.level * gain);
-      let phraseBase = o.pitch * rand(0.96, 1.06);
       for (const y of syl) {
         const [v1, v2] = pick(VOWELS);
         f1.frequency.setTargetAtTime(v1 * shift, y.s, 0.03);
         f2.frequency.setTargetAtTime(v2 * shift, y.s, 0.035);
-        // intonation: phrase declination plus a little per-syllable movement
-        const pitch = phraseBase * (1.07 - 0.15 * y.pos) * vary(1, 0.045);
-        vox.frequency.setTargetAtTime(pitch, y.s, 0.045);
-        if (y.last) phraseBase = o.pitch * rand(0.96, 1.08);
       }
       return t + dur + 0.25;
     },
   };
 }
 
-/** The faint "someone is talking there" presence for one phrase. */
-export function voicePresence(c: SfxCtx, pitch: number, breath: number, dur: number): number {
-  const t = c.t + 0.02;
-  const end = t + dur + 0.5;
-  const rig = murmurRig(c.g, c.out, t, end, {
-    pitch: pitch * c.p,
-    breath,
-    level: 0.12,
-    bright: pitch > 170 ? 1500 : 1250,
-    rate: 3.2,
-  });
-  rig.speak(t, Math.max(0.3, dur));
-  return end - c.t;
-}
 
 /** The phone's "voice": one tiny soft digital tick. */
 export function phoneTick(c: SfxCtx): number {

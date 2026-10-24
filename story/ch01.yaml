@@ -62,7 +62,7 @@ scenes:
       - narr: 鐵軌接縫一下一下從腳底傳上來。喀噠、喀噠。
       - think: 睡著了。外套口袋裡，信還在。
       - pause: 1
-      - { cue: gossip, at: back-left, text: 窸窸窣窣, sfx: whisper }
+      - { cue: gossip, at: back-left, text: 窸窸窣窣, sfx: huddle_rustle }
       - think: 後面有人壓低聲音在說話。
       - think: 想聽的話，轉過去就好。
       - { wait: 18, clock: "06:12" }
@@ -417,7 +417,8 @@ scenes:
       - { sfx: truck_pass_quiet, at: back, dist: near, text: ——！, vib: thud }
       - narr: 有什麼東西貼著我的背擦過去。
       - narr: 幾乎沒有聲音。只有輪胎壓過地磚，和一陣熱風。
-      - think: 電動貨車。我完全沒聽見它過來。
+      - { man: 電動貨車也開那麼快！沒看到有人喔！, as: 路邊的店家, at: left }
+      - think: 我完全沒聽見它過來。
       - { learn: k_truck }
       - narr: 我站在原地，等心跳慢下來。
       - { sfx: ball_bounce, at: front-left, text: 咚、咚、咚 }
@@ -458,7 +459,7 @@ scenes:
       - pause: 1
       - { yuan: 昨天。, learn: k_postmark_yesterday, mem: m_postmark }
       - yuan: 郵戳是昨天。
-      - narr: 他把信紙抽出來。我聽見他的手指停在上面。
+      - narr: 他把信紙抽出來。紙響到一半，就沒聲音了。
       - yuan: 這是……點字？
       - me: 嗯。
       - yuan: 寫什麼？
@@ -543,7 +544,7 @@ scenes:
       - { ruoqing: 嗯。在弄一個作品集。叫《退潮以後》。, mem: m_ruoqing_portfolio }
       - ruoqing: 都拍一些快要沒有的東西啦。要關的店，要拆的招牌。
       - ruoqing: 牆上那張是清晨的商店街，還沒有一家店開門。
-      - { cue: gossip, at: back-left, text: 窸窸窣窣, sfx: whisper }
+      - { cue: gossip, at: back-left, text: 窸窸窣窣, sfx: huddle_rustle }
       - choice:
           timeout: 14
           options:
@@ -567,7 +568,7 @@ scenes:
                 - pause: 2
                 - ruoqing: ……留個電話給我好嗎？
                 - ruoqing: 我拍的照片可以傳給妳……啊，不對，我又忘了。
-                - me: 沒關係。讀屏會念。
+                - me: 可以傳。再附幾句說明，讀屏就能念給我聽。
                 - set: [ruoqing_number, ruoqing_trust]
             - text: 「《退潮以後》。很好聽的名字。」
               then:
@@ -722,7 +723,7 @@ scenes:
           - { sfx: car_pass, at: back, dist: far, text: 嗚—— }
           - narr: 計程車開走了。
       - { sfx: cane_tap, at: front, dist: near, text: 叩 }
-      - narr: 手杖敲下去，聲音飛得很遠，又從很遠的地方回來。
+      - narr: 我沿著施工圍欄走，從側邊的缺口進去。手杖敲下去，聲音飛得很遠，又從很遠的地方回來。
       - narr: 屋頂很高，大到我抓不到牆在哪裡。有風從破掉的窗戶進來。
       - { sfx: step, at: front, dist: mid, text: 叩、叩 }
       - ruoqing: ……妳真的來了。
@@ -795,8 +796,7 @@ scenes:
       - me: 若晴！
       - { sfx: gasp_crowd, at: back-left, dist: far, text: 啊—— }
       - { man: 停電了！看不到——什麼都看不到！, as: 外面有人在喊 }
-      - think: 燈熄的時候，所有人都跟我一樣了。
-      - think: 只有我不用等眼睛適應。
+      - think: 外面的人都停住了。我記得若晴剛才站在哪裡。
       - narr: 我跪下來。地板很冷，有碎玻璃。
       - narr: 我的手先碰到相機。背帶的扣還是溫的。
       - pause: 1.5
@@ -807,7 +807,7 @@ scenes:
       - { phone: 十八點三十一分。, learn: k_ruoqing_died, mem: m_1831 }
       - pause: 2
       - { sfx: power_up, at: back, text: 嗡——喀、喀 }
-      - narr: 備用電源回來了。我知道，是因為外面的人開始尖叫。
+      - narr: 燈管重新滋滋響起，外面有人喊「有電了」，接著是一聲尖叫。
       - { sfx: siren_far, at: back, dist: far, text: 喔咿——喔咿—— }
       - if: flag.yuan_with_me
         then:
@@ -869,7 +869,8 @@ scenes:
     beats:
       - { sfx: door_open, at: back, text: 吱 }
       - narr: 派出所的電扇轉得很吵。有人在遠處講電話。
-      - narr: 菸味。可是沒有人在抽菸。
+      - narr: 醫院已經確認，若晴沒有救回來。予安陪我坐在這裡，等警官把電話講完。
+      - narr: 他開口時，菸味也跟著靠過來。沒有聽見點菸的聲音。
       - if: seen.c1_station
         then:
           - { zhiyuan: 妳是現場那位小姐。, as: 低沉的男聲 }
@@ -994,7 +995,7 @@ scenes:
         then:
           - think: 明天我要去問陳醫生、問那個記者，問周警官那份摘要為什麼念得那麼熟。
         else:
-          - think: 明天我要去問那個記者，問周警官那份摘要為什麼念得那麼熟。
+          - think: 明天我要去找那個記者，問她知不知道研究所的事。還有周警官，那份摘要他為什麼念得那麼熟。
     next: c1_bell
 
   # ─────────────────────────── 23:59 鐘聲 ───────────────────────────

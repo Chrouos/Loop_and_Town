@@ -19,6 +19,10 @@ export type Memory = {
 export type Settings = {
   audio: boolean;
   volume: number;
+  /** Ambience beds (rain, rooms, streets); 1 = the level they were mixed at. */
+  ambience: number;
+  /** Sound effects and interface sounds. */
+  sfx: number;
   voice: number;
   vibration: boolean;
   textSpeed: TextSpeed;
@@ -43,7 +47,7 @@ export type GameSave = {
   settings: Settings;
 };
 
-export const DEFAULT_SETTINGS: Settings = { audio: true, volume: 0.8, voice: 0.45, vibration: true, textSpeed: 'normal', autoAdvance: true };
+export const DEFAULT_SETTINGS: Settings = { audio: true, volume: 0.8, ambience: 0.7, sfx: 0.85, voice: 0.45, vibration: true, textSpeed: 'normal', autoAdvance: true };
 
 export function freshSave(previous?: Pick<GameSave, 'settings' | 'endings' | 'calibrated'>): GameSave {
   return {

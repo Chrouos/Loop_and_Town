@@ -91,7 +91,7 @@ scenes:
     beats:
       - { sfx: key_jingle, at: front, dist: near, text: 鏘啷 }
       - { sfx: lock_turn, at: front, dist: near, text: 喀—— }
-      - narr: 鑰匙轉到一半，卡住了。
+      - narr: 鑰匙轉到一半，卡住了。前幾次也是這樣，他每次都得連著門一起頂。
       - yuan: 卡住了。妳退後一點——
       - if: know.k_spare_key
         then:
@@ -166,7 +166,7 @@ scenes:
       - me: 都要清掉？
       - yuan: 都要。
       - pause: 2
-      - { sfx: box_open, at: front, dist: near, text: 喀 }
+      - { sfx: box_close, at: front, dist: near, text: 喀 }
       - narr: 他把盒子蓋上，放回原本的位置。
       - { think: 都要清掉。他說完，又把它們放回去了。, mem: m_c5_put_back }
       - pause: 1.5
@@ -179,7 +179,7 @@ scenes:
       - { sfx: tools_clink, at: front, dist: near, text: 叮 }
       - pause: 1.5
       - yuan: 客人寄修的。
-      - think: 點字板沒有會壞的零件。
+      - think: 我摸過鉸鏈，還有定位紙張的扣子，都好好的。
       - { sfx: drawer, at: front, dist: near, text: 喀 }
       - narr: 我把筆放回板子旁邊，照原來的方向，把抽屜推回去。
       - pause: 1
@@ -405,7 +405,7 @@ scenes:
       - boxun: ……我是陳柏勳。
       - me: 陳醫生。你手上那個紙袋，今天不能交出去。
       - boxun: ……妳是誰？
-      - me: 上一個拿到它的人，死了。
+      - me: 我是林知夏的妹妹。上一個拿到它的人，死了。
       - pause: 3
       - me: 請你今天留在醫院。過了六點半，再決定。
       - narr: 他每一次停頓我都等。停在哪裡、停多久，我都知道。
@@ -460,7 +460,7 @@ scenes:
       - yuan: 後面有椅子。
       - me: 冰箱有茶。
       - pause: 1.5
-      - { sfx: laugh_soft, at: front, dist: near, text: 呵 }
+      - { sfx: laugh_soft_m, at: front, dist: near, text: 呵 }
       - yuan: ……對。
       - { sfx: clock_wind, at: front, dist: near, text: 嘰嘰嘰 }
       - narr: 他在幫一只錶上發條，一格一格轉緊。
@@ -472,7 +472,7 @@ scenes:
       - pause: 2
       - phone: 十八點三十一分。
       - pause: 3
-      - narr: 燈沒有閃，遠處也沒有東西倒下來。
+      - narr: 燈管的聲音沒有變，遠處也沒有東西倒下來。
       - yuan: 怎麼了？
       - me: 沒事。
       - me: 過去了。
@@ -495,8 +495,9 @@ scenes:
       - yuan: 這裡。靠牆，第二張。
       - narr: 同一個位置。
       - { sfx: chair_scrape, at: front, dist: near, text: 嘎 }
-      - yuan: 房仲剛走。說下禮拜再來估價。
-      - think: 跟上一次一字不差。
+      - narr: 出門前，他跟房仲把估價的時間約到下禮拜，說今晚先不談了。
+      - yuan: 房子的事，我自己改了時間。先吃飯。
+      - think: 這一頓飯像上一次，又有一點不一樣。
       - yuan: 我點兩碗麵。妳的——
       - choice:
           timeout: 6

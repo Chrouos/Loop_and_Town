@@ -21,8 +21,7 @@ import {
   type SfxRecipe,
   type Shot,
 } from './core';
-import { AMBIENT_EVENTS, SFX_RECIPES, clockBuffer, type AmbientEventId } from './sounds';
-import { murmurRig, type MurmurOpts, type MurmurRig } from './voice';
+import { AMBIENT_EVENTS, HUMAN_SFX, SFX_RECIPES, clockBuffer, type AmbientEventId } from './sounds';
 
 type FilterSpec = readonly [BiquadFilterType, number, number?];
 
@@ -66,7 +65,6 @@ export interface AmbienceEnv {
   shot(sound: Sound, angle: number | null, r: number, o?: { t?: number; gain?: number; rate?: number }): void;
   /** A private convolution space for this layer (returns its send input; sets env.reverb). */
   space(key: string, seconds: number, opts?: { brightness?: number; damping?: number; early?: number; earlySpread?: number; level?: number }): AudioNode;
-  murmur(angle: number, r: number, o: MurmurOpts): MurmurRig;
 }
 
 export interface AmbienceRecipe {
@@ -183,7 +181,10 @@ class Env implements AmbienceEnv {
 
   shot(sound: Sound, angle: number | null, r: number, o: { t?: number; gain?: number; rate?: number } = {}): void {
     if (this.disposed || this.shots.size >= MAX_LAYER_SHOTS) return;
-    const recipe = (typeof sound === 'string' ? this.resolver?.(sound) : undefined) ?? resolve(sound);
+    const sampled = typeof sound === 'string' ? this.resolver?.(sound) : undefined;
+    // a voice whose recording is not decoded yet is skipped, never synthesized
+    if (!sampled && this.resolver && typeof sound === 'string' && HUMAN_SFX.has(sound as SfxId)) return;
+    const recipe = sampled ?? resolve(sound);
     if (!recipe) return;
     const s = spawnShot(this.ac, recipe, {
       dest: this.out,
@@ -210,9 +211,6 @@ class Env implements AmbienceEnv {
     return input;
   }
 
-  murmur(angle: number, r: number, o: MurmurOpts): MurmurRig {
-    return murmurRig(this.g, this.point(angle, r), this.t0, undefined, o);
-  }
 
   dispose(): void {
     if (this.disposed) return;
@@ -384,12 +382,6 @@ function loopInto(e: AmbienceEnv, buf: AudioBuffer, dest: AudioNode, gain: numbe
   return src;
 }
 
-function talkLoop(e: AmbienceEnv, rig: MurmurRig, minS: number, maxS: number, gain = 1): void {
-  e.every(minS, maxS, (t, dt) => {
-    if (Math.random() < 0.15) return; // a pause in the conversation
-    rig.speak(t, dt * rand(0.5, 0.85), gain);
-  }, rand(0.2, minS));
-}
 
 function crickets(e: AmbienceEnv, specs: ReadonlyArray<readonly [angle: number, r: number, f: number, gain: number]>, lowpass?: number): void {
   specs.forEach(([angle, r, f, gain], i) => {
@@ -403,9 +395,9 @@ function crickets(e: AmbienceEnv, specs: ReadonlyArray<readonly [angle: number, 
   });
 }
 
+/** The chime before an announcement; the announcement itself is left out (no synthesized voices). */
 function stationPa(e: AmbienceEnv, t: number, angle: number): void {
   e.shot('station_chime', angle, 6, { t, gain: 0.7 });
-  e.shot('pa_voice', angle, 6, { t: t + 2.2, gain: 0.8 });
 }
 
 // ================================================================ recipes
@@ -473,11 +465,6 @@ export const AMBIENCE_RECIPES: Record<AmbienceId, AmbienceRecipe> = {
       e.wide({ kind: 'pink', filters: [['lowpass', 450]], gain: 0.03 }, 0.8);
       e.every(6, 14, (t) => e.shot('car_pass', pick([90, 270]) + rand(-25, 25), pick([2.5, 6]), { t, gain: 0.6 }));
       // a television through somebody's window
-      const tvAngle = pick([110, 250]);
-      const tvLp = e.g.filter('lowpass', 900, 0.6);
-      tvLp.connect(e.point(tvAngle, 6));
-      const tv = murmurRig(e.g, tvLp, e.t0, undefined, { pitch: 150, breath: 0.25, level: 0.06, bright: 2200, rate: 4 });
-      talkLoop(e, tv, 2.5, 5);
       e.every(25, 60, (t) => e.shot('dog_bark', anyAngle(), 6, { t, gain: 0.45 }), rand(10, 30));
       e.every(40, 90, (t) => e.shot('kid_laugh', anyAngle(), 6, { t, gain: 0.4 }), rand(20, 50));
       e.every(30, 60, (t) => e.shot('door_close', anyAngle(), 6, { t, gain: 0.5 }));
@@ -493,7 +480,6 @@ export const AMBIENCE_RECIPES: Record<AmbienceId, AmbienceRecipe> = {
       e.every(3, 8, (t) => e.shot('pigeon_coo', anyAngle(), pick([1.6, 2.5, 4]), { t, gain: rand(0.6, 1) }));
       e.every(10, 25, (t) => e.shot('wing_flutter', anyAngle(), 2.5, { t, gain: 0.6 }));
       e.every(5, 12, (t) => walk(e, t, { r: rand(2.5, 6) }));
-      e.every(10, 20, (t) => e.shot('distant_chatter', anyAngle(), 6, { t, gain: 0.7 }));
       e.every(15, 30, (t) => e.shot('car_pass', anyAngle(), 6, { t, gain: 0.4 }));
     },
   },
@@ -574,14 +560,6 @@ export const AMBIENCE_RECIPES: Record<AmbienceId, AmbienceRecipe> = {
     build(e) {
       e.space('cafe', 1.1, { brightness: 0.45, damping: 2, level: 0.45 });
       e.wide({ kind: 'pink', filters: [['lowpass', 500]], gain: 0.025, send: 0.3 }, 0.8);
-      const voices: ReadonlyArray<readonly [number, number, number]> = [
-        [40, 3.5, 115],
-        [110, 5, 195],
-        [200, 6, 130],
-        [255, 3, 215],
-        [320, 6, 165],
-      ];
-      for (const [a, r, pitch] of voices) talkLoop(e, e.murmur(a, r, { pitch: pitch * vary(1, 0.05), breath: 0.35, level: 0.09, bright: 1600 }), 2, 5);
       const counter = 150;
       e.every(3, 9, (t) => e.shot('cup_set', anyAngle(), pick([2.5, 4, 6]), { t, gain: rand(0.4, 0.7) }));
       e.every(12, 30, (t) => e.shot('spoon_stir', anyAngle(), pick([2.5, 4]), { t, gain: 0.45 }));
@@ -627,7 +605,6 @@ export const AMBIENCE_RECIPES: Record<AmbienceId, AmbienceRecipe> = {
       e.every(40, 90, (t) => e.shot('phone_ring', anyAngle(), 6, { t, gain: 0.45 }), rand(15, 50));
       e.every(10, 25, (t) => e.shot('paper_rustle', anyAngle(), 2.5, { t, gain: 0.4 }));
       e.every(30, 60, (t) => e.shot('chair_scrape', anyAngle(), 4, { t, gain: 0.35 }));
-      talkLoop(e, e.murmur(200, 6, { pitch: 118, breath: 0.3, level: 0.07, bright: 1300 }), 3, 7);
       e.every(30, 70, (t) => e.shot('door_close', anyAngle(), 6, { t, gain: 0.4 }));
     },
   },
@@ -642,7 +619,7 @@ export const AMBIENCE_RECIPES: Record<AmbienceId, AmbienceRecipe> = {
       e.every(40, 90, (t) => e.shot('cough', anyAngle(), 6, { t, gain: 0.35 }));
       e.every(15, 30, (t) => walk(e, t, { r: 6, gain: 0.35 }));
       e.every(40, 80, (t) => e.shot('chair_scrape', anyAngle(), 6, { t, gain: 0.3 }));
-      e.every(30, 60, (t) => e.shot('whisper', anyAngle(), 6, { t, gain: 0.4 }));
+      e.every(30, 60, (t) => e.shot('huddle_rustle', anyAngle(), 6, { t, gain: 0.4 }));
     },
   },
   old_station_hall: {
@@ -804,12 +781,6 @@ export const AMBIENCE_RECIPES: Record<AmbienceId, AmbienceRecipe> = {
       const fan = e.point(180, 3);
       e.g.noise('brown', e.t0).connect(e.g.filter('lowpass', 200, 0.7)).connect(e.g.gain(0.1)).connect(fan);
       e.g.noise('pink', e.t0).connect(e.g.filter('bandpass', 400, 1)).connect(e.g.gain(0.05)).connect(fan);
-      // TV up in the corner
-      const tvBand = e.g.filter('highpass', 400, 0.7);
-      tvBand.connect(e.point(40, 3));
-      talkLoop(e, murmurRig(e.g, tvBand, e.t0, undefined, { pitch: 150, breath: 0.2, level: 0.06, bright: 2600, rate: 4.2 }), 2.5, 5);
-      talkLoop(e, e.murmur(100, 2.5, { pitch: 120, breath: 0.3, level: 0.08, bright: 1500 }), 2, 5);
-      talkLoop(e, e.murmur(290, 4, { pitch: 200, breath: 0.35, level: 0.08, bright: 1600 }), 2, 5);
       e.every(3, 8, (t) => e.shot('cup_set', anyAngle(), pick([2.5, 4]), { t, gain: 0.45, rate: 0.8 }));
       e.every(15, 30, (t) => e.shot('glass_clink', anyAngle(), 4, { t, gain: 0.3 }));
       e.every(4, 9, (t) => e.shot('chopsticks', anyAngle(), pick([1.6, 2.5]), { t, gain: 0.5 }));

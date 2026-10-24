@@ -40,15 +40,15 @@ scenes:
           - narr: 我醒來的時候，手已經在外套口袋裡了。
           - narr: 指尖壓著那一行凸點。不、要、回、來。
           - pause: 1.5
-          - think: 十八點三十一分，我已經聽過三次。
+          - think: 十八點三十一分，我已經聽過不只一次。
           - think: 有人死，午夜會重來。沒有人死，午夜也照樣敲十二下。
           - think: 那我在今天裡面把誰挪到哪裡，好像都沒有差。
           - pause: 1
           - { think: 為什麼偏偏是十八點三十一分？, mem: m_c4_why_1831 }
           - think: 五年前，到底發生了什麼？
           - { sfx: cough, at: back-left, dist: mid, text: 咳 }
-          - narr: 後面有人咳嗽，跟前三次是同一個時候。
-          - { cue: gossip, at: back-left, text: 窸窸窣窣, sfx: whisper }
+          - narr: 後面有人咳嗽，跟每一次是同一個時候。
+          - { cue: gossip, at: back-left, text: 窸窸窣窣, sfx: huddle_rustle }
       - think: 下車之前，我得先想好今天要不要動別人。
       - choice:
           timeout: 14
@@ -61,7 +61,8 @@ scenes:
             - text: （這次，不動任何人）
               then:
                 - set: c4_baseline
-                - think: 上次我把所有人都移開，一整天安安靜靜，什麼也沒問到。
+                - think: 上次我把所有人都移開，沒有人出事，午夜還是重來了。
+                - think: 今天我想把時間拿去問五年前的事。這個理由，連我自己都不想多想。
                 - pause: 1.5
                 - think: 六點三十一分舊車站會發生什麼，我知道。
                 - think: 若晴會去。這次我不打那通電話。
@@ -130,7 +131,7 @@ scenes:
       - { sfx: phone_hangup, at: right, dist: near, text: 嘟 }
       - phone: 撥號中。周予安。
       - { sfx: phone_ring, at: left, dist: mid, text: 嘟—— }
-      - yuan: 我在排隊。蛋餅要不要加蛋？
+      - yuan: 我在排隊。蛋餅要不要加起司？
       - me: 今天傍晚六點到七點，你待在店裡。
       - pause: 1
       - yuan: ……好的。
@@ -157,7 +158,7 @@ scenes:
           - { man: 收到。, as: 另一個員警, at: back-right }
     beats:
       - { sfx: door_open, at: back, dist: near, text: 吱 }
-      - narr: 電扇在頭頂轉。裡面有人用兩根手指打字，一個鍵一個鍵慢慢敲。
+      - narr: 電扇在頭頂轉。裡面的鍵盤聲很慢，一個鍵敲完，才輪到下一個。
       - narr: 有菸味，可是沒有打火機的聲音，也沒有人在吸。
       - think: 是他。
       - yuan: 我在外面等。
@@ -208,20 +209,20 @@ scenes:
                 - pause: 2
                 - zhiyuan: ……比那更晚。
                 - set: c4_zy_details
-            - text: 「十八點三十一分。我已經聽過三次了。」
+            - text: 「十八點三十一分。我已經聽過好幾次了。」
               then:
                 - zhiyuan: 什麼意思？
-                - if: know.k_zhixia_note_1831
+                - if: know.k_in_station_hall
                   then:
-                    - me: 第一次，停電，還有相機背帶的扣子一直響。
+                    - me: 有一次，停電，還有相機背帶的扣子一直響。
                   else:
-                    - me: 第一次，整座鎮停了一拍。冰箱的嗡嗡聲斷掉，過一下又自己轉起來。
+                    - me: 有一次，整座鎮停了一拍。冰箱的嗡嗡聲斷掉，過一下又自己轉起來。
                 - if: know.k_maintenance_passage
                   then:
-                    - me: 第二次，很深的地方有東西倒下來。
+                    - me: 另一次，很深的地方有東西倒下來。
                   else:
-                    - me: 第二次，咖啡機斷電，然後很遠的地方有警笛。
-                - me: 第三次什麼都沒有，只有一個嗡鳴。
+                    - me: 另一次，咖啡機斷電，然後很遠的地方有警笛。
+                - me: 還有一次什麼都沒有，只有一個嗡鳴。
                 - pause: 3
                 - zhiyuan: 五年前那次停電，報告裡有寫。
                 - zhiyuan: 沒有對外公開。
@@ -393,7 +394,7 @@ scenes:
       - boxun: 個案表示，三號病房的鄭阿姨，星期四會從床上摔下來。
       - boxun: 右手腕。
       - pause: 2
-      - boxun: 星期四晚上，她摔下來了。右手腕骨折。
+      - boxun: 我交代護理站留意，也加了巡房。星期四晚上，她還是自己翻過床欄，摔下來。右手腕骨折。
       - boxun: 那天值班的是我。
       - pause: 2.5
       - boxun: 我沒有寫她能預知未來。
@@ -578,7 +579,7 @@ scenes:
       - { sfx: relay_click, at: left, dist: mid, text: 喀、喀 }
       - narr: 左邊一整排機器，風扇的聲音疊在一起。
       - me: 這裡還有電？
-      - tingan: 備援線路。說是防災用的，一直沒斷。
+      - tingan: 機房用的備援電一直沒斷。最近施工又接回了舊站的通訊線，跟供電是兩回事。
       - tingan: 我花了半年，才找到進來的方法。不要問。
       - { sfx: typing, at: front-right, dist: near, text: 噠噠噠 }
       - tingan: 系統的目標，寫在最上面。我念給妳聽。
@@ -745,7 +746,7 @@ scenes:
         else:
           - { sfx: light_buzz, at: front, dist: near, text: 滋——滋 }
           - { sfx: blackout, at: front, dist: mid, text: 啪, vib: thud }
-          - narr: 燈管閃了一下。
+          - narr: 燈管滋滋響了兩下，冷氣的風也跟著弱了。
           - { sfx: power_up, at: left, dist: mid, text: 嗡——喀 }
           - phone: 十八點三十一分。
           - pause: 3
@@ -804,16 +805,16 @@ scenes:
           - yuan: 六點到七點，我真的待在店裡。
           - yuan: 很無聊。修了兩只錶。
           - yuan: 所以，可以跟我說為什麼要我待著了嗎？
-          - me: 因為我不想再聽見你出事。
+          - me: 因為我不想下一次聽見出事的人是你。
           - pause: 2
-          - yuan: ……「再」？
+          - yuan: ……「下一次」？
           - narr: 我沒有解釋。他也沒有追問，把醋瓶推到我手邊。
       - { sfx: spoon_stir, at: front, dist: near, text: 叮 }
       - yuan: 妳今天一整天，派出所、醫院、圖書館，還跑上山。
       - yuan: 妳不是只回來賣房子的吧。
       - me: 也是回來賣房子的。
       - pause: 1
-      - { sfx: laugh_soft, at: front, dist: near, text: 呵 }
+      - { sfx: laugh_soft_m, at: front, dist: near, text: 呵 }
       - narr: 他笑了一聲。很輕，從鼻子出氣的那種。
       - yuan: 妳這五年，到底都跑去哪裡了？
       - choice:
@@ -833,7 +834,8 @@ scenes:
                 - narr: 杖身的接縫，一節一節。
                 - yuan: ……眼睛的事，也是這五年的事？
                 - me: 兩年前。
-                - yuan: 我都不知道。……應該要知道的。
+                - yuan: 仲介只跟我說妳現在看不見，沒講是什麼時候的事。
+                - yuan: ……我應該早一點問妳的。
       - pause: 1.5
       - yuan: 那這樣。
       - { yuan: 如果真的還有明天，再跟我講妳這五年到底跑去哪裡了。, learn: k_yuan_tomorrow, mem: m_c4_tomorrow }

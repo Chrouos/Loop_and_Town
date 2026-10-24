@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { createAudioEngine, type AudioEngine } from './audio/engine';
 import { VIBRATIONS, type VibrationId } from './audio/catalog';
+import { ATTRIBUTION_CREDITS } from './audio/credits';
+import { sampleUrl } from './audio/samples';
 import { Director, toChineseNumber } from './engine/director';
 import { MEMORY_CAPACITY, readSave, writeSave, type GameSave, type Memory } from './engine/save';
 import { loadGameScript } from './script/load';
@@ -82,6 +84,8 @@ export function GameApp({ storage = safeStorage() }: { storage?: Storage }) {
     const settings = director.settings;
     audio.setEnabled(settings.audio && !options.mute);
     audio.setVolume(settings.volume);
+    audio.setAmbienceVolume(settings.ambience);
+    audio.setSfxVolume(settings.sfx);
     audio.setVoiceVolume(settings.voice);
   }, [audio, director, options.mute]);
 
@@ -280,8 +284,9 @@ function Menu({ director, onClose, onTitle, onSettings }: { director: Director; 
       {tab === 'settings' && (
         <div className="lt-panel">
           <div className="lt-row"><span>聲音</span><Toggle on={settings.audio} onChange={(audio) => set({ audio })} /></div>
-          <div className="lt-row"><span>音量</span><input className="lt-range" type="range" min={0} max={1} step={0.05} value={settings.volume} onChange={(event) => set({ volume: Number(event.target.value) })} /></div>
-          <div className="lt-row"><span>人聲存在感</span><input className="lt-range" type="range" min={0} max={1} step={0.05} value={settings.voice} onChange={(event) => set({ voice: Number(event.target.value) })} /></div>
+          <div className="lt-row"><span>總音量</span><input className="lt-range" type="range" min={0} max={1} step={0.05} value={settings.volume} onChange={(event) => set({ volume: Number(event.target.value) })} /></div>
+          <div className="lt-row"><span>環境音</span><input className="lt-range" type="range" min={0} max={1} step={0.05} value={settings.ambience} onChange={(event) => set({ ambience: Number(event.target.value) })} /></div>
+          <div className="lt-row"><span>音效</span><input className="lt-range" type="range" min={0} max={1} step={0.05} value={settings.sfx} onChange={(event) => set({ sfx: Number(event.target.value) })} /></div>
           <div className="lt-row"><span>震動</span><Toggle on={settings.vibration} onChange={(vibration) => set({ vibration })} /></div>
           <div className="lt-row"><span>文字速度</span>
             <div className="lt-opts">
@@ -301,6 +306,19 @@ function Menu({ director, onClose, onTitle, onSettings }: { director: Director; 
             {confirm
               ? <button type="button" className="lt-opt lt-danger" onClick={() => { setConfirm(false); director.newGame(); onClose(); }}>確定，全部忘記</button>
               : <button type="button" className="lt-opt" onClick={() => setConfirm(true)}>重新開始</button>}
+          </div>
+          <div className="lt-credits">
+            <div className="lt-credits-head">聲音素材</div>
+            {ATTRIBUTION_CREDITS.map((credit) => (
+              <div className="lt-credit" key={credit.url}>
+                <span className="lt-credit-use">{credit.use}</span>
+                <a href={credit.url} target="_blank" rel="noreferrer">{credit.title}</a>
+                <span> — {credit.author}，</span>
+                <a href={credit.licenseUrl} target="_blank" rel="noreferrer">{credit.license}</a>
+                <span>，已裁切、濾波、調整音量</span>
+              </div>
+            ))}
+            <div className="lt-credit">其餘錄音皆為 Freesound 上的 CC0 作品，<a href={sampleUrl('CREDITS.md')} target="_blank" rel="noreferrer">完整清單</a></div>
           </div>
         </div>
       )}

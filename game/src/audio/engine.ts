@@ -3,19 +3,19 @@
 // are placed around a listener at the origin facing -z with HRTF panners. A sound whose sample is
 // not decoded yet plays from its synthesis recipe, so nothing ever waits on the network.
 //
-//   ambience layers → ambIn → ambTone(lowpass) → ambDuck ─┐
-//   one-shots ─────────────────────────────── sfxBus ─────┤
+//   ambience layers → ambIn(ambience volume) → ambTone(lowpass) → ambDuck ─┐
+//   one-shots ─────────────────────────────── sfxBus(sfx volume) ──────────┤
 //   voice presence ─────────────────────────── voiceBus ──┼→ world → attention(lowpass) ─┐
-//   reverb sends → room convolver → reverbOut ────────────┘                              │
+//   reverb sends (ambience/sfx sends scaled like their buses) → room convolver → reverbOut ┘ │
 //   interface sounds (memory_keep, focus_shift, …) ── uiBus ─────────────────────────────┼→ master
 //   master(volume·enabled) → glue compressor → limiter → soft clip → destination ←───────┘
 
-import { AMBIENCE, VOICES, isSfx, type AmbienceId, type SfxId, type SpatialPos, type VoiceId } from './catalog';
+import { AMBIENCE, isSfx, type AmbienceId, type SfxId, type SpatialPos, type VoiceId } from './catalog';
 import { startAmbience, type AmbienceLayer, type SampleBed, type SoundResolver } from './ambience';
 import { clamp, expRampTo, glide, hold, impulseResponse, placementOf, softClipCurve, spawnShot, type SfxRecipe, type Shot } from './core';
 import { SampleBank, sampleRecipe, type SampleBankStats } from './samples';
-import { SFX_RECIPES, UI_SFX } from './sounds';
-import { phoneTick, voicePresence } from './voice';
+import { HUMAN_SFX, SFX_RECIPES, UI_SFX } from './sounds';
+import { phoneTick } from './voice';
 
 export interface AudioEngine {
   unlock(): Promise<void>;
@@ -23,9 +23,14 @@ export interface AudioEngine {
   setEnabled(on: boolean): void;
   setVolume(v: number): void;
   setVoiceVolume(v: number): void;
+  /** Ambience beds only; 1 = their mixed level. */
+  setAmbienceVolume(v: number): void;
+  /** Sound effects and interface sounds. */
+  setSfxVolume(v: number): void;
   setAmbience(ids: AmbienceId[], fadeMs?: number): void;
   play(id: SfxId, pos: SpatialPos, opts?: { gain?: number; rate?: number }): void;
-  voice(speaker: VoiceId, pos: SpatialPos, durationMs: number): void;
+  /** A line spoken by `speaker` ('life' = a passer-by in the background). People make no vocal sound, only a small real one. */
+  voice(speaker: VoiceId, pos: SpatialPos, durationMs: number, kind?: 'line' | 'life'): void;
   setAttention(level: number): void;
   duck(amount: number, ms: number): void;
   silence(ms: number): void;
@@ -50,13 +55,17 @@ export interface AudioEngineDebug {
   /** 'auto' = recordings when decoded (default); 'synth' = synthesis only (A/B in the lab). */
   setSampleMode(mode: SampleMode): void;
   /** Play one sound from a chosen source; a sample that is not loaded yet is loaded first. */
-  playSource(id: SfxId, pos: SpatialPos, source: 'sample' | 'synth', opts?: { gain?: number; rate?: number }): Promise<boolean>;
+  playSource(id: SfxId, pos: SpatialPos, source: 'sample' | 'synth', opts?: { gain?: number; rate?: number; variant?: number }): Promise<boolean>;
   hasSample(id: SfxId | AmbienceId): boolean;
 }
 
 const MAX_SFX = 24;
 const MAX_VOICES = 6;
 const DEFAULT_FADE_MS = 2500;
+/** A speaker who talks again after this long a silence gets their turn-taking rustle again. */
+const TURN_GAP_S = 8;
+/** A recorded voice that arrives later than this after it was asked for is dropped (it would land on the wrong moment). */
+const VOICE_LATE_S = 0.6;
 /** Crossfade from a synthesized bed to its recording once that has been decoded. */
 const SWAP_S = 2.5;
 const OPEN = 20000;
@@ -70,6 +79,8 @@ class SilentEngine implements AudioEngine {
   setEnabled(): void {}
   setVolume(): void {}
   setVoiceVolume(): void {}
+  setAmbienceVolume(): void {}
+  setSfxVolume(): void {}
   setAmbience(): void {}
   play(): void {}
   voice(): void {}
@@ -105,13 +116,21 @@ interface Buses {
   ambIn: GainNode;
   ambTone: BiquadFilterNode;
   ambDuck: GainNode;
+  ambVerb: GainNode;
   sfx: GainNode;
+  sfxVerb: GainNode;
   voice: GainNode;
   ui: GainNode;
   reverbIn: GainNode;
 }
 
 const sleep = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
+
+/** Ambience at full is the level the beds were mixed at; sound effects can go up to +6 dB over theirs. */
+const ambienceGain = (v: number): number => perceptual(v);
+const sfxGain = (v: number): number => perceptual(v) * 2;
+/** Interface sounds sit a little under the effects (0.9 at the default effects volume). */
+const UI_TRIM = 0.62;
 
 const perceptual = (v: number): number => {
   const x = clamp(Number.isFinite(v) ? v : 0, 0, 1);
@@ -126,6 +145,10 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
   private enabled = true;
   private volume = 0.8;
   private voiceVolume = 0.8;
+  private ambienceVolume = 0.7;
+  private lastSpeaker: VoiceId | null = null;
+  private lastSpokeAt = -Infinity;
+  private sfxVolume = 0.85;
   private wanted: AmbienceId[] = [];
   private layers = new Map<AmbienceId, AmbienceLayer>();
   private shots: Shot[] = [];
@@ -219,7 +242,7 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
     const world = gain(1);
     world.connect(attention).connect(master);
 
-    const ambIn = gain(1);
+    const ambIn = gain(ambienceGain(this.ambienceVolume));
     const ambTone = ac.createBiquadFilter();
     ambTone.type = 'lowpass';
     ambTone.frequency.value = OPEN;
@@ -227,14 +250,18 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
     const ambDuck = gain(1);
     ambIn.connect(ambTone).connect(ambDuck).connect(world);
 
-    const sfx = gain(1);
+    const sfx = gain(sfxGain(this.sfxVolume));
     sfx.connect(world);
     const voice = gain(perceptual(this.voiceVolume) * 1.2);
     voice.connect(world);
-    const ui = gain(0.9);
+    const ui = gain(sfxGain(this.sfxVolume) * UI_TRIM);
     ui.connect(master);
 
     const reverbIn = gain(1);
+    const ambVerb = gain(ambienceGain(this.ambienceVolume));
+    ambVerb.connect(reverbIn);
+    const sfxVerb = gain(sfxGain(this.sfxVolume));
+    sfxVerb.connect(reverbIn);
     const conv = ac.createConvolver();
     conv.normalize = true;
     conv.buffer = impulseResponse(ac, 'room', { seconds: 2.4, brightness: 0.5, damping: 1.3, early: 8, preDelay: 0.018 });
@@ -262,7 +289,7 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
     }
 
     this.ac = ac;
-    this.bus = { master, world, attention, ambIn, ambTone, ambDuck, sfx, voice, ui, reverbIn };
+    this.bus = { master, world, attention, ambIn, ambTone, ambDuck, ambVerb, sfx, sfxVerb, voice, ui, reverbIn };
     try {
       this.bank = new SampleBank(ac);
     } catch {
@@ -285,6 +312,23 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
     this.voiceVolume = clamp(Number.isFinite(v) ? v : 0, 0, 1);
     if (!this.ac || !this.bus) return;
     glide(this.bus.voice.gain, perceptual(this.voiceVolume) * 1.2, this.ac.currentTime, 0.05);
+  }
+
+  setAmbienceVolume(v: number): void {
+    this.ambienceVolume = clamp(Number.isFinite(v) ? v : 0, 0, 1);
+    if (!this.ac || !this.bus) return;
+    const g = ambienceGain(this.ambienceVolume);
+    glide(this.bus.ambIn.gain, g, this.ac.currentTime, 0.05);
+    glide(this.bus.ambVerb.gain, g, this.ac.currentTime, 0.05);
+  }
+
+  setSfxVolume(v: number): void {
+    this.sfxVolume = clamp(Number.isFinite(v) ? v : 0, 0, 1);
+    if (!this.ac || !this.bus) return;
+    const g = sfxGain(this.sfxVolume);
+    glide(this.bus.sfx.gain, g, this.ac.currentTime, 0.05);
+    glide(this.bus.sfxVerb.gain, g, this.ac.currentTime, 0.05);
+    glide(this.bus.ui.gain, g * UI_TRIM, this.ac.currentTime, 0.05);
   }
 
   private applyMaster(tc: number): void {
@@ -338,7 +382,7 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
       ac,
       id,
       bus.ambIn,
-      bus.reverbIn,
+      bus.ambVerb,
       (l) => {
         if (this.layers.get(l.id) === l) this.layers.delete(l.id);
       },
@@ -374,7 +418,23 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
     const bus = this.bus;
     if (!ac || !bus || ac.state !== 'running') return;
     if (!isSfx(id)) return;
-    this.shoot(id, pos, opts, this.sampleFor(id) ?? SFX_RECIPES[id]);
+    const sampled = this.sampleFor(id);
+    if (sampled) this.shoot(id, pos, opts, sampled);
+    else if (HUMAN_SFX.has(id)) this.playWhenLoaded(id, pos, opts);
+    else this.shoot(id, pos, opts, SFX_RECIPES[id]);
+  }
+
+  /** Voices never fall back to synthesis: wait briefly for the recording, or stay silent. */
+  private playWhenLoaded(id: SfxId, pos: SpatialPos, opts: { gain?: number; rate?: number } | undefined): void {
+    const ac = this.ac;
+    const bank = this.bank;
+    if (!ac || !bank?.sfxEntry(id)) return;
+    const asked = ac.currentTime;
+    void bank.loadSfx(id).then(() => {
+      if (this.ac !== ac || ac.state !== 'running' || ac.currentTime - asked > VOICE_LATE_S) return;
+      const recipe = this.sampleFor(id, true);
+      if (recipe) this.shoot(id, pos, opts, recipe);
+    });
   }
 
   private shoot(id: SfxId, pos: SpatialPos, opts: { gain?: number; rate?: number } | undefined, recipe: SfxRecipe | undefined): void {
@@ -386,7 +446,7 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
       while (this.shots.length >= MAX_SFX) this.shots.shift()?.kill();
       const shot = spawnShot(ac, recipe, {
         dest: UI_SFX.has(id) ? bus.ui : bus.sfx,
-        reverb: bus.reverbIn,
+        reverb: bus.sfxVerb,
         place: placementOf(pos),
         t: ac.currentTime + 0.01,
         gain: clamp(opts?.gain ?? 1, 0, 4),
@@ -421,16 +481,27 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
     }
   }
 
-  voice(speaker: VoiceId, pos: SpatialPos, durationMs: number): void {
+  voice(speaker: VoiceId, pos: SpatialPos, _durationMs?: number, kind: 'line' | 'life' = 'line'): void {
+    // No voice is ever simulated (a synthesized voice under the text read as uncanny; the text is the voice).
+    // Instead someone who starts talking is placed by a small real sound: a passer-by's clothes and shifting
+    // weight, or the rustle of a speaker turning to talk (a new speaker, or the same one after a silence).
+    if (speaker !== 'phone') {
+      if (kind === 'life') {
+        this.play('huddle_rustle', pos, { gain: 0.5 });
+        return;
+      }
+      if (speaker === 'me') return;
+      const now = this.ac?.currentTime ?? 0;
+      if (speaker !== this.lastSpeaker || now - this.lastSpokeAt > TURN_GAP_S) this.play('cloth_rustle', pos, { gain: 0.45 });
+      this.lastSpeaker = speaker;
+      this.lastSpokeAt = now;
+      return;
+    }
     const ac = this.ac;
     const bus = this.bus;
     if (!ac || !bus || ac.state !== 'running') return;
-    const v = (VOICES as Record<string, { pitch: number; breath: number } | undefined>)[speaker];
-    if (!v) return;
     try {
-      const dur = clamp((Number.isFinite(durationMs) ? durationMs : 1000) / 1000, 0.2, 30);
-      const recipe: SfxRecipe =
-        v.pitch <= 0 ? { play: (c) => phoneTick(c), jitter: 0 } : { play: (c) => voicePresence(c, v.pitch, v.breath, dur), jitter: 0.02 };
+      const recipe: SfxRecipe = { play: (c) => phoneTick(c), jitter: 0 };
       this.voices = this.voices.filter((s) => !s.disposed);
       while (this.voices.length >= MAX_VOICES) this.voices.shift()?.kill();
       const shot = spawnShot(ac, recipe, {
@@ -518,15 +589,23 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
     for (const id of this.wanted) this.ensureLayer(id, SWAP_S);
   }
 
-  async playSource(id: SfxId, pos: SpatialPos, source: 'sample' | 'synth', opts?: { gain?: number; rate?: number }): Promise<boolean> {
+  async playSource(id: SfxId, pos: SpatialPos, source: 'sample' | 'synth', opts?: { gain?: number; rate?: number; variant?: number }): Promise<boolean> {
     if (!isSfx(id)) return false;
     if (source === 'synth') {
       this.shoot(id, pos, opts, SFX_RECIPES[id]);
       return true;
     }
-    if (!this.bank?.sfxEntry(id)) return false;
-    await this.bank.loadSfx(id);
-    const recipe = this.sampleFor(id, true);
+    const entry = this.bank?.sfxEntry(id);
+    if (!entry || !this.bank) return false;
+    let recipe: SfxRecipe | undefined;
+    if (opts?.variant !== undefined) {
+      if (!Number.isInteger(opts.variant) || opts.variant < 0 || opts.variant >= entry.files.length) return false;
+      const buffer = await this.bank.load(entry.files[opts.variant]!);
+      if (buffer) recipe = sampleRecipe(buffer, entry);
+    } else {
+      await this.bank.loadSfx(id);
+      recipe = this.sampleFor(id, true);
+    }
     if (!recipe || !this.ac || this.ac.state !== 'running') return false;
     this.shoot(id, pos, opts, recipe);
     return true;

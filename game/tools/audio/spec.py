@@ -20,11 +20,20 @@ def ev(sid, n, max_crest=None, **kw):
     """n isolated events (mono clips) from a recording, as variant callables. With max_crest, events
     whose peak stands more than max_crest dB over their loudest 50 ms are skipped (pure clicks)."""
     import ana
-    clips = events.cut_events(src(sid), n + (3 if max_crest else 0), **kw)
-    if max_crest:
-        ok = [c for c in clips if ana.db(np.abs(c[0]).max()) - ana.db(ana.short_term_max(c[0], SR)) <= max_crest]
-        clips = (ok or clips)[:n]
-    return [(lambda c=c: c[0]) for c in clips]
+    found = []
+
+    def clips():
+        # cut on first use, so importing spec.py does not need every source in dl/
+        if not found:
+            got = events.cut_events(src(sid), n + (3 if max_crest else 0), **kw)
+            if max_crest:
+                ok = [c for c in got if ana.db(np.abs(c[0]).max()) - ana.db(ana.short_term_max(c[0], SR)) <= max_crest]
+                got = (ok or got)[:n]
+            if len(got) < n:
+                raise ValueError('%s: only %d of %d events found' % (sid, len(got), n))
+            found.append(got)
+        return found[0]
+    return [(lambda i=i: clips()[i][0]) for i in range(n)]
 
 
 def bed(sid, a, length, xfade=3.0, ch='stereo', hp=None, lp=None):
@@ -62,10 +71,11 @@ sfx('bell_toll_far', [lambda: lowpass(cut('611469', 50.40, 65.3), 1400, order=2)
     note='same strike as bell_toll, low-passed at 1.4 kHz with a softened attack; rate 0.84')
 
 # ================================================================ weather beds
-amb('rain', bed('56311', 20.0, 60.0, 3.0, hp=40), [56311], rms=-34, bitrate=128000, extras=True,
-    note='60 s from 0:20 of a steady heavy rain on a roof, high-passed at 40 Hz')
-amb('rain_on_window', bed('81819', 1.0, 44.0, 3.0, hp=50), [81819], rms=-36, bitrate=128000, extras=True,
-    note='44 s of rain on a window from inside a reverberant room (A/B KM84), high-passed at 50 Hz')
+amb('rain', bed('522113', 1000.0, 60.0, 3.0, hp=150), [522113], rms=-34, bitrate=128000, extras=True,
+    note='60 s from 16:40 of steady rain over a small Taiwanese city at night, heard from a 9th-floor window (the steadiest minute of the 22-minute recording), high-passed at 150 Hz to drop traffic rumble and thunder; made from the original file')
+amb('rain_on_window', bed('569313', 60.0, 50.0, 3.0, hp=60), [569313], rms=-36, bitrate=128000, extras=True,
+    note='50 s from 1:00 of rain pattering on a metal roof and dripping onto tin window sills, windows slightly open '
+         '(from the original 96 kHz FLAC; the thunder at 0:42 is left out, extras add their own), high-passed at 60 Hz')
 
 # ================================================================ train
 amb('train_interior', bed('197124', 5.0, 60.0, 3.0, hp=30), [197124], rms=-34, extras=False,
@@ -161,7 +171,7 @@ amb('clock_shop', clock_shop, [int(c[0]) for c in CLOCKS], rms=-34, peak=-6, ext
 
 sfx('watch_tick', [lambda: highpass(cut('847217', 40.0, 43.2), 600)], [847217], st=-22, peak=-8, fin=0.25, fout=0.5,
     note='3.2 s of an antique pocket watch ticking (second watch), high-passed at 600 Hz')
-sfx('clock_wind', [lambda: highpass(cut('847217', 73.1, 75.3), 300), lambda: highpass(cut('847217', 76.0, 78.1), 300)], [847217], st=-22, peak=-8, fout=0.15,
+sfx('clock_wind', [lambda: highpass(cut('847217', 73.1, 75.3), 300), lambda: highpass(cut('847217', 76.0, 78.1), 300)], [847217], st=-22, peak=-8, trim_db=-45, fout=0.15,
     note='two short passages of an antique pocket watch being wound')
 sfx('clock_chime', [lambda: highpass(cut('234268', 11.55, 19.0), 80)], [234268], st=-21, fout=1.5,
     note='the last three strikes of a 100-year-old Finnish wall clock chiming six, with their decay')
@@ -240,28 +250,35 @@ sfx('step_wet', ev('376809', 3, a=0.0, b=45, hp=150, max_len=0.45, decay_db=28, 
 sfx('cane_tap', ev('393434', 4, a=0.5, b=27, hp=300, max_len=0.22, decay_db=30, min_gap=0.25, fixed=0.18), [393434], st=-20, peak=-3, hp=150, fout=0.03,
     note='4 single taps of a white cane on a city pavement, cut from a blind person walking')
 sfx('door_open', [C('344360', 0.70, 2.40)], [344360], st=-22, fout=0.15, note='handle and opening swing of a door')
-sfx('door_close', [C('344360', 4.30, 5.90)], [344360], st=-20, fout=0.3, note='the same door closing')
+sfx('door_close', [C('402466', 0.08, 1.78)], [402466], st=-20, hp=50, peak=-6, fin=0.015, fout=0.22,
+    note='a heavy wooden door quietly closing: movement, frame contact and settling retained as one 1.7 s action; sub-50 Hz rumble removed')
 sfx('door_creak', [C('219499', 0.30, 1.00), C('377552', 0.0, 0.90)], [219499, 377552], st=-21, limit=14, fout=0.08,
     note='two old wooden door creaks')
 sfx('door_slam', [C('395653', 2.72, 4.30)], [395653], st=-17, fout=0.4, note='a door slammed shut')
 sfx('shop_bell', [C('494565', 0.25, 2.30), C('494565', 2.55, 4.45), C('494565', 4.45, 6.70)], [494565], st=-21, fout=0.35,
     note='three rings of a bell on a shop door')
-sfx('key_jingle', [C('267711', 0.2, 1.9)], [267711], st=-22, fout=0.15, note='a bunch of keys picked up')
-sfx('lock_turn', [C('494128', 0.0, 0.70)], [494128], st=-21, fout=0.05, note='a key turning a deadbolt')
+sfx('key_jingle', [lambda: lowpass(cut('565909', 0.53, 1.18), 4800, order=2), lambda: lowpass(cut('565909', 2.40, 3.03), 4800, order=2), lambda: lowpass(cut('565909', 3.80, 4.62), 4800, order=2)], [565909], st=-22, hp=200, limit=12, peak=-6, fin=0.008, fout=0.08, jitter=0.015,
+    note='three dense rattles of fourteen old keys on a ring; low-passed at 4.8 kHz to soften the thin, chime-like top end, retaining short metal contacts')
+sfx('lock_turn', [C('615287', 3.40, 4.72)], [615287], st=-21, hp=100, limit=12, peak=-6, fin=0.01, fout=0.12, jitter=0.01,
+    note='a real key-operated door lock: short handling/turning movement into a firm mechanical clack; replaces the electronic hotel-card deadbolt')
 sfx('chair_scrape', [C('219677', 0.25, 1.50), C('219677', 2.25, 3.20)], [219677], st=-21, fout=0.1, note='a wooden chair moved on the floor (two takes)')
 sfx('drawer', [C('486081', 0.0, 1.1)], [486081], st=-21, fout=0.1, note='a wooden drawer opening')
 sfx('cloth_rustle', [C('19291', 0.48, 1.15), C('19291', 1.15, 1.98)], [19291], st=-24, fout=0.08, note='two short cloth rustles (sleeve)')
-sfx('cough', [C('151217', 0.0, 0.9)], [151217], st=-21, fout=0.1, note='a single cough')
+sfx('cough', [C('722623', 3.80, 4.22), C('722623', 8.95, 9.30), C('722623', 20.44, 20.98)], [722623], st=-21, hp=120, fout=0.06,
+    note='three single unprocessed coughs (audience-ambience recording)')
 sfx('kid_laugh', [C('365632', 0.2, 1.25), C('365632', 1.95, 3.35)], [365632], st=-22, fout=0.15, note='two short bursts of a young child laughing')
-sfx('murmur_crowd', [C('653920', 4.0, 9.0)], [653920], st=-24, fin=0.4, fout=0.8,
-    note='5 s of a small group performing walla in an undefined language (unintelligible by design)')
+sfx('radio_noise', [C('345101', 3.5, 8.0)], [345101], st=-26, hp=200, fin=0.4, fout=0.6,
+    note='4.5 s of real static from a car radio tuned between stations (the broadcast itself is only text)')
 sfx('gasp_crowd', [C('439258', 5.45, 8.30)], [439258], st=-20, fout=0.5, note='a small crowd gasping')
 
 # ================================================================ one-shots: objects
 sfx('paper_rustle', [C('181774', 0.65, 1.50), C('181774', 1.65, 2.55)], [181774], st=-22, limit=14, fout=0.1, note='two paper rustles')
 sfx('page_turn', ev('164806', 3, a=0.5, b=7.5, hp=150, max_len=0.7, decay_db=28, min_gap=0.5, fixed=0.5), [164806], st=-22, fout=0.08, note='3 page turns of a book')
 sfx('envelope', [C('632116', 1.55, 3.30)], [632116], st=-22, fout=0.2, note='a paper envelope opened and a letter pulled out')
-sfx('pen_scratch', [C('234016', 2.0, 3.6)], [234016], st=-22, fout=0.2, note='a pen writing on paper')
+sfx('pen_scratch', [C('333935', 9.10, 10.79), C('333935', 13.14, 14.79), C('333935', 24.96, 26.46)], [333935], st=-22, hp=200, limit=12, fin=0.05, fout=0.2,
+    note='three passages of handwriting with a pencil on paper, close mic')
+sfx('braille_stylus', [C('673782', 1.06, 2.56), C('673782', 30.96, 32.04), C('673782', 41.56, 42.24)], [673782], st=-22, hp=1000, limit=12, fin=0.01, fout=0.08,
+    note='punching braille dots with a slate and stylus (the hardest punches of the recording, high-passed at 1 kHz to drop hiss)')
 sfx('cup_set', [C('460241', 1.90, 2.55), C('460242', 0.98, 1.55), C('206171', 0.10, 0.62), C('206171', 1.25, 1.85)], [460241, 460242, 206171], st=-21, peak=-6, fout=0.08,
     note='four porcelain cups set down on saucers/tables')
 sfx('spoon_stir', [C('352872', 0.60, 2.50), C('352872', 8.30, 10.30)], [352872], st=-22, fout=0.2, note='a spoon stirring in a cup (two takes)')
@@ -269,15 +286,15 @@ sfx('coffee_grind', [C('32913', 3.80, 7.40)], [32913], st=-21, fin=0.05, fout=0.
 sfx('steam_hiss', [C('718196', 0.0, 2.6)], [718196], st=-22, fin=0.1, fout=0.4, note='milk being frothed with an espresso machine steam wand')
 sfx('kettle', [C('239005', 7.0, 12.0)], [239005], st=-22, fin=0.4, fout=0.6, note='a kettle rumbling towards the boil')
 sfx('glass_clink', [C('119839', 3.0, 4.4), C('119839', 4.5, 5.95), C('119839', 6.0, 7.4)], [119839], st=-21, peak=-6, fout=0.2, note='three glass clinks')
-sfx('camera_shutter', ev('554268', 2, a=3.0, b=10.9, hp=300, max_len=0.45, decay_db=30, min_gap=0.4, fixed=0.3), [554268], st=-20, peak=-4, fout=0.03,
-    note='two releases of a Nikon SLR shutter')
-sfx('strap_click', [C('822397', 0.0, 0.2), C('649853', 0.15, 0.45)], [822397, 649853], st=-23, limit=14, peak=-3, fout=0.02,
-    note='a small metal clasp and a buckle clip')
+sfx('camera_shutter', [C('637342', 2.60, 2.86), C('637342', 5.83, 6.10)], [637342], st=-20, peak=-4, hp=300, fout=0.03,
+    note='two releases of a Minolta XE-7 35mm film SLR (mirror and curtain clacks), close')
+sfx('strap_click', [lambda: np.pad(fade(cut('822397', 0.0, 0.2), 0.002, 0.04), ((0, 0), (0, int(0.08 * SR)))), C('649853', 0.15, 0.45)], [822397, 649853], st=-23, limit=14, peak=-9, fout=0.03,
+    note='a small metal clasp and a buckle clip; clasp has a 40 ms release plus 80 ms of padding to retain the AAC tail')
 sfx('typing', [C('331656', 1.0, 3.4), C('331656', 8.0, 10.4)], [331656], st=-22, limit=14, fout=0.15, note='typing on a mechanical keyboard (two passages)')
 sfx('phone_buzz', [C('349483', 0.0, 1.65)], [349483], st=-21, fout=0.06, note='a mobile phone vibrating once on a table')
 sfx('phone_ring', [C('406235', 0.0, 2.6)], [406235], st=-21, fout=0.3, note='one ring of an old-fashioned telephone bell')
-sfx('recorder_click', ev('624637', 3, a=0.0, b=26, hp=150, max_len=0.45, decay_db=30, min_gap=0.6, fixed=0.3), [624637], st=-21, limit=14, peak=-4, fout=0.03,
-    note='the play button of a Casio cassette player (3 presses)')
+sfx('recorder_click', [C('494605', 0.64, 1.05), C('541643', 4.55, 4.82), C('541643', 9.97, 10.20)], [494605, 541643], st=-21, hp=150, limit=14, peak=-4, fout=0.04,
+    note='keys of small handheld cassette recorders: the stiff record key of a Sony TCM-16 (press and latch) and two key presses of a portable Sony')
 sfx('tape_rewind', [C('545835', 3.0, 5.4)], [545835], st=-22, fin=0.15, fout=0.3, note='a cassette tape rewinding')
 sfx('static_burst', ev('454259', 3, a=0.0, b=12.8, hp=200, thr=10, max_len=0.9, decay_db=30, min_gap=0.8, fixed=0.55), [454259], st=-22, fout=0.08,
     note='three short bursts of TV/radio static while changing channels')
@@ -290,8 +307,8 @@ sfx('ball_bounce', ev('378355', 3, a=0.0, b=5.6, hp=100, max_len=0.6, decay_db=3
     note='three bounces of a football on the ground')
 sfx('construction_drill', [C('104817', 3.0, 8.0)], [104817], st=-22, fin=0.15, fout=0.5, note='a drill going into a concrete wall')
 sfx('hammer', [C('337816', 0.0, 1.55), C('337816', 1.28, 2.90)], [337816], st=-20, peak=-5, fout=0.15, note='hammering a nail into a board (two passages)')
-sfx('dog_bark', ev('440865', 3, a=0.5, b=20, hp=200, max_len=0.9, decay_db=26, min_gap=0.8, fixed=0.6), [440865], st=-21, fout=0.1,
-    note='three barks of a big dog at a distance')
+sfx('dog_bark', [C('449490', 0.28, 0.85), C('449490', 4.00, 4.50), C('449490', 7.08, 8.04)], [449490], st=-21, hp=150, fout=0.1,
+    note='single barks and a double bark of a medium-size dog (not aggressive)')
 sfx('seagull', ev('353416', 2, a=2.5, b=33, hp=800, max_len=1.6, decay_db=22, min_gap=1.0, fixed=1.2), [353416], st=-21, hp=500, fout=0.2,
     note='two seagull calls (beach background high-passed away at 500 Hz)')
 sfx('crow', ev('56233', 3, a=6.0, b=30, hp=300, max_len=1.0, decay_db=24, min_gap=0.6), [56233], st=-21, hp=200, fout=0.1,
@@ -358,8 +375,54 @@ sfx('hum_rise', [hum(0.8, 1.02, [(0, -60), (0.6, -18), (3.0, -4.4), (4.2, 0), (4
 sfx('hum_fall', [hum(1.0, 0.7, [(0, 0), (0.4, -2), (2.4, -14), (3.6, -60), (8, -60)], bright=False)], [144559], st=-20, fout=0.05, jitter=0.01, trim_db=-50,
     note='the same transformer hum slowing from 1.0x to 0.7x, darkening and dying away over 3.6 s')
 
-sfx('umbrella', [C('201538', 2.95, 4.10)], [201538], st=-21, fout=0.2, note='an umbrella snapped open')
+sfx('umbrella', [C('201538', 3.13, 4.10)], [201538], st=-21, hp=100, limit=14, peak=-6, fout=0.2,
+    note='an umbrella snapped open; leading silence shortened and sub-100 Hz handling rumble removed')
 sfx('lighter', [C('146064', 5.0, 6.3)], [146064], st=-22, fout=0.25, note='the wheel of a Zippo lighter struck and lit')
 sfx('wave', [C('578524', 3.5, 9.5)], [578524], st=-21, fin=0.8, fout=1.5, jitter=0.06, note='one calm ocean wave breaking and fizzing out')
 sfx('rain_burst', [lambda: envelope(cut('56311', 30.0, 36.5), [(0, -40), (1.5, 0), (4.3, 0), (6.5, -40)])], [56311], st=-21, fin=0.05, fout=0.3,
     note='6.5 s of heavy rain with a swell in and fall away envelope')
+
+# ================================================================ second pass: sounds that were still synthesized
+# Kept as synthesis on purpose (see sounds.ts): phone_notify, phone_hangup (electronic signals), tinnitus (a tone heard
+# inside the head), silence_drop (abstract, timed with the engine's ambience duck). Record what is physical; synthesize
+# what is electronic or abstract.
+sfx('train_horn', [C('574427', 0.3, 8.2)], [574427], st=-20, fin=0.3, fout=1.5, hp=120, jitter=0.03,
+    note='one long blast of a very distant train horn (stereo spaced EM172s, birds underneath), 0.3–8.2 s, high-passed at 120 Hz')
+sfx('station_chime', [C('816010', 4.45, 8.6)], [816010], st=-21, fin=0.005, fout=0.4, jitter=0, wet=0.3,
+    note='a two-note (G–E) public-address chime, the second of the four in the recording')
+sfx('truck_reverse', [C('567294', 10.95, 13.65)], [567294], st=-21, fin=0.1, fout=0.35, hp=150, jitter=0.01,
+    note='three reversing beeps of a truck in an urban alley at 6 am, engine underneath (stereo EM172s), 10.95–13.65 s')
+sfx('relay_click', ev('807384', 3, a=3.0, b=20.0, hp=300, thr=18, max_len=0.25, decay_db=30, min_gap=0.15), [807384], st=-21, peak=-4, limit=12, fout=0.03,
+    note='single clicks of a Siemens motor contactor closing and opening, cut from a longer take')
+sfx('tools_clink', [C('849365', 1.46, 1.74), C('849365', 12.75, 12.98), C('395886', 3.08, 3.58)], [849365, 395886], st=-23, peak=-6, hp=200, fout=0.04,
+    note='a small metal piece set down on a metal workbench: a warm ring (washer) and two brighter, longer tinks')
+sfx('box_open', [C('470630', 0.80, 1.75), C('792553', 0.15, 1.10), C('185054', 0.85, 2.10)], [470630, 792553, 185054], st=-21, peak=-6, limit=12, hp=140, fout=0.12,
+    note='three metal-box lid interactions: a tin opening before its lid falls, a sliding tin lid, and the opening portion of a small money box; high-passed at 140 Hz to remove handling rumble')
+sfx('box_close', [C('11551', 0.03, 0.25)], [11551], st=-21, peak=-6, limit=12, hp=80, fout=0.03,
+    note='a small metal hand-cream tin snapped shut; separated from box_open so closing scenes never play a lid-opening slide')
+sfx('truck_pass_quiet', [C('207118', 0.5, 4.1), C('532071', 11.2, 15.2)], [207118, 532071], st=-25, hp=150, fin=0.6, fout=0.9, move=(-60, 60, 1.4),
+    note='a vehicle rolling past close on a quiet lane, almost all tyre noise; and a real electric mail van creeping past, a pebble ticking in its tyre')
+sfx('tape_hiss', [C('150005', 2.0, 8.0), C('150005', 9.0, 15.0)], [150005], st=-28, hp=500, fin=0.3, fout=0.3,
+    note='6 s of hiss from a blank cassette playing on a tape deck, high-passed at 500 Hz to drop deck rumble')
+sfx('memory_keep', [C('691805', 0.0, 1.40), C('536550', 0.0, 1.60), C('209581', 0.08, 1.20)], [691805, 536550, 209581], st=-23, hp=300, fout=0.4,
+    note='a softly plucked kalimba note (G4) and a middle-C kalimba note; a finger-plucked wine-glass rim')
+sfx('focus_shift', [C('495390', 1.38, 2.10), C('495390', 2.76, 3.42), C('495390', 5.04, 5.66)], [495390], st=-24, hp=200, fin=0.01, fout=0.15,
+    note='light whooshes of a jacket moved close to the mic, high-passed at 200 Hz (three takes)')
+sfx('choice_appear', [C('418396', 0.72, 1.16), C('810068', 0.22, 0.62), lambda: highpass(cut('489763', 0.215, 0.40), 300)], [418396, 810068, 489763], st=-26, hp=150, limit=14, fin=0.03, fout=0.1,
+    note='a small in-breath through the mouth (woman); a soft mouth inhale; lips parting')
+sfx('title_tone', [C('616335', 0.0, 8.0)], [616335], st=-20, fin=1.2, fout=3.0, rate=0.71, jitter=0,
+    note='a large singing bowl struck with a soft stick, its hum faded in and left to decay; played at rate 0.71 (~110 Hz)')
+sfx('laugh_soft', [C('72695', 98.82, 99.62), C('399931', 21.0, 22.0)], [72695, 399931], st=-22, hp=120, fin=0.005, fout=0.08,
+    note="an adult woman's soft closed-mouth laugh through the nose (two takes)")
+sfx('laugh_soft_m', [C('643665', 0.10, 1.15), C('643665', 4.30, 5.40)], [643665], st=-22, hp=70, fin=0.02, fout=0.1,
+    note="a young man's quiet closed-mouth chuckle through the nose (two takes)")
+sfx('sigh', [C('663651', 0.24, 1.98), C('501339', 2.08, 3.40)], [663651, 501339], st=-23, hp=150, fin=0.1, fout=0.3,
+    note="a woman's quiet sigh: a quick breath in and a slow breath out; and an exhale-only sigh")
+sfx('sigh_m', [C('449438', 3.40, 5.50), C('449438', 7.05, 8.85), C('449438', 10.45, 11.95)], [449438], st=-23, hp=80, fin=0.05, fout=0.3,
+    note="a middle-aged man's quiet, tired exhale (three takes)")
+sfx('breath', [C('627854', 0.45, 2.25), C('627854', 23.90, 26.45), C('627854', 21.80, 23.30)], [627854], st=-25, hp=100, fin=0.1, fout=0.25,
+    note='one close, calm breath of a young woman (three takes from the calm start of the recording)')
+sfx('breath_m', [C('512741', 0.15, 2.30), C('512741', 4.88, 6.85), C('512741', 7.17, 9.40)], [512741], st=-25, hp=100, fin=0.1, fout=0.25,
+    note='one slow, close breath of a young man, in and out (three takes)')
+sfx('huddle_rustle', [C('269760', 14.25, 17.25), C('435296', 48.25, 51.25), C('435296', 54.0, 57.0)], [269760, 435296], st=-26, hp=150, limit=12, fin=0.4, fout=0.6,
+    note='people leaning in to talk, heard without their words: clothes rubbing and shifting (three passages)')

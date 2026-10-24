@@ -10,7 +10,12 @@
     </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <p style="font: 14px/1.8 sans-serif; padding: 40px; letter-spacing: 0.05em">
+        這個頁面要透過開發伺服器開：在 game/ 執行 <code>npm run dev</code>，再開 <code>http://localhost:5173/audio-lab.html</code>。<br />
+        直接打開檔案（file://）時瀏覽器不會載入程式，所以會停在這裡。
+      </p>
+    </div>
     <script type="module" src="/src/audio/lab.tsx"></script>
   </body>
 </html>

@@ -5,7 +5,7 @@
   fs.py page <id>               (verify CC0, print tags/description)
   fs.py get <id> [<id> ...]     (download HQ preview -> dl/<id>.mp3 and dl/<id>.wav)
 """
-import html, json, os, re, subprocess, sys, time, urllib.parse, urllib.request
+import contextlib, fcntl, html, json, os, re, subprocess, sys, time, urllib.parse, urllib.request
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 CACHE = os.path.join(HERE, 'cache')
@@ -25,8 +25,18 @@ def load_meta():
 
 
 def save_meta(m):
-    with open(META, 'w') as f:
+    tmp = META + '.tmp'
+    with open(tmp, 'w') as f:
         json.dump(m, f, indent=1, ensure_ascii=False)
+    os.replace(tmp, META)
+
+
+@contextlib.contextmanager
+def meta_lock():
+    """Hold while reading-modifying-writing meta.json, so several fs.py runs can work in parallel."""
+    with open(META + '.lock', 'w') as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        yield
 
 
 def throttle():
@@ -109,10 +119,11 @@ def search(q, dur=None, sort='rel', n=15, page=1):
     url = 'https://freesound.org/search/?' + urllib.parse.urlencode(params)
     s = cached_fetch(url, 'search_%s_%s_%s_%s' % (q, dur, sort, page))
     res = parse_results(s)
-    meta = load_meta()
-    for r in res:
-        meta.setdefault(str(r['id']), {}).update(r)
-    save_meta(meta)
+    with meta_lock():
+        meta = load_meta()
+        for r in res:
+            meta.setdefault(str(r['id']), {}).update(r)
+        save_meta(meta)
     for r in res[:n]:
         print('%7d %-18s %6.1fs dl=%-6d %.1f(%d) %s | %s' % (r['id'], r['user'][:18], r['dur'], r['dl'], r['rating'], r['nrat'], 'CC0' if 'Commons 0' in r['lic'] else r['lic'], r['title'][:70]))
         print('        tags: %s' % ' '.join(r['tags'][:14]))
@@ -140,8 +151,10 @@ def page(sid):
     desc = re.sub('<[^>]+>', ' ', dm.group(1)) if dm else ''
     m['page_desc'] = ' '.join(html.unescape(desc).split())[:800]
     m['page_tags'] = tags
-    meta[str(sid)] = m
-    save_meta(meta)
+    with meta_lock():
+        meta = load_meta()
+        meta.setdefault(str(sid), {}).update(m)
+        save_meta(meta)
     print('%s  CC0=%s other=%s' % (url, m['page_cc0'], other))
     print('  tags:', ' '.join(tags))
     print('  desc:', m['page_desc'][:600])
