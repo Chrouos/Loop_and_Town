@@ -788,6 +788,23 @@ export const SFX_RECIPES: Record<SfxId, SfxRecipe> = {
       return endOf(c, end);
     },
   },
+  pipe_gurgle: {
+    play(c) {
+      const t = c.t;
+      const out = lp(c, 1200, c.out, 0.8);
+      let end = nshape(c, out, t, {
+        kind: 'pink', type: 'bandpass', f: 260 * c.p, q: 1.4,
+        pts: [[0, 0], [0.08, 0.05], [0.55, 0.025], [0.7, 0], [0.85, 0.045], [1.45, 0.02], [1.7, 0]],
+      });
+      // Two uneven runs of low bubbles, with a short gap as air moves through the pipe.
+      for (const start of [0, 0.8]) {
+        for (let offset = 0; offset < 0.65; offset += rand(0.075, 0.14)) {
+          end = Math.max(end, droplet(c, out, t + start + offset, rand(170, 420) * c.p, rand(0.2, 0.35)));
+        }
+      }
+      return endOf(c, end);
+    },
+  },
   cup_set: {
     play(c) {
       const t = c.t;
