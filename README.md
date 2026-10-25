@@ -18,7 +18,7 @@ npm run dev
 
 - 點畫面：讓這句話快一點
 - 點擬聲字：轉過去聽那個聲音
-- 長按一句話：記住它，最多帶七句過午夜
+- 長按一句話：記住它，最多帶十句過午夜
 - 右下角小圓點：記憶與設定
 
 測試用網址參數：`?reset` 清除存檔、`?chapter=4` 從第四章開始（自動補上前面章節學到的事）、`?fast=20` 加速、`?mute` 靜音。
@@ -41,6 +41,8 @@ docs/         story.md（故事）、design.md（體驗與劇本格式）、styl
 ```bash
 cd game
 npm test        # 劇本驗證 + 每一章都能玩到下一章 + 三個結局都到得了
+npx playwright install chromium webkit # 第一次跑手機瀏覽器測試前安裝
+npm run test:mobile # 另開終端以 npm run dev -- --port 5180 啟動遊戲；檢查手機 Chromium / WebKit
 npm run build   # 輸出到 game/dist，GitHub Pages 的網址根目錄就是遊戲
 ```
 

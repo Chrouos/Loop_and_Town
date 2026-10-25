@@ -40,6 +40,12 @@ scenes:
       - think: 這一次，若晴不能去舊車站。
       - narr: 外套口袋裡的信還在。我用指腹壓過那一行凸點，每一顆都在原來的位置。
       - think: 一封叫我不要回來的信，又被我帶回來了。
+      - if: "!know.k_watch_1831 || !know.k_notebook_1831 || !know.k_photo_tingan"
+        then:
+          - think: 姊姊桌上那幾樣東西，上一次我沒有每一樣都摸過。
+      - if: know.k_in_station_hall && !know.k_cabinet_warm
+        then:
+          - think: 那天晚上在大廳，她倒下的那面牆腳，我一直沒有摸到。
       - { sfx: train_brake, at: front, dist: mid, text: 嘰—— }
     next: c2_arrival
 
@@ -86,6 +92,22 @@ scenes:
       - think: 今晚八點，他要跟房仲談店的事。
       - { sfx: door_creak, at: right, dist: mid, text: 喀啦 }
       - narr: 他去把窗戶一扇一扇推開，右邊先灌進來一陣風。
+      - if: "!know.k_watch_1831 || !know.k_photo_tingan"
+        then:
+          - me: 予安，你先幫我看一下我姊桌上的東西。
+          - { sfx: step, at: front, dist: mid, text: 叩、叩 }
+          - if: "!know.k_watch_1831"
+            then:
+              - me: 那只錶，現在幾點？
+              - yuan: 沒在走了。
+              - { yuan: 停在六點三十一分。, learn: k_watch_1831, mem: m_watch }
+          - if: "!know.k_photo_tingan"
+            then:
+              - me: 相框裡那張，我姊旁邊站的是誰？
+              - { yuan: 一個短頭髮的女生，揹著很大的包包。, learn: k_photo_tingan, mem: m_photo }
+              - yuan: 我不認得她。
+          - yuan: 怎麼突然要看這些？
+          - me: 上次來沒問完。
       - think: 今天怎麼過，現在就得決定。
       - choice:
           options:
@@ -776,6 +798,10 @@ scenes:
       - { sfx: phone_buzz, at: right, dist: near, text: 嗡, vib: buzz }
       - { phone: 心率過高，已記錄。十八點三十一分。, learn: c2_ruoqing_died_again }
       - learn: k_in_station_hall
+      - if: "!know.k_cabinet_warm"
+        then:
+          - narr: 我撐著地往右邊爬，爬到牆腳，手背撞上一塊鐵板。燙的，裡面還在低低地嗡。
+          - { think: 東牆上釘著一個鐵櫃，剛才那一聲是從這裡面出來的。, learn: k_cabinet_warm, mem: m_c2_cabinet }
     next: c2_night
 
   - id: c2_goes_stay
@@ -813,9 +839,20 @@ scenes:
     cast: { yuan: back }
     beats:
       - narr: 冰箱在樓下低低地運轉，窗外的蟲叫個不停。
-      - narr: 書桌上那只錶是冷的。我把它翻過來，指腹沿著背面的刻痕走。
+      - if: "!know.k_notebook_1831"
+        then:
+          - { sfx: page_turn, at: front, dist: near, text: 沙啦 }
+          - narr: 那本硬殼筆記本，第一個今天我沒有翻開。紙頁背面摸起來是凸的。
+          - touch:
+              cells: ["1", "8", "：", "3", "1"]
+              style: groove
+              prompt: 指腹順著筆畫的溝走過去
+              timeout: 30
+          - { think: 一、八。冒號。三、一。, learn: k_notebook_1831 }
+          - narr: 下一行一樣，再下一行還是一樣。她寫到紙背都凸起來了。
+      - narr: 書桌上那只錶是冷的。我把它翻過來，指腹沿著背面的刻痕走，再把手機鏡頭貼上去。
       - phone: 如果你第二次看見十八點三十一分，
-      - phone: 不要先救第一個死者。
+      - { phone: 不要先救第一個死者。, learn: k_watch_engraving }
       - heart: slow
       - pause: 2
       - if: flag.ruoqing_safe && know.k_boxun_died

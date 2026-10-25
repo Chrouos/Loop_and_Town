@@ -1,7 +1,7 @@
 import { CHAPTER_ORDER, type LineKind } from '../script/types';
 import type { TextSpeed } from './text';
 
-export const MEMORY_CAPACITY = 7;
+export const MEMORY_CAPACITY = 10;
 export const SAVE_KEY = 'listening-town-save-v1';
 
 export type Memory = {

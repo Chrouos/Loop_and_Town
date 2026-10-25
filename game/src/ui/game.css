@@ -47,10 +47,15 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 .lt-daze.daze-heavy { filter: blur(2.6px); opacity: 0.68; animation: lt-swim-hard 3.8s ease-in-out infinite; transition-duration: 500ms; }
 .lt-stage.still .lt-daze { animation: none !important; }
 
-/* ── her heart: the edges darken red on each beat ── */
-/* Keep heartbeat animation on the separate glow layer. Scaling the text container makes glyphs
-   shift between fractional pixels and can blur composited text on mobile Safari. */
+/* ── her heart: the edges darken red on each beat; fast and pound also jolt everything on stage ── */
+/* Never scale the text layer: glyphs land on fractional pixels and blur on mobile Safari. The jolt moves it by
+   whole pixels and jumps instead of gliding (steps), so every frame stays on the pixel grid. The layer is
+   promoted once when the heart speeds up (will-change), not at every beat, so it does not flicker. */
 .lt-body { position: absolute; inset: 0; }
+.lt-body.heart-fast { --jolt: -2px; --dub: 1px; --beat: 560ms; will-change: transform; }
+.lt-body.heart-pound { --jolt: -4px; --dub: 2px; --beat: 420ms; will-change: transform; }
+.lt-body.heart-fast.beat-0, .lt-body.heart-pound.beat-0 { animation: lt-thump-a var(--beat) steps(1, end); }
+.lt-body.heart-fast.beat-1, .lt-body.heart-pound.beat-1 { animation: lt-thump-b var(--beat) steps(1, end); }
 .lt-heart {
   position: absolute; inset: 0; pointer-events: none; opacity: 0;
   background: radial-gradient(ellipse 78% 72% at 50% 50%, transparent 46%, rgba(128, 22, 16, 0.62) 100%);
@@ -88,11 +93,15 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
   text-indent: 0.42em;
 }
 .lt-text { margin: 0; font-size: calc(clamp(1.15rem, 2.3vw, 1.6rem) * var(--text-scale, 1)); line-height: 1.85; font-weight: 400; letter-spacing: 0.06em; text-wrap: balance; }
+.lt-sent { display: inline-block; max-width: 100%; margin: 0 0.5em; word-break: keep-all; overflow-wrap: break-word; }
+.lt-line.kind-me .lt-sent:first-child { margin-left: 0; }
+.lt-line.kind-me .lt-sent:last-of-type { margin-right: 0; }
 .lt-phrase { display: inline; opacity: 0; filter: blur(7px); animation: lt-phrase 620ms var(--ease) forwards; }
 .lt-line.revealed .lt-phrase { animation-delay: 0ms !important; }
 
-.lt-line.kind-me .lt-text::before { content: '「'; color: var(--ink-dim); }
-.lt-line.kind-me .lt-text::after { content: '」'; color: var(--ink-dim); }
+/* The quotes ride inside the first and last sentence, so a full row never pushes them onto rows of their own. */
+.lt-line.kind-me .lt-sent:first-child::before { content: '「'; color: var(--ink-dim); }
+.lt-line.kind-me .lt-sent:last-of-type::after { content: '」'; color: var(--ink-dim); }
 .lt-line.kind-think .lt-text { color: var(--ink-soft); font-style: italic; letter-spacing: 0.14em; font-weight: 300; }
 .lt-line.kind-narr .lt-text { font-size: calc(clamp(0.98rem, 1.8vw, 1.22rem) * var(--text-scale, 1)); color: rgba(236, 230, 218, 0.8); letter-spacing: 0.1em; font-weight: 300; }
 .lt-line.kind-phone .lt-text { font-family: var(--mono); color: var(--phone); font-size: calc(clamp(0.92rem, 1.7vw, 1.12rem) * var(--text-scale, 1)); letter-spacing: 0.22em; }
@@ -322,6 +331,8 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 }
 @keyframes lt-swim { 0%, 100% { filter: blur(1px); transform: translate(0, 0) scale(1); } 50% { filter: blur(1.8px); transform: translate(3px, 2px) scale(1.006); } }
 @keyframes lt-swim-hard { 0%, 100% { filter: blur(2.2px); transform: translate(0, 0) scale(1) rotate(0); } 33% { filter: blur(3.6px); transform: translate(-6px, 3px) scale(1.012) rotate(-0.3deg); } 66% { filter: blur(2.8px); transform: translate(5px, -2px) scale(1.008) rotate(0.25deg); } }
+@keyframes lt-thump-a { 0%, 30%, 52%, 100% { transform: translateY(0); } 10% { transform: translateY(var(--jolt)); } 40% { transform: translateY(var(--dub)); } }
+@keyframes lt-thump-b { 0%, 30%, 52%, 100% { transform: translateY(0); } 10% { transform: translateY(var(--jolt)); } 40% { transform: translateY(var(--dub)); } }
 @keyframes lt-glow-a { 0% { opacity: var(--lo); } 12% { opacity: var(--hi); } 30% { opacity: var(--lo); } 42% { opacity: calc(var(--lo) + (var(--hi) - var(--lo)) * 0.6); } 100% { opacity: var(--lo); } }
 @keyframes lt-glow-b { 0% { opacity: var(--lo); } 12% { opacity: var(--hi); } 30% { opacity: var(--lo); } 42% { opacity: calc(var(--lo) + (var(--hi) - var(--lo)) * 0.6); } 100% { opacity: var(--lo); } }
 
@@ -413,3 +424,27 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 }
 .lt-punch .lt-interact-note { top: calc(50% + 240px); }
 @media (max-width: 560px) { .lt-punch .lt-interact-note { top: calc(50% + 220px); } }
+
+/* Keep hand interactions in the visible viewport, including short landscape screens.
+   Let cells share the available width so seven-character strips fit a small phone. */
+.lt-touch, .lt-punch {
+  top: max(90px, calc(50% - 60px));
+  right: env(safe-area-inset-right, 0px);
+  bottom: max(16px, env(safe-area-inset-bottom));
+  left: env(safe-area-inset-left, 0px);
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  padding: 0 12px; overflow-y: auto; overscroll-behavior: contain;
+}
+.lt-touch > *, .lt-punch > * { flex-shrink: 0; }
+.lt-touch .lt-interact-prompt, .lt-punch .lt-interact-prompt,
+.lt-touch .lt-interact-note, .lt-punch .lt-interact-note,
+.lt-touch-strip, .lt-punch-row { position: static; transform: none; }
+.lt-touch .lt-interact-prompt, .lt-punch .lt-interact-prompt,
+.lt-touch .lt-interact-note, .lt-punch .lt-interact-note { width: min(100%, 520px); }
+.lt-touch-strip { width: min(100%, 620px); justify-content: center; gap: clamp(4px, 2vw, 18px); }
+.lt-touch-cell { flex: 1; min-width: 0; max-width: 64px; }
+.lt-punch-cell { grid-template-columns: repeat(2, 44px); grid-template-rows: repeat(3, 44px); }
+.lt-punch-dot { width: 44px; height: 44px; }
+@media (max-height: 450px) {
+  .lt-stage:has(.lt-touch) .lt-center, .lt-stage:has(.lt-punch) .lt-center { top: 22%; }
+}
