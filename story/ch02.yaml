@@ -549,7 +549,7 @@ scenes:
       - narr: 警笛從鎮上一路靠過來，好幾雙鞋踩過碎石。
       - { sfx: step_run, at: left, dist: mid, text: 噠噠噠 }
       - { man: 在裡面！通道裡面啦！, as: 陌生的男聲 }
-      - { man: 上面的東西整個倒下來……, as: 陌生的男聲 }
+      - { man: 上面的鐵架整個塌下來，壓在他身上……, as: 陌生的男聲 }
       - pause: 2
       - { man: ……沒呼吸了。, as: 陌生的男聲, learn: k_boxun_died }
       - { man: 是醫院的陳醫生。, as: 陌生的男聲 }
@@ -639,7 +639,7 @@ scenes:
       - pause: 2
       - narr: 她的聲音一下子變平了，像在念別人家的事。
       - { ruoqing: 陳醫生……在舊車站的通道裡。, learn: k_boxun_died }
-      - ruoqing: 他們說大概六點半。
+      - ruoqing: 他們說大概六點半。通道上面的鐵架塌下來。
       - daze: light
       - ruoqing: 他本來是要把東西拿給我的。
       - heart: pound

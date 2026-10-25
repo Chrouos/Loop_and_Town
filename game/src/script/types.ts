@@ -57,7 +57,7 @@ export type Beat =
   /** 摸讀: drag a finger left to right across cells; each one surfaces only when touched slowly enough. */
   | { k: 'touch'; cells: string[]; style: 'braille' | 'groove' | 'engrave'; prompt?: string; timeout: number }
   /** 聽聲辨位: a sound repeats from one direction (with decoys); she points to it. */
-  | { k: 'locate'; sfx: SfxId; at: Direction; decoys: { sfx: SfxId; at: Direction }[]; tries: number; timeout?: number; prompt?: string; success: Beat[]; fail: Beat[] }
+  | { k: 'locate'; sfx: SfxId; at: Direction; decoys: { sfx: SfxId; at: Direction }[]; tries: number; exact?: boolean; timeout?: number; prompt?: string; success: Beat[]; fail: Beat[] }
   /** 點字板: punch braille cells from the back of the paper (mirrored); cells are dot numbers as they will be read. */
   | { k: 'punch'; cells: number[][]; label?: string; prompt?: string; timeout: number }
   | { k: 'if'; cond: Cond; then: Beat[]; else: Beat[] }

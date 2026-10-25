@@ -764,6 +764,9 @@ scenes:
       - ruoqing: 第二張，今年春天，同一個位置。
       - ruoqing: 水漬被刷掉了，草也沒了。
       - { ruoqing: 牆上多了一個灰色的鐵櫃，比人高一點。, learn: k_new_cabinet, mem: m_c6_cabinet }
+      - if: know.k_cabinet_warm
+        then:
+          - think: 第一個十月三日，我在那面牆腳摸過它。燙的，裡面一直在嗡。
       - ruoqing: 門上有一排小燈。下面拉出新的黑線，一路鑽進地下。
       - ruoqing: 側邊貼一張黃色貼紙，寫「備援」，後面一串編號。
       - ruoqing: 這是我唯一一張拍到「多出來」的東西。本來想丟掉，它不像《退潮以後》。
@@ -891,6 +894,9 @@ scenes:
           - ruoqing: 有啊。去年冬天一張，今年春天一張。
           - ruoqing: 冬天的時候，牆上只有一片水漬。
           - { ruoqing: 春天再去，牆上多了一個灰色的鐵櫃，接了新的線。, learn: k_new_cabinet, mem: m_c6_cabinet }
+          - if: know.k_cabinet_warm
+            then:
+              - think: 新的線。我摸過，比手指還粗，一路鑽進牆裡。
           - ruoqing: 妳問這個要幹嘛？
           - me: 我也不知道。
           - think: 這是真話。

@@ -278,6 +278,7 @@ scenes:
     at: right
     decoys: [{ sfx: light_buzz, at: left }]   # 干擾聲，至少和正確方向差 90 度
     tries: 2
+    exact: true                               # 可省略；只認 at 這一格，相鄰方位和鏡像都算錯
     timeout: 12                               # 可省略；時間到算失敗
     prompt: 哪一個在跟著時間變大？
     success: [...]

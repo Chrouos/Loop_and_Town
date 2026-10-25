@@ -44,13 +44,14 @@ function rng(seed: number) {
 export type PlayResult = { chapters: string[]; endings: string[]; loops: number; scenes: Set<string>; knowledge: Set<string>; stuck?: string };
 
 /** Plays with a random policy: random choices, sometimes turns toward cues, sometimes taps. */
-export function autoplay(options: { seed: number; maxLoops: number; startChapter?: string; grantKnowledge?: boolean; stopAtChapter?: string; attendRate?: number }): PlayResult {
+export function autoplay(options: { seed: number; maxLoops: number; startChapter?: string; grantKnowledge?: boolean; stopAtChapter?: string; attendRate?: number; observe?: (director: Director) => void }): PlayResult {
   const { script, errors } = loadScriptFromDisk();
   if (errors.length) throw new Error(errors.join('\n'));
   const random = rng(options.seed);
   let wall = 0;
   let save: GameSave = freshSave();
   const director = new Director(script, save, { audio: silentAudio(), vibrate: () => undefined, persist: (next) => { save = next; }, wallNow: () => wall }, { speed: 1 });
+  if (options.observe) director.subscribe(() => options.observe!(director));
   if (options.startChapter) director.jumpToChapter(options.startChapter, options.grantKnowledge ?? true);
   else director.start();
   const chapters: string[] = [director.view.chapterKey];

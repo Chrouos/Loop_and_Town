@@ -267,7 +267,7 @@ export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown 
       {card && <CardView card={card} phase={cardPhase.current} gone={cardGone} />}
       {(view.clock || view.place) && view.phase !== 'idle' && (
         <div className="lt-where" aria-hidden="true">
-          {clockShown && <span key={view.clock} className="lt-where-time">{clockShown}</span>}
+          {clockShown && <span key={view.clockMark} className="lt-where-time">{clockShown}</span>}
           {view.place && <span key={view.place} className="lt-where-place">{view.place}</span>}
         </div>
       )}

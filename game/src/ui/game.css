@@ -1,3 +1,10 @@
+/* Every character the game shows, in one file (tools/subset-font.py), so text never swaps face mid-scene. */
+@font-face {
+  font-family: 'Iansui';
+  src: url('../assets/fonts/iansui-subset.woff2') format('woff2');
+  font-display: block;
+}
+
 :root {
   --bg: #000;
   --ink: #ece6da;
@@ -180,11 +187,12 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
   flex-shrink: 0;
   pointer-events: auto; padding: 10px 18px; font-size: calc(clamp(0.98rem, 1.8vw, 1.12rem) * var(--text-scale, 1)); letter-spacing: 0.1em;
   color: var(--ink-dim); opacity: 0; animation: lt-choice-in 700ms var(--ease) forwards;
-  transition: color 300ms, letter-spacing 400ms var(--ease);
+  transition: color 300ms;
   text-align: center; line-height: 1.6;
 }
-.lt-choice:hover, .lt-choice:focus-visible, .lt-choice.selected { color: var(--ink); letter-spacing: 0.14em; }
-.lt-choice:disabled { color: var(--ink-ghost); cursor: default; letter-spacing: 0.1em; }
+/* Only the color answers the pointer: widening the letters re-wraps a long choice mid-transition and it flickers. */
+.lt-choice:hover, .lt-choice:focus-visible, .lt-choice.selected { color: var(--ink); }
+.lt-choice:disabled { color: var(--ink-ghost); cursor: default; }
 .lt-choice .lt-key { font-family: var(--mono); font-size: calc(0.62rem * var(--text-scale, 1)); color: var(--ink-ghost); margin-right: 0.9em; vertical-align: 2px; }
 .lt-timer { height: 1px; width: 120px; background: var(--ink-faint); margin-top: 10px; transform-origin: center; animation: lt-timer var(--timeout) linear forwards; }
 .lt-choices.timed .lt-choice { animation: lt-choice-in 700ms var(--ease) forwards, lt-choice-dim var(--timeout) linear forwards; }

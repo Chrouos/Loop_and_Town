@@ -74,6 +74,17 @@ describe('hands and ears interactions', () => {
     }
   });
 
+  it('locate with exact: only the one direction counts, a neighbour is a miss', () => {
+    const exact = SCRIPT.replace('          tries: 2\n', '          tries: 1\n          exact: true\n');
+    for (const [pick, flag] of [['right', 'found'], ['front-right', 'lost'], ['back-right', 'lost']] as const) {
+      const { director, run, until } = setup(exact);
+      until('touch'); director.touchDone(); until('locate');
+      director.locatePick(pick);
+      run(100);
+      expect(director.loopFlags.has(flag)).toBe(true);
+    }
+  });
+
   it('locate: a wrong turn leaves a hint, a second wrong turn takes the fail branch', () => {
     const { director, run, until } = setup();
     until('touch'); director.touchDone(); until('locate');
