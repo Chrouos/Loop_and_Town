@@ -1,9 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AMBIENCE, DIRECTIONS, DISTANCES, SFX, VOICES, type AmbienceId, type SfxId, type SpatialPos, type VoiceId } from '../src/audio/catalog';
 import { AMBIENCE_RECIPES, startAmbience } from '../src/audio/ambience';
-import { Graph, type SfxCtx } from '../src/audio/core';
+import { Graph, type SfxCtx, type SfxRecipe } from '../src/audio/core';
 import { createAudioEngine, createSilentEngine, type AudioEngine, type AudioEngineDebug } from '../src/audio/engine';
 import { AMBIENT_EVENTS, HUMAN_SFX, SFX_RECIPES } from '../src/audio/sounds';
+import { LIFE_SFX_RECIPES } from '../src/audio/lifeSounds';
 import { AMBIENCE_SAMPLES, SFX_SAMPLES, SampleBank, sampleRecipe, sampleUrl } from '../src/audio/samples';
 import credits from '../public/audio/CREDITS.md?raw';
 import { ATTRIBUTION_CREDITS } from '../src/audio/credits';
@@ -282,6 +283,25 @@ const POSITIONS: SpatialPos[] = [
 describe('audio catalog coverage', () => {
   it('has a synthesis recipe for every SfxId and nothing else', () => {
     expect(Object.keys(SFX_RECIPES).sort()).toEqual(Object.keys(SFX).sort());
+  });
+
+  it('tuning a caption sound leaves its steady ambience level unchanged', () => {
+    const shot = SFX_RECIPES.house_tick;
+    const bed = AMBIENT_EVENTS.house_tick as SfxRecipe;
+    const before = bed.level;
+    const shotBefore = shot.level;
+    try {
+      shot.level = 2;
+      expect(bed.level).toBe(before);
+    } finally {
+      shot.level = shotBefore;
+    }
+  });
+
+  it('calibrating a new effect does not mutate its reusable source recipe', () => {
+    const source = LIFE_SFX_RECIPES.leaf_rustle as SfxRecipe;
+    expect(source.level).toBeUndefined();
+    expect(SFX_RECIPES.leaf_rustle.level).toBeGreaterThan(0);
   });
 
   it('has an ambience recipe for every AmbienceId and nothing else', () => {

@@ -21,6 +21,8 @@ import {
   type SfxRecipe,
 } from './core';
 import { glottalWave, murmurRig } from './voice';
+import { LIFE_SFX_RECIPES } from './lifeSounds';
+import { LIFE_SFX_LEVELS } from './lifeSoundLevels';
 
 type Pts = ReadonlyArray<readonly [number, number]>;
 type Part = readonly [ratio: number, amp: number, t60: number];
@@ -420,7 +422,7 @@ function maleChuckle(c: SfxCtx): number {
   return endOf(c, e);
 }
 
-export const SFX_RECIPES: Record<SfxId, SfxRecipe> = {
+const BASE_SFX_RECIPES: Record<Exclude<SfxId, AmbientEventId | keyof typeof LIFE_SFX_RECIPES>, SfxRecipe> = {
   // ------------------------------------------------------------ people & movement
   step: stepRecipe({}),
   step_heels: stepRecipe({ heels: true }),
@@ -1863,7 +1865,7 @@ function bell(c: SfxCtx, o: { prime: number; level: number; cutoff: number; wet:
   return endOf(c, e1, e2, e3);
 }
 
-// ================================================================ ambient-only event sounds
+// ================================================================ environmental event sounds
 
 export const AMBIENT_EVENTS = {
   rail_clack: {
@@ -2123,6 +2125,17 @@ export const AMBIENT_EVENTS = {
 
 export type AmbientEventId = keyof typeof AMBIENT_EVENTS;
 
+// Each bus keeps its own trim: raising a visible detail must not raise the ambient bed.
+const EVENT_SFX_RECIPES = Object.fromEntries(Object.entries({ ...AMBIENT_EVENTS, ...LIFE_SFX_RECIPES })
+  .map(([id, recipe]) => [id, { ...recipe }])) as Record<AmbientEventId | keyof typeof LIFE_SFX_RECIPES, SfxRecipe>;
+
+// The same physical recipes serve the ambient bed and each visible sound event.
+// Compose after both tables initialize; recipes may refer to this table when played.
+export const SFX_RECIPES: Record<SfxId, SfxRecipe> = {
+  ...BASE_SFX_RECIPES,
+  ...EVENT_SFX_RECIPES,
+};
+
 /**
  * Level trims: physical fallbacks are matched to their recordings using the loudest 50 ms
  * windows from three offline renders (2026-10-24). Boosts retain 6 dB of sampled peak
@@ -2130,6 +2143,7 @@ export type AmbientEventId = keyof typeof AMBIENT_EVENTS;
  * This is an energy calibration; timbre and perceived loudness still need listening.
  */
 const TRIM: Partial<Record<SfxId, number>> = {
+  ...LIFE_SFX_LEVELS,
   // big impacts: keep headroom for the limiter
   heartbeat: 0.366,
   thud: 0.274,

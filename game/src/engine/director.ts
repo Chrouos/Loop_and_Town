@@ -1007,7 +1007,7 @@ export class Director {
       }
       this.lifeVoiceAt = at;
     } else {
-      if (event.sfx) this.out.audio.play(event.sfx, pos, { gain: pos.dist === 'far' ? 0.45 : 0.6 });
+      this.out.audio.play(event.sfx, pos, { gain: pos.dist === 'far' ? 0.45 : 0.6 });
       this.addPeripheral('sfx', event.text, pos, t + SFX_TEXT_MS * (pos.dist === 'far' ? 1.25 : 1), undefined, event.src ?? (event.sfx && SFX_SOURCE[event.sfx]));
     }
     this.bump();

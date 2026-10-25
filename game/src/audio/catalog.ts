@@ -127,6 +127,24 @@ export const SFX = {
   focus_shift: '轉向時的空氣聲',
   choice_appear: '準備開口的細微聲',
   title_tone: '標題的低音',
+  // Caption-synchronized environmental effects (also used by ambience layers).
+  rail_clack: '列車輪軌接縫', cabin_rattle: '車廂行李架晃動',
+  wood_creak: '木頭吱響', house_tick: '木頭輕響', bird_chirp: '麻雀鳴叫',
+  pigeon_coo: '鴿子咕叫', wing_flutter: '鳥振翅', drip: '水滴落下',
+  rain_drop_near: '雨滴落在近處', rain_tap_glass: '雨滴敲窗', drip_metal: '水滴敲鐵皮',
+  cart_roll: '推車輪子滾動', monitor_beep: '機器提示音', shutter_roll: '拉起鐵捲門',
+  chopsticks: '碗筷碰撞', wok: '鍋鏟碰炒鍋', hdd_seek: '硬碟讀寫',
+  pipe_knock: '水管敲響', tower_groan: '鐘樓結構低鳴', metal_groan: '金屬吱響', fridge_click: '冰箱啟動輕響',
+  plastic_crinkle: '塑膠包裝揉響', broom_sweep: '掃把掃地', water_splash: '潑水', chop_thud: '砧板剁切',
+  car_horn: '短促汽車喇叭', fry_sizzle: '油鍋煎炒滋響', garbage_melody: '垃圾車音樂',
+  fan_hum: '風扇與馬達低鳴', flush_water: '沖水', cat_meow: '貓叫', cricket_chirp: '蟋蟀鳴叫',
+  gecko_click: '壁虎叫聲', mosquito_buzz: '蚊子飛近', frog_croak: '青蛙鳴叫', owl_hoot: '貓頭鷹叫聲',
+  scanner_beep: '刷卡或掃碼提示', call_chime: '叫號提示音', elevator_ding: '電梯抵達提示',
+  photocopier: '影印機運轉', icecream_horn: '叭噗車喇叭', can_rattle: '空罐滾動', skate_roll: '滑板滾動',
+  branch_snap: '樹枝折響', boat_engine: '漁船引擎', ship_horn: '船笛', mouse_squeak: '老鼠吱叫',
+  air_flow: '空調送風', power_saw: '電鋸切割', excavator: '怪手作業', water_rush: '排水流動',
+  leaf_rustle: '枯葉與草叢摩擦', fabric_flap: '旗布拍打', wire_whistle: '風吹電線',
+  pebble_roll: '石頭隨水滾動', metal_rattle: '鬆動鐵皮碰撞',
 } as const;
 export type SfxId = keyof typeof SFX;
 
@@ -158,6 +176,18 @@ export const SFX_SOURCE: Partial<Record<SfxId, string>> = {
   hum_rise: '嗡鳴', hum_fall: '嗡鳴', light_buzz: '燈管', blackout: '斷電', power_up: '來電',
   spark: '火花', metal_crash: '鐵架倒下', thud: '重物', glass_break: '玻璃', relay_click: '繼電器',
   bell_toll: '鐘樓', bell_toll_far: '遠處的鐘', tinnitus: '耳鳴',
+  rail_clack: '鐵軌', cabin_rattle: '行李架', wood_creak: '木頭', house_tick: '木頭',
+  bird_chirp: '麻雀', pigeon_coo: '鴿子', wing_flutter: '翅膀', drip: '滴水',
+  rain_drop_near: '雨滴', rain_tap_glass: '雨打窗', drip_metal: '鐵皮滴水',
+  cart_roll: '推車', monitor_beep: '機器', shutter_roll: '鐵捲門', chopsticks: '碗筷', wok: '炒鍋',
+  hdd_seek: '硬碟', pipe_knock: '水管', tower_groan: '鐘樓', metal_groan: '金屬', fridge_click: '冰箱',
+  plastic_crinkle: '包裝袋', broom_sweep: '掃地', water_splash: '潑水', chop_thud: '砧板',
+  car_horn: '喇叭', fry_sizzle: '油鍋', garbage_melody: '垃圾車', fan_hum: '風扇', flush_water: '沖水',
+  cat_meow: '貓', cricket_chirp: '蟋蟀', gecko_click: '壁虎', mosquito_buzz: '蚊子', frog_croak: '青蛙', owl_hoot: '貓頭鷹',
+  scanner_beep: '掃碼', call_chime: '叫號', elevator_ding: '電梯', photocopier: '影印機', icecream_horn: '叭噗車',
+  can_rattle: '空罐子', skate_roll: '滑板', branch_snap: '樹枝', boat_engine: '漁船', ship_horn: '船笛',
+  mouse_squeak: '老鼠', air_flow: '空調', power_saw: '電鋸', excavator: '怪手', water_rush: '排水',
+  leaf_rustle: '枯葉', fabric_flap: '旗子', wire_whistle: '電線', pebble_roll: '石頭', metal_rattle: '鐵皮',
 };
 
 export const AMBIENCE = {

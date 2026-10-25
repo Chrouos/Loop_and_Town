@@ -241,7 +241,7 @@ scenes:
       - { say: 媽媽，還有幾站？, voice: child, reply: [{ say: 還早啦。, voice: woman }, { say: 喔。, voice: child }] }
       - { say: 便當——飲料——, voice: man }
       - { say: 借過一下。, voice: man }
-      - { text: 喀沙, src: 枯葉 }
+      - { text: 喀沙, sfx: leaf_rustle, src: 枯葉 }
       - { text: 沙沙, sfx: paper_rustle }
     beats: [{ wait: 200 }, { end: reset }]
 ` }]);
