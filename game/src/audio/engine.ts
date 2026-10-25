@@ -620,6 +620,8 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
       await this.bank.loadSfx(id);
       recipe = this.sampleFor(id, true);
     }
+    // A suspended context (tab switch, OS audio change) is not a broken file: wake it before giving up.
+    if (this.ac && this.ac.state !== 'running') await this.ac.resume().catch(() => undefined);
     if (!recipe || !this.ac || this.ac.state !== 'running') return false;
     this.shoot(id, pos, opts, recipe);
     return true;

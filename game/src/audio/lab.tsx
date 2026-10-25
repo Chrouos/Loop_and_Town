@@ -16,7 +16,51 @@ import {
   type SpatialPos,
 } from './catalog';
 import { createAudioEngine, type AudioEngineDebug, type SampleMode } from './engine';
-import { AMBIENCE_SAMPLES, SFX_SAMPLES } from './samples';
+import { AMBIENCE_SAMPLES, SFX_SAMPLES, sampleUrl } from './samples';
+
+type Playable = 'ok' | 'bad';
+const RECHECK_MS = 4000;
+
+/** Decode one recording off the audio graph, so the page only offers versions that can really play. */
+async function probe(file: string): Promise<Playable> {
+  try {
+    const response = await fetch(sampleUrl(file), { cache: 'no-store' });
+    if (!response.ok) return 'bad';
+    const data = await response.arrayBuffer();
+    const ctx = new OfflineAudioContext(1, 1, 44100);
+    await ctx.decodeAudioData(data);
+    return 'ok';
+  } catch {
+    return 'bad';
+  }
+}
+
+/** Which recording files decode right now; unreadable ones are re-checked until they come back. */
+function usePlayable(): [Record<string, Playable>, (file: string) => void] {
+  const [state, setState] = useState<Record<string, Playable>>({});
+  const files = useMemo(() => Object.values(SFX_SAMPLES).flatMap((entry) => entry?.files ?? []), []);
+  useEffect(() => {
+    let alive = true;
+    const run = async (list: string[]) => {
+      for (const file of list) {
+        const result = await probe(file);
+        if (!alive) return;
+        setState((current) => (current[file] === result ? current : { ...current, [file]: result }));
+      }
+    };
+    void run(files);
+    const timer = window.setInterval(() => {
+      setState((current) => {
+        const bad = files.filter((file) => current[file] === 'bad');
+        if (bad.length) void run(bad);
+        return current;
+      });
+    }, RECHECK_MS);
+    return () => { alive = false; window.clearInterval(timer); };
+  }, [files]);
+  const markBad = (file: string) => setState((current) => ({ ...current, [file]: 'bad' }));
+  return [state, markBad];
+}
 
 const GROUPS: ReadonlyArray<readonly [label: string, first: SfxId]> = [
   ['人與移動', 'step'],
@@ -78,6 +122,7 @@ function Btn(props: { on?: boolean; onClick: (e: MouseEvent<HTMLButtonElement>) 
 }
 
 function Lab() {
+  const [playable, markBad] = usePlayable();
   const engine = useMemo(() => createAudioEngine(), []);
   const [ready, setReady] = useState(false);
   const [dir, setDir] = useState<Direction | 'center'>('front');
@@ -149,6 +194,14 @@ function Lab() {
       const dbg = engine as Partial<AudioEngineDebug>;
       const p = pos();
       const ok = dbg.playSource ? await dbg.playSource(id, p, source, { gain, rate, variant }) : false;
+      if (!ok && source === 'sample' && variant !== undefined) {
+        // Hide it rather than leave a broken button; the re-check brings it back once it decodes.
+        const file = SFX_SAMPLES[id]?.files[variant];
+        if (file) markBad(file);
+        setPressed(null);
+        setLast(`${id} · 錄音 ${variant + 1} 暫時讀不到，先隱藏，讀得到時會自動出現`);
+        return;
+      }
       setPressed({ key, ok });
       pressedTimer.current = window.setTimeout(() => setPressed((cur) => (cur?.key === key ? null : cur)), ok ? 900 : 2500);
       setLast(`${id} @ ${p.dir}/${p.dist} · ${source === 'sample' ? `錄音 ${variant === undefined ? '隨機' : variant + 1}` : '合成配方'}${ok ? '' : '（無法播放）'}`);
@@ -314,12 +367,26 @@ function Lab() {
                   {id}
                   <span style={css.small}>{SFX[id]}</span>
                 </Btn>
-                <div style={{ ...css.small, marginTop: 8 }}>錄音 · {SFX_SAMPLES[id]?.files.length ?? 0} 個版本</div>
-                <div style={{ ...css.pair, flexWrap: 'wrap' }}>
-                  {SFX_SAMPLES[id]?.files.map((file, variant) => (
-                    <Btn key={file} title={file} onClick={() => playFrom(id, 'sample', variant)} style={{ ...css.mini, ...pressedStyle(`${id}:sample:${variant}`) }}>{pressedLabel(`${id}:sample:${variant}`, `▶ 錄音 ${variant + 1}`)}</Btn>
-                  )) ?? <span style={css.small}>尚無錄音</span>}
-                </div>
+                {(() => {
+                  const files = SFX_SAMPLES[id]?.files ?? [];
+                  const ready = files.filter((file) => playable[file] === 'ok').length;
+                  const hidden = files.filter((file) => playable[file] === 'bad').length;
+                  const loading = files.length - ready - hidden;
+                  return (
+                    <>
+                      <div style={{ ...css.small, marginTop: 8 }}>
+                        錄音 · {files.length ? `${files.length} 個版本` : '尚無錄音'}
+                        {loading > 0 && `（讀取中 ${loading}）`}
+                        {hidden > 0 && `（${hidden} 個暫時讀不到，已隱藏）`}
+                      </div>
+                      <div style={{ ...css.pair, flexWrap: 'wrap' }}>
+                        {files.map((file, variant) => (playable[file] === 'ok' ? (
+                          <Btn key={file} title={file} onClick={() => playFrom(id, 'sample', variant)} style={{ ...css.mini, ...pressedStyle(`${id}:sample:${variant}`) }}>{pressedLabel(`${id}:sample:${variant}`, `▶ 錄音 ${variant + 1}`)}</Btn>
+                        ) : null))}
+                      </div>
+                    </>
+                  );
+                })()}
                 <div style={{ ...css.small, marginTop: 8 }}>合成 · 1 套配方（隨機變化）</div>
                 <div style={css.pair}>
                   <Btn onClick={() => playFrom(id, 'synth')} style={{ ...css.mini, ...pressedStyle(`${id}:synth:`) }}>▶ 合成</Btn>

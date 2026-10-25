@@ -376,6 +376,30 @@ function maleSigh(c: SfxCtx): number {
   return endOf(c, e1, t + 1.6);
 }
 
+function softLaugh(c: Parameters<typeof maleChuckle>[0], baseHz: number) {
+      const t = c.t;
+      const n = chance(0.45) ? 3 : 2;
+      let e = t;
+      let s = t;
+      const base = vary(baseHz, 0.1) * c.p;
+      for (let i = 0; i < n; i++) {
+        const len = rand(0.13, 0.17);
+        const lv = (1 - i * 0.22) * rand(0.85, 1);
+        const f0 = base * rand(0.94, 1.06);
+        const breath = nburst(c, c.out, s, { kind: 'pink', type: 'bandpass', f: 1800 * c.p, q: 0.65, att: 0.008, t60: 0.08, level: 0.13 * lv });
+        const v = c.g.osc(glottalWave(c.g.ac), f0, s + 0.006, s + len);
+        sweep(v.frequency, s + 0.006, f0, [[0.03, f0 * 1.05], [len - 0.02, f0 * 0.87]]);
+        c.g.lfo(v.frequency, 19, 3 * c.p, s + 0.006, s + len);
+        const g = shaped(c, c.out, s, [[0, 0], [0.012, 0.12 * lv], [0.036, 0.08 * lv], [0.08, 0.035 * lv], [len, 0]]);
+        v.connect(c.g.filter('bandpass', 320 * c.p, 1.2)).connect(g);
+        v.connect(c.g.filter('bandpass', 1500 * c.p, 1.7)).connect(c.g.gain(0.25)).connect(g);
+        v.connect(c.g.filter('bandpass', 2400 * c.p, 1.8)).connect(c.g.gain(0.15)).connect(g);
+        e = Math.max(e, breath, s + len + 0.03);
+        s += len + rand(0.035, 0.075);
+      }
+      return endOf(c, e);
+    }
+
 function maleChuckle(c: SfxCtx): number {
   const t = c.t;
   const n = 3 + Math.floor(Math.random() * 2);
@@ -669,32 +693,11 @@ export const SFX_RECIPES: Record<SfxId, SfxRecipe> = {
       return endOf(c, e1, e2);
     },
   },
-  laugh_soft: {
-    play(c) {
-      const t = c.t;
-      const n = chance(0.45) ? 3 : 2;
-      let e = t;
-      let s = t;
-      const base = vary(225, 0.1) * c.p;
-      for (let i = 0; i < n; i++) {
-        const len = rand(0.13, 0.17);
-        const lv = (1 - i * 0.22) * rand(0.85, 1);
-        const f0 = base * rand(0.94, 1.06);
-        const breath = nburst(c, c.out, s, { kind: 'pink', type: 'bandpass', f: 1800 * c.p, q: 0.65, att: 0.008, t60: 0.08, level: 0.13 * lv });
-        const v = c.g.osc(glottalWave(c.g.ac), f0, s + 0.006, s + len);
-        sweep(v.frequency, s + 0.006, f0, [[0.03, f0 * 1.05], [len - 0.02, f0 * 0.87]]);
-        c.g.lfo(v.frequency, 19, 3 * c.p, s + 0.006, s + len);
-        const g = shaped(c, c.out, s, [[0, 0], [0.012, 0.12 * lv], [0.036, 0.08 * lv], [0.08, 0.035 * lv], [len, 0]]);
-        v.connect(c.g.filter('bandpass', 320 * c.p, 1.2)).connect(g);
-        v.connect(c.g.filter('bandpass', 1500 * c.p, 1.7)).connect(c.g.gain(0.25)).connect(g);
-        v.connect(c.g.filter('bandpass', 2400 * c.p, 1.8)).connect(c.g.gain(0.15)).connect(g);
-        e = Math.max(e, breath, s + len + 0.03);
-        s += len + rand(0.035, 0.075);
-      }
-      return endOf(c, e);
-    },
-  },
+  // a young woman's light giggle (the narrator, 若晴) and an older woman's softer laugh
+  laugh_soft: { play: (c) => softLaugh(c, 300) },
+  laugh_soft_adult: { play: (c) => softLaugh(c, 215) },
   laugh_soft_m: { play: maleChuckle },
+  laugh_soft_adult_m: { play: maleChuckle },
   // until the recording is decoded: three small sharp clicks
   braille_stylus: {
     play(c) {
@@ -2129,6 +2132,8 @@ const TRIM: Partial<Record<SfxId, number>> = {
   cloth_rustle: 9.487,
   laugh_soft: 1.6,
   laugh_soft_m: 3,
+  laugh_soft_adult: 1.6,
+  laugh_soft_adult_m: 3,
   kid_laugh: 2.5,
   pen_scratch: 9.396,
   typing: 7.046,
@@ -2182,7 +2187,7 @@ for (const [id, v] of Object.entries(TRIM) as Array<[SfxId, number]>) SFX_RECIPE
 
 /** Human effects allow both recordings and synthesis, including immediate synthesis while recordings load. */
 export const HUMAN_SFX: ReadonlySet<SfxId> = new Set<SfxId>([
-  'gasp_crowd', 'cough', 'sigh', 'sigh_m', 'breath', 'breath_m', 'laugh_soft', 'laugh_soft_m', 'kid_laugh', 'choice_appear',
+  'gasp_crowd', 'cough', 'sigh', 'sigh_m', 'breath', 'breath_m', 'laugh_soft', 'laugh_soft_m', 'laugh_soft_adult', 'laugh_soft_adult_m', 'kid_laugh', 'choice_appear',
 ]);
 
 /** Sounds that belong to the "interface" (they bypass the attention muffle). */

@@ -50,7 +50,7 @@ scenes:
       - { narr: 五年前那個秋天，知夏一封一封寄來的。我一封都沒拆。, learn: k_six_unopened, mem: m_six_letters }
       - narr: 後來我看不見了。墨水寫的字，我再也讀不到，也沒讓任何人念給我聽。
       - think: 這次一起帶回去，放回她的房間。跟房子一起處理掉。
-      - { sfx: cloth_rustle, at: front, dist: near, text: 沙 }
+      - { sfx: cloth_rustle, at: front, dist: near, text: 窸 }
       - narr: 六封信放進行李箱最底層。那封點字的，我放進外套內側的口袋。
       - think: 明天早上的車。
     next: c1_train
@@ -72,7 +72,12 @@ scenes:
       - { cue: gossip, at: back-left, text: 窸窸窣窣, sfx: huddle_rustle }
       - think: 後面有人壓低聲音在說話。
       - think: 想聽的話，轉過去就好。
-      - { wait: 18, clock: "06:12" }
+      - pause: 2
+      - narr: 折起來的手杖橫在腿上。我用拇指一節一節摸它的接頭，摸到最後一節，再從頭摸回來。
+      - think: 電話裡我跟仲介說，要有人來車站接我。我沒有問會是誰。
+      - think: 鎮上就那幾個人，是誰都一樣尷尬。
+      - think: 知夏的房間在走廊最裡面。我打算最後才進去，字簽完、行李拉鍊拉上，再進去把信放下。
+      - { wait: 6, clock: "06:12" }
       - narr: 窗外大概開始亮了。我只感覺得到臉頰那側比較暖。
       - { sfx: cough, at: back-left, dist: mid, text: 咳 }
       - narr: 後面有人咳了一聲。斜後方有人在剝橘子，味道慢慢飄過來。
@@ -145,7 +150,7 @@ scenes:
       - yuan: 鎮上就這麼小。
       - me: 所以你就來了。
       - yuan: ……嗯。
-      - { sfx: cloth_rustle, at: front-right, dist: near, text: 沙 }
+      - { sfx: cloth_rustle, at: front-right, dist: near, text: 窸 }
       - narr: 他吸了一口氣，像要再說什麼，最後只是把我的行李箱拉過去。
     next: c1_walk
 
@@ -645,7 +650,7 @@ scenes:
       - { sfx: shop_bell, at: back, dist: near, text: 叮鈴 }
       - narr: 一出門，風就把咖啡的味道吹散了。
       - { sfx: step_heels, at: front-left, text: 叩叩叩 }
-      - { sfx: cloth_rustle, at: front-left, dist: near, text: 沙沙 }
+      - { sfx: cloth_rustle, at: front-left, dist: near, text: 窸窣 }
       - narr: 有人走得很快，雨衣的布料一路沙沙響，在我面前停下。
       - { sfx: thud, at: front-left, dist: near, text: 咚 }
       - narr: 她換了一邊肩膀。一個很重的包撞到她身上，裡面有東西喀啦響。

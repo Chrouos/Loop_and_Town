@@ -27,6 +27,8 @@ export type Settings = {
   vibration: boolean;
   /** Shaking and pulsing of the stage (her body); off keeps the screen still. */
   motion: boolean;
+  /** A small caption under each sound saying what it is (紙, 衣服, 風). */
+  soundLabels: boolean;
   textSpeed: TextSpeed;
   autoAdvance: boolean;
 };
@@ -49,7 +51,7 @@ export type GameSave = {
   settings: Settings;
 };
 
-export const DEFAULT_SETTINGS: Settings = { audio: true, volume: 0.8, ambience: 0.7, sfx: 0.85, voice: 0.45, vibration: true, motion: true, textSpeed: 'normal', autoAdvance: true };
+export const DEFAULT_SETTINGS: Settings = { audio: true, volume: 0.8, ambience: 0.7, sfx: 0.85, voice: 0.45, vibration: true, motion: true, soundLabels: true, textSpeed: 'normal', autoAdvance: true };
 
 export function freshSave(previous?: Pick<GameSave, 'settings' | 'endings' | 'calibrated'>): GameSave {
   return {

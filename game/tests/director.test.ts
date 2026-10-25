@@ -230,6 +230,43 @@ scenes:
     vi.restoreAllMocks();
   });
 
+  it('strangers never repeat a line until all have been heard, keep apart, and sounds say what they are', () => {
+    const { script, errors } = buildScript([{ name: 'l.yaml', source: `
+chapter: 1
+title: 路人
+start: a
+scenes:
+  - id: a
+    life:
+      - { say: 媽媽，還有幾站？, voice: child, reply: [{ say: 還早啦。, voice: woman }, { say: 喔。, voice: child }] }
+      - { say: 便當——飲料——, voice: man }
+      - { say: 借過一下。, voice: man }
+      - { text: 喀沙, src: 枯葉 }
+      - { text: 沙沙, sfx: paper_rustle }
+    beats: [{ wait: 200 }, { end: reset }]
+` }]);
+    expect(errors).toEqual([]);
+    let state = 11;
+    vi.spyOn(Math, 'random').mockImplementation(() => (state = (state * 16807) % 2147483647) / 2147483647);
+    const director = new Director(script, freshSave(), { audio: silentAudio(), vibrate: () => undefined, persist: () => undefined, wallNow: () => 0 }, { speed: 1 });
+    director.start();
+    const heard = new Map<number, { text: string; src?: string; kind: string; t: number }>();
+    for (let i = 0; i < 6000 && director.view.phase !== 'reset'; i++) {
+      for (const item of director.view.periph) if (!heard.has(item.key)) heard.set(item.key, { text: item.text, src: item.src, kind: item.kind, t: director.view.t });
+      director.tick(50);
+    }
+    vi.restoreAllMocks();
+    const openers = new Set(['媽媽，還有幾站？', '便當——飲料——', '借過一下。']);
+    const said = [...heard.values()].filter((item) => item.kind === 'life' && openers.has(item.text));
+    expect(said.length).toBeGreaterThanOrEqual(4);
+    expect(new Set(said.slice(0, 3).map((item) => item.text)).size).toBe(3); // the whole pool before any repeat
+    for (let i = 1; i < said.length; i++) expect(said[i].t - said[i - 1].t).toBeGreaterThanOrEqual(15000);
+    expect([...heard.values()].some((item) => item.text === '喔。')).toBe(true); // a three-turn exchange plays out
+    const sounds = [...heard.values()].filter((item) => item.kind === 'sfx');
+    expect(sounds.find((item) => item.text === '喀沙')?.src).toBe('枯葉');
+    expect(sounds.find((item) => item.text === '沙沙')?.src).toBe('紙');
+  });
+
   it('shows the place card only when the area changes', () => {
     const AREAS = `
 chapter: 1

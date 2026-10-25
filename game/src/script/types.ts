@@ -42,7 +42,7 @@ export type ChoiceOption = { text: string; cond?: Cond; then: Beat[]; goto?: str
 
 export type Beat =
   | LineBeat
-  | { k: 'sfx'; id: SfxId; pos: Pos; text?: string; vib?: VibrationId; gain?: number; shake?: ShakeLevel }
+  | { k: 'sfx'; id: SfxId; pos: Pos; text?: string; vib?: VibrationId; gain?: number; shake?: ShakeLevel; src?: string }
   | { k: 'amb'; ids: AmbienceId[]; fade?: number }
   | { k: 'move'; moves: Record<string, Pos> }
   | { k: 'pause'; seconds: number }
@@ -52,7 +52,7 @@ export type Beat =
   | { k: 'heart'; level: HeartLevel }
   | { k: 'daze'; level: DazeLevel }
   | { k: 'clock'; time: string }
-  | { k: 'cue'; thread: string; pos: Pos; text: string; sfx?: SfxId; grab: boolean }
+  | { k: 'cue'; thread: string; pos: Pos; text: string; sfx?: SfxId; grab: boolean; src?: string }
   | { k: 'choice'; timeout?: number; default?: number; options: ChoiceOption[] }
   /** 摸讀: drag a finger left to right across cells; each one surfaces only when touched slowly enough. */
   | { k: 'touch'; cells: string[]; style: 'braille' | 'groove' | 'engrave'; prompt?: string; timeout: number }

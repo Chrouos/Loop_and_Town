@@ -505,7 +505,7 @@ scenes:
               then:
                 - { boxun: 為什麼？, at: left }
                 - narr: 我想不出一個他會相信的理由。
-                - { boxun: 我走過很多次了。妳早點回去吧。, at: left }
+                - { boxun: 我上個月才走過。妳早點回去吧。, at: left }
             - text: （站在原地）
               then:
                 - narr: 腳步聲往左邊去，越走越小。
@@ -779,7 +779,7 @@ scenes:
     ambience: [cafe]
     cast: { old_woman: back-left }
     beats:
-      - narr: 我坐回窗邊。她的位子空著，椅墊上還留著一點溫度。
+      - narr: 我坐回窗邊。她的位子空著，椅子還斜在桌邊，沒有推回去。
       - { sfx: light_buzz, at: front, dist: mid, text: 滋—— }
       - { sfx: blackout, at: front, dist: mid, text: 啪, vib: thud }
       - { sfx: power_up, at: back, dist: mid, text: 嗡 }

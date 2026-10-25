@@ -632,9 +632,9 @@ scenes:
       - { sfx: cane_tap, at: front, dist: near, text: 叩 }
       - narr: 剩下的路我自己走。碎石，接著是柏油，最後手杖敲到一道鐵網。
       - heart: slow
-      - narr: 這段路我一次都沒走過。碎石在鞋底下滾，腳底一直踩不實，數的步數早就亂了。
+      - narr: 這條岔路我沒走過，之前都是從圖書館那邊跟庭安上來。碎石在鞋底下滾，數的步數早就亂了。
       - { cue: workers, at: back-right, text: 鏗、鏗, sfx: hammer }
-      - { sfx: cloth_rustle, at: front-left, dist: near, text: 沙沙 }
+      - { sfx: cloth_rustle, at: front-left, dist: near, text: 窸窣 }
       - narr: 雨衣的聲音，停在鐵網另一邊。
       - tingan: ……林家的？妳一個人上來？妳不是約我五點四十？
       - me: 我等不到五點四十。
@@ -921,7 +921,7 @@ scenes:
       - { sfx: hammer, at: back, dist: mid, text: 叩、叩、叩, shake: light }
       - narr: 我手一抖，最右邊那張卡被掃到桌緣，差一點掉下去。
       - { sfx: door_open, at: back, dist: near, text: 吱 }
-      - { sfx: cloth_rustle, at: front-right, dist: near, text: 沙沙 }
+      - { sfx: cloth_rustle, at: front-right, dist: near, text: 窸窣 }
       - if: seen.c6_institute
         then:
           - tingan: 我來了。……妳比我早下山欸。
@@ -1121,7 +1121,7 @@ scenes:
       - narr: 手杖的握把被我握得濕濕的，我換到另一隻手，在褲子上擦了一下。
       - yuan: 請、請坐。椅子在妳左手邊。
       - { sfx: chair_scrape, at: front-left, dist: near, text: 嘎 }
-      - narr: 櫃台上攤滿了紙、鐵盒、一疊收據，邊角軟得像布。他在清抽屜。
+      - narr: 他說在清抽屜。我沿著櫃台摸過去，碰到鐵盒，還有一疊邊角軟得像布的收據。
       - if: know.k_slate_in_shop
         then:
           - narr: 我的手順著櫃台往前，碰到一個鋁框，一排一排的小格子。

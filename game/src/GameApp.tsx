@@ -297,6 +297,7 @@ function Menu({ director, onClose, onTitle, onSettings }: { director: Director; 
           <div className="lt-row"><span>音效</span><input className="lt-range" type="range" min={0} max={1} step={0.05} value={settings.sfx} onChange={(event) => set({ sfx: Number(event.target.value) })} /></div>
           <div className="lt-row"><span>震動</span><Toggle on={settings.vibration} onChange={(vibration) => set({ vibration })} /></div>
           <div className="lt-row"><span>畫面晃動</span><Toggle on={settings.motion} onChange={(motion) => set({ motion })} /></div>
+          <div className="lt-row"><span>聲音來源</span><Toggle on={settings.soundLabels} onChange={(soundLabels) => set({ soundLabels })} /></div>
           <div className="lt-row"><span>文字速度</span>
             <div className="lt-opts">
               {(['slow', 'normal', 'fast'] as const).map((speed) => (

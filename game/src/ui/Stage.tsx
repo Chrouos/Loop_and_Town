@@ -8,7 +8,9 @@ const HOLD_MS = 560;
 const MOVE_MS = 700;
 const LEAVE_MS = 420;
 const GONE_MS = 480;
-const EASE = 'cubic-bezier(0.22, 0.61, 0.36, 1)';
+// Lifts off from standstill and settles slowly: no kick on the first frame, and a slide stacked on one still
+// under way adds to its speed instead of jolting it.
+const EASE = 'cubic-bezier(0.4, 0, 0.2, 1)';
 
 type Role = 'center' | 'echo' | 'leaving';
 
@@ -196,6 +198,11 @@ export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown 
   // A departing cue keeps exactly the look it had (active, held, its hint), so nothing about it jumps while it fades.
   const lastLook = useRef(new Map<number, ReactElement<Record<string, unknown>>>());
 
+  // Between two lines the centre stays as tall as the last one, so the echo rises once, not once now and again
+  // when the next line pushes it.
+  const centerHeight = useRef(0);
+  const holdSlot = !view.center && lines.length > 0 && centerHeight.current > 0;
+
   const root = useRef<HTMLDivElement>(null);
   const [screen, setScreen] = useState(0);
   const placedFor = useRef(screen);
@@ -206,6 +213,9 @@ export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown 
   }, []);
   useLayoutEffect(() => {
     if (!root.current) return;
+    const said = root.current.querySelector<HTMLElement>('.lt-line:not(.lt-echo)');
+    if (view.center && said) centerHeight.current = said.offsetHeight;
+    else if (!lines.length) centerHeight.current = 0;
     placeSounds(root.current, periph.map((entry) => entry.item), view.ripples, turn, placedFor.current !== screen);
     placedFor.current = screen;
     root.current.querySelectorAll<HTMLElement>('.gone:not([data-fading])').forEach(fadeAway);
@@ -236,6 +246,7 @@ export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown 
             <div className="lt-center">
               <div className="lt-center-inner" style={{ transform: focusPos ? leanOf(focusPos) : undefined }}>
                 {lines.map(({ line, role }) => <Line key={line.key} line={line} role={role} director={director} view={view} onCapture={onCapture} />)}
+                {holdSlot && <div className="lt-hold" style={{ height: centerHeight.current }} aria-hidden="true" />}
               </div>
             </div>
 
@@ -260,6 +271,7 @@ export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown 
   );
 
   function renderPeriph(item: Peripheral): ReactElement<Record<string, unknown>> {
+    const labels = director.settings.soundLabels;
     // Fixed at birth: recomputing it on every render would shorten a running animation and make it jump ahead.
     const life = Number.isFinite(item.until) ? Math.max(400, (item.until - item.born) / director.speed) : 0;
     // Where it sits is worked out after it is measured (placeSounds), so no left/top here.
@@ -280,12 +292,18 @@ export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown 
           onClick={(event) => { event.stopPropagation(); director.attend(item.thread!); }}
         >
           {item.text}
+          {item.src && labels && <span className="lt-p-src">{item.src}</span>}
           {active && view.focus === item.thread && <span className="lt-hint" key="back">再點一下，回到自己</span>}
           {!active && firstCue?.key === item.key && <span className="lt-hint">點一下，轉過去聽</span>}
         </button>
       );
     }
-    return <span key={item.key} data-key={item.key} className={`lt-p kind-${item.kind} dist-${item.pos.dist}`} style={style} aria-hidden="true">{item.text}</span>;
+    return (
+      <span key={item.key} data-key={item.key} className={`lt-p kind-${item.kind} dist-${item.pos.dist}`} style={style} aria-hidden="true">
+        {item.text}
+        {item.src && labels && <span className="lt-p-src">{item.src}</span>}
+      </span>
+    );
   }
 }
 
@@ -302,39 +320,42 @@ function Line({ line, role, director, view, onCapture }: { line: CenterLine; rol
   if (role === 'center') heardAll.current = elapsed >= line.revealMs / director.speed - 30;
   const revealed = heardAll.current;
 
-  // Slide instead of jumping whenever the text's slot moves: turning into an echo, or the line below changing height.
-  // Measured untransformed (offsets from the stage centre, text bottom) so leans, the -50% centring and the
-  // echo's font shrink never read as a move.
+  // Slide instead of jumping whenever the line's slot moves (turning into an echo, the line below changing
+  // height) and ease into its new resting shape (the echo's shrink, a lean). The two run on separate layers:
+  // slides stack on top of one still running, so a second move mid-way bends the path instead of stopping it,
+  // and the shape always starts from what is on screen. The slot is measured untransformed (bottom centre,
+  // from the stage centre) so leans and the -50% centring never read as a move.
+  const rest = restingTransform(line, role);
   const ref = useRef<HTMLDivElement>(null);
-  const slot = useRef<{ x: number; y: number } | null>(null);
-  const move = useRef<{ anim: Animation; dx: number; dy: number } | null>(null);
+  const inner = useRef<HTMLDivElement>(null);
+  const slot = useRef<{ x: number; y: number; rest: string } | null>(null);
+  const reshape = useRef<Animation | null>(null);
   useLayoutEffect(() => {
     const el = ref.current;
-    const text = el?.querySelector<HTMLElement>('.lt-text');
+    const body = inner.current;
     const box = el?.offsetParent as HTMLElement | null;
-    if (!el || !text || !box) return;
+    if (!el || !body || !box) return;
     const next = {
-      x: el.offsetLeft + text.offsetLeft - box.offsetWidth / 2,
-      y: el.offsetTop + text.offsetTop + text.offsetHeight - box.offsetHeight / 2,
+      x: el.offsetLeft + el.offsetWidth / 2 - box.offsetWidth / 2,
+      y: el.offsetTop + el.offsetHeight - box.offsetHeight / 2,
+      rest,
     };
     const prev = slot.current;
     slot.current = next;
     if (!prev || !el.animate || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    let dx = prev.x - next.x;
-    let dy = prev.y - next.y;
-    if (Math.abs(dx) < 1 && Math.abs(dy) < 1) return;
-    const running = move.current;
-    if (running) {
-      const progress = running.anim.effect?.getComputedTiming().progress ?? 1;
-      dx += running.dx * (1 - progress);
-      dy += running.dy * (1 - progress);
-      running.anim.cancel();
+    const dx = prev.x - next.x;
+    const dy = prev.y - next.y;
+    if (Math.abs(dx) >= 1 || Math.abs(dy) >= 1) {
+      el.animate(
+        [{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'translate(0, 0)' }],
+        { duration: MOVE_MS, easing: EASE, composite: 'add' },
+      );
     }
-    const anim = el.animate(
-      [{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'translate(0, 0)' }],
-      { duration: MOVE_MS, easing: EASE, composite: 'add' },
-    );
-    move.current = { anim, dx, dy };
+    if (prev.rest !== next.rest) {
+      const now = reshape.current?.playState === 'running' ? getComputedStyle(body).transform : prev.rest;
+      reshape.current?.cancel();
+      reshape.current = body.animate([{ transform: now }, { transform: rest }], { duration: MOVE_MS, easing: EASE });
+    }
   });
 
   // Fade out from the current opacity rather than restarting a CSS animation.
@@ -364,28 +385,38 @@ function Line({ line, role, director, view, onCapture }: { line: CenterLine; rol
   };
 
   const classes = ['lt-line', `kind-${line.kind}`, echo ? 'lt-echo' : '', role === 'leaving' ? 'leaving' : '', revealed ? 'revealed' : '', holding ? 'holding' : '', kept ? 'kept' : ''].join(' ');
-  const lean = line.kind === 'char' ? leanOf(line.pos) : undefined;
   return (
     <div
       ref={ref}
       className={classes}
-      style={{ transform: echo ? undefined : lean, ['--echo-ms' as string]: `${ECHO_MS / director.speed}ms` }}
+      style={{ ['--echo-ms' as string]: `${ECHO_MS / director.speed}ms` }}
       onPointerDown={start}
       onPointerUp={(event) => { if (timer.current !== null) { cancel(); director.hurry(); event.stopPropagation(); } }}
       onPointerLeave={cancel}
       onPointerCancel={cancel}
       onContextMenu={(event) => event.preventDefault()}
     >
-      {line.label && <div className="lt-label">{line.label}</div>}
-      <p className="lt-text">
-        {line.phrases.map((phrase, index) => {
-          const delay = Math.max(0, (phrase.at / director.speed) - Math.max(0, mountedAt.current));
-          const span = <span className="lt-phrase" style={{ animationDelay: `${delay}ms` }}>{phrase.text}</span>;
-          return phrase.br ? <Fragment key={index}>{span}<br /></Fragment> : <Fragment key={index}>{span}</Fragment>;
-        })}
-      </p>
+      <div ref={inner} className="lt-line-in" style={{ transform: rest }}>
+        {line.label && <div className="lt-label">{line.label}</div>}
+        <p className="lt-text">
+          {line.phrases.map((phrase, index) => {
+            const delay = Math.max(0, (phrase.at / director.speed) - Math.max(0, mountedAt.current));
+            const span = <span className="lt-phrase" style={{ animationDelay: `${delay}ms` }}>{phrase.text}</span>;
+            return phrase.br ? <Fragment key={index}>{span}<br /></Fragment> : <Fragment key={index}>{span}</Fragment>;
+          })}
+        </p>
+      </div>
     </div>
   );
+}
+
+// Where a line rests: leaning toward whoever speaks; her own words a little lower; an echo shrunk toward its
+// bottom edge (scaled, not re-sized, so it keeps its rows instead of re-wrapping halfway).
+function restingTransform(line: CenterLine, role: Role): string {
+  const lower = line.kind === 'me' ? 'translateY(26px)' : '';
+  if (role === 'center') return line.kind === 'char' ? leanOf(line.pos) : lower || 'none';
+  const shrink = line.kind === 'narr' || line.kind === 'phone' ? 'scale(0.82)' : 'scale(0.66)';
+  return `${lower} ${shrink}`.trim();
 }
 
 function Choices({ director, choice, gone }: { director: Director; choice: NonNullable<View['choice']>; gone: boolean }) {
