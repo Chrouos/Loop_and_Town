@@ -38,7 +38,8 @@ const HEARD_AHEAD_MINUTES = 60;
  * A 12-hour reading takes whichever half of the day is nearer the clock it interrupts.
  */
 export function spokenClock(text: string, current?: string): string | null {
-  const match = /^(?:十月[一二三四五六七八九十]+日。)?([零〇一二兩三四五六七八九十]+)點(?:([零〇一二三四五六七八九十]+)分)?。?$/.exec(text.trim());
+  // What made it speak may come first (鬧鐘。／心率過高，已記錄。); a message (名字：……) never counts.
+  const match = /^(?:[^：。]+。)?(?:十月[一二三四五六七八九十]+日[。；])?([零〇一二兩三四五六七八九十]+)點(?:([零〇一二三四五六七八九十]+)分)?。?$/.exec(text.trim());
   if (!match) return null;
   let hour = chineseNumber(match[1]);
   const minute = match[2] ? chineseNumber(match[2]) : 0;

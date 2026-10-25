@@ -1,4 +1,5 @@
 import { load } from 'js-yaml';
+import { SFX_SAMPLES } from '../audio/samples';
 import { DISTANCES, VOICES, isAmbience, isDirection, isSfx, VIBRATIONS, type Direction, type Distance, type SfxId, type VibrationId, type VoiceId } from '../audio/catalog';
 import type { LifeEvent, LifeLine } from '../engine/life';
 import { parseCond } from './conditions';
@@ -6,7 +7,7 @@ import { DAZE_LEVELS, HEART_LEVELS, SHAKE_LEVELS, type Beat, type Chapter, type 
 
 export const CHARACTER_KEYS = ['yuan', 'ruoqing', 'boxun', 'tingan', 'zhiyuan', 'zhixia', 'man', 'woman', 'child', 'old_man', 'old_woman', 'announcer'] as const;
 const LINE_KEYS = new Set<string>(['narr', 'me', 'think', 'phone', ...CHARACTER_KEYS]);
-const LINE_ATTRS = new Set(['at', 'as', 'learn', 'mem', 'dist', 'shake']);
+const LINE_ATTRS = new Set(['at', 'to', 'as', 'learn', 'mem', 'dist', 'shake']);
 const END_KINDS: EndKind[] = ['reset', 'ending_a', 'ending_b', 'ending_c'];
 
 type Errors = string[];
@@ -33,6 +34,15 @@ export function parsePos(raw: unknown, where: string, errors: Errors, fallbackDi
   if (dirText !== 'center' && !isDirection(dirText)) { errors.push(`${where}：未知方位「${dirText}」`); return undefined; }
   if (!(DISTANCES as readonly string[]).includes(dist)) { errors.push(`${where}：未知距離「${distText}」`); return undefined; }
   return { dir: dirText as Pos['dir'], dist };
+}
+
+/** Where a moving sound ends up; its distance stays where it started unless given. */
+function parseTo(raw: unknown, from: Pos | undefined, where: string, errors: Errors): Pos | undefined {
+  if (raw === undefined) return undefined;
+  if (!from || from.dir === 'center') { errors.push(`${where}：to 需要先有 at 方位`); return undefined; }
+  const to = parsePos(raw, `${where}.to`, errors, from.dist);
+  if (to?.dir === 'center') { errors.push(`${where}：to 不能是 center`); return undefined; }
+  return to;
 }
 
 function cond(source: unknown, where: string, errors: Errors) {
@@ -71,6 +81,7 @@ function parseLine(key: string, raw: Obj, where: string, errors: Errors): LineBe
   const speaker = (kind === 'char' ? key : key === 'phone' ? 'phone' : 'me') as VoiceId | 'me';
   const line: LineBeat = { k: 'line', kind, speaker, text: text.trim() };
   if (raw.at !== undefined) line.at = parsePos(raw.at, where, errors, (str(raw.dist) as Distance) ?? 'mid');
+  if (raw.to !== undefined) line.to = parseTo(raw.to, line.at, where, errors);
   if (raw.as !== undefined) line.label = String(raw.as);
   if (raw.learn !== undefined) line.learn = String(raw.learn);
   if (raw.mem !== undefined) line.mem = String(raw.mem);
@@ -110,7 +121,7 @@ function parseBeat(raw: unknown, where: string, errors: Errors): Beat | undefine
     return { k: 'cue', thread: String(raw.cue), pos, text: text ?? '……', sfx: sfx && isSfx(sfx) ? sfx : undefined, grab: raw.grab === true, src: str(raw.src) };
   }
   if ('sfx' in raw) {
-    allow('sfx', 'at', 'dist', 'text', 'vib', 'gain', 'shake', 'src');
+    allow('sfx', 'at', 'to', 'dist', 'text', 'vib', 'gain', 'shake', 'src', 'variant');
     let id = String(raw.sfx);
     let posRaw: unknown = raw.at ?? 'center';
     if (id.includes('@')) {
@@ -119,10 +130,16 @@ function parseBeat(raw: unknown, where: string, errors: Errors): Beat | undefine
       posRaw = posText.trim();
     }
     if (!isSfx(id)) { errors.push(`${where}：未知音效「${id}」`); return undefined; }
+    const variant = raw.variant;
+    const count = SFX_SAMPLES[id]?.files.length ?? 0;
+    if (variant !== undefined && (typeof variant !== 'number' || !Number.isInteger(variant) || variant < 1 || variant > count)) {
+      errors.push(`${where}：variant must be an integer between 1 and ${count}`);
+      return undefined;
+    }
     const pos = parsePos(posRaw, where, errors, (str(raw.dist) as Distance) ?? 'mid');
     if (!pos) return undefined;
     if (raw.dist !== undefined && typeof posRaw === 'string' && !posRaw.includes(':')) pos.dist = String(raw.dist) as Distance;
-    return { k: 'sfx', id, pos, text: str(raw.text), vib: vib(raw.vib, where, errors), gain: typeof raw.gain === 'number' ? raw.gain : undefined, shake: shake(raw.shake, where, errors), src: str(raw.src) };
+    return { k: 'sfx', id, pos, to: parseTo(raw.to, pos, where, errors), variant: variant as number | undefined, text: str(raw.text), vib: vib(raw.vib, where, errors), gain: typeof raw.gain === 'number' ? raw.gain : undefined, shake: shake(raw.shake, where, errors), src: str(raw.src) };
   }
   if ('amb' in raw) {
     allow('amb', 'fade');
@@ -383,5 +400,5 @@ export function parseChapter(source: string, file: string, errors: Errors): Chap
       life: rawScene.life === undefined ? undefined : parseLife(rawScene.life, `${at}.life`, errors),
     });
   }
-  return { key, title, start, advance, scenes };
+  return { key, title, start, restart: str(doc.restart), advance, scenes };
 }

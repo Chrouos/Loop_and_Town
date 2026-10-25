@@ -18,6 +18,9 @@ import { SampleBank, sampleRecipe, type SampleBankStats } from './samples';
 import { SFX_RECIPES, UI_SFX } from './sounds';
 import { phoneTick } from './voice';
 
+/** `to`: the sound travels there from `pos` while it plays. */
+export type SfxOpts = { gain?: number; rate?: number; variant?: number; to?: SpatialPos };
+
 export interface AudioEngine {
   unlock(): Promise<void>;
   readonly ready: boolean;
@@ -29,7 +32,7 @@ export interface AudioEngine {
   /** Sound effects and interface sounds. */
   setSfxVolume(v: number): void;
   setAmbience(ids: AmbienceId[], fadeMs?: number): void;
-  play(id: SfxId, pos: SpatialPos, opts?: { gain?: number; rate?: number }): void;
+  play(id: SfxId, pos: SpatialPos, opts?: SfxOpts): void;
   /** A line spoken by `speaker` ('life' = a passer-by in the background). People make no vocal sound, only a small real one. */
   voice(speaker: VoiceId, pos: SpatialPos, durationMs: number, kind?: 'line' | 'life'): void;
   setAttention(level: number): void;
@@ -58,7 +61,7 @@ export interface AudioEngineDebug {
   /** 'auto' = recordings when decoded, synthesis otherwise; 'synth' = synthesis only. */
   setSampleMode(mode: SampleMode): void;
   /** Play one sound from a chosen source; a sample that is not loaded yet is loaded first. */
-  playSource(id: SfxId, pos: SpatialPos, source: 'sample' | 'synth', opts?: { gain?: number; rate?: number; variant?: number }): Promise<boolean>;
+  playSource(id: SfxId, pos: SpatialPos, source: 'sample' | 'synth', opts?: SfxOpts): Promise<boolean>;
   hasSample(id: SfxId | AmbienceId): boolean;
 }
 
@@ -430,17 +433,25 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
     return sampleRecipe(buf, entry);
   }
 
-  play(id: SfxId, pos: SpatialPos, opts?: { gain?: number; rate?: number }): void {
+  play(id: SfxId, pos: SpatialPos, opts?: SfxOpts): void {
     const ac = this.ac;
     const bus = this.bus;
     if (!ac || !bus || ac.state !== 'running') return;
     if (!isSfx(id)) return;
+    // Script numbers are converted to zero-based indices by the director.
+    // Await the exact recording rather than substituting another loaded variant.
+    if (opts?.variant !== undefined && this.sampleMode !== 'synth') {
+      void this.playSource(id, pos, 'sample', opts).then((played) => {
+        if (!played) this.shoot(id, pos, opts, SFX_RECIPES[id]);
+      });
+      return;
+    }
     const sampled = this.sampleFor(id);
     if (sampled) this.shoot(id, pos, opts, sampled);
     else this.shoot(id, pos, opts, SFX_RECIPES[id]);
   }
 
-  private shoot(id: SfxId, pos: SpatialPos, opts: { gain?: number; rate?: number } | undefined, recipe: SfxRecipe | undefined): void {
+  private shoot(id: SfxId, pos: SpatialPos, opts: SfxOpts | undefined, recipe: SfxRecipe | undefined): void {
     const ac = this.ac;
     const bus = this.bus;
     if (!ac || !bus || !recipe) return;
@@ -451,6 +462,7 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
         dest: UI_SFX.has(id) ? bus.ui : BODY_SFX.has(id) ? bus.body : bus.sfx,
         reverb: BODY_SFX.has(id) ? null : bus.sfxVerb,
         place: placementOf(pos),
+        glide: opts?.to ? placementOf(opts.to) : undefined,
         t: ac.currentTime + 0.01,
         gain: clamp(opts?.gain ?? 1, 0, 4),
         rate: clamp(opts?.rate ?? 1, 0.25, 4),
@@ -603,7 +615,7 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
     for (const id of this.wanted) this.ensureLayer(id, SWAP_S);
   }
 
-  async playSource(id: SfxId, pos: SpatialPos, source: 'sample' | 'synth', opts?: { gain?: number; rate?: number; variant?: number }): Promise<boolean> {
+  async playSource(id: SfxId, pos: SpatialPos, source: 'sample' | 'synth', opts?: SfxOpts): Promise<boolean> {
     if (!isSfx(id)) return false;
     if (source === 'synth') {
       this.shoot(id, pos, opts, SFX_RECIPES[id]);

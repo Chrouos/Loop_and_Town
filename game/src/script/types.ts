@@ -29,6 +29,8 @@ export type LineBeat = {
   speaker: VoiceId | 'me';
   text: string;
   at?: Pos;
+  /** The voice moves while it speaks, from `at` to here. */
+  to?: Pos;
   label?: string;
   learn?: string;
   mem?: string;
@@ -42,7 +44,7 @@ export type ChoiceOption = { text: string; cond?: Cond; disabledCond?: Cond; the
 
 export type Beat =
   | LineBeat
-  | { k: 'sfx'; id: SfxId; pos: Pos; text?: string; vib?: VibrationId; gain?: number; shake?: ShakeLevel; src?: string }
+  | { k: 'sfx'; id: SfxId; pos: Pos; to?: Pos; variant?: number; text?: string; vib?: VibrationId; gain?: number; shake?: ShakeLevel; src?: string }
   | { k: 'amb'; ids: AmbienceId[]; fade?: number }
   | { k: 'move'; moves: Record<string, Pos> }
   | { k: 'pause'; seconds: number }
@@ -84,6 +86,8 @@ export type Chapter = {
   key: string; // '1'..'7' | 'final'
   title: string;
   start: string;
+  /** Morning entry for chapter selection and subsequent loops; defaults to start. */
+  restart?: string;
   advance: { cond: Cond; to: string }[];
   scenes: Scene[];
 };

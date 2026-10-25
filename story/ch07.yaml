@@ -21,7 +21,7 @@ scenes:
     cast: { announcer: front }
     beats:
       - { sfx: phone_buzz, at: right, dist: near, text: 嗡, vib: buzz }
-      - phone: 六點十二分。
+      - phone: 鬧鐘。六點十二分。
       - narr: 車廂在晃。我的手放在膝蓋上，沒有伸進口袋。
       - if: chloop >= 2
         then:
@@ -845,7 +845,7 @@ scenes:
           - think: 那疊信在側背包裡。今天我沒有拿出來。
           - think: 六封信寫了什麼，我都記得。第六封他念到哪一行停下來，我也記得。
           - clock: "17:58"
-          - narr: 他把手機翻過來，扣在玻璃櫃台上。殼角碰到玻璃，叩的一聲。
+          - narr: 他把手機翻過來，扣在玻璃櫃台上。殼角碰到玻璃，叩的一聲。我也按了一下自己的手機。
           - phone: 十七點五十八分。
           - narr: 他手上的鑷子停了。我沒有說話，陪他坐在這一分鐘裡。
           - pause: 6
@@ -923,7 +923,7 @@ scenes:
       - yuan: 「如果妳讀到這封……」
       - narr: 他停在這裡。下一行在他手上，他沒有念。
       - clock: "17:58"
-      - narr: 他把手機翻過來，扣在玻璃櫃台上。殼角碰到玻璃，叩的一聲。
+      - narr: 他把手機翻過來，扣在玻璃櫃台上。殼角碰到玻璃，叩的一聲。我也按了一下自己的手機。
       - phone: 十七點五十八分。
       - if: know.k_yuan_1758
         then:
@@ -989,6 +989,7 @@ scenes:
     cast: { yuan: front }
     beats:
       - yuan: ……妳知道現在幾點嗎？
+      - narr: 我按下側鍵。
       - phone: 十七點五十九分。
       - me: 五點五十九。
       - yuan: 嗯。
@@ -1058,7 +1059,8 @@ scenes:
       - pause: 2
       - { sfx: watch_tick, at: front, dist: near, text: 滴答 }
       - narr: 然後上發條的那些繼續走。插電的那些，沒有回來。
-      - phone: 十八點三十一分。
+      - { sfx: phone_buzz, at: right, dist: near, text: 嗡, vib: buzz }
+      - phone: 心率過高，已記錄。十八點三十一分。
       - yuan: ……妳還好嗎？
       - me: 嗯。
       - pause: 3
@@ -1200,7 +1202,7 @@ scenes:
       - { sfx: wind_gust, at: front-left, dist: mid, text: 颯 }
       - narr: 窗開著，風從左前方進來，把書桌上的信封吹得掀起一角。
       - { sfx: phone_buzz, at: right, dist: near, text: 嗡 }
-      - phone: 二十三點五十九分。
+      - phone: 鬧鐘。二十三點五十九分。
       - pause: 1
       - { sfx: bell_toll, at: front-left, text: 噹———, vib: bell }
       - wait: 3.2

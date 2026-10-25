@@ -17,6 +17,12 @@ describe('corner clock', () => {
     expect(spokenClock('如果你第二次看見十八點三十一分，')).toBeNull();
   });
 
+  it('still reads the time when the phone first says why it spoke', () => {
+    expect(spokenClock('心率過高，已記錄。十八點三十一分。')).toBe('18:31');
+    expect(spokenClock('鬧鐘。十月三日；六點十二分。', '06:12')).toBe('06:12');
+    expect(spokenClock('許若晴：六點。', '18:00')).toBeNull();
+  });
+
   it('does not take a time she hears read off a page for the time now', () => {
     expect(heardClock('十八點三十一分。', '09:20')).toBeNull();
     expect(heardClock('十八點三十分。', '18:27')).toBe('18:30');

@@ -1,4 +1,4 @@
-"""Cut Iansui down to the characters the game can show, as one self-hosted woff2.
+"""Cut LXGW WenKai TC down to the characters the game can show, as one self-hosted woff2.
 
 Google Fonts splits a CJK font into ~100 unicode-range slices and fetches each one the first time a
 character from it appears. Until that slice lands the line shows in a fallback font, then swaps, so
@@ -6,10 +6,10 @@ text visibly changes face mid-scene (worst on a phone). One file holding every c
 loaded before the game starts, never swaps.
 
     pip install fonttools brotli
-    python tools/subset-font.py [path/to/Iansui-Regular.ttf]
+    python tools/subset-font.py [path/to/LXGWWenKaiTC-Regular.ttf]
 
 Run it again whenever the story or UI text gains a new character; tests/fontCoverage.test.ts fails
-until you do. The font: https://github.com/ButTaiwan/iansui (SIL OFL 1.1).
+until you do. The font: https://github.com/lxgw/LxgwWenkaiTC (SIL OFL 1.1).
 """
 import pathlib
 import sys
@@ -41,7 +41,7 @@ def wanted() -> set[str]:
 
 
 def main() -> None:
-    source = pathlib.Path(sys.argv[1] if len(sys.argv) > 1 else pathlib.Path.home() / 'Library/Fonts/Iansui-Regular.ttf')
+    source = pathlib.Path(sys.argv[1]) if len(sys.argv) > 1 else pathlib.Path.home() / 'Library/Fonts/LXGWWenKaiTC-Regular.ttf'
     cmap = TTFont(source).getBestCmap()
     chars = wanted()
     kept = sorted(ch for ch in chars if ord(ch) in cmap)
@@ -57,13 +57,13 @@ def main() -> None:
     subsetter.populate(unicodes=[ord(ch) for ch in kept])
     subsetter.subset(font)
     OUT.mkdir(parents=True, exist_ok=True)
-    subset.save_font(font, str(OUT / 'iansui-subset.woff2'), options)
-    (OUT / 'iansui-chars.txt').write_text(''.join(kept), encoding='utf-8')
+    subset.save_font(font, str(OUT / 'wenkai-tc-subset.woff2'), options)
+    (OUT / 'wenkai-tc-chars.txt').write_text(''.join(kept), encoding='utf-8')
 
-    size = (OUT / 'iansui-subset.woff2').stat().st_size
+    size = (OUT / 'wenkai-tc-subset.woff2').stat().st_size
     print(f'{len(kept)} characters, {size / 1024:.0f} KB')
     if missing:
-        print(f'not in Iansui (will use the fallback font): {"".join(missing)}')
+        print(f'not in LXGW WenKai TC (will use the fallback font): {"".join(missing)}')
 
 
 if __name__ == '__main__':

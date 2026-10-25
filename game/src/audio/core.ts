@@ -539,6 +539,8 @@ export interface Spatial {
   send: GainNode | null;
   panner: PannerNode | null;
   move(fromDeg: number, toDeg: number, t0: number, t1: number, radiusScale?: number): void;
+  /** Travel the short way round to another placement between t0 and t1, dulling and blooming as it goes. */
+  travel(to: Placement, t0: number, t1: number): void;
 }
 
 /**
@@ -556,8 +558,9 @@ export function spatialize(
   const r = Math.max(0.3, place.r);
   let tap: AudioNode = input;
   const cutoff = shadingCutoff(place.angle, r);
+  let lp: BiquadFilterNode | null = null;
   if (cutoff < 19000) {
-    const lp = g.filter('lowpass', cutoff, 0.6);
+    lp = g.filter('lowpass', cutoff, 0.6);
     input.connect(lp);
     tap = lp;
   }
@@ -568,7 +571,7 @@ export function spatialize(
   }
   if (place.angle === null) {
     tap.connect(dest);
-    return { input, send, panner: null, move: () => undefined };
+    return { input, send, panner: null, move: () => undefined, travel: () => undefined };
   }
   const p = g.panner();
   p.panningModel = o.hrtf === false ? 'equalpower' : 'HRTF';
@@ -593,7 +596,34 @@ export function spatialize(
     p.positionX.linearRampToValueAtTime(x1, t1);
     p.positionZ.linearRampToValueAtTime(z1, t1);
   };
-  return { input, send, panner: p, move };
+  const travel = (to: Placement, t0: number, t1: number): void => {
+    if (!p.positionX || to.angle === null || t1 <= t0) return;
+    const span = ((((to.angle - base) % 360) + 540) % 360) - 180;
+    const r1 = Math.max(0.3, to.r);
+    // Along the arc, not the chord: a straight ramp from left to back would cut in close past her shoulder.
+    const steps = 12;
+    for (let i = 0; i <= steps; i++) {
+      const f = i / steps;
+      const [xi, zi] = toXZ(base + span * f, r + (r1 - r) * f);
+      const at = t0 + (t1 - t0) * f;
+      if (i === 0) {
+        p.positionX.setValueAtTime(xi, at);
+        p.positionZ.setValueAtTime(zi, at);
+      } else {
+        p.positionX.linearRampToValueAtTime(xi, at);
+        p.positionZ.linearRampToValueAtTime(zi, at);
+      }
+    }
+    if (lp) {
+      lp.frequency.setValueAtTime(cutoff, t0);
+      lp.frequency.exponentialRampToValueAtTime(shadingCutoff(to.angle, r1), t1);
+    }
+    if (send) {
+      send.gain.setValueAtTime(send.gain.value, t0);
+      send.gain.linearRampToValueAtTime(distanceSend(r1) * (o.sendScale ?? 1), t1);
+    }
+  };
+  return { input, send, panner: p, move, travel };
 }
 
 // ---------------------------------------------------------------- one-shots
@@ -634,6 +664,8 @@ export interface ShotOpts {
   dest: AudioNode;
   reverb: AudioNode | null;
   place: Placement;
+  /** Where the sound travels to while it plays; the recipe's own drift is dropped. */
+  glide?: Placement;
   t: number;
   gain?: number;
   rate?: number;
@@ -654,7 +686,7 @@ export function spawnShot(ac: BaseAudioContext, recipe: SfxRecipe, o: ShotOpts):
     send: wet,
     t: o.t,
     p: Math.max(0.05, (o.rate ?? 1) * vary(1, recipe.jitter ?? 0.03)),
-    move: sp.move,
+    move: o.glide ? () => undefined : sp.move,
   };
   let dur: number;
   try {
@@ -665,6 +697,7 @@ export function spawnShot(ac: BaseAudioContext, recipe: SfxRecipe, o: ShotOpts):
   }
   if (!Number.isFinite(dur) || dur <= 0) dur = 1;
   const end = o.t + dur;
+  if (o.glide) sp.travel(o.glide, o.t, end);
   let timer: ReturnType<typeof setTimeout> | null = null;
   let done = false;
   const shot: Shot = {

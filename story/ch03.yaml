@@ -12,7 +12,8 @@ scenes:
     ambience: [train_interior]
     cast: { announcer: front }
     beats:
-      - phone: 六點十二分。
+      - { sfx: phone_buzz, at: right, dist: near, text: 嗡, vib: buzz }
+      - phone: 鬧鐘。六點十二分。
       - if: know.c3_boxun_died_again
         then:
           - think: 上一次我把所有人都移開了，只漏掉陳醫生。
@@ -615,11 +616,13 @@ scenes:
       - think: 還有十一分鐘。
       - heart: slow
       - { wait: 30, clock: "18:20", until: "18:25" }
+      - narr: 我按了一下側鍵。
       - phone: 十八點二十五分。
       - { sfx: car_pass, at: right, dist: far, text: 咻—— }
       - think: 沒有人靠近。
       - narr: 我發現自己把手杖握得太緊，虎口那一圈都麻了。
       - { wait: 25, clock: "18:25", until: "18:29" }
+      - narr: 我又按了一次。
       - phone: 十八點二十九分。
       - think: 我做到了。
       - { wait: 15, clock: "18:29", until: "18:30" }
@@ -642,6 +645,7 @@ scenes:
     cast: { ruoqing: back-right, boxun: back }
     beats:
       - heart: fast
+      - narr: 我隔不到一分鐘就按一次側鍵。
       - phone: 十八點三十一分。
       - narr: 舊站裡的電流聲沒有斷，也沒有人叫，馬路上的車照常開過去。
       - pause: 2.5
@@ -654,6 +658,7 @@ scenes:
       - pause: 2
       - { sfx: car_pass, at: left, dist: far, text: 咻—— }
       - clock: "18:32"
+      - narr: 我再按一次。
       - phone: 十八點三十二分。
       - narr: 報時過去了，什麼都沒有接著發生。我開始打電話，手指在螢幕上一直滑錯。
       - { sfx: phone_ring, at: back-right, dist: far, text: 嘟—— }
@@ -689,6 +694,7 @@ scenes:
     cast: { man: front-left }
     beats:
       - heart: fast
+      - narr: 我隔不到一分鐘就按一次側鍵。
       - phone: 十八點三十一分。
       - { sfx: light_buzz, at: front, dist: far, text: 滋滋—— }
       - { sfx: blackout, at: front, dist: far, text: 啪, vib: thud }
@@ -884,6 +890,7 @@ scenes:
           - { man: 好了啦，回家，明天還要上班。, as: 遛狗的人 }
           - { sfx: step, at: right, dist: far, text: 叩、叩 }
     beats:
+      - narr: 我叫手機報時。
       - phone: 二十三點五十九分。
       - { sfx: bell_toll, at: front-left, text: 噹——, vib: bell }
       - narr: 鐘聲從左前方來。

@@ -47,3 +47,17 @@ npm run build   # 輸出到 game/dist，GitHub Pages 的網址根目錄就是遊
 改劇本前先讀 [`docs/story.md`](docs/story.md) 的知識 id 表和 [`docs/style.md`](docs/style.md)。格式在 [`docs/design.md`](docs/design.md) §11。
 
 開發時 `/audio-lab.html` 可以逐一試聽每個聲音。音效素材的來源與授權列在 `game/public/audio/CREDITS.md`。
+
+### 遊戲字體
+
+正文使用 [霞鶩文楷 TC v1.530](https://github.com/lxgw/LxgwWenkaiTC/releases/tag/v1.530) Regular，採 SIL OFL 1.1 授權；授權全文隨網站發佈於 `fonts/OFL.txt`。
+遊戲內嵌的是涵蓋劇情與介面文字的 WOFF2 裁切字庫，正式建置前會檢查缺字。新增文字若檢查失敗，請下載該版本的 `LXGWWenKaiTC-Regular.ttf`，再於 `game/` 執行：
+
+```bash
+python3 -m venv /tmp/loop-font-tools
+/tmp/loop-font-tools/bin/pip install fonttools brotli
+/tmp/loop-font-tools/bin/python tools/subset-font.py /path/to/LXGWWenKaiTC-Regular.ttf
+npm run build
+```
+
+更新字體版本時，也請同步更新 `game/public/fonts/OFL.txt` 與本節版本紀錄。
