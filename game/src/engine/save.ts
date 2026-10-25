@@ -1,4 +1,4 @@
-import type { LineKind } from '../script/types';
+import { CHAPTER_ORDER, type LineKind } from '../script/types';
 import type { TextSpeed } from './text';
 
 export const MEMORY_CAPACITY = 7;
@@ -49,6 +49,10 @@ export type GameSave = {
   calibrated: boolean;
   finished: boolean;
   settings: Settings;
+  /** Chapters this save has entered; the chapter list only offers these. */
+  reached: string[];
+  /** Set while replaying an earlier chapter from the chapter list: where (and on which loop of it) to return at midnight. */
+  replay: { chapter: string; chLoop: number } | null;
 };
 
 export const DEFAULT_SETTINGS: Settings = { audio: true, volume: 0.8, ambience: 0.7, sfx: 0.85, voice: 0.45, vibration: true, motion: true, soundLabels: true, textSpeed: 'normal', autoAdvance: true };
@@ -69,6 +73,8 @@ export function freshSave(previous?: Pick<GameSave, 'settings' | 'endings' | 'ca
     calibrated: previous?.calibrated ?? false,
     finished: false,
     settings: { ...DEFAULT_SETTINGS, ...(previous?.settings ?? {}) },
+    reached: [],
+    replay: null,
   };
 }
 
@@ -79,7 +85,13 @@ export function readSave(storage: Storage | undefined): GameSave {
     const parsed = JSON.parse(raw) as Partial<GameSave>;
     if (parsed.version !== 1) return freshSave();
     const base = freshSave();
-    return { ...base, ...parsed, settings: { ...DEFAULT_SETTINGS, ...(parsed.settings ?? {}) } } as GameSave;
+    const save = { ...base, ...parsed, settings: { ...DEFAULT_SETTINGS, ...(parsed.settings ?? {}) } } as GameSave;
+    // Saves from before the chapter list: every chapter up to the current one counts as reached.
+    if (!parsed.reached) {
+      const index = CHAPTER_ORDER.indexOf(save.chapter as never);
+      save.reached = save.started && index >= 0 ? CHAPTER_ORDER.slice(0, index + 1) : [];
+    }
+    return save;
   } catch {
     return freshSave();
   }

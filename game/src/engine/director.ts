@@ -60,7 +60,7 @@ export type View = {
   echo: (CenterLine & { until: number }) | null;
   periph: Peripheral[];
   ripples: { key: number; pos: Pos }[];
-  choice: { key: number; options: { text: string; index: number; recall?: boolean }[]; startedAt: number; timeout?: number } | null;
+  choice: { key: number; options: { text: string; index: number; recall?: boolean; disabled?: boolean }[]; startedAt: number; timeout?: number } | null;
   /** Memory Input picker: which remembered lines she could say right now. */
   recall: { key: number; memories: Memory[] } | null;
   /** A hands-or-ears moment the scene is waiting on. */
@@ -208,6 +208,50 @@ export class Director {
     this.beginChapter(key, true);
   }
 
+  /** Every chapter in play order, for the chapter list. */
+  get chapterList(): { key: string; title: string }[] {
+    return this.script.order.map((key) => ({ key, title: this.chapter(key).title }));
+  }
+
+  /** The chapter progress belongs to: where a replay returns at midnight, otherwise the current one. */
+  get progressChapter(): string { return this.save.replay?.chapter ?? this.save.chapter; }
+
+  /**
+   * Chapter list. Earlier chapter: live one 10/3 of it, keeping everything heard and remembered, then return at midnight.
+   * The progress chapter: start its day over (or stop replaying and go back to it). A later chapter (testing only): jump
+   * there with every earlier chapter's knowledge added to what she already knows.
+   */
+  selectChapter(key: string): void {
+    const order = this.script.order;
+    const target = this.progressChapter;
+    if (!order.includes(key)) return;
+    this.save.loop += 1;
+    this.save.scene = null;
+    this.save.flags = [];
+    this.save.seen = [];
+    this.save.finished = false;
+    delete this.save.wait;
+    if (key === target) {
+      this.save.chLoop = this.save.replay ? this.save.replay.chLoop : this.save.chLoop + 1;
+      this.save.replay = null;
+      this.beginChapter(key, this.save.chLoop === 1);
+    } else if (order.indexOf(key) < order.indexOf(target)) {
+      this.save.replay ??= { chapter: target, chLoop: this.save.chLoop };
+      this.save.chLoop = 1;
+      this.beginChapter(key, true);
+    } else {
+      for (const chapter of this.script.chapters) {
+        if (order.indexOf(chapter.key) >= order.indexOf(key)) break;
+        for (const id of learnIdsOf(chapter)) this.knowledge.add(id);
+      }
+      this.save.knowledge = [...this.knowledge];
+      this.save.replay = null;
+      this.save.chLoop = 1;
+      this.beginChapter(key, true);
+    }
+    this.persist();
+  }
+
   setPaused(paused: boolean): void { this.paused = paused; }
   updateSettings(patch: Partial<Settings>): void {
     this.save.settings = { ...this.save.settings, ...patch };
@@ -277,6 +321,7 @@ export class Director {
     if (!main || !pending || this.view.focus !== 'main') return;
     const option = pending.options[index];
     if (!option) return;
+    if (option.disabledCond && evalCond(option.disabledCond, this.condContext())) return;
     if (option.recall) { this.openRecall(main, index); return; }
     this.applyChoice(main, option);
     this.advanceTo(this.view.t);
@@ -458,6 +503,7 @@ export class Director {
   private beginChapter(key: string, firstOfChapter: boolean): void {
     const chapter = this.chapter(key);
     this.save.chapter = chapter.key;
+    if (!this.save.reached.includes(chapter.key)) this.save.reached.push(chapter.key);
     this.flags = new Set();
     this.recallTried = new WeakMap();
     this.seen = new Set();
@@ -575,10 +621,13 @@ export class Director {
     const chapter = this.chapter(this.save.chapter);
     const ctx = this.condContext();
     const rule = chapter.advance.find((candidate) => evalCond(candidate.cond, ctx));
-    const nextKey = rule?.to ?? chapter.key;
+    // A replayed day from the chapter list goes back to where the player was, whatever this chapter's rule says.
+    const back = this.save.replay;
+    this.save.replay = null;
+    const nextKey = back ? back.chapter : rule?.to ?? chapter.key;
     const advanced = nextKey !== chapter.key;
     this.save.loop += 1;
-    this.save.chLoop = advanced ? 1 : this.save.chLoop + 1;
+    this.save.chLoop = back ? back.chLoop : advanced ? 1 : this.save.chLoop + 1;
     this.save.chapter = nextKey;
     this.save.scene = null;
     this.flags = new Set();
@@ -855,16 +904,18 @@ export class Director {
     const options = beat.options.filter((option) => (!option.cond || evalCond(option.cond, ctx)) && (!option.recall || canRecall));
     const original = beat.default !== undefined ? beat.options[beat.default] : undefined;
     // Silence falls back to the default, or the last ordinary option; never to "想起一句話".
-    const lastPlain = options.map((option) => !option.recall).lastIndexOf(true);
-    const fallback = original ? Math.max(0, options.indexOf(original)) : Math.max(0, lastPlain);
-    const timeoutMs = beat.timeout !== undefined ? beat.timeout * 1000 : Infinity;
+    const disabled = options.map((option) => Boolean(option.disabledCond && evalCond(option.disabledCond, ctx)));
+    const lastPlain = options.map((option, index) => !option.recall && !disabled[index]).lastIndexOf(true);
+    const preferred = original ? options.indexOf(original) : -1;
+    const fallback = preferred >= 0 && !disabled[preferred] ? preferred : lastPlain;
+    const timeoutMs = beat.timeout !== undefined && fallback >= 0 ? beat.timeout * 1000 : Infinity;
     run.blocked = true;
     run.pendingChoice = { beat, options, deadline: t + timeoutMs + SHIFT_MS, fallback };
     // Someone is asking her something: attention comes back.
     if (this.view.focus !== 'main' && this.shift?.to !== 'main') this.beginShift('main');
     this.view.choice = {
       key: this.keyCounter++,
-      options: options.map((option, index) => ({ text: option.text, index, recall: option.recall ? true : undefined })),
+      options: options.map((option, index) => ({ text: option.text, index, recall: option.recall ? true : undefined, disabled: disabled[index] || undefined })),
       startedAt: t,
       timeout: beat.timeout,
     };

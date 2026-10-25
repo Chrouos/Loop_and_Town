@@ -163,7 +163,10 @@ scenes:
               if: "!flag.c6_d_institute"
               then: [{ set: c6_r1230 }, { goto: c6_institute }]
             - text: （去鐘樓廣場坐一下）
+              disabled_if: flag.c6_square_done
               then: [{ set: c6_r1100 }, { goto: c6_square }]
+            - text: （結束調查，慢慢走回家）
+              goto: c6_dusk
 
   - id: c6_h1100
     time: "11:00"
@@ -194,7 +197,10 @@ scenes:
               if: "!flag.c6_d_institute"
               then: [{ set: c6_r1400 }, { goto: c6_institute }]
             - text: （去鐘樓廣場坐一下）
+              disabled_if: flag.c6_square_done
               then: [{ set: c6_r1230 }, { goto: c6_square }]
+            - text: （結束調查，慢慢走回家）
+              goto: c6_dusk
 
   - id: c6_h1230
     time: "12:30"
@@ -225,7 +231,10 @@ scenes:
               if: "!flag.c6_d_institute"
               then: [{ set: c6_r1530 }, { goto: c6_institute }]
             - text: （去鐘樓廣場坐一下）
+              disabled_if: flag.c6_square_done
               then: [{ set: c6_r1400 }, { goto: c6_square }]
+            - text: （結束調查，慢慢走回家）
+              goto: c6_dusk
 
   - id: c6_h1400
     time: "14:00"
@@ -256,7 +265,10 @@ scenes:
               if: "!flag.c6_d_institute"
               then: [{ set: c6_r1700 }, { goto: c6_institute }]
             - text: （去鐘樓廣場坐一下）
+              disabled_if: flag.c6_square_done
               then: [{ set: c6_r1530 }, { goto: c6_square }]
+            - text: （結束調查，慢慢走回家）
+              goto: c6_dusk
 
   - id: c6_h1530
     time: "15:30"
@@ -281,7 +293,10 @@ scenes:
               if: "!flag.c6_d_cafe"
               then: [{ set: c6_r1700 }, { goto: c6_cafe }]
             - text: （去鐘樓廣場坐一下）
+              disabled_if: flag.c6_square_done
               then: [{ set: c6_r1700 }, { goto: c6_square }]
+            - text: （結束調查，慢慢走回家）
+              goto: c6_dusk
 
   # 從任何一處調查走回街上，回到下一個還沒過去的時段。
   - id: c6_walk
@@ -815,19 +830,44 @@ scenes:
       - think: 鉛筆是她的。地址是別人的。
     next: c6_walk
 
-  # ─────────────────────────── 什麼都不查：廣場 ───────────────────────────
+  # ─────────────────────────── 廣場：三次停留後耗盡 ───────────────────────────
   - id: c6_square
     place: 鐘樓廣場
     ambience: [town_square]
     beats:
-      - narr: 我在長椅上坐下。木頭被太陽曬得溫溫的。
-      - { sfx: wind_gust, at: front-left, dist: far, text: 嗚—— }
-      - narr: 鐘樓在左前方。風在空掉的那一塊裡面繞。
+      - if: "!flag.c6_square_1"
+        then:
+          - narr: 我在長椅上坐下。木頭被太陽曬得溫溫的。
+          - { sfx: wind_gust, at: front-left, dist: far, text: 嗚—— }
+          - narr: 鐘樓在左前方。風在空掉的那一塊裡面繞。
+        else:
+          - if: "!flag.c6_square_2"
+            then:
+              - narr: 我摸著長椅邊緣，找到上次坐過的位置。木頭底下有一顆凸出來的螺絲。
+              - { sfx: bicycle_bell, at: back-right, dist: mid, text: 叮叮 }
+              - narr: 一台腳踏車從身後過去。鏈條很鬆，每踩一圈就喀啦響一下。
+            else:
+              - narr: 我又坐回長椅上。這次沒有把手杖收起來，杖尖還抵著地面。
+              - { sfx: wind_gust, at: front-left, dist: far, text: 嗚—— }
       - { wait: 20 }
-      - { sfx: ball_bounce, at: right, dist: mid, text: 咚、咚 }
-      - narr: 有小孩在拍球。鴿子被嚇得飛起來，翅膀拍得很亂，又一隻一隻落回來。
-      - think: 一個多小時，我可以拿去查一件事。我拿來坐在這裡。
-      - think: 知夏，妳有沒有這樣浪費過一個下午？
+      - if: "!flag.c6_square_1"
+        then:
+          - set: c6_square_1
+          - { sfx: ball_bounce, at: right, dist: mid, text: 咚、咚 }
+          - narr: 有小孩在拍球。鴿子被嚇得飛起來，翅膀拍得很亂，又一隻一隻落回來。
+          - think: 一個多小時，我可以拿去查一件事。我拿來坐在這裡。
+          - think: 知夏，妳有沒有這樣浪費過一個下午？
+        else:
+          - if: "!flag.c6_square_2"
+            then:
+              - set: c6_square_2
+              - narr: 我的拇指一直壓著那顆螺絲。放開時，指腹留了一個小小的凹痕。
+              - think: 如果知夏還在，我大概會跟她說，這張椅子該修了。
+            else:
+              - set: c6_square_done
+              - narr: 風把衣角吹起來，又放下。我把兩隻腳收回長椅底下，手掌撐住椅面。
+              - think: ……該起來了。
+              - narr: 站起來的時候，膝蓋有點僵。我扶著手杖，等那一陣麻過去。
     next: c6_walk
 
   # ─────────────────────────── 17:10 回家的路 ───────────────────────────

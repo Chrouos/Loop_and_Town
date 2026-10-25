@@ -189,11 +189,28 @@ scenes:
               if: "!flag.v_zhiyuan"
               goto: f_zhiyuan
             - text: （先站一下，聽這座鎮）
+              disabled_if: flag.f_town_listen_done
               then:
-                - pause: 2
-                - narr: 對面的鐵捲門拉上去，嘩啦啦一路響到頂。遠一點有阿伯在喊今天剛到的白帶魚。
-                - narr: 一張紙被風捲過來，貼著我的腳踝停住，又被吹走。
-                - think: 這些都會自己發生，不用我去動。
+                - if: "!flag.f_town_listen_1"
+                  then:
+                    - set: f_town_listen_1
+                    - pause: 2
+                    - narr: 對面的鐵捲門拉上去，嘩啦啦一路響到頂。遠一點有阿伯在喊今天剛到的白帶魚。
+                    - narr: 一張紙被風捲過來，貼著我的腳踝停住，又被吹走。
+                    - think: 這些都會自己發生，不用我去動。
+                  else:
+                    - if: "!flag.f_town_listen_2"
+                      then:
+                        - set: f_town_listen_2
+                        - pause: 2
+                        - narr: 腳步聲從身後過來，在我旁邊慢了一下，又往前走。
+                        - narr: 鑰匙碰在一起，響了兩聲。有人推開路邊的門，裡頭的人應了一聲。
+                        - think: 我把手杖往自己這邊收了一點。
+                      else:
+                        - set: f_town_listen_done
+                        - pause: 2
+                        - narr: 風把遠處的人聲送過來。我握穩手杖，杖尖重新落到路面上。
+                        - think: ……該走了。
       - goto: f_hub_pick
 
   # ─────────────────────────── 庭安 ───────────────────────────
@@ -999,6 +1016,9 @@ scenes:
           - tingan: 同步日誌。每天十八點三十一分，會開一個交接的窗口。
           - tingan: 你們聽，三份的時間對得起來。來源還完全不一樣。
           - tingan: 今天的比對紀錄也有重複固定同一個人的錯誤。名字是妳。
+          - if: know.k_my_death_page
+            then:
+              - think: 知夏那一頁上，也是這個名字。後面寫著十八點三十一分。
           - heart: slow
           - narr: 我嚥了一下口水，嚥不太下去。整個人好像被釘在這張椅子上。
           - me: 跟知夏那次一樣？
@@ -1383,6 +1403,26 @@ scenes:
           - tingan: 另一種，先把撤銷寫死，再封。
           - tingan: 寫死以後，誰都沒辦法再叫它改一次今天。我們不行，妳也不行。
           - pause: 2
+          # 第七章她讀過那一頁，才問得出口要不要一起封；沒讀過，那張紙就一直夾在筆記最後面。
+          - if: know.k_my_death_page
+            then:
+              - tingan: 還有一樣。知夏寫妳的那一頁，我一直夾在筆記最後面。
+              - tingan: 要跟今天一起封進去嗎？封進去就調不出來了，連我都不行。
+              - choice:
+                  timeout: 15
+                  options:
+                    - text: 「封進去。」
+                      then:
+                        - me: 那一頁上的我，不要再被任何東西算出來。
+                        - set: f_page_sealed
+                    - text: 「給我。我自己留著。」
+                      then:
+                        - { sfx: paper_rustle, at: front, dist: near, text: 沙 }
+                        - narr: 紙遞到我手上，摺痕還是兩道。我把它放進外套內側，跟那封信貼在一起。
+                        - set: f_page_kept
+              - pause: 1.5
+            else:
+              - think: 庭安的筆記最後面，還夾著那張我沒打開的紙。它要不要跟今天一起封起來，我沒有問。
           - tingan: 大家那一欄都簽了。最後一欄是觀測者。
           - tingan: 今晚辨認機櫃、複核聲音的人，我填了妳。妳願意替自己聽到的部分簽名嗎？
           - set: g5
@@ -1476,6 +1516,9 @@ scenes:
                       else:
                         - tingan: 再一次……什麼再一次？
                     - narr: 我沒有再說話。他們不會記得今晚這段對話。
+                - if: know.k_my_death_page
+                  then:
+                    - think: 那一頁上寫的是我。再一次，它也可能再被寫一次，寫的是我，或者別人。
                 - heart: pound
                 - narr: 我把指甲掐進掌心，一直掐，掐到整個手掌發燙。
                 - { sfx: tinnitus, at: center }
@@ -1589,6 +1632,9 @@ scenes:
       - phone: 稿子寫好了。署名在最上面，我做過的事也寫在裡面。
       - phone: 灰潮鎮這一套關掉了。別的地方，還有類似的東西。
       - phone: 要不要讀，大家自己決定。
+      - if: flag.f_page_sealed
+        then:
+          - phone: 那一頁跟紀錄一起封了。上面那個妳，不會再被算出來。
       - { sfx: phone_notify, at: right, dist: near, text: 叮咚 }
       - phone: 周志遠。
       - phone: 錄音機登錄了。下午督察找我。該講的，我會講。
@@ -1613,6 +1659,13 @@ scenes:
           - narr: 它們本來要放回她房間，跟房子一起處理掉。我把它們放回行李箱。
         else:
           - narr: 我把它摺好，放回外套內側的口袋。
+      - if: flag.f_page_kept
+        then:
+          - narr: 外套內側還有一張紙，摺痕兩道。上面寫什麼我都記得，不用再打開。
+          - think: 那是知夏看過的一個我。今天醒來的這一個，她沒有看過。
+      - if: "!know.k_my_death_page"
+        then:
+          - think: 庭安筆記最後面那張紙，我一直沒有打開。現在它只是知夏寫下的、沒有發生的一頁。
     next: f_epilogue_station
 
   - id: f_epilogue_station
@@ -1721,6 +1774,12 @@ scenes:
         then:
           - think: 予安拔掉的接頭還沒接回去，可是我讓庭安恢復了主路徑的權限。留著供電的機櫃，又開始低低地響。
       - think: 我封起來的，只有昨天那一天。
+      - if: flag.f_page_sealed
+        then:
+          - think: 知夏寫我的那一頁，跟昨天一起封了。可是寫它的那台機器還開著。
+      - if: know.k_my_death_page && !flag.f_page_sealed
+        then:
+          - think: 知夏寫我的那一頁還在。機器還開著，那一頁上的事，就還可能被算出來。
       - think: 明天、後天，會不會有人站到那面牆前面，我不知道。
       - { sfx: hum_fall, at: front-right, dist: far, text: ……嗡 }
       - { sfx: cane_tap, at: front, dist: near, text: 叩 }

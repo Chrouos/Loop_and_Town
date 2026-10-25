@@ -23,6 +23,8 @@ function params() {
     know: search.get('know') !== '0',
     reset: search.has('reset'),
     mute: search.has('mute'),
+    // ?dev lists every chapter in the chapter list, not only the ones this save has reached.
+    dev: search.has('dev'),
   };
 }
 
@@ -185,6 +187,7 @@ export function GameApp({ storage = safeStorage() }: { storage?: Storage }) {
           onClose={() => setMenu(false)}
           onTitle={() => { setMenu(false); setScreen('title'); }}
           onSettings={applySettings}
+          dev={options.dev}
         />
       )}
     </div>
@@ -261,8 +264,8 @@ function memoryMeta(memory: Memory): string {
   return [`第${toChineseNumber(memory.loop)}次`, memory.clock, memory.place, memory.label].filter(Boolean).join(' · ');
 }
 
-function Menu({ director, onClose, onTitle, onSettings }: { director: Director; onClose: () => void; onTitle: () => void; onSettings: () => void }) {
-  const [tab, setTab] = useState<'memory' | 'settings' | 'refs'>('memory');
+function Menu({ director, onClose, onTitle, onSettings, dev }: { director: Director; onClose: () => void; onTitle: () => void; onSettings: () => void; dev: boolean }) {
+  const [tab, setTab] = useState<'memory' | 'chapters' | 'settings' | 'refs'>('memory');
   const [confirm, setConfirm] = useState(false);
   const save = director.save;
   const settings = director.settings;
@@ -271,6 +274,7 @@ function Menu({ director, onClose, onTitle, onSettings }: { director: Director; 
     <div className="lt-overlay" onPointerUp={(event) => event.stopPropagation()}>
       <div className="lt-tabs">
         <button type="button" className={`lt-tab${tab === 'memory' ? ' on' : ''}`} onClick={() => setTab('memory')}>記憶</button>
+        <button type="button" className={`lt-tab${tab === 'chapters' ? ' on' : ''}`} onClick={() => setTab('chapters')}>章節</button>
         <button type="button" className={`lt-tab${tab === 'settings' ? ' on' : ''}`} onClick={() => setTab('settings')}>設定</button>
         <button type="button" className={`lt-tab${tab === 'refs' ? ' on' : ''}`} onClick={() => setTab('refs')}>參考資料</button>
       </div>
@@ -319,8 +323,44 @@ function Menu({ director, onClose, onTitle, onSettings }: { director: Director; 
           </div>
         </div>
       )}
+      {tab === 'chapters' && <Chapters director={director} dev={dev} onPicked={onClose} />}
       {tab === 'refs' && <References />}
       <button type="button" className="lt-close" onClick={onClose}>回到聲音裡</button>
+    </div>
+  );
+}
+
+// ───────────────────────── chapter list ─────────────────────────
+
+function Chapters({ director, dev, onPicked }: { director: Director; dev: boolean; onPicked: () => void }) {
+  const save = director.save;
+  const list = director.chapterList;
+  const target = director.progressChapter;
+  const targetIndex = list.findIndex((chapter) => chapter.key === target);
+  const numeral = (key: string) => CHAPTER_NUMERALS[key] ?? key;
+  const action = (key: string, index: number) => {
+    if (key === target) return save.replay ? '現在回去' : '從早上重來';
+    return index < targetIndex ? '回去聽一天' : '跳過去';
+  };
+  return (
+    <div className="lt-panel">
+      {save.replay
+        ? <div className="lt-empty">正在重聽{numeral(save.chapter)}。這一天的午夜過後，會回到{numeral(target)}。</div>
+        : <div className="lt-empty">回去聽的那一天，聽到的事、記住的話都會留著。<br />午夜過後，會回到{numeral(target)}。</div>}
+      {list.map((chapter, index) => {
+        const open = dev || save.reached.includes(chapter.key);
+        const now = chapter.key === save.chapter;
+        return (
+          <div className="lt-row" key={chapter.key}>
+            <span>{numeral(chapter.key)}　{open ? chapter.title : '……'}{now ? '　·　現在' : ''}</span>
+            {open && (
+              <button type="button" className="lt-opt" onClick={() => { director.selectChapter(chapter.key); onPicked(); }}>
+                {action(chapter.key, index)}
+              </button>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }

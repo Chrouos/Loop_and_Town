@@ -38,7 +38,7 @@ export type LineBeat = {
 /** Memory Input: she says a remembered line out loud. Only the accepted memories change anything. */
 export type RecallAccept = { mem: string; then: Beat[]; goto?: string };
 export type Recall = { accept: RecallAccept[]; miss: Beat[] };
-export type ChoiceOption = { text: string; cond?: Cond; then: Beat[]; goto?: string; recall?: Recall };
+export type ChoiceOption = { text: string; cond?: Cond; disabledCond?: Cond; then: Beat[]; goto?: string; recall?: Recall };
 
 export type Beat =
   | LineBeat

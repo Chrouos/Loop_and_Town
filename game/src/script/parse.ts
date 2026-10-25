@@ -231,7 +231,7 @@ function parseBeat(raw: unknown, where: string, errors: Errors): Beat | undefine
     choice.options.forEach((option, index) => {
       const at = `${where}.options[${index}]`;
       if (!isObj(option)) { errors.push(`${at}：選項必須是 map`); return; }
-      for (const key of Object.keys(option)) if (!['text', 'if', 'then', 'goto', 'recall'].includes(key)) errors.push(`${at}：選項未知欄位「${key}」`);
+      for (const key of Object.keys(option)) if (!['text', 'if', 'disabled_if', 'then', 'goto', 'recall'].includes(key)) errors.push(`${at}：選項未知欄位「${key}」`);
       let recall: ChoiceOption['recall'];
       if (option.recall !== undefined) {
         if (!isObj(option.recall) || !Array.isArray(option.recall.accept) || option.recall.accept.length === 0) {
@@ -253,6 +253,7 @@ function parseBeat(raw: unknown, where: string, errors: Errors): Beat | undefine
       options.push({
         text,
         cond: option.if === undefined ? undefined : cond(option.if, at, errors),
+        disabledCond: option.disabled_if === undefined ? undefined : cond(option.disabled_if, `${at}.disabled_if`, errors),
         then: parseBeats(option.then, `${at}.then`, errors),
         goto: option.goto === undefined ? undefined : String(option.goto),
         recall,

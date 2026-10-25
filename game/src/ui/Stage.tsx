@@ -428,7 +428,7 @@ function Choices({ director, choice, gone }: { director: Director; choice: NonNu
           key={index}
           type="button"
           className={`lt-choice${option.recall ? ' recall' : ''}`}
-          disabled={gone}
+          disabled={gone || option.disabled}
           style={{ animationDelay: `${index * 140}ms, ${index * 140}ms` }}
           onClick={(event) => { event.stopPropagation(); director.choose(option.index); }}
         >

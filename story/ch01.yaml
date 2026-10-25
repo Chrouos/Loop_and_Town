@@ -301,11 +301,11 @@ scenes:
                 - { yuan: 停在六點三十一分。, learn: k_watch_1831, mem: m_watch }
                 - narr: 翻過來，錶背上有一些刻痕。很細，很淺，指甲摸過去像在摸一條結了冰的河。
                 - touch:
-                    cells: [如, 果, 你, 第, 二, 次, 看]
+                    cells: ["？", "？", 你, "？", 二, "？", "？"]
                     style: engrave
                     prompt: 用指甲順著刻痕刮過去
                     timeout: 30
-                - think: 是字。可是太小了，我摸不出來。
+                - think: ……「你」？還有一個「二」。其他的太細了，摸不清楚。
             - text: （打開筆記本）
               if: "!flag.c1_notebook"
               then:
@@ -341,14 +341,30 @@ scenes:
               if: flag.c1_photo || flag.c1_watch || flag.c1_notebook
               goto: c1_day
             - text: （站在原地，聽這個房間）
+              disabled_if: flag.c1_room_listen_done
               then:
-                - pause: 3
-                - narr: 窗簾被風吹得很輕地碰了一下窗框。
-                - if: flag.c1_watch || flag.c1_notebook
+                - if: "!flag.c1_room_listen_1"
                   then:
-                    - think: 姊，妳到底在算什麼。
+                    - set: c1_room_listen_1
+                    - pause: 3
+                    - narr: 窗簾被風吹得很輕地碰了一下窗框。
+                    - if: flag.c1_watch || flag.c1_notebook
+                      then:
+                        - think: 姊，妳到底在算什麼。
+                      else:
+                        - think: 椅子沒有推進去。好像她只是起來倒杯水，等一下就回來。
                   else:
-                    - think: 椅子沒有推進去。好像她只是起來倒杯水，等一下就回來。
+                    - if: "!flag.c1_room_listen_2"
+                      then:
+                        - set: c1_room_listen_2
+                        - pause: 2
+                        - narr: 門口的地板輕輕響了一聲。予安還站在那裡。
+                        - yuan: 不急。
+                      else:
+                        - set: c1_room_listen_done
+                        - pause: 3
+                        - narr: 我又等了一會兒。只有窗簾偶爾碰著窗框。
+                        - think: ……先到這裡吧。
       - goto: c1_room_touch
 
   # ─────────────────────────── 白天 ───────────────────────────

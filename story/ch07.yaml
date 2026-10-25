@@ -264,29 +264,39 @@ scenes:
                 - tingan: 妳的名字。
                 - tingan: 十八點三十一分。
                 - { tingan: 死亡。, learn: k_my_death_page, mem: m_c7_my_death }
-      - pause: 3.5
-      - heart: pound
-      - { sfx: chair_scrape, at: center, dist: near, text: 嘎—— }
-      - { sfx: thud, at: back, dist: near, text: 匡啷, shake: hard }
-      - narr: 我整個人往後退，鐵椅被我撞翻，砸在水泥地上。
-      - daze: heavy
-      - { sfx: tinnitus, at: center }
-      - narr: 鐵椅倒地的回音還沒停，就被一條很高很細的聲音蓋過去，從左耳穿到右耳。
-      - narr: 那張紙還捏在我手裡，捏到指尖發麻。
-      - daze: light
-      - think: 我死過，在一個沒有人記得的今天。
-      - think: 只有她記得。
-      - pause: 2.5
-      - if: know.k_zhixia_saw_my_death
+            - text: （摺回去，不打開）
+              then:
+                - narr: 我照原來的摺痕把它摺回去，邊角對齊，放回那疊紙的最後面。
+                - pause: 2
+                - tingan: ……好。我先收著。
+                - tingan: 妳哪天想知道，再跟我說。
+                - think: 我怕的就是已經知道上面寫什麼。不打開，它今天就還只是一張紙。
+                - set: c7_page_folded
+      - if: "!flag.c7_page_folded"
         then:
-          - think: 庭安說過她看過我死。那時候是聽懂了，現在是摸到了。
-      - daze: off
-      - { sfx: chair_scrape, at: back, dist: near, text: 嘎 }
-      - narr: 椅腳刮過水泥地，那一聲突然就在我腿後面。機器的低鳴也回來了，一樣冷。
-      - narr: 庭安把椅子扶起來，推到我腿後面。我坐下去，大口吸了一次氣。
-      - heart: fast
-      - tingan: 她沒有寫怎麼死的。我問過，她不說。
-      - narr: 紙的右下角皺皺的，像濕過，又乾了。
+          - pause: 3.5
+          - heart: pound
+          - { sfx: chair_scrape, at: center, dist: near, text: 嘎—— }
+          - { sfx: thud, at: back, dist: near, text: 匡啷, shake: hard }
+          - narr: 我整個人往後退，鐵椅被我撞翻，砸在水泥地上。
+          - daze: heavy
+          - { sfx: tinnitus, at: center }
+          - narr: 鐵椅倒地的回音還沒停，就被一條很高很細的聲音蓋過去，從左耳穿到右耳。
+          - narr: 那張紙還捏在我手裡，捏到指尖發麻。
+          - daze: light
+          - think: 我死過，在一個沒有人記得的今天。
+          - think: 只有她記得。
+          - pause: 2.5
+          - if: know.k_zhixia_saw_my_death
+            then:
+              - think: 庭安說過她看過我死。那時候是聽懂了，現在是摸到了。
+          - daze: off
+          - { sfx: chair_scrape, at: back, dist: near, text: 嘎 }
+          - narr: 椅腳刮過水泥地，那一聲突然就在我腿後面。機器的低鳴也回來了，一樣冷。
+          - narr: 庭安把椅子扶起來，推到我腿後面。我坐下去，大口吸了一次氣。
+          - heart: fast
+          - tingan: 她沒有寫怎麼死的。我問過，她不說。
+          - narr: 紙的右下角皺皺的，像濕過，又乾了。
     next: c7_quarrel
 
   # ─────────────────────────── 10:40 那一架 ───────────────────────────

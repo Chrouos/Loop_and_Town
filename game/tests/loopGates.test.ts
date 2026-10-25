@@ -112,6 +112,12 @@ describe('chapter 7 gates', () => {
     expect(result.chapter).toBe('final');
   });
 
+  it('leaving the page folded means she never learns what it says', () => {
+    const result = play('7', prefer(/摺回去/, /是妳的事/, /妳先聽我說完/, /當成推測/, /去不去，是你的事/), 1);
+    expect(result.knowledge.has('k_my_death_page')).toBe(false);
+    expect(result.chapter).toBe('final');
+  });
+
   it('telling everyone without deciding for them reaches the final chapter in one loop', () => {
     const result = play('7', prefer(/是妳的事/, /妳先聽我說完/, /當成推測/, /去不去，是你的事/), 1);
     expect(result.chapter).toBe('final');

@@ -183,6 +183,7 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
   text-align: center; line-height: 1.6;
 }
 .lt-choice:hover, .lt-choice:focus-visible, .lt-choice.selected { color: var(--ink); letter-spacing: 0.14em; }
+.lt-choice:disabled { color: var(--ink-ghost); cursor: default; letter-spacing: 0.1em; }
 .lt-choice .lt-key { font-family: var(--mono); font-size: 0.62rem; color: var(--ink-ghost); margin-right: 0.9em; vertical-align: 2px; }
 .lt-timer { height: 1px; width: 120px; background: var(--ink-faint); margin-top: 10px; transform-origin: center; animation: lt-timer var(--timeout) linear forwards; }
 .lt-choices.timed .lt-choice { animation: lt-choice-in 700ms var(--ease) forwards, lt-choice-dim var(--timeout) linear forwards; }
