@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties } from 'react';
 import { createAudioEngine, type AudioEngine } from './audio/engine';
 import { VIBRATIONS, type VibrationId } from './audio/catalog';
 import { ATTRIBUTION_CREDITS } from './audio/credits';
 import { sampleUrl } from './audio/samples';
 import { parseSoundSources, type SoundSource } from './audio/sourceList';
 import { Director, toChineseNumber } from './engine/director';
-import { MEMORY_CAPACITY, readSave, writeSave, type GameSave, type Memory } from './engine/save';
+import { FONT_SIZES, MEMORY_CAPACITY, readSave, writeSave, type FontSize, type GameSave, type Memory } from './engine/save';
 import { loadGameScript } from './script/load';
 import { CHAPTER_NUMERALS } from './script/types';
 import { Stage } from './ui/Stage';
@@ -43,6 +43,7 @@ export function GameApp({ storage = safeStorage() }: { storage?: Storage }) {
   }, [audio, options, report, storage]);
   useSyncExternalStore(director.subscribe, director.getVersion);
   const view = director.view;
+  const fontStyle = { '--text-scale': FONT_SIZES[director.settings.fontSize].scale } as CSSProperties;
 
   const [screen, setScreen] = useState<Screen>('title');
   const [menu, setMenu] = useState(false);
@@ -151,12 +152,14 @@ export function GameApp({ storage = safeStorage() }: { storage?: Storage }) {
     );
   }
 
-  if (screen === 'title') return <Title save={director.save} onStart={begin} />;
-  if (screen === 'calibrate') return <Calibration audio={audio} onDone={finishCalibration} />;
-  if (view.phase === 'ending') return <Ending which={view.ending ?? 'c'} onBack={() => { setScreen('title'); }} />;
+  if (screen === 'title') return <div className="lt-app" style={fontStyle}><Title save={director.save} onStart={begin} /></div>;
+  if (screen === 'calibrate') return <div className="lt-app" style={fontStyle}><Calibration audio={audio} onDone={finishCalibration} /></div>;
+  if (view.phase === 'ending') return <div className="lt-app" style={fontStyle}><Ending which={view.ending ?? 'c'} onBack={() => { setScreen('title'); }} /></div>;
 
   return (
     <div
+      className="lt-app"
+      style={fontStyle}
       onPointerUp={(event) => {
         if (menu) return;
         const target = event.target as HTMLElement;
@@ -302,6 +305,13 @@ function Menu({ director, onClose, onTitle, onSettings, dev }: { director: Direc
           <div className="lt-row"><span>震動</span><Toggle on={settings.vibration} onChange={(vibration) => set({ vibration })} /></div>
           <div className="lt-row"><span>畫面晃動</span><Toggle on={settings.motion} onChange={(motion) => set({ motion })} /></div>
           <div className="lt-row"><span>聲音來源</span><Toggle on={settings.soundLabels} onChange={(soundLabels) => set({ soundLabels })} /></div>
+          <div className="lt-row"><span>字體大小</span>
+            <div className="lt-opts" role="group" aria-label="字體大小">
+              {(Object.keys(FONT_SIZES) as FontSize[]).map((size) => (
+                <button key={size} type="button" className={`lt-opt${settings.fontSize === size ? ' on' : ''}`} aria-pressed={settings.fontSize === size} onClick={() => set({ fontSize: size })}>{FONT_SIZES[size].label}</button>
+              ))}
+            </div>
+          </div>
           <div className="lt-row"><span>文字速度</span>
             <div className="lt-opts">
               {(['slow', 'normal', 'fast'] as const).map((speed) => (
