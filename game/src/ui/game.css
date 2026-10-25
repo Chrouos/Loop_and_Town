@@ -47,15 +47,10 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 .lt-daze.daze-heavy { filter: blur(2.6px); opacity: 0.68; animation: lt-swim-hard 3.8s ease-in-out infinite; transition-duration: 500ms; }
 .lt-stage.still .lt-daze { animation: none !important; }
 
-/* ── her heart: the whole stage pulses with it, the edges darken red on each beat ── */
-/* The layers that beat, shake and glow stay composited all the time (will-change). Otherwise mobile Safari
-   promotes them when each beat starts and drops them when it ends, re-rendering the text both times: it flickers. */
-.lt-body { position: absolute; inset: 0; transform-origin: 50% 50%; will-change: transform; }
-.lt-body.heart-slow { --amp: 0.004; --beat: 900ms; }
-.lt-body.heart-fast { --amp: 0.009; --beat: 560ms; }
-.lt-body.heart-pound { --amp: 0.016; --beat: 420ms; }
-.lt-body.beat-0 { animation: lt-lub-a var(--beat) ease-out; }
-.lt-body.beat-1 { animation: lt-lub-b var(--beat) ease-out; }
+/* ── her heart: the edges darken red on each beat ── */
+/* Keep heartbeat animation on the separate glow layer. Scaling the text container makes glyphs
+   shift between fractional pixels and can blur composited text on mobile Safari. */
+.lt-body { position: absolute; inset: 0; }
 .lt-heart {
   position: absolute; inset: 0; pointer-events: none; opacity: 0;
   background: radial-gradient(ellipse 78% 72% at 50% 50%, transparent 46%, rgba(128, 22, 16, 0.62) 100%);
@@ -327,8 +322,6 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 }
 @keyframes lt-swim { 0%, 100% { filter: blur(1px); transform: translate(0, 0) scale(1); } 50% { filter: blur(1.8px); transform: translate(3px, 2px) scale(1.006); } }
 @keyframes lt-swim-hard { 0%, 100% { filter: blur(2.2px); transform: translate(0, 0) scale(1) rotate(0); } 33% { filter: blur(3.6px); transform: translate(-6px, 3px) scale(1.012) rotate(-0.3deg); } 66% { filter: blur(2.8px); transform: translate(5px, -2px) scale(1.008) rotate(0.25deg); } }
-@keyframes lt-lub-a { 0%, 100% { transform: scale(1); } 12% { transform: scale(calc(1 + var(--amp))); } 28% { transform: scale(1); } 40% { transform: scale(calc(1 + var(--amp) * 0.55)); } 58% { transform: scale(1); } }
-@keyframes lt-lub-b { 0%, 100% { transform: scale(1); } 12% { transform: scale(calc(1 + var(--amp))); } 28% { transform: scale(1); } 40% { transform: scale(calc(1 + var(--amp) * 0.55)); } 58% { transform: scale(1); } }
 @keyframes lt-glow-a { 0% { opacity: var(--lo); } 12% { opacity: var(--hi); } 30% { opacity: var(--lo); } 42% { opacity: calc(var(--lo) + (var(--hi) - var(--lo)) * 0.6); } 100% { opacity: var(--lo); } }
 @keyframes lt-glow-b { 0% { opacity: var(--lo); } 12% { opacity: var(--hi); } 30% { opacity: var(--lo); } 42% { opacity: calc(var(--lo) + (var(--hi) - var(--lo)) * 0.6); } 100% { opacity: var(--lo); } }
 
