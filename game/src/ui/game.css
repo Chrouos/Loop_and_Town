@@ -48,7 +48,9 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 .lt-stage.still .lt-daze { animation: none !important; }
 
 /* ── her heart: the whole stage pulses with it, the edges darken red on each beat ── */
-.lt-body { position: absolute; inset: 0; transform-origin: 50% 50%; }
+/* The layers that beat, shake and glow stay composited all the time (will-change). Otherwise mobile Safari
+   promotes them when each beat starts and drops them when it ends, re-rendering the text both times: it flickers. */
+.lt-body { position: absolute; inset: 0; transform-origin: 50% 50%; will-change: transform; }
 .lt-body.heart-slow { --amp: 0.004; --beat: 900ms; }
 .lt-body.heart-fast { --amp: 0.009; --beat: 560ms; }
 .lt-body.heart-pound { --amp: 0.016; --beat: 420ms; }
@@ -57,14 +59,14 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 .lt-heart {
   position: absolute; inset: 0; pointer-events: none; opacity: 0;
   background: radial-gradient(ellipse 78% 72% at 50% 50%, transparent 46%, rgba(128, 22, 16, 0.62) 100%);
-  transition: opacity 1600ms var(--ease);
+  transition: opacity 1600ms var(--ease); will-change: opacity;
 }
 .lt-heart.heart-slow { --lo: 0; --hi: 0.28; --beat: 900ms; }
 .lt-heart.heart-fast { --lo: 0.22; --hi: 0.62; --beat: 560ms; }
 .lt-heart.heart-pound { --lo: 0.42; --hi: 1; --beat: 420ms; }
 .lt-heart.beat-0 { animation: lt-glow-a var(--beat) ease-out forwards; }
 .lt-heart.beat-1 { animation: lt-glow-b var(--beat) ease-out forwards; }
-.lt-world { position: absolute; inset: 0; transition: opacity 900ms var(--ease), filter 900ms var(--ease); }
+.lt-world { position: absolute; inset: 0; transition: opacity 900ms var(--ease), filter 900ms var(--ease); will-change: transform; }
 .lt-stage.phase-out .lt-world, .lt-stage.phase-card .lt-world, .lt-stage.phase-reset .lt-world { opacity: 0; filter: blur(6px); }
 /* into a continuous scene: a breath short enough to finish, not a fade cut off halfway */
 .lt-stage.phase-out.brief .lt-world { opacity: 0.6; filter: blur(1.5px); transition-duration: 260ms; }

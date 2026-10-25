@@ -49,16 +49,13 @@ scenes:
       - think: 興趣真差。
       - heart: off
       - think: 車票上個月就買好了，仲介也約好了，文件都排好了。
-      - pause: 1.5
-      - think: ...
+      - pause: 1
       - think: 這次回去，就是為了以後不用再回去。
       - pause: 1
       - { sfx: drawer, at: front-right, dist: near, text: 喀啦 }
       - narr: 我拉開抽屜，摸到那疊用橡皮筋綁著的信。
       - narr: 一共六封。
       - { narr: 五年前那個秋天，知夏一封一封寄來的。而我一封都沒拆。, learn: k_six_unopened, mem: m_six_letters }
-      - narr: 我想那是年輕時候的我，在賭氣。
-      - narr: 賭氣她的不理解。
       - pause: 1
       - narr: 後來我看不見了。
       - narr: 墨水寫的字，我再也讀不到，我也沒打算讓任何人念給我聽。
