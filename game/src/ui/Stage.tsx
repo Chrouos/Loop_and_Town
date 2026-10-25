@@ -4,6 +4,7 @@ import { interpolateClock, leanOf, placeLabel, type Box } from './geometry';
 import { Interaction } from './Interactions';
 import type { Pos } from '../script/types';
 import { FONT_SIZES } from '../engine/save';
+import type { Phrase } from '../engine/text';
 
 const HOLD_MS = 560;
 const MOVE_MS = 700;
@@ -233,7 +234,7 @@ export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown 
       <div className={`lt-heart${heart}`} aria-hidden="true" />
       <div className="lt-world">
         <div className={`lt-daze${view.daze ? ` daze-${view.daze}` : ''}`}>
-          <div className="lt-body">
+          <div className={`lt-body${heart}`}>
             {view.ripples.map((ripple) => <div key={ripple.key} data-key={ripple.key} className={`lt-ripple dist-${ripple.pos.dist}`} />)}
             {turn && <div className={`lt-turn${turnGone ? ' gone' : ''}`} />}
 
@@ -414,15 +415,35 @@ function Line({ line, role, director, view, onCapture }: { line: CenterLine; rol
       <div ref={inner} className="lt-line-in" style={{ transform: rest }}>
         {line.label && <div className="lt-label">{line.label}</div>}
         <p className="lt-text">
-          {line.phrases.map((phrase, index) => {
-            const delay = Math.max(0, (phrase.at / director.speed) - Math.max(0, mountedAt.current));
-            const span = <span className="lt-phrase" style={{ animationDelay: `${delay}ms` }}>{phrase.text}</span>;
-            return phrase.br ? <Fragment key={index}>{span}<br /></Fragment> : <Fragment key={index}>{span}</Fragment>;
+          {sentencesOf(line.phrases).map((sentence, index) => {
+            const group = (
+              <span className="lt-sent">
+                {sentence.phrases.map((phrase, n) => {
+                  const delay = Math.max(0, (phrase.at / director.speed) - Math.max(0, mountedAt.current));
+                  return <span key={n} className="lt-phrase" style={{ animationDelay: `${delay}ms` }}>{phrase.text}</span>;
+                })}
+              </span>
+            );
+            return sentence.br ? <Fragment key={index}>{group}<br /></Fragment> : <Fragment key={index}>{group}</Fragment>;
           })}
         </p>
       </div>
     </div>
   );
+}
+
+// A sentence wraps as one piece: two short ones share a row with a breath between them, and a row never
+// ends in the middle of a word. The breath is the gap between pieces, so it never sits at a row's edge.
+function sentencesOf(phrases: Phrase[]): { phrases: Phrase[]; br: boolean }[] {
+  const out: { phrases: Phrase[]; br: boolean }[] = [];
+  let current: Phrase[] = [];
+  for (const phrase of phrases) {
+    const ends = phrase.text.endsWith('　');
+    current.push(ends ? { ...phrase, text: phrase.text.slice(0, -1) } : phrase);
+    if (ends || phrase.br) { out.push({ phrases: current, br: !!phrase.br }); current = []; }
+  }
+  if (current.length) out.push({ phrases: current, br: false });
+  return out;
 }
 
 // Where a line rests: leaning toward whoever speaks; her own words a little lower; an echo shrunk toward its

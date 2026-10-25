@@ -234,11 +234,6 @@ scenes:
       - narr: 她背後的鍵盤聲停了。再過去一點，是海。
       - choice:
           options:
-            - text: 「我先說我不知道的事。」
-              then:
-                - set: f_t_resp
-                - me: 我知道今天傍晚舊車站會出事。為什麼會這樣，我不知道。
-                - me: 妳聽完會不會把門關上，我也不知道。
             - text: （把手杖收起來，問她能不能進去坐）
               then:
                 - set: f_t_resp
@@ -395,9 +390,6 @@ scenes:
       - yuan: 妳說要問我一件事。
       - choice:
           options:
-            - text: 「我先跟你說，我知道什麼，不知道什麼。」
-              then:
-                - set: f_y_resp
             - text: （坐下，等他把手上那只錶放下）
               then:
                 - set: f_y_resp
@@ -563,9 +555,6 @@ scenes:
               - think: 下午那封通知。外地的攝影課。
       - choice:
           options:
-            - text: 「我想請妳說一張照片給我聽。先聽我說完，再決定要不要。」
-              then:
-                - set: f_r_resp
             - text: （點一杯黑咖啡，等她不忙的時候）
               then:
                 - set: f_r_resp
@@ -683,9 +672,6 @@ scenes:
           - boxun: 我五點多要出去一趟。妳的時間不多。
       - choice:
           options:
-            - text: 「我想請你查一件事。先說清楚，我手上有的只是推測。」
-              then:
-                - set: f_b_resp
             - text: （等他先開口）
               then:
                 - set: f_b_resp
@@ -811,9 +797,6 @@ scenes:
       - zhiyuan: ……我姓周。
       - choice:
           options:
-            - text: 「我想請你做一件事。先告訴你，它對你有什麼風險。」
-              then:
-                - set: f_z_resp
             - text: （坐下，等他把電扇關小）
               then:
                 - set: f_z_resp
@@ -1678,11 +1661,17 @@ scenes:
       - narr: 這些聲音我一個都不認得，全部都是第一次聽到。
       - think: 下一分鐘會發生什麼，我不知道。
       - think: 我都快忘了，原來是這種感覺。
+      - if: "know.k_dont_become_me"
+        then:
+          - think: 知夏託庭安帶一句話給我，不要變成她。她最後那幾年，大概沒有過這種早上。
       - pause: 2
       - { sfx: phone_notify, at: right, dist: near, text: 叮咚 }
       - phone: 許若晴。
       - phone: 外地那個課我報名了！我媽說她早就叫我去了，講得好像是她的功勞。
       - phone: 週末我會回來。這是我自己排的喔。
+      - if: "mem.m_c2_can_wait"
+        then:
+          - think: 有一個她不記得的今天，她說陳醫生好像什麼事都可以等她。這次她沒有等誰點頭。
       - { sfx: phone_notify, at: right, dist: near, text: 叮咚 }
       - phone: 葉庭安。
       - phone: 稿子寫好了。署名在最上面，我做過的事也寫在裡面。
@@ -1741,6 +1730,10 @@ scenes:
       - yuan: 我想重新申請學校。以前一直說明年再去，結果就過了這麼多年。
       - yuan: 店先關三個月。我去問問課，順便整理一下。
       - { yuan: 要不要回來開，到時候我自己決定。, mem: m_f_yuan_decides }
+      - if: "know.k_tower_kit"
+        then:
+          - me: 你爸那箱工具，要拿回來嗎？
+          - yuan: 嗯。我想自己去看，他們借去接了什麼。
       - think: 他講了「我想」。我沒有特地去數，可是我聽到了。
       - if: "know.k_yuan_went_station"
         then:
@@ -1758,6 +1751,12 @@ scenes:
         then:
           - think: 「但我會去接妳。」第一個今天，他坐在老屋的椅子上講的。
           - think: 他不記得。我記得就好。
+      - if: "know.k_yuan_1758"
+        then:
+          - { sfx: phone_ring, at: right, dist: near, text: 鈴—— }
+          - narr: 他口袋裡的手機響了。響第二聲，他就接起來。
+          - yuan: 喂？……對，我在車站。等一下回你。
+          - think: 五年前那一通，他沒有接。
       - { sfx: station_chime, at: front, dist: far, text: 叮——咚—— }
       - { announcer: 往北的列車，即將進站。, as: 廣播 }
       - { sfx: train_brake, at: front, text: 嘰———— }
@@ -1836,6 +1835,9 @@ scenes:
       - if: know.k_my_death_page && !flag.f_page_sealed
         then:
           - think: 知夏寫我的那一頁還在。機器還開著，那一頁上的事，就還可能被算出來。
+      - if: "know.k_zhixia_voice"
+        then:
+          - think: 知夏在錄音裡說，她看過結果。昨天以後的事，我一件都沒有看過。
       - think: 明天、後天，會不會有人站到那面牆前面，我不知道。
       - { sfx: hum_fall, at: front-right, dist: far, text: ……嗡 }
       - { sfx: cane_tap, at: front, dist: near, text: 叩 }
@@ -1865,12 +1867,18 @@ scenes:
       - wait: 3
       - { sfx: bell_toll, at: front, text: 噹—— }
       - think: 下一次，我會做得更好。
+      - if: "know.k_not_best_day"
+        then:
+          - think: 不要再找「最好的一天」。知夏的紙條這樣寫。我摸過那一行，還是坐在這裡等下一次。
       - narr: 我把額頭抵在膝蓋上。鐘聲從台階一路震上來，震進我的牙齒。
       - wait: 3
       - { sfx: bell_toll, at: front, text: 噹——, vib: bell }
       - wait: 3
       - { sfx: bell_toll, at: front, text: 噹—— }
       - think: 知夏以前一定也這樣跟自己講過。
+      - if: "mem.m_c3_chess"
+        then:
+          - think: 棋子又要被擺回原來的格子了。這一次，我連自己也擺進去。
       - heart: pound
       - wait: 3
       - { sfx: bell_toll, at: front, text: 噹——, vib: bell }

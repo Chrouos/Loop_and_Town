@@ -596,17 +596,20 @@ scenes:
       - { sfx: coffee_grind, at: front-right, text: 嗡嘰嘰嘰 }
       - { ruoqing: 菜單要我念給妳聽嗎？, as: 年輕的女聲 }
       - me: 黑咖啡就好。不加糖。
-      - pause: 1.5
+      - pause: 3
       - { sfx: camera_shutter, at: front, dist: near, text: 喀嚓 }
       - narr: 很近的一聲快門。
       - { ruoqing: 啊，歹勢歹勢。手比腦袋快。, as: 年輕的女聲 }
       - { ruoqing: 妳剛剛坐下來的時候，光剛好打在妳臉上。, as: 年輕的女聲 }
+      - { ruoqing: 你介意的話我可以刪掉！, as: 年輕的女聲 }
       - me: 拍到什麼？
       - { ruoqing: ……妳想知道喔？, as: 年輕的女聲 }
       - me: 我看不到，妳說給我聽吧。
       - pause: 1.5
-      - { ruoqing: 窗戶有一點霧霧的，然後妳的手杖靠在桌腳，影子剛好拉得很長。, as: 年輕的女聲 }
-      - { ruoqing: 我看到妳在發呆，聽著店裡的聲音，像是在等什麼。, as: 年輕的女聲 }
+      - { ruoqing: 嗯……窗戶有一點霧霧的，然後妳的手杖靠在桌腳，影子剛好拉得很長。, as: 年輕的女聲 }
+      - { ruoqing: 你望著影子發呆，像是在等什麼的感覺。, as: 年輕的女聲 }
+      - { ruoqing: 然後陽光灑在妳的臉上，影子拉得更長了。, as: 年輕的女聲 }
+      - pause: 1.5
       - think: 從來沒有人這樣跟我描述一張照片。
       - { sfx: cup_set, at: front, dist: near, text: 叩 }
       - me: 我是林家的孩子，回來處理老房子。
@@ -664,6 +667,7 @@ scenes:
               then:
                 - pause: 1
                 - ruoqing: ……知夏姊也這樣說過。
+                - { sfx: strap_click, at: front, dist: near, text: 喀 }
                 - narr: 她忽然收住話，背帶的扣又喀了一聲。
                 - ruoqing: 留個電話吧，我拍好新的，念給妳聽。
                 - set: [ruoqing_number, ruoqing_trust]
@@ -1011,6 +1015,8 @@ scenes:
         else:
           - think: 我不認識她，她是誰，跟我沒有關係。
       - { wait: 20, clock: "18:20", until: "18:30" }
+      - { sfx: phone_buzz, at: right, dist: near, text: 嗡 }
+      - phone: 十八點三十分。
       - clock: "18:31"
       - { sfx: blackout, at: front, dist: far, text: ——, vib: thud }
       - { amb: [night_insects], fade: 0.1 }
@@ -1021,9 +1027,11 @@ scenes:
       - { sfx: power_up, at: back, text: 嗡 }
       - { sfx: relay_click, at: left, dist: mid, text: 喀 }
       - { amb: [house_night], fade: 0.8 }
-      - narr: 冰箱的壓縮機喀了一聲，又嗡嗡地轉起來。我摸出手機，按了一下側鍵。
-      - phone: 十八點三十一分。
+      - narr: 冰箱的壓縮機喀了一聲，又嗡嗡地轉起來。
       - think: 像整座鎮停了一拍。
+      - narr: 我摸出手機按了一下側鍵，想知道剛剛停了多久。
+      - phone: 十八點三十一分。
+      - think: 半點的報時才響過，前後不到一分鐘。
       - { sfx: siren_far, at: front, dist: far, text: 喔咿——喔咿—— }
       - narr: 北邊，很遠。警笛一直沒有停。
       - heart: slow
@@ -1216,9 +1224,9 @@ scenes:
       - me: 打給你，說我姊寄信來了，叫我不要回去？
       - yuan: 至少讓我知道。
       - me: 你會信是她寄的？
-      - pause: 2
+      - yuan: ……
+      - pause: 1
       - yuan: ……不會。
-      - pause: 1.5
       - { yuan: 但我會去接妳。, learn: c1_yuan_pickup, mem: m_yuan_pickup }
       - pause: 3
       - narr: 我摸到杯子，捧在手裡，半天才說了一聲好。

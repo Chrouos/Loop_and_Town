@@ -15,7 +15,8 @@ concurrency:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    # Pin the browser-test OS to a version supported by the locked Playwright release.
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: game
@@ -32,6 +33,17 @@ jobs:
         run: npm ci
       - name: Test (scripts, engine, audio)
         run: npm test
+      - name: Install mobile test browsers
+        run: npx playwright install --with-deps chromium webkit
+      - name: Test mobile Chromium and WebKit
+        run: |
+          npm run dev -- --host 127.0.0.1 --port 5180 > /tmp/game-vite.log 2>&1 &
+          trap 'kill $!' EXIT
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:5180/ > /dev/null; then break; fi
+            sleep 1
+          done
+          npm run test:mobile
       - name: Build
         run: npm run build
       - name: Check the game page exists
