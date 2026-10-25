@@ -723,6 +723,18 @@ scenes:
                 - heart: off
                 - narr: 等她的鞋跟聲完全不見，我才把那張翹起來的貼紙壓回去。
                 - set: tingan_pressed
+            - text: 「災害和城市韌性的數位孿生。妳在找的，是這個嗎？」
+              if: "later.k_research_purpose"
+              then:
+                - pause: 2.5
+                - narr: 雨衣的沙沙聲停了。她包裡那些喀啦響的東西，也跟著不響了。
+                - { tingan: ……這幾個詞，不是網路上查得到的那種。, as: 陌生的女聲 }
+                - { tingan: 我以前在那裡做過事。就這樣。, as: 陌生的女聲, learn: k_tingan_worked_there, mem: m_c1_worked_there }
+                - tingan: 我叫葉庭安。妳想談的話，我這幾天都在鎮上。
+                - narr: 她把一張名片塞進我手裡，沒等我回答就走了。鞋跟聲比來的時候快。
+                - narr: 等她走遠，我把手機鏡頭對著名片。
+                - { phone: 葉庭安。記者。, learn: k_tingan_card }
+                - think: 記者。她剛剛那句話，記者不會這樣講。
             - text: 「我什麼都不知道。」
               then:
                 - { tingan: 沒關係。我叫葉庭安。, as: 陌生的女聲 }
@@ -791,6 +803,29 @@ scenes:
       - if: flag.yuan_with_me
         then:
           - yuan: 怎麼了？
+      # 第五章才知道 17:58 對他是什麼：回來重過這一天，她可以陪他坐過那一分鐘，一個字都不提。
+      - if: "flag.yuan_with_me && later.k_yuan_1758"
+        then:
+          - narr: 我按了一下手機側鍵。
+          - phone: 十七點五十二分。
+          - think: 再過六分鐘，就是他的那一分鐘。
+          - choice:
+              options:
+                - text: （叫他先坐一下，晚點再走）
+                  then:
+                    - me: 你先坐一下。我想等一下再出門。
+                    - yuan: ……好。
+                    - { sfx: chair_scrape, at: right, dist: near, text: 嘎 }
+                    - narr: 他沒有問為什麼。椅子響了一聲，他坐下來，之後就沒有再動。
+                    - pause: 4
+                    - narr: 窗外有人在收衣服，竹竿一根一根碰在一起。他剛才把手機擱上桌，叩一聲，之後一直沒有震。
+                    - pause: 3
+                    - { yuan: ……這個時間，我都不太想一個人待著。, mem: m_c1_not_alone }
+                    - think: 他不知道我知道。我也沒有講。
+                    - narr: 又過了一陣子，是他先站起來的。
+                - text: （不提）
+                  then:
+                    - narr: 我把那六分鐘吞回去。那一分鐘是他的，不是我拿來安排的東西。
       - choice:
           options:
             - text: （去舊車站）

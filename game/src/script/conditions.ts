@@ -47,8 +47,10 @@ export function parseCond(source: string): Cond {
       }
       return { op: 'cmp', left: token, cmp: cmp as '>=', value: Number(value) };
     }
-    const match = /^(know|flag|mem|seen)\.(\w+)$/.exec(token);
+    const match = /^(know|later|flag|mem|seen)\.(\w+)$/.exec(token);
     if (!match) throw new Error(`未知的條件「${token}」（在「${source}」）`);
+    // later.X: something she can only know here by coming back to this day from a later chapter.
+    if (match[1] === 'later') return { op: 'know', id: match[2], later: true };
     return { op: match[1] as 'know', id: match[2] };
   };
 
@@ -82,9 +84,9 @@ export function evalCond(cond: Cond, ctx: CondContext): boolean {
   return false;
 }
 
-export function condRefs(cond: Cond, out: { op: string; id: string }[] = []): { op: string; id: string }[] {
+export function condRefs(cond: Cond, out: { op: string; id: string; later?: boolean }[] = []): { op: string; id: string; later?: boolean }[] {
   switch (cond.op) {
-    case 'know': case 'flag': case 'mem': case 'seen': out.push({ op: cond.op, id: cond.id }); break;
+    case 'know': case 'flag': case 'mem': case 'seen': out.push(cond.later ? { op: cond.op, id: cond.id, later: true } : { op: cond.op, id: cond.id }); break;
     case 'not': condRefs(cond.arg, out); break;
     case 'and': case 'or': cond.args.forEach((arg) => condRefs(arg, out)); break;
     default: break;

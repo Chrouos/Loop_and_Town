@@ -330,6 +330,8 @@ scenes:
 
 `know.X`（永久知識）、`flag.X`（本輪旗標）、`mem.X`（目前帶著的記憶）、`seen.SCENE`（本輪去過的場景）、`loop >= N`（第幾輪，全遊戲）、`chloop >= N`（本章第幾輪），用 `!`、`&&`、`||`、括號組合。
 
+`later.X` 跟 `know.X` 一樣看永久知識，但只能用在「X 要到後面的章節才學得到」的地方：玩家從章節列表「回去聽一天」，帶著後面學到的事重過前面的某一天，才會出現的選項（例：第二章咖啡店 `later.k_new_cabinet`，第一章 17:52 `later.k_yuan_1758`）。用 `know.X` 指向後面才學得到的知識會被驗證擋下；`later.X` 指向本章以前就學得到的知識也會被擋下。從章節列表往後跳時，`later.X` 後面的 `learn` 不算這一章給的知識。每個 `later.X` 選項都要有回報：一條新線索或一段新記憶，在終章或結局用得到。
+
 ### 11.3 方位
 
 `front` `front-right` `right` `back-right` `back` `back-left` `left` `front-left`；`dist: near | mid | far`。

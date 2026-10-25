@@ -18,7 +18,7 @@ export type DazeLevel = (typeof DAZE_LEVELS)[number];
 export type Cond =
   | { op: 'true' }
   | { op: 'false' }
-  | { op: 'know' | 'flag' | 'mem' | 'seen'; id: string }
+  | { op: 'know' | 'flag' | 'mem' | 'seen'; id: string; later?: boolean }
   | { op: 'cmp'; left: 'loop' | 'chloop'; cmp: '>=' | '<=' | '==' | '>' | '<'; value: number }
   | { op: 'not'; arg: Cond }
   | { op: 'and' | 'or'; args: Cond[] };

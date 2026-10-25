@@ -114,10 +114,11 @@ export function buildScript(files: { name: string; source: string }[]): ScriptRe
     const checkRefs = (cond: Parameters<typeof condRefs>[0], where: string) => {
       for (const ref of condRefs(cond)) {
         if (ref.op === 'know' && !learned.has(ref.id)) errors.push(`${where}：know.${ref.id} 從未被 learn`);
-        // A condition can only lean on something the player could already have heard.
-        if (ref.op === 'know' && learned.has(ref.id) && firstLearned.get(ref.id)! > orderOf(chapter.key)) {
-          errors.push(`${where}：know.${ref.id} 要到後面的章節才學得到`);
-        }
+        // A condition can only lean on something the player could already have heard, unless it says it is
+        // meant for replaying this day with what a later chapter taught (later.X), and then it must really be later.
+        const later = learned.has(ref.id) && firstLearned.get(ref.id)! > orderOf(chapter.key);
+        if (ref.op === 'know' && !ref.later && later) errors.push(`${where}：know.${ref.id} 要到後面的章節才學得到（重玩才會知道的，寫 later.${ref.id}）`);
+        if (ref.op === 'know' && ref.later && learned.has(ref.id) && !later) errors.push(`${where}：later.${ref.id} 本章以前就學得到，寫 know.${ref.id}`);
         if (ref.op === 'flag' && !flagsSet.has(ref.id)) errors.push(`${where}：flag.${ref.id} 本章從未被 set`);
         if (ref.op === 'seen' && !scenes.has(ref.id)) errors.push(`${where}：seen.${ref.id} 場景不存在`);
         if (ref.op === 'mem' && !memIds.has(ref.id)) errors.push(`${where}：mem.${ref.id} 沒有任何台詞標記這個 mem`);

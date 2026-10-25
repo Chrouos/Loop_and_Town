@@ -286,6 +286,14 @@ scenes:
                       - tingan: ……那是我跟她吵架的時候講的。那間房間只有我們兩個。
                       - me: 今天要找的每一個人，我都會先讓他知道。從妳開始。
                       - set: [f_t_resp, f_t_recall]
+                  - mem: m_c1_worked_there
+                    then:
+                      - me: 妳跟我講過一句話。「我以前在那裡做過事。就這樣。」
+                      - pause: 2
+                      - tingan: ……這種話，我不會跟不認識的人講。
+                      - me: 那天我們也不認識。妳講完就走了，我沒有追。
+                      - me: 今天也一樣。妳不想說的，我不問。
+                      - set: [f_t_resp, f_t_recall]
                   - mem: m_c4_not_data
                     then:
                       - me: 「不能直接餵給機器，不代表它不是資料。」
@@ -440,6 +448,16 @@ scenes:
                       - me: 你。在一間小餐館，電視在報明天的浪高。
                       - yuan: 我沒有跟誰講過那天我有去。
                       - me: 我知道。我不是要問那班車。今天的事，我想先讓你自己選。
+                      - set: [f_y_resp, f_y_recall]
+                  - mem: m_c1_not_alone
+                    then:
+                      - me: 有一天傍晚，你講過一句話。
+                      - me: 「這個時間，我都不太想一個人待著。」
+                      - pause: 3
+                      - narr: 他手上起子的聲音停了。滿屋子的滴答，一只疊著一只。
+                      - yuan: ……我講過？
+                      - me: 那天我沒有問為什麼，今天也不問。
+                      - me: 我只是想跟你說，今天傍晚，你不用一個人。要不要來，你自己決定。
                       - set: [f_y_resp, f_y_recall]
                   - mem: m_c7_choose
                     then:
@@ -712,6 +730,14 @@ scenes:
                       - me: 一個醫生。很晚了，在我家客廳，冰箱的馬達剛好停掉。
                       - narr: 他沒有笑。推車在走廊底轉了個彎。
                       - me: 我想知道的就是那一個差別。要查到哪裡，你決定。
+                      - set: [f_b_resp, f_b_recall]
+                  - mem: m_c2_no_one_inside
+                    then:
+                      - me: 「十月三日，十八點三十一分，維修通道塌落。裡面沒有人。」
+                      - pause: 2.5
+                      - boxun: ……這是我寫紀錄的格式。
+                      - me: 是你寫的，在一個你不記得的傍晚。你說原因之後再一項一項排除。
+                      - me: 我今天來，就是想請你排除。查到哪裡，你決定。
                       - set: [f_b_resp, f_b_recall]
                   - mem: m_c3_which_time
                     then:
@@ -1092,11 +1118,15 @@ scenes:
             then:
               - think: 若晴不在。可是那個櫃子，我摸過。第一個十月三日，她就倒在它的牆腳。
             else:
-              - if: know.k_new_cabinet
+              - if: know.k_cabinet_spot
                 then:
-                  - think: 若晴不在。東牆多了一個櫃子，可是我不知道在哪一根柱子後面。
+                  - think: 若晴不在。可是她念過那張四月的照片給我聽：背對正門，右手邊第二根柱子。
                 else:
-                  - think: 若晴不在。這面牆後面多了什麼，沒有人跟我講過。
+                  - if: know.k_new_cabinet
+                    then:
+                      - think: 若晴不在。東牆多了一個櫃子，可是我不知道在哪一根柱子後面。
+                    else:
+                      - think: 若晴不在。這面牆後面多了什麼，沒有人跟我講過。
       - if: "flag.ev_yuan"
         then:
           - { yuan: 我在妳右後方，一步。, at: back-right, dist: near }
@@ -1147,15 +1177,20 @@ scenes:
           fail:
             - narr: 我往錯的那邊走了兩步，手底下的鐵皮一直在抖，音卻一點都沒有變高。
             - set: f_wrong_twice
-      # 若晴不在也行：第一章摸過那個鐵櫃（k_cabinet_warm），身體記得它在哪裡。
-      - if: "flag.f_hear_right && (flag.ev_ruoqing || know.k_cabinet_warm)"
+      # 若晴不在也行：摸過那個鐵櫃（k_cabinet_warm），或聽若晴念過四月那張照片（k_cabinet_spot）。
+      - if: "flag.f_hear_right && (flag.ev_ruoqing || know.k_cabinet_warm || know.k_cabinet_spot)"
         then:
           - if: flag.ev_ruoqing
             then:
               - narr: 我往右走。一步、兩步，第二根柱子。
             else:
-              - narr: 我從那天若晴站的地方往右前方數，一步、兩步、三步。第四步，鞋尖踢到一條電線。
-              - narr: 電線比我的手指還粗，外皮滑滑的，一路鑽進牆裡。
+              - if: know.k_cabinet_warm
+                then:
+                  - narr: 我從那天若晴站的地方往右前方數，一步、兩步、三步。第四步，鞋尖踢到一條電線。
+                  - narr: 電線比我的手指還粗，外皮滑滑的，一路鑽進牆裡。
+                else:
+                  - narr: 我背對正門站好，往右走，手杖一路掃著找柱子。第一根，第二根。
+                  - narr: 柱子後面的地上拖著一條電線，比我的手指還粗，一路鑽進牆裡。
           - if: "flag.ev_yuan"
             then:
               - { yuan: 小心，地上有線。, at: back-right, dist: near }
@@ -1167,7 +1202,11 @@ scenes:
             then:
               - { ruoqing: ……對，就是它。今年四月照片裡那個。, at: back, dist: mid }
             else:
-              - think: 跟那天一樣燙。她的手壓過的那條線，就從它底下出來。
+              - if: know.k_cabinet_warm
+                then:
+                  - think: 跟那天一樣燙。她的手壓過的那條線，就從它底下出來。
+                else:
+                  - think: 一排小燈，比人高一點。跟她在咖啡店念給我聽的一樣。
           - if: "flag.ev_tingan"
             then:
               - { tingan: 主路徑這邊也在跳，兩邊同時。, at: right, dist: near, as: 電話裡的庭安 }
