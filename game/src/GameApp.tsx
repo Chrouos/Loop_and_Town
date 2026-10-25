@@ -284,7 +284,7 @@ function Menu({ director, onClose, onTitle, onSettings, dev }: { director: Direc
       {tab === 'memory' && (
         <div className="lt-panel">
           <div className="lt-count">{save.memories.length} ／ {MEMORY_CAPACITY}</div>
-          {save.memories.length === 0 && <div className="lt-empty">還沒有記住任何一句話。<br />長按聽清楚的話，就能把它帶過午夜。</div>}
+          {save.memories.length === 0 && <div className="lt-empty">沒有紀錄<br />長按話語，跨過午夜</div>}
           {[...save.memories].reverse().map((memory) => (
             <div className="lt-mem" key={memory.key}>
               <div className="lt-mem-body">
@@ -335,7 +335,7 @@ function Menu({ director, onClose, onTitle, onSettings, dev }: { director: Direc
       )}
       {tab === 'chapters' && <Chapters director={director} dev={dev} onPicked={onClose} />}
       {tab === 'refs' && <References />}
-      <button type="button" className="lt-close" onClick={onClose}>回到聲音裡</button>
+      <button type="button" className="lt-close" onClick={onClose}>回到故事</button>
     </div>
   );
 }
@@ -355,8 +355,8 @@ function Chapters({ director, dev, onPicked }: { director: Director; dev: boolea
   return (
     <div className="lt-panel">
       {save.replay
-        ? <div className="lt-empty">正在重聽{numeral(save.chapter)}。這一天的午夜過後，會回到{numeral(target)}。</div>
-        : <div className="lt-empty">回去聽的那一天，聽到的事、記住的話都會留著。<br />午夜過後，會回到{numeral(target)}。</div>}
+        ? <div className="lt-empty">正在{numeral(save.chapter)}。這一天的午夜過後，會回到{numeral(target)}。</div>
+        : <div className="lt-empty">帶著記憶，重新輪迴<br />穿過午夜，回到「{numeral(target)}」</div>}
       {list.map((chapter, index) => {
         const open = dev || save.reached.includes(chapter.key);
         const now = chapter.key === save.chapter;
