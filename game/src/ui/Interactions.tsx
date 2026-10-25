@@ -27,7 +27,6 @@ function TouchStrip({ director, interact }: { director: Director; interact: Extr
   const [state, setState] = useState<('idle' | 'clear' | 'skim')[]>(() => interact.cells.map(() => 'idle'));
   const lastEnter = useRef<{ index: number; at: number } | null>(null);
   const finished = useRef(false);
-  const unreadable = interact.style === 'engrave';
   const next = state.findIndex((cell) => cell !== 'clear');
 
   const reach = useCallback((index: number, slow: boolean) => {
@@ -104,7 +103,7 @@ function TouchStrip({ director, interact }: { director: Director; interact: Extr
             {interact.style === 'braille'
               ? <div className="lt-dots">{[1, 2, 3, 4, 5, 6].map((dot) => <span key={dot} className={`dot d${dot}${dotsFor(cell, index).includes(dot) ? ' on' : ''}`} />)}</div>
               : <div className="lt-groove" />}
-            <div className="lt-touch-char">{state[index] === 'clear' ? (unreadable ? '？' : cell) : ''}</div>
+            <div className="lt-touch-char">{state[index] === 'clear' ? cell : ''}</div>
           </div>
         ))}
       </div>

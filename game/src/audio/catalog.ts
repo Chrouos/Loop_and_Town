@@ -43,11 +43,13 @@ export const SFX = {
   cough: '一聲咳嗽',
   sigh: '嘆氣',
   breath: '近距離的呼吸',
-  laugh_soft: '輕笑',
+  laugh_soft: '輕笑（年輕女生）',
+  laugh_soft_adult: '輕笑（成年女性）',
   // the same three for men (予安, 陳醫生); the plain ids are women's
   sigh_m: '嘆氣（男聲）',
   breath_m: '近距離的呼吸（男聲）',
-  laugh_soft_m: '輕笑（男聲）',
+  laugh_soft_m: '輕笑（年輕男生）',
+  laugh_soft_adult_m: '輕笑（成年男性）',
   kid_laugh: '小孩的笑聲',
   // objects
   paper_rustle: '紙張摩擦',
@@ -126,6 +128,35 @@ export const SFX = {
   title_tone: '標題的低音',
 } as const;
 export type SfxId = keyof typeof SFX;
+
+/**
+ * What she would say the sound is, in two to four characters: the small caption under the
+ * onomatopoeia, so 沙沙 can be told apart as paper, cloth or a pen. A script line can override it
+ * with `src:`. Missing ids (interface sounds, her own heart) get no caption.
+ */
+export const SFX_SOURCE: Partial<Record<SfxId, string>> = {
+  step: '腳步', step_heels: '硬底鞋', step_run: '有人在跑', step_wet: '踩水', cane_tap: '手杖',
+  door_open: '開門', door_close: '關門', door_creak: '老門', door_slam: '甩門', shop_bell: '門鈴',
+  key_jingle: '鑰匙', lock_turn: '門鎖', chair_scrape: '拖椅子', drawer: '抽屜', cloth_rustle: '衣服',
+  huddle_rustle: '有人湊近', gasp_crowd: '人群', cough: '咳嗽', sigh: '嘆氣', breath: '呼吸',
+  laugh_soft: '笑聲', laugh_soft_adult: '笑聲', sigh_m: '嘆氣', breath_m: '呼吸', laugh_soft_m: '笑聲',
+  laugh_soft_adult_m: '笑聲', kid_laugh: '小孩',
+  paper_rustle: '紙', page_turn: '翻頁', envelope: '信封', pen_scratch: '寫字', braille_stylus: '點字筆',
+  cup_set: '杯子', spoon_stir: '湯匙', coffee_grind: '磨豆機', steam_hiss: '蒸汽', kettle: '水壺',
+  glass_clink: '玻璃杯', camera_shutter: '快門', strap_click: '背帶扣', watch_tick: '手錶',
+  clock_chime: '座鐘', clock_wind: '上發條', tools_clink: '工具', box_open: '盒子', box_close: '盒蓋',
+  umbrella: '雨傘', lighter: '打火機', typing: '鍵盤', phone_buzz: '手機', phone_notify: '通知',
+  phone_ring: '電話', phone_hangup: '掛斷', recorder_click: '錄音機', tape_hiss: '錄音帶', tape_rewind: '倒帶',
+  static_burst: '雜訊', radio_noise: '收音機',
+  train_brake: '煞車', train_horn: '鳴笛', train_door: '車門', station_chime: '廣播', car_pass: '車子',
+  truck_pass_quiet: '貨車', truck_reverse: '倒車', bicycle_bell: '腳踏車', ball_bounce: '皮球',
+  construction_drill: '施工', hammer: '敲打', dog_bark: '狗', seagull: '海鷗', crow: '烏鴉',
+  siren_far: '警笛', bus_hiss: '公車',
+  rain_burst: '驟雨', thunder_far: '打雷', wind_gust: '風', wave: '海浪',
+  hum_rise: '嗡鳴', hum_fall: '嗡鳴', light_buzz: '燈管', blackout: '斷電', power_up: '來電',
+  spark: '火花', metal_crash: '鐵架倒下', thud: '重物', glass_break: '玻璃', relay_click: '繼電器',
+  bell_toll: '鐘樓', bell_toll_far: '遠處的鐘', tinnitus: '耳鳴',
+};
 
 export const AMBIENCE = {
   train_interior: '行駛中的列車車廂',

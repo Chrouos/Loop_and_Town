@@ -75,7 +75,9 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 .lt-center-inner { transition: transform 700ms var(--ease), filter 700ms var(--ease), opacity 700ms var(--ease); }
 .lt-stage.shifting .lt-center-inner { filter: blur(5px); opacity: 0.25; }
 
-.lt-line { position: relative; pointer-events: auto; padding: 18px 0; transition: transform 900ms var(--ease); }
+/* the outer box only ever slides; the inner one holds its resting shape (inline, set and eased by Stage) */
+.lt-line { position: relative; pointer-events: auto; }
+.lt-line-in { padding: 18px 0; transform-origin: 50% 100%; }
 .lt-label {
   font-size: 0.72rem; letter-spacing: 0.42em; color: var(--ink-dim);
   margin-bottom: 0.9em; opacity: 0; animation: lt-fade-in 600ms var(--ease) forwards;
@@ -87,7 +89,6 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 
 .lt-line.kind-me .lt-text::before { content: '「'; color: var(--ink-dim); }
 .lt-line.kind-me .lt-text::after { content: '」'; color: var(--ink-dim); }
-.lt-line.kind-me { transform: translateY(26px); }
 .lt-line.kind-think .lt-text { color: var(--ink-soft); font-style: italic; letter-spacing: 0.14em; font-weight: 300; }
 .lt-line.kind-narr .lt-text { font-size: clamp(0.98rem, 1.8vw, 1.22rem); color: rgba(236, 230, 218, 0.8); letter-spacing: 0.1em; font-weight: 300; }
 .lt-line.kind-phone .lt-text { font-family: var(--mono); color: var(--phone); font-size: clamp(0.92rem, 1.7vw, 1.12rem); letter-spacing: 0.22em; }
@@ -101,11 +102,6 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
   animation: lt-echo var(--echo-ms, 4800ms) linear forwards;
   pointer-events: auto;
 }
-/* Shrinking a line by font size re-wraps it halfway (two rows snap into one). Scale the whole line instead,
-   so it keeps its rows and just gets smaller toward the bottom edge it sits on. */
-.lt-line.lt-echo { transform: scale(0.66); transform-origin: 50% 100%; }
-.lt-line.kind-me.lt-echo { transform: translateY(26px) scale(0.66); }
-.lt-line.kind-narr.lt-echo, .lt-line.kind-phone.lt-echo { transform: scale(0.82); }
 .lt-echo .lt-label { animation: lt-fade-out 400ms var(--ease) forwards; }
 .lt-echo .lt-phrase { animation-play-state: paused; }
 .lt-echo.revealed .lt-phrase { animation: none; opacity: 1; filter: none; }
@@ -134,6 +130,13 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
   animation: lt-sfx var(--life, 3000ms) var(--ease) forwards;
 }
 .lt-p.kind-life.crowded { visibility: hidden; }
+/* what the sound is, the way she would name it: small, under the onomatopoeia */
+.lt-p-src {
+  display: block; margin-top: 0.35em; text-align: center;
+  font-size: 0.72rem; letter-spacing: 0.28em; text-indent: 0.28em; font-style: normal;
+  color: var(--ink-dim); line-height: 1.2;
+}
+.lt-p.dist-far .lt-p-src { font-size: 0.66rem; }
 .lt-p.kind-cue {
   pointer-events: auto; color: var(--ink-dim); z-index: 3; /* above the centre lines, which take taps too */
   padding: 14px 18px;
@@ -180,6 +183,7 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
   text-align: center; line-height: 1.6;
 }
 .lt-choice:hover, .lt-choice:focus-visible, .lt-choice.selected { color: var(--ink); letter-spacing: 0.14em; }
+.lt-choice:disabled { color: var(--ink-ghost); cursor: default; letter-spacing: 0.1em; }
 .lt-choice .lt-key { font-family: var(--mono); font-size: 0.62rem; color: var(--ink-ghost); margin-right: 0.9em; vertical-align: 2px; }
 .lt-timer { height: 1px; width: 120px; background: var(--ink-faint); margin-top: 10px; transform-origin: center; animation: lt-timer var(--timeout) linear forwards; }
 .lt-choices.timed .lt-choice { animation: lt-choice-in 700ms var(--ease) forwards, lt-choice-dim var(--timeout) linear forwards; }

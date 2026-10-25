@@ -142,7 +142,10 @@ export function buildScript(files: { name: string; source: string }[]): ScriptRe
         }
         if (beat.k === 'if') checkRefs(beat.cond, where);
         if (beat.k === 'choice') {
-          beat.options.forEach((option) => option.cond && checkRefs(option.cond, where));
+          beat.options.forEach((option) => {
+            if (option.cond) checkRefs(option.cond, where);
+            if (option.disabledCond) checkRefs(option.disabledCond, where);
+          });
           beat.options.forEach((option) => option.recall?.accept.forEach((entry) => {
             if (!memIds.has(entry.mem)) errors.push(`${where}：recall 接受的 ${entry.mem} 沒有任何台詞標記這個 mem`);
             else if (firstMem.get(entry.mem)! > orderOf(chapter.key)) errors.push(`${where}：recall 接受的 ${entry.mem} 要到後面的章節才記得到`);

@@ -43,25 +43,13 @@ scenes:
           - if: "!know.k_recorder_voice && know.c4_lead_drawer"
             then:
               - think: 周警官把我請出門，自己回去拉開了那個抽屜。右手邊最裡面，卡兩次才拉得出來。
-          - if: "!know.k_recorder_voice && !know.c4_lead_drawer"
-            then:
-              - think: 派出所那扇門，我還沒讓他打開。
           - if: "!know.k_medical_records && know.c4_lead_count"
             then:
               - think: 陳醫生在我起身的時候問，這是第幾次。他其實想聽我回答。
-          - if: "!know.k_medical_records && !know.c4_lead_count"
-            then:
-              - think: 陳醫生抽屜裡那份影本，我還沒聽他念。
           - if: "!know.k_zhixia_saw_my_death && know.c4_lead_promise"
             then:
               - think: 庭安答應過知夏一件事。她差一點就說了。
-          - if: know.k_recorder_voice
-            then:
-              - think: 錄音機裡那陣風，我已經記住了。派出所今天不用去。
-          - if: know.k_medical_records
-            then:
-              - think: 鄭阿姨的右手腕，陳醫生已經念給我聽過。醫院也不用去。
-          - think: 五年前那一天，我還有一部分沒聽到。再走一次，只走還沒走過的那幾段。
+          - think: 已經聽過的地方，今天不用再去。剩下的那幾扇門，換一句話敲。
         else:
           - narr: 我醒來的時候，手已經在外套口袋裡了。
           - narr: 指尖壓著那一行凸點。不、要、回、來。
@@ -89,7 +77,7 @@ scenes:
                 - think: 有一次我把所有人都移開，沒有人出事，午夜還是重來了。
                 - think: 今天我想把時間拿去問五年前的事。這個理由，連我自己都不想多想。
                 - pause: 1.5
-                - think: 六點三十一分舊車站會發生什麼，我知道。
+                - think: 十八點三十一分舊車站會發生什麼，我知道。
                 - think: 若晴會去。這次我不打那通電話。
                 - heart: slow
                 - narr: 我把手機翻過來扣在腿上，指甲沿著塑膠殼的邊一直刮。
@@ -204,9 +192,13 @@ scenes:
           - { man: 收到。, as: 另一個員警, at: back-right }
     beats:
       - { sfx: door_open, at: back, dist: near, text: 吱 }
-      - narr: 電扇在頭頂轉。裡面的鍵盤聲很慢，一個鍵敲完，才輪到下一個。
-      - narr: 有菸味，可是沒有打火機的聲音，也沒有人在吸。
-      - think: 是他。
+      - if: know.c4_lead_drawer
+        then:
+          - narr: 頭頂的電扇、沒點的菸、很慢的鍵盤，跟上一次一樣。右手邊最裡面，那個抽屜還關著。
+        else:
+          - narr: 電扇在頭頂轉。裡面的鍵盤聲很慢，一個鍵敲完，才輪到下一個。
+          - narr: 有菸味，可是沒有打火機的聲音，也沒有人在吸。
+          - think: 是他。
       - yuan: 我在外面等。
       - { sfx: door_close, at: back, dist: mid, text: 碰 }
       - { sfx: chair_scrape, at: front, dist: near, text: 嘎 }
@@ -507,7 +499,7 @@ scenes:
           - { boxun: ……林小姐。妳是第幾次來這裡？, learn: c4_lead_count }
           - heart: slow
           - narr: 手杖尖抵著門檻。冷氣正好吹在我後頸，涼得我縮了一下肩膀。
-          - think: 我沒有掛過他的號。他問的不是這間診間。
+          - think: 今天以前，我沒有掛過他的號。他問的不是這間診間。
           - think: 我沒有回答。他其實在等。
       - if: flag.c4_bx_open
         then:
@@ -533,7 +525,7 @@ scenes:
           - boxun: 睡眠、壓力、神經檢查、藥物，我都排除過。
           - boxun: 結果都正常。
           - pause: 1
-          - { sfx: page_turn, at: front, dist: near, text: 沙 }
+          - { sfx: page_turn, at: front, dist: near, text: 啪沙 }
           - boxun: 第四次。星期一。
           - boxun: 個案表示，三號病房的鄭阿姨，星期四會從床上摔下來。
           - boxun: 右手腕。
@@ -624,12 +616,12 @@ scenes:
           - { old_woman: 這位是……林家的？, as: 館員, at: back }
           - { old_woman: 妳姊以前都坐這張桌子。, as: 館員, at: back }
           - { old_woman: 關燈了才肯走。我都要趕她。, as: 館員, at: back }
-          - { sfx: page_turn, at: back, dist: mid, text: 沙 }
+          - { sfx: page_turn, at: back, dist: mid, text: 啪沙 }
     beats:
       - { sfx: door_open, at: back, dist: near, text: 吱 }
       - narr: 舊紙的霉味。冷氣開得很強，遠處的書架那邊有人在翻頁。
       - think: 知夏以前在這裡當約聘，整理鎮上的舊資料。我高中的時候常來這裡等她下班。
-      - { sfx: cloth_rustle, at: front-left, dist: near, text: 沙沙 }
+      - { sfx: cloth_rustle, at: front-left, dist: near, text: 窸窣 }
       - narr: 左前方有雨衣的布料在響。她比我早到。
       - tingan: 妳怎麼有我的號碼？誰給妳的？妳要談什麼？
       - me: 坐下來再問。
@@ -726,7 +718,7 @@ scenes:
             - text: 「我自己可以。」
               then:
                 - tingan: 好。我走妳左邊。
-                - { sfx: cloth_rustle, at: left, dist: near, text: 沙沙 }
+                - { sfx: cloth_rustle, at: left, dist: near, text: 窸窣 }
       - { sfx: cane_tap, at: front, dist: near, text: 叩, shake: light }
       - narr: 手杖尖卡進一道裂縫，我往前一頓，空著的那隻手在風裡抓了一把。
       - if: know.k_zhixia_tingan_split
@@ -1187,7 +1179,11 @@ scenes:
       - wait: 3.2
       - { sfx: bell_toll, at: front-left, text: 噹——, vib: bell }
       - wait: 3.2
-      - think: 錄音裡那一下鐘，也是從這個方向來的嗎。
+      - if: know.k_recorder_voice
+        then:
+          - think: 錄音裡那一下鐘，也是從這個方向來的嗎。
+        else:
+          - think: 鐘拆了五年，我還是每晚聽見它。
       - { sfx: bell_toll, at: front-left, text: 噹—— }
       - wait: 3.2
       - { sfx: bell_toll, at: front-left, text: 噹——, vib: bell }

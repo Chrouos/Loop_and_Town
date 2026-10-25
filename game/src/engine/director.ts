@@ -1,5 +1,5 @@
 import type { AudioEngine } from '../audio/engine';
-import { DIRECTIONS, DIRECTION_ANGLE, type AmbienceId, type Direction, type SfxId, type VibrationId } from '../audio/catalog';
+import { DIRECTIONS, DIRECTION_ANGLE, SFX_SOURCE, type AmbienceId, type Direction, type SfxId, type VibrationId } from '../audio/catalog';
 import { evalCond, type CondContext } from '../script/conditions';
 import { CHAPTER_NUMERALS, SPEAKER_LABELS, type Beat, type Chapter, type ChoiceOption, type EndKind, type DazeLevel, type GameScript, type HeartLevel, type LineBeat, type LineKind, type Pos, type Scene, type ShakeLevel } from '../script/types';
 import { lineTiming, type Phrase } from './text';
@@ -18,6 +18,8 @@ const LIFE_CHECK_MS = 1000;
 /** Longest the stage may sit empty before the world fills it a little (unless hushed or silent by design). */
 const LIFE_EMPTY_MS = 3500;
 const CUE_LEAD_MS = 1800;
+/** Strangers' voices are rarer than small sounds: at least this long between two of them. */
+const LIFE_VOICE_GAP_MS = 15000;
 /** Her heart: time between beats, how loud it is, how fast the recording plays. */
 const HEART: Record<Exclude<HeartLevel, 'off'>, { ms: number; gain: number; rate: number; vib: boolean }> = {
   slow: { ms: 920, gain: 0.32, rate: 1, vib: false },
@@ -40,7 +42,8 @@ export type CenterLine = {
   mem?: string;
 };
 
-export type Peripheral = { key: number; kind: 'sfx' | 'murmur' | 'cue' | 'life'; text: string; pos: Pos; thread?: string; born: number; until: number };
+/** `src`: what she hears it as (紙, 衣服, 風), shown small under the onomatopoeia. */
+export type Peripheral = { key: number; kind: 'sfx' | 'murmur' | 'cue' | 'life'; text: string; src?: string; pos: Pos; thread?: string; born: number; until: number };
 
 export type Card = { chapter?: string; title?: string; time?: string; place?: string; loopText?: string };
 
@@ -57,7 +60,7 @@ export type View = {
   echo: (CenterLine & { until: number }) | null;
   periph: Peripheral[];
   ripples: { key: number; pos: Pos }[];
-  choice: { key: number; options: { text: string; index: number; recall?: boolean }[]; startedAt: number; timeout?: number } | null;
+  choice: { key: number; options: { text: string; index: number; recall?: boolean; disabled?: boolean }[]; startedAt: number; timeout?: number } | null;
   /** Memory Input picker: which remembered lines she could say right now. */
   recall: { key: number; memories: Memory[] } | null;
   /** A hands-or-ears moment the scene is waiting on. */
@@ -139,6 +142,9 @@ export class Director {
   private lifeNextAt = 0;
   private lifeBusyAt = 0;
   private lifeRecent: LifeEvent[] = [];
+  /** Strangers' lines already heard this session: none comes back until its whole pool has been heard. */
+  private lifeSaid = new Set<LifeEvent>();
+  private lifeVoiceAt = -Infinity;
   private heartGen = 0;
 
   constructor(script: GameScript, save: GameSave, out: DirectorOutput, options: { speed?: number } = {}) {
@@ -200,6 +206,50 @@ export class Director {
     this.recallTried = new WeakMap();
     this.seen = new Set();
     this.beginChapter(key, true);
+  }
+
+  /** Every chapter in play order, for the chapter list. */
+  get chapterList(): { key: string; title: string }[] {
+    return this.script.order.map((key) => ({ key, title: this.chapter(key).title }));
+  }
+
+  /** The chapter progress belongs to: where a replay returns at midnight, otherwise the current one. */
+  get progressChapter(): string { return this.save.replay?.chapter ?? this.save.chapter; }
+
+  /**
+   * Chapter list. Earlier chapter: live one 10/3 of it, keeping everything heard and remembered, then return at midnight.
+   * The progress chapter: start its day over (or stop replaying and go back to it). A later chapter (testing only): jump
+   * there with every earlier chapter's knowledge added to what she already knows.
+   */
+  selectChapter(key: string): void {
+    const order = this.script.order;
+    const target = this.progressChapter;
+    if (!order.includes(key)) return;
+    this.save.loop += 1;
+    this.save.scene = null;
+    this.save.flags = [];
+    this.save.seen = [];
+    this.save.finished = false;
+    delete this.save.wait;
+    if (key === target) {
+      this.save.chLoop = this.save.replay ? this.save.replay.chLoop : this.save.chLoop + 1;
+      this.save.replay = null;
+      this.beginChapter(key, this.save.chLoop === 1);
+    } else if (order.indexOf(key) < order.indexOf(target)) {
+      this.save.replay ??= { chapter: target, chLoop: this.save.chLoop };
+      this.save.chLoop = 1;
+      this.beginChapter(key, true);
+    } else {
+      for (const chapter of this.script.chapters) {
+        if (order.indexOf(chapter.key) >= order.indexOf(key)) break;
+        for (const id of learnIdsOf(chapter)) this.knowledge.add(id);
+      }
+      this.save.knowledge = [...this.knowledge];
+      this.save.replay = null;
+      this.save.chLoop = 1;
+      this.beginChapter(key, true);
+    }
+    this.persist();
   }
 
   setPaused(paused: boolean): void { this.paused = paused; }
@@ -271,6 +321,7 @@ export class Director {
     if (!main || !pending || this.view.focus !== 'main') return;
     const option = pending.options[index];
     if (!option) return;
+    if (option.disabledCond && evalCond(option.disabledCond, this.condContext())) return;
     if (option.recall) { this.openRecall(main, index); return; }
     this.applyChoice(main, option);
     this.advanceTo(this.view.t);
@@ -452,6 +503,7 @@ export class Director {
   private beginChapter(key: string, firstOfChapter: boolean): void {
     const chapter = this.chapter(key);
     this.save.chapter = chapter.key;
+    if (!this.save.reached.includes(chapter.key)) this.save.reached.push(chapter.key);
     this.flags = new Set();
     this.recallTried = new WeakMap();
     this.seen = new Set();
@@ -569,10 +621,13 @@ export class Director {
     const chapter = this.chapter(this.save.chapter);
     const ctx = this.condContext();
     const rule = chapter.advance.find((candidate) => evalCond(candidate.cond, ctx));
-    const nextKey = rule?.to ?? chapter.key;
+    // A replayed day from the chapter list goes back to where the player was, whatever this chapter's rule says.
+    const back = this.save.replay;
+    this.save.replay = null;
+    const nextKey = back ? back.chapter : rule?.to ?? chapter.key;
     const advanced = nextKey !== chapter.key;
     this.save.loop += 1;
-    this.save.chLoop = advanced ? 1 : this.save.chLoop + 1;
+    this.save.chLoop = back ? back.chLoop : advanced ? 1 : this.save.chLoop + 1;
     this.save.chapter = nextKey;
     this.save.scene = null;
     this.flags = new Set();
@@ -696,7 +751,7 @@ export class Director {
       case 'sfx': {
         this.out.audio.play(beat.id, beat.pos, { gain: beat.gain });
         if (beat.vib) this.vibrate(beat.vib);
-        if (beat.text) this.addPeripheral('sfx', beat.text, beat.pos, t + SFX_TEXT_MS * (beat.pos.dist === 'far' ? 1.25 : 1));
+        if (beat.text) this.addPeripheral('sfx', beat.text, beat.pos, t + SFX_TEXT_MS * (beat.pos.dist === 'far' ? 1.25 : 1), undefined, beat.src ?? SFX_SOURCE[beat.id]);
         this.ripple(beat.pos);
         const jolt = beat.shake ?? (beat.vib === 'crash' ? 'hard' : beat.vib === 'thud' ? 'light' : undefined);
         if (jolt) this.jolt(jolt);
@@ -820,7 +875,7 @@ export class Director {
     const run: Run = { id: beat.thread, stack: [{ beats, i: 0 }], busyUntil: t + (beat.grab ? SHIFT_MS + 200 : CUE_LEAD_MS), line: null, blocked: false, done: false, pos: beat.pos };
     this.runs.set(beat.thread, run);
     if (beat.sfx) this.out.audio.play(beat.sfx, beat.pos);
-    this.addPeripheral('cue', beat.text, beat.pos, Infinity, beat.thread);
+    this.addPeripheral('cue', beat.text, beat.pos, Infinity, beat.thread, beat.src ?? (beat.sfx && SFX_SOURCE[beat.sfx]));
     this.ripple(beat.pos);
     if (beat.grab) this.beginShift(beat.thread);
     this.bump();
@@ -849,16 +904,18 @@ export class Director {
     const options = beat.options.filter((option) => (!option.cond || evalCond(option.cond, ctx)) && (!option.recall || canRecall));
     const original = beat.default !== undefined ? beat.options[beat.default] : undefined;
     // Silence falls back to the default, or the last ordinary option; never to "想起一句話".
-    const lastPlain = options.map((option) => !option.recall).lastIndexOf(true);
-    const fallback = original ? Math.max(0, options.indexOf(original)) : Math.max(0, lastPlain);
-    const timeoutMs = beat.timeout !== undefined ? beat.timeout * 1000 : Infinity;
+    const disabled = options.map((option) => Boolean(option.disabledCond && evalCond(option.disabledCond, ctx)));
+    const lastPlain = options.map((option, index) => !option.recall && !disabled[index]).lastIndexOf(true);
+    const preferred = original ? options.indexOf(original) : -1;
+    const fallback = preferred >= 0 && !disabled[preferred] ? preferred : lastPlain;
+    const timeoutMs = beat.timeout !== undefined && fallback >= 0 ? beat.timeout * 1000 : Infinity;
     run.blocked = true;
     run.pendingChoice = { beat, options, deadline: t + timeoutMs + SHIFT_MS, fallback };
     // Someone is asking her something: attention comes back.
     if (this.view.focus !== 'main' && this.shift?.to !== 'main') this.beginShift('main');
     this.view.choice = {
       key: this.keyCounter++,
-      options: options.map((option, index) => ({ text: option.text, index, recall: option.recall ? true : undefined })),
+      options: options.map((option, index) => ({ text: option.text, index, recall: option.recall ? true : undefined, disabled: disabled[index] || undefined })),
       startedAt: t,
       timeout: beat.timeout,
     };
@@ -916,10 +973,8 @@ export class Director {
   }
 
   private lifeBeat(events: LifeEvent[], t: number): void {
-    const fresh = events.filter((event) => !this.lifeRecent.includes(event));
-    const pool = fresh.length ? fresh : events;
-    const event = pool[Math.floor(Math.random() * pool.length)];
-    this.lifeRecent = [...this.lifeRecent, event].slice(-Math.min(4, Math.max(1, events.length - 2)));
+    const event = this.pickLife(events, t);
+    if (!event) return;
     // Never on top of someone in the scene or a sound she could turn to — unless the scene put it there itself.
     const own = Array.isArray(this.scene?.life) && this.scene.life.includes(event);
     const taken = new Set<string>([
@@ -935,22 +990,45 @@ export class Director {
       const ms = Math.max(900, [...event.say].length * 110);
       this.out.audio.voice(event.voice, pos, ms, 'life');
       this.addPeripheral('life', event.say, pos, t + ms + 2600);
-      if (event.reply) {
-        const reply = event.reply;
-        const gen = this.lifeGen;
-        this.schedule(t + ms + 500, () => {
+      // The rest of the exchange, one turn after another, from the same spot.
+      const turns = event.reply === undefined ? [] : Array.isArray(event.reply) ? event.reply : [event.reply];
+      const gen = this.lifeGen;
+      let at = t + ms + 500;
+      for (const turn of turns) {
+        const turnMs = Math.max(900, [...turn.say].length * 110);
+        this.schedule(at, () => {
           if (gen !== this.lifeGen || this.view.phase !== 'scene' || this.view.t < this.lifeHushUntil) return;
-          const replyMs = Math.max(900, [...reply.say].length * 110);
-          this.out.audio.voice(reply.voice, pos, replyMs, 'life');
-          this.addPeripheral('life', reply.say, pos, this.view.t + replyMs + 2600);
+          this.out.audio.voice(turn.voice, pos, turnMs, 'life');
+          this.addPeripheral('life', turn.say, pos, this.view.t + turnMs + 2600);
+          this.lifeVoiceAt = this.view.t;
           this.bump();
         });
+        at += turnMs + 500;
       }
+      this.lifeVoiceAt = at;
     } else {
       if (event.sfx) this.out.audio.play(event.sfx, pos, { gain: pos.dist === 'far' ? 0.45 : 0.6 });
-      this.addPeripheral('sfx', event.text, pos, t + SFX_TEXT_MS * (pos.dist === 'far' ? 1.25 : 1));
+      this.addPeripheral('sfx', event.text, pos, t + SFX_TEXT_MS * (pos.dist === 'far' ? 1.25 : 1), undefined, event.src ?? (event.sfx && SFX_SOURCE[event.sfx]));
     }
     this.bump();
+  }
+
+  /**
+   * Sounds may come back (a cup is set down more than once), just not the last few.
+   * Voices are rarer and never repeat until every line in the pool has been heard.
+   */
+  private pickLife(events: LifeEvent[], t: number): LifeEvent | undefined {
+    const voices = events.filter(isVoice);
+    if (voices.length && voices.every((event) => this.lifeSaid.has(event))) voices.forEach((event) => this.lifeSaid.delete(event));
+    const voiceOk = t - this.lifeVoiceAt >= LIFE_VOICE_GAP_MS;
+    const pool = events.filter((event) => (isVoice(event) ? voiceOk && !this.lifeSaid.has(event) : !this.lifeRecent.includes(event)));
+    const sounds = events.filter((event) => !isVoice(event));
+    const from = pool.length ? pool : sounds;
+    if (!from.length) return undefined;
+    const event = from[Math.floor(Math.random() * from.length)];
+    if (isVoice(event)) this.lifeSaid.add(event);
+    else this.lifeRecent = [...this.lifeRecent, event].slice(-Math.min(4, Math.max(1, sounds.length - 2)));
+    return event;
   }
 
   // ───────────────────────── attention ─────────────────────────
@@ -1018,8 +1096,8 @@ export class Director {
     this.persist();
   }
 
-  private addPeripheral(kind: Peripheral['kind'], text: string, pos: Pos, until: number, thread?: string): void {
-    this.view.periph = [...this.view.periph.filter((item) => !(kind === 'murmur' && item.kind === 'murmur' && item.thread === thread && thread !== undefined)), { key: this.keyCounter++, kind, text, pos, born: this.view.t, until, thread }];
+  private addPeripheral(kind: Peripheral['kind'], text: string, pos: Pos, until: number, thread?: string, src?: string): void {
+    this.view.periph = [...this.view.periph.filter((item) => !(kind === 'murmur' && item.kind === 'murmur' && item.thread === thread && thread !== undefined)), { key: this.keyCounter++, kind, text, src, pos, born: this.view.t, until, thread }];
   }
 
   private ripple(pos: Pos): void {

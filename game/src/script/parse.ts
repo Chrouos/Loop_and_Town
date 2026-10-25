@@ -1,6 +1,6 @@
 import { load } from 'js-yaml';
 import { DISTANCES, VOICES, isAmbience, isDirection, isSfx, VIBRATIONS, type Direction, type Distance, type SfxId, type VibrationId, type VoiceId } from '../audio/catalog';
-import type { LifeEvent } from '../engine/life';
+import type { LifeEvent, LifeLine } from '../engine/life';
 import { parseCond } from './conditions';
 import { DAZE_LEVELS, HEART_LEVELS, SHAKE_LEVELS, type Beat, type Chapter, type ChoiceOption, type DazeLevel, type EndKind, type HeartLevel, type LineBeat, type Pos, type Scene, type ShakeLevel } from './types';
 
@@ -100,17 +100,17 @@ function parseBeat(raw: unknown, where: string, errors: Errors): Beat | undefine
   };
 
   if ('cue' in raw) {
-    allow('cue', 'at', 'dist', 'text', 'sfx', 'grab');
+    allow('cue', 'at', 'dist', 'text', 'sfx', 'grab', 'src');
     const pos = parsePos(raw.at, where, errors, (str(raw.dist) as Distance) ?? 'mid');
     const sfx = raw.sfx === undefined ? undefined : String(raw.sfx);
     if (sfx && !isSfx(sfx)) errors.push(`${where}：未知音效「${sfx}」`);
     const text = str(raw.text);
     if (!text) errors.push(`${where}：cue 需要擬聲字 text`);
     if (!pos) return undefined;
-    return { k: 'cue', thread: String(raw.cue), pos, text: text ?? '……', sfx: sfx && isSfx(sfx) ? sfx : undefined, grab: raw.grab === true };
+    return { k: 'cue', thread: String(raw.cue), pos, text: text ?? '……', sfx: sfx && isSfx(sfx) ? sfx : undefined, grab: raw.grab === true, src: str(raw.src) };
   }
   if ('sfx' in raw) {
-    allow('sfx', 'at', 'dist', 'text', 'vib', 'gain', 'shake');
+    allow('sfx', 'at', 'dist', 'text', 'vib', 'gain', 'shake', 'src');
     let id = String(raw.sfx);
     let posRaw: unknown = raw.at ?? 'center';
     if (id.includes('@')) {
@@ -122,7 +122,7 @@ function parseBeat(raw: unknown, where: string, errors: Errors): Beat | undefine
     const pos = parsePos(posRaw, where, errors, (str(raw.dist) as Distance) ?? 'mid');
     if (!pos) return undefined;
     if (raw.dist !== undefined && typeof posRaw === 'string' && !posRaw.includes(':')) pos.dist = String(raw.dist) as Distance;
-    return { k: 'sfx', id, pos, text: str(raw.text), vib: vib(raw.vib, where, errors), gain: typeof raw.gain === 'number' ? raw.gain : undefined, shake: shake(raw.shake, where, errors) };
+    return { k: 'sfx', id, pos, text: str(raw.text), vib: vib(raw.vib, where, errors), gain: typeof raw.gain === 'number' ? raw.gain : undefined, shake: shake(raw.shake, where, errors), src: str(raw.src) };
   }
   if ('amb' in raw) {
     allow('amb', 'fade');
@@ -231,7 +231,7 @@ function parseBeat(raw: unknown, where: string, errors: Errors): Beat | undefine
     choice.options.forEach((option, index) => {
       const at = `${where}.options[${index}]`;
       if (!isObj(option)) { errors.push(`${at}：選項必須是 map`); return; }
-      for (const key of Object.keys(option)) if (!['text', 'if', 'then', 'goto', 'recall'].includes(key)) errors.push(`${at}：選項未知欄位「${key}」`);
+      for (const key of Object.keys(option)) if (!['text', 'if', 'disabled_if', 'then', 'goto', 'recall'].includes(key)) errors.push(`${at}：選項未知欄位「${key}」`);
       let recall: ChoiceOption['recall'];
       if (option.recall !== undefined) {
         if (!isObj(option.recall) || !Array.isArray(option.recall.accept) || option.recall.accept.length === 0) {
@@ -253,6 +253,7 @@ function parseBeat(raw: unknown, where: string, errors: Errors): Beat | undefine
       options.push({
         text,
         cond: option.if === undefined ? undefined : cond(option.if, at, errors),
+        disabledCond: option.disabled_if === undefined ? undefined : cond(option.disabled_if, `${at}.disabled_if`, errors),
         then: parseBeats(option.then, `${at}.then`, errors),
         goto: option.goto === undefined ? undefined : String(option.goto),
         recall,
@@ -292,7 +293,7 @@ function parseLife(raw: unknown, where: string, errors: Errors): LifeEvent[] | '
     const at = `${where}[${index}]`;
     if (!isObj(item)) { errors.push(`${at}：必須是 map`); continue; }
     for (const field of Object.keys(item)) {
-      if (!['text', 'sfx', 'say', 'voice', 'at', 'dist'].includes(field)) errors.push(`${at}：不支援欄位「${field}」`);
+      if (!['text', 'src', 'sfx', 'say', 'voice', 'reply', 'at', 'dist'].includes(field)) errors.push(`${at}：不支援欄位「${field}」`);
     }
     const dirs = item.at === undefined ? undefined : list(item.at);
     const badDir = (dirs ?? []).filter((dir) => !isDirection(dir));
@@ -304,14 +305,22 @@ function parseLife(raw: unknown, where: string, errors: Errors): LifeEvent[] | '
     if (say) {
       const voice = str(item.voice) ?? 'woman';
       if (!(voice in VOICES)) { errors.push(`${at}：未知聲音「${voice}」`); continue; }
-      events.push({ say, voice: voice as VoiceId, ...place });
+      // reply: the other side of the exchange, one { say, voice } or a list of them
+      const turns: LifeLine[] = [];
+      for (const [n, turn] of (item.reply === undefined ? [] : Array.isArray(item.reply) ? item.reply : [item.reply]).entries()) {
+        const turnSay = isObj(turn) ? str(turn.say) : undefined;
+        const turnVoice = isObj(turn) ? str(turn.voice) ?? 'woman' : undefined;
+        if (!turnSay || !turnVoice || !(turnVoice in VOICES)) { errors.push(`${at}.reply[${n}]：需要 say 和已知的 voice`); continue; }
+        turns.push({ say: turnSay, voice: turnVoice as VoiceId });
+      }
+      events.push({ say, voice: voice as VoiceId, ...place, ...(turns.length ? { reply: turns } : {}) });
       continue;
     }
     const text = str(item.text);
     if (!text) { errors.push(`${at}：需要 text 或 say`); continue; }
     const sfx = item.sfx === undefined ? undefined : String(item.sfx);
     if (sfx !== undefined && !isSfx(sfx)) { errors.push(`${at}：未知音效「${sfx}」`); continue; }
-    events.push({ text, sfx: sfx as SfxId | undefined, ...place });
+    events.push({ text, src: str(item.src), sfx: sfx as SfxId | undefined, ...place });
   }
   return events;
 }

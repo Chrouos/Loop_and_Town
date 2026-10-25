@@ -421,10 +421,17 @@ sfx('choice_appear', [C('418396', 0.72, 1.16), C('810068', 0.22, 0.62), lambda: 
     note='a small in-breath through the mouth (woman); a soft mouth inhale; lips parting')
 sfx('title_tone', [C('616335', 0.0, 8.0)], [616335], st=-20, fin=1.2, fout=3.0, rate=0.71, jitter=0,
     note='a large singing bowl struck with a soft stick, its hum faded in and left to decay; played at rate 0.71 (~110 Hz)')
-sfx('laugh_soft', [C('72695', 98.82, 99.62), C('399931', 21.0, 22.0)], [72695, 399931], st=-22, hp=120, fin=0.005, fout=0.08,
+sfx('laugh_soft', [lambda: lowpass(cut('241539', 0.0, 0.82), 3200),
+                   lambda: lowpass(cut('234950', 0.0, 0.52), 3200),
+                   lambda: lowpass(cut('241526', 0.0, 0.57), 3200)],
+    [241539, 234950, 241526], st=-27, hp=150, fin=0.01, fout=0.1,
+    note="a young woman's quiet, slightly shy two-breath laugh (呵呵) and two small chuckles, low-passed at 3.2 kHz so they stay close and soft")
+sfx('laugh_soft_adult', [C('72695', 98.82, 99.62), C('399931', 21.0, 22.0)], [72695, 399931], st=-22, hp=120, fin=0.005, fout=0.08,
     note="an adult woman's soft closed-mouth laugh through the nose (two takes)")
-sfx('laugh_soft_m', [C('643665', 0.10, 1.15), C('643665', 4.30, 5.40)], [643665], st=-22, hp=70, fin=0.02, fout=0.1,
-    note="a young man's quiet closed-mouth chuckle through the nose (two takes)")
+sfx('laugh_soft_m', [C('800973', 0.03, 0.80), C('818916', 0.03, 0.42), C('818916', 1.10, 1.50)], [800973, 818916], st=-24, hp=90, fin=0.01, fout=0.08,
+    note="a man in his mid-twenties laughing lightly: a short laugh, and two easy giggles")
+sfx('laugh_soft_adult_m', [C('643665', 0.10, 1.15), C('643665', 4.30, 5.40)], [643665], st=-22, hp=70, fin=0.02, fout=0.1,
+    note="an older man's quiet closed-mouth chuckle through the nose (two takes)")
 sfx('sigh', [C('663651', 0.24, 1.98), C('501339', 2.08, 3.40)], [663651, 501339], st=-23, hp=150, fin=0.1, fout=0.3,
     note="a woman's quiet sigh: a quick breath in and a slow breath out; and an exhale-only sigh")
 sfx('sigh_m', [C('449438', 3.40, 5.50), C('449438', 7.05, 8.85), C('449438', 10.45, 11.95)], [449438], st=-23, hp=80, fin=0.05, fout=0.3,
