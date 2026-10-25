@@ -289,7 +289,7 @@ export const LIFE: Partial<Record<AmbienceId, Life>> = {
     events: [
       { text: '喀', src: '木頭', at: AROUND, dist: 'mid' },
       { text: '滴、滴', src: '水龍頭', at: ['back-left', 'back-right'], dist: 'mid' },
-      { text: '咕嚕咕嚕', src: '水管', at: ['back', 'back-left'], dist: 'mid' },
+      { text: '咕嚕咕嚕', sfx: 'pipe_gurgle', src: '水管', at: ['back', 'back-left'], dist: 'mid' },
       { text: '咻——', sfx: 'car_pass', at: ['left', 'right'], dist: 'far' },
       { text: '噗噗——', sfx: 'car_pass', src: '機車', at: ['front-left', 'front-right'], dist: 'far' },
       { text: '汪', sfx: 'dog_bark', at: AROUND, dist: 'far' },
