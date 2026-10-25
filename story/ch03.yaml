@@ -14,9 +14,6 @@ scenes:
     beats:
       - { sfx: phone_buzz, at: right, dist: near, text: 嗡, vib: buzz }
       - phone: 鬧鐘。六點十二分。
-      - if: know.k_in_station_hall && !know.k_cabinet_warm
-        then:
-          - think: 舊站大廳東邊那面牆腳，我到現在都還沒摸過。
       - if: know.c3_boxun_died_again
         then:
           - think: 上一次我把所有人都移開了，只漏掉陳醫生。

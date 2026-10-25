@@ -18,6 +18,6 @@ it('chapter two hands back what chapter one left on the desk', () => {
     d.tick(100);
   }
   expect(said).toContain('姊姊桌上那幾樣東西，上一次我沒有每一樣都摸過。');
-  expect(said).toContain('那天晚上在大廳，她倒下的那面牆腳，我一直沒有摸到。');
+  expect(said).toContain('那天在舊站大廳，東牆那邊有個東西一直在嗡。她大概就倒在那面牆腳，那是什麼，我到最後都沒摸到。');
   for (const id of ['k_watch_1831', 'k_photo_tingan', 'k_notebook_1831', 'k_watch_engraving']) expect(d.knows.has(id), id).toBe(true);
 });

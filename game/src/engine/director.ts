@@ -1,7 +1,7 @@
 import type { AudioEngine } from '../audio/engine';
 import { DIRECTIONS, DIRECTION_ANGLE, DISTANCES, SFX_SOURCE, type AmbienceId, type Direction, type SfxId, type VibrationId } from '../audio/catalog';
-import { evalCond, type CondContext } from '../script/conditions';
-import { CHAPTER_NUMERALS, SPEAKER_LABELS, type Beat, type Chapter, type ChoiceOption, type EndKind, type DazeLevel, type GameScript, type HeartLevel, type LineBeat, type LineKind, type Pos, type Scene, type ShakeLevel } from '../script/types';
+import { condRefs, evalCond, type CondContext } from '../script/conditions';
+import { CHAPTER_NUMERALS, SPEAKER_LABELS, type Beat, type Chapter, type Cond, type ChoiceOption, type EndKind, type DazeLevel, type GameScript, type HeartLevel, type LineBeat, type LineKind, type Pos, type Scene, type ShakeLevel } from '../script/types';
 import { driftClock, heardClock, planClock, type ClockPlan } from './clock';
 import { lineTiming, type Phrase } from './text';
 import { HUSH_MS, HUSH_SFX, isVoice, lifeOf, type LifeEvent } from './life';
@@ -1225,15 +1225,17 @@ export function areaOf(place: string): string {
   return place.split(/[，,]/)[0].trim();
 }
 
+/** What a chapter can teach on the way through. Branches behind later.X only open when replaying with what a later chapter taught. */
 export function learnIdsOf(chapter: Chapter): string[] {
   const ids: string[] = [];
+  const replayOnly = (cond: Cond | undefined) => !!cond && condRefs(cond).some((ref) => ref.later);
   const visit = (beats: Beat[]) => {
     for (const beat of beats) {
       if (beat.k === 'learn') ids.push(...beat.ids);
       if (beat.k === 'line' && beat.learn) ids.push(beat.learn);
-      if (beat.k === 'if') { visit(beat.then); visit(beat.else); }
+      if (beat.k === 'if') { if (!replayOnly(beat.cond)) visit(beat.then); visit(beat.else); }
       if (beat.k === 'locate') { visit(beat.success); visit(beat.fail); }
-      if (beat.k === 'choice') beat.options.forEach((option) => { visit(option.then); option.recall?.accept.forEach((entry) => visit(entry.then)); });
+      if (beat.k === 'choice') beat.options.forEach((option) => { if (replayOnly(option.cond)) return; visit(option.then); option.recall?.accept.forEach((entry) => visit(entry.then)); });
     }
   };
   for (const scene of chapter.scenes) { visit(scene.beats); Object.values(scene.threads).forEach(visit); }
