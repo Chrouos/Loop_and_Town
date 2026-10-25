@@ -28,7 +28,7 @@ scenes:
           - { woman: ……她在聽啦。, at: back-right, as: 小孩的媽媽 }
     beats:
       - { sfx: phone_buzz, at: right, dist: near, text: 嗡, vib: buzz }
-      - phone: 六點十二分。
+      - phone: 鬧鐘。六點十二分。
       - narr: 醒來的時候，我的指尖已經停在那一行凸點上，好像睡著前就一直放在那裡。
       - think: 不、要、回、來。
       - narr: 同樣的高度，同樣的間隔。每一次醒來，它都在同一個地方等我。
@@ -1055,6 +1055,7 @@ scenes:
       - { sfx: envelope, at: center, dist: near, text: 沙 }
       - narr: 我把信攤在掌心，指尖放在第一個凸點上。
       - think: 如果它真的是從哪裡被送過來的，十八點三十一分，它也許會多說一點什麼。
+      - narr: 我把鬧鐘設在那一分鐘，手機面朝下放在信旁邊。
       - heart: slow
       - { wait: 30, clock: "18:20", until: "18:30" }
       - { sfx: phone_buzz, at: right, dist: near, text: 嗡 }
@@ -1064,8 +1065,8 @@ scenes:
       - heart: fast
       - { wait: 12, clock: "18:30", until: "18:31" }
       - clock: "18:31"
-      - { sfx: phone_buzz, at: right, dist: near, text: 嗡 }
-      - phone: 十八點三十一分。
+      - { sfx: phone_buzz, at: right, dist: near, text: 嗡, vib: buzz }
+      - phone: 鬧鐘。十八點三十一分。
       - pause: 2.5
       - narr: 冰箱沒有停，屋裡的聲音一點都沒變。我的指尖從左邊慢慢滑過去。
       - think: 不、要、回、來。
@@ -1414,9 +1415,9 @@ scenes:
     place: 林家老屋門口的台階
     ambience: [tower_square_night]
     beats:
-      - narr: 我坐在門口的台階上，信放在膝蓋上。
+      - narr: 我坐在門口的台階上，信放在膝蓋上。手機的鬧鐘早就設好了。
       - { sfx: phone_buzz, at: right, dist: near, text: 嗡 }
-      - phone: 二十三點五十九分。
+      - phone: 鬧鐘。二十三點五十九分。
       - pause: 1
       - { sfx: bell_toll, at: front-left, text: 噹———, vib: bell }
       - wait: 3.2

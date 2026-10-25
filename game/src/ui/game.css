@@ -1,7 +1,7 @@
 /* Every character the game shows, in one file (tools/subset-font.py), so text never swaps face mid-scene. */
 @font-face {
-  font-family: 'Iansui';
-  src: url('../assets/fonts/iansui-subset.woff2') format('woff2');
+  font-family: 'LXGW WenKai TC';
+  src: url('../assets/fonts/wenkai-tc-subset.woff2') format('woff2');
   font-display: block;
 }
 
@@ -13,7 +13,7 @@
   --ink-faint: rgba(236, 230, 218, 0.26);
   --ink-ghost: rgba(236, 230, 218, 0.12);
   --phone: #9db0c4;
-  --serif: 'Iansui', 'Noto Serif TC', 'Songti TC', 'PMingLiU', serif;
+  --serif: 'LXGW WenKai TC', 'Noto Serif TC', 'Songti TC', 'PMingLiU', serif;
   --mono: 'IBM Plex Mono', 'SFMono-Regular', ui-monospace, monospace;
   --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
   color-scheme: dark;

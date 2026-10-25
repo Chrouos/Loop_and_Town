@@ -1,5 +1,5 @@
 import type { AudioEngine } from '../audio/engine';
-import { DIRECTIONS, DIRECTION_ANGLE, SFX_SOURCE, type AmbienceId, type Direction, type SfxId, type VibrationId } from '../audio/catalog';
+import { DIRECTIONS, DIRECTION_ANGLE, DISTANCES, SFX_SOURCE, type AmbienceId, type Direction, type SfxId, type VibrationId } from '../audio/catalog';
 import { evalCond, type CondContext } from '../script/conditions';
 import { CHAPTER_NUMERALS, SPEAKER_LABELS, type Beat, type Chapter, type ChoiceOption, type EndKind, type DazeLevel, type GameScript, type HeartLevel, type LineBeat, type LineKind, type Pos, type Scene, type ShakeLevel } from '../script/types';
 import { driftClock, heardClock, planClock, type ClockPlan } from './clock';
@@ -38,6 +38,9 @@ export type CenterLine = {
   startedAt: number;
   revealMs: number;
   pos: Pos;
+  /** A voice on the move ends up here, `glideMs` after it starts. */
+  to?: Pos;
+  glideMs?: number;
   perceived: boolean;
   captured: boolean;
   mem?: string;
@@ -181,7 +184,8 @@ export class Director {
       this.beginChapter(this.save.chapter, true);
       return;
     }
-    const sceneId = this.save.scene ?? this.chapter(this.save.chapter).start;
+    const chapter = this.chapter(this.save.chapter);
+    const sceneId = this.save.scene ?? (this.save.chLoop > 1 ? chapter.restart ?? chapter.start : chapter.start);
     this.flags = new Set(this.save.flags);
     this.seen = new Set(this.save.seen);
     const resumeWait = this.save.wait && this.save.wait.scene === sceneId ? this.save.wait : undefined;
@@ -241,11 +245,11 @@ export class Director {
     if (key === target) {
       this.save.chLoop = this.save.replay ? this.save.replay.chLoop : this.save.chLoop + 1;
       this.save.replay = null;
-      this.beginChapter(key, this.save.chLoop === 1);
+      this.beginChapter(key, this.save.chLoop === 1, true);
     } else if (order.indexOf(key) < order.indexOf(target)) {
       this.save.replay ??= { chapter: target, chLoop: this.save.chLoop };
       this.save.chLoop = 1;
-      this.beginChapter(key, true);
+      this.beginChapter(key, true, true);
     } else {
       for (const chapter of this.script.chapters) {
         if (order.indexOf(chapter.key) >= order.indexOf(key)) break;
@@ -254,7 +258,7 @@ export class Director {
       this.save.knowledge = [...this.knowledge];
       this.save.replay = null;
       this.save.chLoop = 1;
-      this.beginChapter(key, true);
+      this.beginChapter(key, true, true);
     }
     this.persist();
   }
@@ -507,8 +511,10 @@ export class Director {
     return chapter;
   }
 
-  private beginChapter(key: string, firstOfChapter: boolean): void {
+  private beginChapter(key: string, firstOfChapter: boolean, restart = !firstOfChapter): void {
     const chapter = this.chapter(key);
+    const entry = restart ? chapter.restart ?? chapter.start : chapter.start;
+    this.save.scene = entry;
     this.save.chapter = chapter.key;
     if (!this.save.reached.includes(chapter.key)) this.save.reached.push(chapter.key);
     this.flags = new Set();
@@ -521,7 +527,7 @@ export class Director {
       : { loopText: `第 ${toChineseNumber(this.save.loop)} 次的十月三日` };
     this.view.chapterKey = chapter.key;
     this.view.loop = this.save.loop;
-    this.setPhase('card', firstOfChapter ? CHAPTER_CARD_MS : CARD_MS, () => this.transition(chapter.start), card);
+    this.setPhase('card', firstOfChapter ? CHAPTER_CARD_MS : CARD_MS, () => this.transition(entry), card);
   }
 
   private transition(sceneId: string, resumeWait?: GameSave['wait']): void {
@@ -779,10 +785,11 @@ export class Director {
       case 'sfx': {
         // Loudness directs attention: anomalies and emphasized beats stand above everyday actions.
         const important = HUSH_SFX.has(beat.id) || beat.shake !== undefined || beat.vib !== undefined;
-        this.out.audio.play(beat.id, beat.pos, { gain: beat.gain ?? (important ? 1 : 0.45) });
+        this.out.audio.play(beat.id, beat.pos, { gain: beat.gain ?? (important ? 1 : 0.45), ...(beat.variant !== undefined ? { variant: beat.variant - 1 } : {}), ...(beat.to ? { to: beat.to } : {}) });
         if (beat.vib) this.vibrate(beat.vib);
         if (beat.text) this.addPeripheral('sfx', beat.text, beat.pos, t + SFX_TEXT_MS * (beat.pos.dist === 'far' ? 1.25 : 1), undefined, beat.src ?? SFX_SOURCE[beat.id]);
-        this.ripple(beat.pos);
+        if (beat.to) this.trail(beat.pos, beat.to, t, SFX_TEXT_MS);
+        else this.ripple(beat.pos);
         const jolt = beat.shake ?? (beat.vib === 'crash' ? 'hard' : beat.vib === 'thud' ? 'light' : undefined);
         if (jolt) this.jolt(jolt);
         if (HUSH_SFX.has(beat.id)) this.lifeHushUntil = t + HUSH_MS;
@@ -820,6 +827,8 @@ export class Director {
     const timing = lineTiming(beat.text, beat.kind, this.settings.textSpeed);
     if (beat.shake) this.jolt(beat.shake);
     const pos = this.posFor(run, beat);
+    const glide = beat.to && pos.dir !== 'center' ? beat.to : undefined;
+    const glideMs = timing.revealMs + timing.holdMs;
     const focused = this.view.focus === run.id && !this.shift;
     const label = beat.kind === 'char' ? beat.label ?? SPEAKER_LABELS[beat.speaker] : beat.kind === 'phone' ? beat.label ?? SPEAKER_LABELS.phone : beat.label;
     const center: CenterLine = {
@@ -832,6 +841,7 @@ export class Director {
       startedAt: t,
       revealMs: timing.revealMs,
       pos,
+      ...(glide ? { to: glide, glideMs } : {}),
       perceived: false,
       captured: false,
       mem: beat.mem,
@@ -846,7 +856,8 @@ export class Director {
     if (beat.kind === 'char' || beat.kind === 'me' || beat.kind === 'phone') {
       this.out.audio.voice(beat.speaker === 'me' ? 'me' : beat.speaker, beat.kind === 'me' ? CENTER : pos, timing.revealMs);
     }
-    if (beat.kind === 'char') this.ripple(pos);
+    if (glide) this.trail(pos, glide, t, glideMs);
+    else if (beat.kind === 'char') this.ripple(pos);
     if (focused) this.showCenter(center);
     else this.addPeripheral('murmur', murmurOf(beat.text), beat.kind === 'char' ? pos : run.pos, run.line.end === Infinity ? t + timing.revealMs + timing.holdMs : run.line.end, run.id);
     this.bump();
@@ -1138,6 +1149,20 @@ export class Director {
     this.view.ripples = [...this.view.ripples, { key: this.keyCounter++, pos }];
   }
 
+  /** Something on the move: ripples step from where it started to where it ends up, one direction at a time. */
+  private trail(from: Pos, to: Pos, t: number, ms: number): void {
+    const path = pathBetween(from, to);
+    const scene = this.scene;
+    this.ripple(path[0]);
+    path.slice(1).forEach((pos, i) => {
+      this.schedule(t + (ms * 0.85 * (i + 1)) / (path.length - 1), () => {
+        if (this.scene !== scene || this.view.phase !== 'scene') return;
+        this.ripple(pos);
+        this.bump();
+      });
+    });
+  }
+
   private jolt(level: ShakeLevel): void {
     this.view.shake += 1;
     this.view.shakeLevel = level;
@@ -1229,4 +1254,19 @@ function directionsClose(picked: Direction, target: Direction): boolean {
   const a = DIRECTION_ANGLE[picked];
   const b = DIRECTION_ANGLE[target];
   return diff(a, b) <= 45 || diff(a, (540 - b) % 360) === 0;
+}
+
+/** The stops on the short way round from one place to another, distance easing along with direction. */
+export function pathBetween(from: Pos, to: Pos): Pos[] {
+  const a = DIRECTIONS.indexOf(from.dir as Direction);
+  const b = DIRECTIONS.indexOf(to.dir as Direction);
+  let steps = (b - a + 8) % 8;
+  if (steps > 4) steps -= 8;
+  const n = Math.max(1, Math.abs(steps));
+  const d0 = DISTANCES.indexOf(from.dist);
+  const d1 = DISTANCES.indexOf(to.dist);
+  return Array.from({ length: n + 1 }, (_, i) => ({
+    dir: DIRECTIONS[(a + Math.sign(steps) * i + 8) % 8],
+    dist: DISTANCES[Math.round(d0 + ((d1 - d0) * i) / n)],
+  }));
 }

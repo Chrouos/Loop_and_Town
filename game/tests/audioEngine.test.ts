@@ -633,6 +633,20 @@ describe('Web Audio engine with recorded samples (fake decoder)', () => {
     }
   };
 
+  it('pins normal playback to the requested recording on every repeat', async () => {
+    const engine = createAudioEngine();
+    const dbg = engine as unknown as AudioEngineDebug;
+    await engine.unlock();
+    const pos: SpatialPos = { dir: 'center', dist: 'near' };
+    for (const variant of [0, 1, 2, 0]) await dbg.playSource('laugh_soft', pos, 'sample', { variant });
+    const expected = (FakeContext.instances[0]!.sources.at(-1) as FakeBufferSource).buffer;
+    for (let i = 0; i < 4; i++) {
+      engine.play('laugh_soft', pos, { variant: 0 });
+      await flush();
+      expect((FakeContext.instances[0]!.sources.at(-1) as FakeBufferSource).buffer).toBe(expected);
+    }
+  });
+
   it('auditions an exact recording variant and rejects invalid version indices', async () => {
     const engine = createAudioEngine();
     const dbg = engine as unknown as AudioEngineDebug;

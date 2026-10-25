@@ -100,6 +100,7 @@ export function buildScript(files: { name: string; source: string }[]): ScriptRe
     const tag = `第 ${chapter.key} 章`;
     const local = new Map(chapter.scenes.map((scene) => [scene.id, scene]));
     if (!local.has(chapter.start)) errors.push(`${tag}：start「${chapter.start}」不存在`);
+    if (chapter.restart !== undefined && !local.has(chapter.restart)) errors.push(`${tag}：restart「${chapter.restart}」不存在`);
     for (const rule of chapter.advance) {
       if (!(CHAPTER_ORDER as readonly string[]).includes(rule.to)) errors.push(`${tag}：advance 目標「${rule.to}」不是章節`);
     }

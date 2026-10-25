@@ -196,7 +196,8 @@
 ```yaml
 chapter: 1                # 1–7, 或 final
 title: 第一個今天
-start: c1_prologue        # 本章每一輪的第一個場景
+start: c1_prologue        # 第一次進入本章的場景
+restart: c1_train         # 選章重來與後續輪迴的早晨入口；省略則使用 start
 advance:                  # 午夜重置時依序判斷；都不成立就重玩本章
   - if: know.ruoqing_died
     to: 2
@@ -225,7 +226,9 @@ scenes:
 | 主角心聲 | `- think: 他的聲音比五年前低了一點。` | |
 | 角色說話 | `- yuan: 比我想的早。` | key 是 cast id；方位取場景 `cast` |
 | 角色說話（覆寫） | `- { yuan: 比我想的早。, at: left, as: 陌生的男聲, learn: k_x, mem: m_x }` | `at` 方位、`as` 標籤、`learn` 聽清楚才得到的知識、`mem` 記憶 id |
+| 移動中的聲音 | `- { man: 說明會今晚七點, at: left, to: back:far }` 或 `- { sfx: car_pass, at: left, to: back }` | 聲音從 `at` 沿近的那一邊繞到 `to`，距離沒寫就沿用 `at` 的。台詞：字的偏向跟著滑過去，漣漪一格一格往終點走；音效：聲音本身移過去，越往後越悶、回音越多。`at` 必填，兩端都不能是 `center` |
 | 手機讀屏 | `- phone: 六點十二分。` | |
+| 固定音效版本 | `- { sfx: laugh_soft, variant: 1, at: center, dist: near }` | `variant` 從 1 起算，對應 `_1` 錄音；省略則照原本方式挑選版本。遊戲使用發佈目錄的 `.m4a`，不直接讀取工具輸出的 `.wav` |
 | 音效 | `- sfx: step@front-left` 或 `- { sfx: step, at: front-left, dist: far, text: 叩、叩, vib: tap }` | `text` 是畫面上的擬聲字；省略則只有聲音。`src: 報紙` 改寫擬聲字下方的聲音來源 |
 | 換環境聲 | `- amb: [cafe, rain_on_window]` 或 `- { amb: [night_insects], fade: 0.1 }` | `fade` 是淡入淡出秒數，預設 2.4；停電這種瞬間斷掉的聲音用 0.1 |
 | 移動 | `- move: { yuan: left }` | |

@@ -5,7 +5,7 @@ import { GameApp } from './GameApp';
 // Wait for the text face before the first frame so nothing is drawn in a fallback and then swapped.
 // A slow network still gets the game after a few seconds, in whatever font is there.
 const fontReady = Promise.race([
-  document.fonts?.load('1em Iansui').catch(() => undefined),
+  document.fonts?.load('1em "LXGW WenKai TC"').catch(() => undefined),
   new Promise((resolve) => setTimeout(resolve, 4000)),
 ]);
 

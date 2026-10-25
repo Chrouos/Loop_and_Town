@@ -12,7 +12,8 @@ scenes:
     ambience: [train_interior]
     cast: { announcer: front }
     beats:
-      - phone: 六點十二分。
+      - { sfx: phone_buzz, at: right, dist: near, text: 嗡, vib: buzz }
+      - phone: 鬧鐘。六點十二分。
       - narr: 鐵軌的接縫一節一節敲上來，敲進鞋底。
       - { sfx: train_horn, at: front, dist: far, text: 嗚—— }
       - if: know.c2_ruoqing_died_again
@@ -479,6 +480,7 @@ scenes:
       - { boxun: 舊站以前的維修通道，停用很多年了。, mem: m_c2_passage }
       - boxun: 我上個月走過一次，應該還過得去。
       - clock: "18:12"
+      - narr: 我按了一下手機側鍵。
       - phone: 十八點十二分。
       - move: { boxun: left }
       - { sfx: step, at: left, dist: mid, text: 叩、叩、叩 }
@@ -512,6 +514,7 @@ scenes:
       - { sfx: step, at: left, dist: far, text: 叩……叩…… }
       - narr: 後來只剩下風。
       - clock: "18:24"
+      - narr: 我又叫手機報了一次時間。
       - phone: 十八點二十四分。
       - { sfx: hum_rise, at: left, dist: far, text: 嗡—— }
       - narr: 通道深處有東西開始低低地響，低到我是用胸口聽到的。
@@ -595,6 +598,7 @@ scenes:
               then:
                 - narr: 震了兩次，停了。
       - clock: "18:12"
+      - narr: 我把手機貼到耳邊，按了一下。
       - phone: 十八點十二分。
       - { sfx: phone_notify, at: front-left, dist: mid, text: 叮 }
       - ruoqing: 啊，陳醫生傳訊息。
@@ -624,7 +628,7 @@ scenes:
       - ruoqing: 欸？跳電喔？
       - { sfx: power_up, at: back, dist: mid, text: 嗡 }
       - { sfx: steam_hiss, at: front-right, dist: mid, text: 嘶—— }
-      - narr: 電又回來了，燈管滋滋響了好一陣子。
+      - narr: 電又回來了，燈管滋滋響了好一陣子。我壓了一下手機側邊的鍵。
       - phone: 十八點三十一分。
       - { sfx: siren_far, at: front-right, dist: far, text: 喔咿—— }
       - narr: 很遠的地方有警笛，是從北邊來的。
@@ -769,7 +773,8 @@ scenes:
       - narr: 嘴裡有鐵鏽味，大概是剛剛咬破了舌頭，我一點都不覺得痛。
       - daze: off
       - narr: 咳到最後，耳朵裡的嗡聲先停了，接著是灰塵落回地上的沙沙聲。
-      - { phone: 十八點三十一分。, learn: c2_ruoqing_died_again }
+      - { sfx: phone_buzz, at: right, dist: near, text: 嗡, vib: buzz }
+      - { phone: 心率過高，已記錄。十八點三十一分。, learn: c2_ruoqing_died_again }
       - learn: k_in_station_hall
     next: c2_night
 
@@ -783,6 +788,7 @@ scenes:
       - { sfx: light_buzz, at: front, dist: mid, text: 滋—— }
       - { sfx: blackout, at: front, dist: mid, text: 啪, vib: thud }
       - { sfx: power_up, at: back, dist: mid, text: 嗡 }
+      - narr: 我摸到口袋裡的手機，按下去。
       - phone: 十八點三十一分。
       - heart: fast
       - pause: 4
@@ -849,7 +855,7 @@ scenes:
     ambience: [night_insects, wind_open]
     beats:
       - { sfx: door_open, at: back, dist: near, text: 吱 }
-      - narr: 我坐在門口的台階上，水泥還留著一點白天的溫度。
+      - narr: 我坐在門口的台階上，水泥還留著一點白天的溫度。我叫手機報時。
       - phone: 二十三點五十九分。
       - { sfx: bell_toll, at: front-left, text: 噹——, vib: bell }
       - narr: 左前方，那座沒有鐘的鐘樓。

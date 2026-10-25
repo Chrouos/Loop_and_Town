@@ -17,7 +17,7 @@ scenes:
     cast: { announcer: front }
     beats:
       - { sfx: phone_buzz, at: right, dist: near, text: 嗡, vib: buzz }
-      - phone: 十月三日。六點十二分。
+      - phone: 鬧鐘。十月三日。六點十二分。
       - if: chloop >= 2
         then:
           - narr: 後座的咳嗽和橘子皮的味道，又準時來了。
@@ -599,6 +599,7 @@ scenes:
       - narr: 我在那些滴答裡找十八點三十一分，聽不出哪一聲是它。
       - clock: "18:31"
       - pause: 2
+      - narr: 我把手機貼在耳朵上，按下側鍵。
       - phone: 十八點三十一分。
       - { sfx: clock_chime, at: back-left, dist: mid, text: 噹, shake: light }
       - narr: 左後方那座修不好的小鐘，自己響了一聲。我的背整個彈離椅子。
@@ -793,7 +794,7 @@ scenes:
       - narr: 他的腳步往巷口走。我坐在門口的台階上，石頭還有一點白天的溫度。
       - pause: 2
       - clock: "23:59"
-      - { sfx: phone_buzz, at: right, dist: near, text: 嗡 }
+      - narr: 我叫手機報時。
       - phone: 二十三點五十九分。
       - { sfx: bell_toll, at: front-left, text: 噹——, vib: bell }
       - wait: 3.2

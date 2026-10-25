@@ -28,7 +28,7 @@ scenes:
     beats:
       - pause: 1
       - { sfx: phone_buzz, at: right, dist: near, text: 嗡, vib: buzz }
-      - phone: 十月三日。六點十二分。
+      - phone: 鬧鐘。十月三日。六點十二分。
       - if: "know.f_again"
         then:
           - think: 上一次到最後，我說了「再一次」。
@@ -127,7 +127,7 @@ scenes:
             else:
               - { sfx: door_creak, at: front, dist: near, text: 碰——吱呀 }
               - narr: 老家的門還是卡住。予安用肩膀頂開，就回店裡去了。
-          - { sfx: phone_buzz, at: right, dist: near, text: 嗡 }
+          - narr: 我摸出手機按了一下。
           - phone: 八點四十分。
           - think: 時間剛好夠找五個人，多一個都不行。
         else:
@@ -144,6 +144,7 @@ scenes:
                   - set: slot3
                   - clock: "12:20"
                   - { sfx: construction_drill, at: back-right, dist: far, text: 噠噠噠噠 }
+                  - narr: 我按了一下側鍵。
                   - phone: 十二點二十分。
                   - think: 施工停了一陣子，大概是去買便當，現在又開始了。
                 else:
@@ -152,12 +153,14 @@ scenes:
                       - set: slot4
                       - clock: "14:10"
                       - { sfx: seagull, at: front-left, dist: far, text: 啊——啊—— }
+                      - narr: 我又叫手機報了一次時間。
                       - phone: 十四點十分。
                       - think: 風轉了，開始從海那邊吹過來。
                     else:
                       - set: slot5
                       - clock: "15:50"
                       - { sfx: car_pass, at: right, dist: far, text: 嗚—— }
+                      - narr: 我壓了一下手機側邊。
                       - phone: 十五點五十分。
                       - think: 最後一個人。
     next: f_hub_pick
@@ -1042,7 +1045,7 @@ scenes:
     ambience: [research_facility]
     cast: { tingan: front-left, boxun: left, zhiyuan: front, yuan: right }
     beats:
-      - { sfx: phone_buzz, at: right, dist: near, text: 嗡 }
+      - narr: 大家坐定以後，我按了一下側鍵。
       - phone: 十八點零三分。
       - { sfx: paper_rustle, at: front, dist: near, text: 沙沙 }
       - if: "flag.ev_tingan && flag.ev_boxun && flag.ev_zhiyuan"
@@ -1120,6 +1123,7 @@ scenes:
           - { tingan: 主路徑這邊我盯著。窗口一開，我馬上跟妳講。, at: right, dist: near, as: 電話裡的庭安 }
       - narr: 然後誰都不講話了。
       - { wait: 45, clock: "18:20", until: "18:29" }
+      - narr: 我叫手機報時，音量壓到最小。
       - phone: 十八點二十九分。
       - { cue: cab_left, at: left, text: 滋——滋——, sfx: light_buzz }
       - { cue: cab_front, at: front, dist: far, text: 嗡……, sfx: hum_fall }
@@ -1133,7 +1137,8 @@ scenes:
       - { sfx: light_buzz, at: front-left, dist: mid, text: 滋、滋滋 }
       - pause: 4
       - clock: "18:31"
-      - phone: 十八點三十一分。
+      - { sfx: phone_buzz, at: right, dist: near, text: 嗡, vib: buzz }
+      - phone: 心率過高，已記錄。十八點三十一分。
       - { sfx: blackout, at: front, dist: near, text: ——, vib: thud }
       - narr: 燈管的滋滋聲斷了。門外有工人喊「又停電」，接著是一聲倒抽的氣。
       - { sfx: glass_break, at: front-left, dist: far, text: 啪嚓 }
@@ -1205,6 +1210,7 @@ scenes:
       - narr: 然後它降下去，好像什麼事都沒有發生過。
       - heart: slow
       - clock: "18:32"
+      - narr: 我再按一次側鍵。
       - phone: 十八點三十二分。
       - if: flag.ev_ruoqing
         then:
@@ -1502,7 +1508,7 @@ scenes:
     cast: { tingan: front, yuan: right, ruoqing: left }
     beats:
       - { sfx: phone_buzz, at: right, dist: near, text: 嗡 }
-      - phone: 二十三點四十分。
+      - phone: 鬧鐘。二十三點四十分。
       - heart: slow
       - think: 我可以重來。
       - think: 我知道怎麼讓明天的若晴不用站在門口，予安不用去碰那條線。
@@ -1629,7 +1635,7 @@ scenes:
     cast: { yuan: right, ruoqing: left, tingan: back }
     beats:
       - { sfx: phone_buzz, at: right, dist: near, text: 嗡 }
-      - phone: 二十三點五十九分。
+      - phone: 鬧鐘。二十三點五十九分。
       - heart: fast
       - wait: 3
       - narr: 我在等第一聲。
@@ -1665,7 +1671,7 @@ scenes:
       - { sfx: rain_burst, at: front, dist: mid, text: 嘩—— }
       - narr: 我在灰潮鎮醒來的時候，外面在下雨。
       - think: 十月三日的早上，從來沒有下過雨。
-      - { sfx: phone_buzz, at: right, dist: near, text: 嗡 }
+      - narr: 我摸到枕頭邊的手機，叫它報日期。
       - phone: 十月四日。七點十分。
       - { sfx: car_pass, at: left, dist: far, text: 噗、噗噗—— }
       - narr: 巷口有台機車發不動，踩了三次，旁邊有人在笑它。
@@ -1789,7 +1795,7 @@ scenes:
     cast: { yuan: right }
     beats:
       - { sfx: phone_buzz, at: right, dist: near, text: 嗡 }
-      - phone: 二十三點五十九分。
+      - phone: 鬧鐘。二十三點五十九分。
       - pause: 2
       - { sfx: bell_toll, at: front, dist: far, text: 噹——, vib: bell }
       - narr: 一聲。
@@ -1843,7 +1849,7 @@ scenes:
     cast: { tingan: back }
     beats:
       - { sfx: phone_buzz, at: right, dist: near, text: 嗡 }
-      - phone: 二十三點五十九分。
+      - phone: 鬧鐘。二十三點五十九分。
       - { sfx: bell_toll, at: front, text: 噹——, vib: bell }
       - narr: 第一聲，跟每一次一樣。
       - heart: fast

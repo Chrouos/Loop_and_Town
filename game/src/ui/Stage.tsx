@@ -363,6 +363,16 @@ function Line({ line, role, director, view, onCapture }: { line: CenterLine; rol
     }
   });
 
+  // A voice on the move: the lean travels with it. It rides the reshape layer, so turning into an echo midway
+  // eases on from wherever the lean had got to.
+  useLayoutEffect(() => {
+    const body = inner.current;
+    if (role !== 'center' || line.kind !== 'char' || !line.to || !body?.animate || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const left = (line.glideMs ?? 0) / director.speed - Math.max(0, mountedAt.current);
+    if (left <= 0) return;
+    reshape.current = body.animate([{ transform: leanOf(line.pos) }, { transform: leanOf(line.to) }], { duration: left, easing: 'ease-in-out' });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Fade out from the current opacity rather than restarting a CSS animation.
   useLayoutEffect(() => {
     const el = ref.current;
@@ -419,7 +429,7 @@ function Line({ line, role, director, view, onCapture }: { line: CenterLine; rol
 // bottom edge (scaled, not re-sized, so it keeps its rows instead of re-wrapping halfway).
 function restingTransform(line: CenterLine, role: Role): string {
   const lower = line.kind === 'me' ? 'translateY(26px)' : '';
-  if (role === 'center') return line.kind === 'char' ? leanOf(line.pos) : lower || 'none';
+  if (role === 'center') return line.kind === 'char' ? leanOf(line.to ?? line.pos) : lower || 'none';
   const shrink = line.kind === 'narr' || line.kind === 'phone' ? 'scale(0.82)' : 'scale(0.66)';
   return `${lower} ${shrink}`.trim();
 }

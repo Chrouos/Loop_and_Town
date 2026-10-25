@@ -28,7 +28,57 @@ function setup() {
   return { director, playDay };
 }
 
+function enterFirstScene(director: Director) {
+  for (let step = 0; step < 200 && director.view.phase !== 'scene'; step++) director.tick(200);
+  expect(director.view.phase).toBe('scene');
+}
+
 describe('chapter list', () => {
+  it('keeps the previous-night prologue when starting a new game', () => {
+    const { director } = setup();
+    director.start();
+    enterFirstScene(director);
+    expect(director.view.sceneId).toBe('c1_prologue');
+    expect(director.view.clock).toBe('10月2日 22:40');
+  });
+
+  it('restarts chapter one on the morning train, keeping knowledge and memories', () => {
+    const { director } = setup();
+    director.jumpToChapter('1', false);
+    director.save.memories.push({ key: 'kept', text: '記住的話', kind: 'char', loop: 1, chapter: '1' });
+    const knowledge = [...director.knows];
+    director.selectChapter('1');
+    enterFirstScene(director);
+    expect(director.view.sceneId).toBe('c1_train');
+    expect(director.view.clock).toBe('06:12');
+    expect([...director.knows]).toEqual(knowledge);
+    expect(director.save.memories.map((memory) => memory.key)).toContain('kept');
+  });
+
+  it('replays chapter one from the morning when selected from a later chapter', () => {
+    const { director } = setup();
+    director.jumpToChapter('4', true);
+    director.selectChapter('1');
+    enterFirstScene(director);
+    expect(director.view.sceneId).toBe('c1_train');
+    expect(director.view.clock).toBe('06:12');
+    expect(director.save.replay?.chapter).toBe('4');
+  });
+
+  it('resumes the morning entry if reloaded immediately after selecting restart', () => {
+    const { director } = setup();
+    director.start();
+    director.selectChapter('1');
+    const { script } = loadScriptFromDisk();
+    const resumed = new Director(script, JSON.parse(JSON.stringify(director.save)), {
+      audio: silentAudio(), vibrate: () => undefined, persist: () => undefined, wallNow: () => 0,
+    }, { speed: 1 });
+    resumed.start();
+    enterFirstScene(resumed);
+    expect(resumed.view.sceneId).toBe('c1_train');
+    expect(resumed.view.clock).toBe('06:12');
+  });
+
   it('records every chapter the save enters', () => {
     const { director } = setup();
     director.jumpToChapter('4', true);

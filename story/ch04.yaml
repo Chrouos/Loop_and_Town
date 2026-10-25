@@ -25,7 +25,7 @@ scenes:
           - { narr: 塑膠袋窸窣了一陣，老太太把橘子皮包起來，沒有再接話。 }
     beats:
       - { sfx: phone_buzz, at: right, dist: near, text: 嗡, vib: buzz }
-      - phone: 六點十二分。
+      - phone: 鬧鐘。六點十二分。
       - if: chloop >= 2
         then:
           - narr: 後座那聲咳嗽準時響了，橘子皮的味道也是。
@@ -681,6 +681,11 @@ scenes:
           - pause: 2
           - think: 少死一點人。
           - think: 我這幾天在做的，也是這件事。
+      - me: 為什麼選這裡？沿海的小鎮又不只這一個。
+      - tingan: 人口少，交通節點也單純。醫院、車站，還有鎮上那些過去留下來的舊研究資料。
+      - tingan: 那份評估，我也有寫。
+      - me: 鎮上就答應了？
+      - tingan: 有工作機會，醫院和公共設備也能拿到補助。對一個人一直往外走的地方，這些很實際。
       - me: 我姊不是工程師。
       - { sfx: page_turn, at: front-left, dist: near, text: 沙啦 }
       - tingan: 她是地方史的資料協力。這間房間，她最熟。
@@ -996,6 +1001,7 @@ scenes:
       - clock: "18:31"
       - if: flag.dispersed
         then:
+          - narr: 我按了一下側鍵。
           - phone: 十八點三十一分。
           - { sfx: hum_fall, at: left, dist: mid, text: ……嗡 }
           - narr: 然後又落回去。除此之外，什麼都沒有。
@@ -1010,6 +1016,7 @@ scenes:
           - { sfx: blackout, at: front, dist: mid, text: 啪, vib: thud }
           - narr: 燈管滋滋響了兩下，冷氣的風也跟著弱了。
           - { sfx: power_up, at: left, dist: mid, text: 嗡——喀 }
+          - narr: 我壓了一下手機側邊的鍵。
           - phone: 十八點三十一分。
           - pause: 3
           - { sfx: siren_far, at: back, dist: far, text: 喔咿——喔咿—— }
@@ -1164,7 +1171,7 @@ scenes:
       - narr: 他的腳步往巷口走。左腳比右腳重一點。
       - pause: 2
       - clock: "23:59"
-      - { sfx: phone_buzz, at: right, dist: near, text: 嗡 }
+      - narr: 我摸出手機，叫它報時。
       - phone: 二十三點五十九分。
       - { sfx: bell_toll, at: front-left, text: 噹——, vib: bell }
       - wait: 3.2
