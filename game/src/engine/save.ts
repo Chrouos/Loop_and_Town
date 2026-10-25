@@ -16,6 +16,14 @@ export type Memory = {
   chapter: string;
 };
 
+export const FONT_SIZES = {
+  small: { label: '小', scale: 0.9 },
+  normal: { label: '標準', scale: 1 },
+  large: { label: '大', scale: 1.2 },
+  extraLarge: { label: '特大', scale: 1.4 },
+} as const;
+export type FontSize = keyof typeof FONT_SIZES;
+
 export type Settings = {
   audio: boolean;
   volume: number;
@@ -30,6 +38,7 @@ export type Settings = {
   /** A small caption under each sound saying what it is (紙, 衣服, 風). */
   soundLabels: boolean;
   textSpeed: TextSpeed;
+  fontSize: FontSize;
   autoAdvance: boolean;
 };
 
@@ -55,7 +64,7 @@ export type GameSave = {
   replay: { chapter: string; chLoop: number } | null;
 };
 
-export const DEFAULT_SETTINGS: Settings = { audio: true, volume: 0.8, ambience: 0.7, sfx: 0.85, voice: 0.45, vibration: true, motion: true, soundLabels: true, textSpeed: 'normal', autoAdvance: true };
+export const DEFAULT_SETTINGS: Settings = { audio: true, volume: 0.8, ambience: 0.7, sfx: 0.85, voice: 0.45, vibration: true, motion: true, soundLabels: true, textSpeed: 'normal', fontSize: 'normal', autoAdvance: true };
 
 export function freshSave(previous?: Pick<GameSave, 'settings' | 'endings' | 'calibrated'>): GameSave {
   return {
@@ -86,6 +95,7 @@ export function readSave(storage: Storage | undefined): GameSave {
     if (parsed.version !== 1) return freshSave();
     const base = freshSave();
     const save = { ...base, ...parsed, settings: { ...DEFAULT_SETTINGS, ...(parsed.settings ?? {}) } } as GameSave;
+    if (!Object.prototype.hasOwnProperty.call(FONT_SIZES, save.settings.fontSize)) save.settings.fontSize = 'normal';
     // Saves from before the chapter list: every chapter up to the current one counts as reached.
     if (!parsed.reached) {
       const index = CHAPTER_ORDER.indexOf(save.chapter as never);

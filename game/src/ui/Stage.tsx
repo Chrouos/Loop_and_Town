@@ -3,6 +3,7 @@ import { ECHO_MS, type Card, type CenterLine, type Director, type Peripheral, ty
 import { interpolateClock, leanOf, placeLabel, type Box } from './geometry';
 import { Interaction } from './Interactions';
 import type { Pos } from '../script/types';
+import { FONT_SIZES } from '../engine/save';
 
 const HOLD_MS = 560;
 const MOVE_MS = 700;
@@ -83,7 +84,7 @@ function fadeAway(el: HTMLElement) {
 
 // Sounds are placed once, measured, the moment they appear: around what she is reading, never on top of it.
 // Already placed ones stay put (unless the screen changed size) and count as taken.
-function placeSounds(root: HTMLElement, periph: Peripheral[], ripples: View['ripples'], turn: Pos | null, again: boolean) {
+function placeSounds(root: HTMLElement, periph: Peripheral[], ripples: View['ripples'], turn: Pos | null, again: boolean, textScale: number) {
   const W = root.clientWidth;
   const H = root.clientHeight;
   const origin = root.getBoundingClientRect();
@@ -97,13 +98,14 @@ function placeSounds(root: HTMLElement, periph: Peripheral[], ripples: View['rip
       const below = said.getBoundingClientRect().bottom - origin.top + 28;
       if (below > choices.getBoundingClientRect().top - origin.top) choices.style.top = `${below}px`;
     }
+    choices.style.maxHeight = `${Math.max(0, H - (choices.getBoundingClientRect().top - origin.top) - 16)}px`;
   }
   const boxOf = (el: Element, pad = gap): Box => {
     const r = el.getBoundingClientRect();
     return { l: r.left - origin.left - pad, t: r.top - origin.top - pad, r: r.right - origin.left + pad, b: r.bottom - origin.top + pad };
   };
   // Room for a typical three-row line with its label and echo, even before a longer one arrives.
-  const lineH = Math.min(Math.max(18.4, 0.023 * W), 25.6) * 1.85;
+  const lineH = Math.min(Math.max(18.4, 0.023 * W), 25.6) * 1.85 * textScale;
   const halfW = Math.min(0.38 * W, 340);
   const keepOut: Box[] = [{ l: W / 2 - halfW - gap, r: W / 2 + halfW + gap, t: H / 2 - 3.5 * lineH - 30, b: H / 2 + 1.5 * lineH + 26 + gap }];
   root.querySelectorAll('.lt-line:not(.leaving) .lt-text, .lt-line:not(.leaving) .lt-label, .lt-choice, .lt-wait, .lt-where').forEach((el) => keepOut.push(boxOf(el)));
@@ -206,6 +208,8 @@ export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown 
   const root = useRef<HTMLDivElement>(null);
   const [screen, setScreen] = useState(0);
   const placedFor = useRef(screen);
+  const textScale = FONT_SIZES[director.settings.fontSize].scale;
+  const placedScale = useRef(textScale);
   useEffect(() => {
     const onResize = () => setScreen((value) => value + 1);
     window.addEventListener('resize', onResize);
@@ -216,8 +220,9 @@ export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown 
     const said = root.current.querySelector<HTMLElement>('.lt-line:not(.lt-echo)');
     if (view.center && said) centerHeight.current = said.offsetHeight;
     else if (!lines.length) centerHeight.current = 0;
-    placeSounds(root.current, periph.map((entry) => entry.item), view.ripples, turn, placedFor.current !== screen);
+    placeSounds(root.current, periph.map((entry) => entry.item), view.ripples, turn, placedFor.current !== screen || placedScale.current !== textScale, textScale);
     placedFor.current = screen;
+    placedScale.current = textScale;
     root.current.querySelectorAll<HTMLElement>('.gone:not([data-fading])').forEach(fadeAway);
     const mounted = new Set(periph.map((entry) => entry.item.key));
     for (const key of lastLook.current.keys()) if (!mounted.has(key)) lastLook.current.delete(key);
