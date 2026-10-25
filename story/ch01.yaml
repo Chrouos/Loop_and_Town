@@ -1228,7 +1228,7 @@ scenes:
       - { sfx: bell_toll_far, at: front-left, dist: far, text: 噹—— }
       - pause: 2
       - { sfx: door_open, at: back, text: 吱 }
-      - narr: 我推開門，予安沒有醒。
+      - narr: 我推開門。
       - { sfx: bell_toll, at: front-left, text: 噹——— }
       - wait: 3
       - narr: 是從左前方來的！鐘樓的方向。
