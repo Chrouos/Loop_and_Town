@@ -319,8 +319,8 @@ scenes:
     ambience: [room_tone]
     life:
       - { text: 沙啦, sfx: page_turn, at: [front, front-left, front-right], dist: near }
-      - { text: 沙…… 沙……, at: [front], dist: near }
-      - { text: 喀, at: [front-left, front-right], dist: mid }
+      - { text: 沙…… 沙……, sfx: paper_rustle, src: 紙頁, at: [front], dist: near }
+      - { text: 喀, sfx: house_tick, src: 木桌, at: [front-left, front-right], dist: mid }
       - { text: 唰, sfx: paper_rustle, at: [front], dist: near }
     beats:
       - set: c6_d_note

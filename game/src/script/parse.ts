@@ -319,8 +319,9 @@ function parseLife(raw: unknown, where: string, errors: Errors): LifeEvent[] | '
     const text = str(item.text);
     if (!text) { errors.push(`${at}：需要 text 或 say`); continue; }
     const sfx = item.sfx === undefined ? undefined : String(item.sfx);
-    if (sfx !== undefined && !isSfx(sfx)) { errors.push(`${at}：未知音效「${sfx}」`); continue; }
-    events.push({ text, src: str(item.src), sfx: sfx as SfxId | undefined, ...place });
+    if (!sfx) { errors.push(`${at}：擬聲事件需要 sfx 音效`); continue; }
+    if (!isSfx(sfx)) { errors.push(`${at}：未知音效「${sfx}」`); continue; }
+    events.push({ text, src: str(item.src), sfx, ...place });
   }
   return events;
 }

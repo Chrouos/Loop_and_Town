@@ -1538,7 +1538,7 @@ scenes:
     life:
       - { text: 呼……, sfx: breath, at: [left, right], dist: near }
       - { text: 沙, sfx: cloth_rustle, at: [right, back, back-left, back-right], dist: mid }
-      - { text: 叩, at: [back, back-left, back-right], dist: mid }
+      - { text: 叩, sfx: step, src: 腳步, at: [back, back-left, back-right], dist: mid }
     beats:
       - narr: 我們走到外面。水泥台階還留著一點白天的溫度。
       - narr: 鎮在坡下面。鐘樓在正前方，很遠。
