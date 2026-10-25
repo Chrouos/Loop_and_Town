@@ -2,6 +2,7 @@ import type { AudioEngine } from '../audio/engine';
 import { DIRECTIONS, DIRECTION_ANGLE, SFX_SOURCE, type AmbienceId, type Direction, type SfxId, type VibrationId } from '../audio/catalog';
 import { evalCond, type CondContext } from '../script/conditions';
 import { CHAPTER_NUMERALS, SPEAKER_LABELS, type Beat, type Chapter, type ChoiceOption, type EndKind, type DazeLevel, type GameScript, type HeartLevel, type LineBeat, type LineKind, type Pos, type Scene, type ShakeLevel } from '../script/types';
+import { driftClock, heardClock, planClock, type ClockPlan } from './clock';
 import { lineTiming, type Phrase } from './text';
 import { HUSH_MS, HUSH_SFX, isVoice, lifeOf, type LifeEvent } from './life';
 import { MEMORY_CAPACITY, freshSave, type GameSave, type Memory, type Settings } from './save';
@@ -54,6 +55,8 @@ export type View = {
   t: number;
   sceneId?: string;
   clock?: string;
+  /** Bumped when the script pins the clock (not while it creeps), so Stage re-announces only real changes. */
+  clockMark: number;
   place?: string;
   card?: Card;
   center: CenterLine | null;
@@ -146,6 +149,10 @@ export class Director {
   private lifeSaid = new Set<LifeEvent>();
   private lifeVoiceAt = -Infinity;
   private heartGen = 0;
+  // The corner clock creeps along the main line between the times the script names.
+  private clockPlan: ClockPlan | null = null;
+  private clockFrom: { clock?: string; step: number } = { step: 0 };
+  private mainStep = 0;
 
   constructor(script: GameScript, save: GameSave, out: DirectorOutput, options: { speed?: number } = {}) {
     this.script = script;
@@ -404,7 +411,7 @@ export class Director {
     const pending = main?.pendingInteract;
     const view = this.view.interact;
     if (!main || !pending || pending.beat.k !== 'locate' || view?.type !== 'locate') return;
-    if (directionsClose(dir, pending.beat.at)) { this.resolveInteract(main, true); this.advanceTo(this.view.t); return; }
+    if (pending.beat.exact ? dir === pending.beat.at : directionsClose(dir, pending.beat.at)) { this.resolveInteract(main, true); this.advanceTo(this.view.t); return; }
     pending.triesLeft -= 1;
     this.out.audio.play('focus_shift', { dir, dist: 'mid' }, { gain: 0.5 });
     if (pending.triesLeft <= 0) { this.resolveInteract(main, false); this.advanceTo(this.view.t); return; }
@@ -546,7 +553,9 @@ export class Director {
     this.view.phase = 'scene';
     this.view.card = undefined;
     this.view.sceneId = scene.id;
-    this.view.clock = scene.time ?? this.view.clock;
+    this.clockPlan = planClock(scene, this.script.scenes);
+    this.mainStep = 0;
+    this.setClock(scene.time ?? this.view.clock);
     this.view.place = scene.place ?? this.view.place;
     this.view.focus = 'main';
     if (scene.ambience) this.ambience = scene.ambience;
@@ -560,6 +569,8 @@ export class Director {
     this.runs.set('main', main);
     if (resumeWait) {
       main.stack[0].i = resumeWait.index;
+      this.mainStep = this.clockPlan!.after[resumeWait.index - 1] ?? 0;
+      this.clockFrom.step = this.mainStep;
       const beat = scene.beats[resumeWait.index];
       if (beat?.k === 'wait') {
         main.stack[0].i += 1;
@@ -742,7 +753,24 @@ export class Director {
     const topLevelIndex = run.stack.length === 1 ? frame.i : -1;
     const beat = frame.beats[frame.i++];
     const t = Math.max(run.busyUntil, 0);
+    const main = run.id === 'main' && topLevelIndex >= 0 && this.clockPlan;
+    if (main) this.mainStep = this.clockPlan!.after[topLevelIndex];
+    const mark = this.view.clockMark;
     this.execute(run, beat, t, topLevelIndex);
+    if (main && this.view.clockMark === mark && this.view.phase === 'scene') this.creepClock(topLevelIndex);
+  }
+
+  /** Between the times the script names, the corner clock walks with the story. */
+  private creepClock(index: number): void {
+    const crept = driftClock(this.clockPlan!, index, this.clockFrom.clock, this.clockFrom.step, this.view.clock);
+    if (crept && crept !== this.view.clock) { this.view.clock = crept; this.bump(); }
+  }
+
+  /** The script names the time: the corner shows it, and the clock creeps on from here. */
+  private setClock(time: string | undefined): void {
+    if (time !== this.view.clock) this.view.clockMark += 1;
+    this.view.clock = time;
+    this.clockFrom = { clock: time, step: this.mainStep };
   }
 
   private execute(run: Run, beat: Beat, t: number, topLevelIndex: number): void {
@@ -768,7 +796,7 @@ export class Director {
       case 'shake': this.jolt(beat.level); this.vibrate(beat.level === 'hard' ? 'crash' : 'thud'); run.busyUntil = t; this.bump(); return;
       case 'heart': this.setHeart(beat.level); run.busyUntil = t; return;
       case 'daze': this.setDaze(beat.level); run.busyUntil = t; return;
-      case 'clock': this.view.clock = beat.time; run.busyUntil = t; this.bump(); return;
+      case 'clock': this.setClock(beat.time); run.busyUntil = t; this.bump(); return;
       case 'cue': this.startThread(beat, t); run.busyUntil = t + 400; return;
       case 'choice': this.offerChoice(run, beat, t); return;
       case 'touch': case 'locate': case 'punch': this.startInteract(run, beat, t); return;
@@ -810,6 +838,9 @@ export class Director {
     const manualHold = !this.settings.autoAdvance && focused;
     run.line = { beat, center, revealEnd, end: manualHold ? Infinity : revealEnd + timing.holdMs, learnChecked: false };
     run.busyUntil = run.line.end;
+    // Her phone reading the time out loud is the time.
+    const spoken = beat.kind === 'phone' ? heardClock(beat.text, this.view.clock) : null;
+    if (spoken) this.setClock(spoken);
     if (beat.kind === 'char' || beat.kind === 'me' || beat.kind === 'phone') {
       this.out.audio.voice(beat.speaker === 'me' ? 'me' : beat.speaker, beat.kind === 'me' ? CENTER : pos, timing.revealMs);
     }
@@ -849,7 +880,7 @@ export class Director {
   private startWait(run: Run, beat: Extract<Beat, { k: 'wait' }>, t: number, durationMs: number, index: number): void {
     run.busyUntil = t + durationMs;
     this.view.waiting = { startedAt: t, seconds: durationMs / 1000, clock: beat.clock, until: beat.until };
-    if (beat.clock) this.view.clock = beat.clock;
+    if (beat.clock) this.setClock(beat.clock);
     if (index >= 0 && this.scene) {
       this.save.wait = { scene: this.scene.id, index, endsAt: this.out.wallNow() + durationMs / this.speed };
       this.persist();
@@ -857,7 +888,7 @@ export class Director {
     const finish = () => {
       if (this.view.waiting?.startedAt !== t) return;
       this.view.waiting = null;
-      if (beat.until) this.view.clock = beat.until;
+      if (beat.until) this.setClock(beat.until);
       delete this.save.wait;
       this.bump();
     };
@@ -1149,7 +1180,7 @@ export class Director {
   private emptyView(): View {
     return {
       phase: 'idle', brief: false, t: 0, center: null, echo: null, periph: [], ripples: [], choice: null, focus: null, shiftingTo: null,
-      waiting: null, keep: null, recall: null, interact: null, memoryCount: this.save.memories.length, shake: 0, shakeLevel: 'light', heart: null, daze: null, chapterKey: this.save.chapter, loop: this.save.loop,
+      waiting: null, clockMark: 0, keep: null, recall: null, interact: null, memoryCount: this.save.memories.length, shake: 0, shakeLevel: 'light', heart: null, daze: null, chapterKey: this.save.chapter, loop: this.save.loop,
     };
   }
 

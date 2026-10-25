@@ -708,7 +708,7 @@ scenes:
       - narr: 警笛隔了好久才到，一群人的鞋子踩過碎石。
       - { man: 通道裡面有人！, as: 陌生的男聲 }
       - { man: 是醫院的陳醫生啦……, as: 陌生的男聲, learn: c3_boxun_died_again }
-      - { man: 救護的說，已經沒有呼吸了。, as: 陌生的男聲 }
+      - { man: 上面的鐵架塌下來，救護的說已經沒有呼吸了。, as: 陌生的男聲 }
       - daze: heavy
       - { sfx: tinnitus, at: center }
       - narr: 耳朵裡嗡的一聲，那些人的鞋子和喊聲全被推到一面牆後面。

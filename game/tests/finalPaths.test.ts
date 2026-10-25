@@ -9,13 +9,17 @@ type Policy = (options: string[], sceneId: string) => number;
 // 18:31 at the old station: where she points, in order. The east wall hums on her right.
 const EAST_WALL: Direction[] = ['right'];
 
-function play(policy: Policy, maxLoops = 1, station: Direction[] = EAST_WALL) {
+function play(policy: Policy, maxLoops = 1, station: Direction[] = EAST_WALL, forget: string[] = []) {
   const { script, errors } = loadScriptFromDisk();
   if (errors.length) throw new Error(errors.join('\n'));
   let wall = 0;
   let save: GameSave = freshSave();
   const director = new Director(script, save, { audio: silentAudio(), vibrate: () => undefined, persist: (next) => { save = next; }, wallNow: () => wall }, { speed: 1 });
   director.jumpToChapter('final', true);
+  // Knowledge a real playthrough may have missed (the chapter jump grants everything learnable before).
+  const known = (director as unknown as { knowledge: Set<string> }).knowledge;
+  for (const id of forget) known.delete(id);
+  director.save.knowledge = [...known];
   const finalOptions: string[][] = [];
   const scenes: string[] = [];
   let pointed = 0;
@@ -71,13 +75,20 @@ describe('final chapter paths', () => {
     expect(result.knowledge.has('f_again')).toBe(true);
   });
 
+  const PRESSURE_RUOQING: Policy = (options, sceneId) => {
+    if (sceneId === 'f_ruoqing') return options.findIndex((text) => text.includes('會死在舊車站'));
+    return RESPECTFUL_TO_C(options, sceneId);
+  };
+
   it('pressuring Ruoqing loses the cabinet: Ending C is not offered', () => {
-    const result = play((options, sceneId) => {
-      if (sceneId === 'f_ruoqing') return options.findIndex((text) => text.includes('會死在舊車站'));
-      return RESPECTFUL_TO_C(options, sceneId);
-    });
+    const result = play(PRESSURE_RUOQING, 1, EAST_WALL, ['k_cabinet_warm']);
     expect(result.finalOptions[0]).not.toContain('「撤銷所有改寫，然後封存今天。」');
     expect(result.finalOptions[0]).toContain('「只封存這一個今天。」');
+  });
+
+  it('having touched the cabinet on the first 10/3, she finds it without Ruoqing and can still reach Ending C', () => {
+    const result = play(PRESSURE_RUOQING);
+    expect(result.finalOptions[0]).toContain('「撤銷所有改寫，然後封存今天。」');
   });
 
   it('pressuring Tingan leaves only 「……再一次。」', () => {

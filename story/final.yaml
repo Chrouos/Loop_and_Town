@@ -884,28 +884,19 @@ scenes:
     cast: { tingan: front-left, ruoqing: front-right, yuan: right, boxun: left, zhiyuan: front }
     beats:
       - narr: 空調在吹。牆的另一邊，伺服器低低地轉。
+      - narr: 我坐在長桌靠門的這一頭，手杖橫放在膝蓋上，門在我背後。
       - if: "flag.ev_tingan"
         then:
           - tingan: 備用會議室。整棟樓只剩這間的鑰匙還在我身上。
+          - tingan: 其他人幾點到？妳有跟每個人講要走後門嗎？
+          - me: 有講。來不來，我就不知道了。
         else:
           - narr: 研究所後門的鎖早就壞了。庭安沒有來。
-      - { sfx: chair_scrape, at: front-right, dist: mid, text: 嘎 }
-      - if: "flag.ev_ruoqing"
-        then:
-          - { sfx: strap_click, at: front-right, dist: mid, text: 喀 }
-          - ruoqing: 照片我印出來了，兩張。晚點我再講給妳聽。
-        else:
-          - narr: 右前方那張椅子，一直沒有人拉開。
-      - if: "flag.ev_yuan"
-        then:
-          - { sfx: tools_clink, at: right, dist: near, text: 叮 }
-          - yuan: 我爸剩下的工具，我帶來了。
-        else:
-          - if: "flag.ev_yuan_partial"
-            then:
-              - narr: 予安沒有來。他寫給我的那張紙在口袋裡，摺了兩次。
-            else:
-              - narr: 予安沒有來。
+      - think: 接下來門每開一次，我都要在對方開口以前，先聽出是誰。
+      - { sfx: door_open, at: back, dist: mid, text: 吱 }
+      - narr: 冷氣裡混進一股消毒水味。皮鞋在門邊停住，停得有點久，像在數這間有幾張椅子。
+      - me: 陳醫生，左邊有位子。
+      - pause: 1
       - if: "flag.ev_boxun"
         then:
           - boxun: 影本。原件在醫院。
@@ -913,10 +904,55 @@ scenes:
           - boxun: 我只帶了一份。其他的，等妳證明。
       - if: "flag.ev_zhiyuan"
         then:
+          - { sfx: radio_noise, at: back, dist: mid, text: 沙沙 }
+          - narr: 背後的無線電沙了兩聲，馬上被人轉小。那個人走到正前方坐下，一句話也沒講。
+          - think: 周警官。連轉小聲的那一下，都像在回報。
           - { sfx: pen_scratch, at: front, dist: near, text: 唰唰 }
           - zhiyuan: 十七點四十二分。在場的人，我一個一個記。
         else:
           - narr: 周警官沒有來。
+      - if: "flag.ev_yuan"
+        then:
+          - { sfx: step, at: back, dist: far, text: 叩、叩 }
+          - narr: 走廊上的腳步一重一輕，到門口就不動了，好像還在想要不要敲門。
+          - me: 予安，門沒鎖。
+          - { sfx: tools_clink, at: right, dist: near, text: 叮 }
+          - yuan: ……我爸剩下的工具，我帶來了。
+        else:
+          - if: "flag.ev_yuan_partial"
+            then:
+              - narr: 予安沒有來。他寫給我的那張紙在口袋裡，摺了兩次。
+            else:
+              - narr: 予安沒有來。
+      - if: "flag.ev_ruoqing"
+        then:
+          - { sfx: door_open, at: back, dist: mid, text: 吱 }
+          - pause: 1.5
+          - narr: 門又開了。這一次沒有人講話，腳步也放得很輕。
+          - { sfx: strap_click, at: back, dist: near, text: 喀 }
+          - heart: fast
+          - { sfx: strap_click, at: front-right, dist: mid, text: 喀、喀 }
+          - narr: 一個很小的金屬扣，從我背後一路響到右前方。
+          - think: 第一個十月三日，舊站大廳暗掉以後，這個聲音掛在一台摔壞的相機上，一直晃。
+          - narr: 我在桌子底下把手指蜷起來，指甲抵著掌心，抵到會痛。
+          - { sfx: chair_scrape, at: front-right, dist: mid, text: 嘎 }
+          - choice:
+              timeout: 8
+              default: 1
+              options:
+                - text: 「若晴。」
+                  then:
+                    - ruoqing: 欸，我都還沒出聲耶。
+                    - me: 妳的背帶扣。從門口響到這裡。
+                    - { ruoqing: ……妳連這個都記得喔。我自己都沒在聽。, mem: m_f_strap_heard }
+                - text: 「……是誰？」
+                  then:
+                    - ruoqing: 是我啦，若晴。欸妳幹嘛講那麼小聲。
+                    - think: 我知道是妳。只是怕一叫出名字，它又變回掛在相機上的那個扣子。
+          - heart: off
+          - ruoqing: 照片我印出來了，兩張。晚點我再講給妳聽。
+        else:
+          - narr: 右前方那張椅子，一直沒有人拉開。
       - me: 我把今天知道的，全部講一次。
       - narr: 我從第一個十月三日講起。若晴死在大廳，陳醫生死在通道。親耳聽到的，和後來別人告訴我的，我分開講。
       - narr: 還有那個誰都沒死、午夜照樣重來的晚上。
@@ -1066,11 +1102,15 @@ scenes:
           - { ruoqing: 鐵櫃在柱子後面，比人高一點。, at: back, dist: mid }
           - think: 右邊，東牆。我把她講的位置，記在身體的右邊。
         else:
-          - if: know.k_new_cabinet
+          - if: know.k_cabinet_warm
             then:
-              - think: 若晴不在。東牆多了一個櫃子，可是我不知道在哪一根柱子後面。
+              - think: 若晴不在。可是那個櫃子，我摸過。第一個十月三日，她就倒在它的牆腳。
             else:
-              - think: 若晴不在。這面牆後面多了什麼，沒有人跟我講過。
+              - if: know.k_new_cabinet
+                then:
+                  - think: 若晴不在。東牆多了一個櫃子，可是我不知道在哪一根柱子後面。
+                else:
+                  - think: 若晴不在。這面牆後面多了什麼，沒有人跟我講過。
       - if: "flag.ev_yuan"
         then:
           - { yuan: 我在妳右後方，一步。, at: back-right, dist: near }
@@ -1119,9 +1159,15 @@ scenes:
           fail:
             - narr: 我往錯的那邊走了兩步，手底下的鐵皮一直在抖，音卻一點都沒有變高。
             - set: f_wrong_twice
-      - if: "flag.f_hear_right && flag.ev_ruoqing"
+      # 若晴不在也行：第一章摸過那個鐵櫃（k_cabinet_warm），身體記得它在哪裡。
+      - if: "flag.f_hear_right && (flag.ev_ruoqing || know.k_cabinet_warm)"
         then:
-          - narr: 我往右走。一步、兩步，第二根柱子。
+          - if: flag.ev_ruoqing
+            then:
+              - narr: 我往右走。一步、兩步，第二根柱子。
+            else:
+              - narr: 我從那天若晴站的地方往右前方數，一步、兩步、三步。第四步，鞋尖踢到一條電線。
+              - narr: 電線比我的手指還粗，外皮滑滑的，一路鑽進牆裡。
           - if: "flag.ev_yuan"
             then:
               - { yuan: 小心，地上有線。, at: back-right, dist: near }
@@ -1129,7 +1175,11 @@ scenes:
           - { sfx: hum_rise, at: right, dist: near, text: 嗡—————, vib: tap }
           - narr: 我把手掌貼上去。它在我手底下，一點一點往上爬。
           - me: 這個。
-          - { ruoqing: ……對，就是它。今年四月照片裡那個。, at: back, dist: mid }
+          - if: flag.ev_ruoqing
+            then:
+              - { ruoqing: ……對，就是它。今年四月照片裡那個。, at: back, dist: mid }
+            else:
+              - think: 跟那天一樣燙。她的手壓過的那條線，就從它底下出來。
           - if: "flag.ev_tingan"
             then:
               - { tingan: 主路徑這邊也在跳，兩邊同時。, at: right, dist: near, as: 電話裡的庭安 }
