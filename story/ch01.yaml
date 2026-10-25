@@ -15,22 +15,26 @@ scenes:
     ambience: [room_tone, rain_on_window]
     beats:
       - pause: 1.5
-      - narr: 雨打在窗上。房間小到不用手杖，我也知道每一樣東西在哪裡。
+      - narr: 雨打在窗上。
+      - narr: 房間小到不用手杖，我也知道每一樣東西在哪裡。
       - pause: 1
       - { sfx: envelope, at: front, dist: near, text: 沙—— }
-      - narr: 信封是下午到的。管理員拿上來的時候說，現在很少看到手寫的信了。
+      - narr: 信封是下午到的。
+      - narr: 管理員拿上來的時候說，現在很少看到手寫的信了。
       - { sfx: phone_buzz, at: front-right, dist: near, text: 嗡、嗡, vib: buzz }
       - narr: 我把手機鏡頭對著信封。
-      - phone: 收件人，林——
+      - phone: 收件人，林——。
       - phone: 寄件人，林知夏。
       - heart: slow
       - pause: 2
-      - think: 知夏是我姊。她死了五年了。
-      - narr: 我的拇指一直壓在封口上，壓到紙都軟了，才想起要拆。
+      - think: 這不可能。
+      - think: 林知夏在五年前就死了。
+      - narr: 我的拇指一直壓在封口上，壓到紙都軟了，才想到要拆。
       - pause: 1.5
       - { sfx: paper_rustle, at: front, dist: near, text: 沙沙 }
       - narr: 信紙抽出來，我的指尖先碰到一排凸點。
-      - narr: 一行點字。我把指尖放在最左邊那一格，紙很薄，凸點一壓就會塌，只能輕輕地滑。
+      - narr: 是一行點字。
+      - narr: 我把指尖放在最左邊那一格，紙很薄，凸點一壓就會塌，只能輕輕地滑。
       - touch:
           cells: [不, 要, 回, 來]
           style: braille
@@ -301,7 +305,7 @@ scenes:
                 - { yuan: 停在六點三十一分。, learn: k_watch_1831, mem: m_watch }
                 - narr: 翻過來，錶背上有一些刻痕。很細，很淺，指甲摸過去像在摸一條結了冰的河。
                 - touch:
-                    cells: ["？", "？", 你, "？", 二, "？", "？"]
+                    cells: ["？", "？", 你, "？", "？", 二, "？"]
                     style: engrave
                     prompt: 用指甲順著刻痕刮過去
                     timeout: 30
@@ -978,9 +982,9 @@ scenes:
       - narr: 我把那封信放在桌上，手壓著它。
       - if: "!flag.ruoqing_closed"
         then:
-          - think: 我不認識她。她要去哪裡，跟我沒有關係。
+          - think: 我不認識她，她要去哪裡，跟我沒有關係。
         else:
-          - think: 我不認識她。她是誰，跟我沒有關係。
+          - think: 我不認識她，她是誰，跟我沒有關係。
       - { wait: 20, clock: "18:20", until: "18:30" }
       - clock: "18:31"
       - { sfx: blackout, at: front, dist: far, text: ——, vib: thud }
@@ -1015,7 +1019,9 @@ scenes:
       - pause: 2
       - daze: off
       - narr: 予安在電話那頭叫我的名字。叫到第三聲，我才聽見，冰箱也還在嗡嗡地轉。
-      - think: 她扣背帶的聲音。喀、喀。
+      - think: 她扣背帶的聲音。
+      - think: 喀、喀。
+      - pause: 2
       - think: 我幾個小時前才聽過。
     next: c1_police
 
@@ -1027,13 +1033,13 @@ scenes:
     cast: { zhiyuan: front, yuan: right }
     beats:
       - { sfx: door_open, at: back, text: 吱 }
-      - narr: 派出所的電扇轉得很吵。有人在遠處講電話。
+      - narr: 派出所的電扇轉得很吵，有人在遠處講電話。
       - narr: 醫院已經確認，若晴沒有救回來。予安陪我坐在這裡，等警官把電話講完。
       - narr: 他開口時，菸味也跟著靠過來。沒有聽見點菸的聲音。
       - if: seen.c1_station
         then:
           - { zhiyuan: 妳是現場那位小姐。, as: 低沉的男聲 }
-          - zhiyuan: 我姓周。我需要妳再說一次經過。
+          - zhiyuan: 我姓周，我需要妳再說一次經過。
           - zhiyuan: 妳說妳看不見。
           - zhiyuan: 那妳怎麼確定，她倒下的時間？
           - me: 我手機會報時。
@@ -1041,9 +1047,9 @@ scenes:
           - pause: 1.5
           - zhiyuan: ……好。
         else:
-          - narr: 是予安帶我來的。我說我想知道那個女生的事。
+          - narr: 是予安帶我來的，我說我想知道那個女生的事。
           - { zhiyuan: 小姐，現在不方便。, as: 低沉的男聲 }
-          - me: 我姓林。林知夏是我姊。
+          - me: 我姓林，林知夏是我姊。
           - pause: 2
           - zhiyuan: ……我姓周。
       - zhiyuan: 初步看是觸電。
@@ -1051,11 +1057,11 @@ scenes:
       - if: flag.c1_found_ruoqing
         then:
           - think: 那條線。我摸到的時候，她的手就壓在上面，旁邊的鐵櫃還是燙的。
-          - narr: 我在桌子底下把手背貼到褲子上。撞到鐵板的那一塊，到現在還在麻。
+          - narr: 我在桌子底下把手背貼到褲子上，撞到鐵板的那一塊，到現在還在麻。
         else:
-          - think: 東牆。停電之前，那個嗡聲就是從那邊爬上來的。
-      - me: 我姊也是死在舊車站。
-      - me: 五年前。
+          - think: 東牆。
+          - think: 停電之前，那個嗡聲就是從那邊爬上來的。
+      - me: 我姊也是死在舊車站，五年前。
       - pause: 2
       - zhiyuan: 我知道。
       - zhiyuan: 第一批到場的人，就是我。
@@ -1075,7 +1081,9 @@ scenes:
       - narr: 電扇轉過來，又轉過去。
       - if: flag.c1_watch && flag.c1_notebook
         then:
-          - think: 手錶停在這個時間，筆記本也寫滿這個時間。若晴，還有我姊。
+          - think: 手錶停在這個時間，筆記本也寫滿這個時間。
+          - think: 若晴，還有我姊。
+          - think: 這是巧合嗎？可能嗎？
         else:
           - if: flag.c1_watch
             then:
@@ -1119,28 +1127,32 @@ scenes:
     ambience: [house_night]
     beats:
       - narr: 我回到知夏的房間。
-      - narr: 我沒有開燈。我從來不需要開燈。
+      - narr: 我沒有開燈，也不需要開燈。
       - if: flag.c1_watch
         then:
-          - narr: 手錶還在桌上，在我早上放下的地方。
+          - narr: 手錶還在桌上，在我早上放下的那個地方。
           - pause: 1.5
           - narr: 錶背的刻痕，我又摸了一次。還是摸不出來。
         else:
-          - narr: 桌上那只錶，早上我沒有碰。現在我把它拿起來，皮錶帶的扣環那裡磨得很薄。
+          - narr: 桌上那只錶，早上我沒有碰，我把它拿起來，皮錶帶的扣環那裡磨得很薄。
+          - pause: 1
+          - narr: 翻過來，錶背有一些很細的刻痕。
           - pause: 1.5
-          - narr: 翻過來，錶背有一些很細的刻痕。我摸得到，讀不出來。
+          - narr: 讀不出來
       - { sfx: phone_buzz, at: front, dist: near, text: 嗡 }
-      - narr: 我把手機鏡頭貼過去。轉了好幾個角度。
+      - narr: 我把手機鏡頭對準，嘗試轉了好幾個角度。
       - pause: 2
-      - phone: 如果你第二次看見十八點三十一分，
-      - { phone: 不要先救第一個死者。, learn: k_watch_engraving, mem: m_engraving }
+      - phone: 如果你是第二次，
+      - { phone: 不要救第一個死者。, learn: k_watch_engraving, mem: m_engraving }
       - heart: slow
       - pause: 3
-      - think: 「看見」。我連一次都沒有看見。
-      - think: 而且今天才是第一次，哪來的第二次？
-      - narr: 我把手錶握在手裡。錶殼還有一點我手心的溫度。
+      - think: 「第二次」？
+      - think: 什麼意思？第一個死者又是什麼意思？
+      - think: 太多疑惑，腦子一片混亂。
+      - narr: 我把手錶握在手裡，錶殼還有一點我手心的溫度。
       - heart: off
       - narr: 我坐到她的床邊，聽自己的呼吸，一口比一口長。
+      - pause: 5
     next: c1_night_yuan
 
   # ─────────────────────────── 23:20 ───────────────────────────
@@ -1152,10 +1164,10 @@ scenes:
     beats:
       - { sfx: door_open, at: back, text: 叩叩——吱 }
       - yuan: 是我。
-      - yuan: 我買了熱的。放在妳右手邊。
+      - yuan: 我買了熱的，放在妳右手邊。
       - { sfx: cup_set, at: right, dist: near, text: 叩 }
-      - narr: 我們吃東西，誰都沒先開口。窗外的蟲一直叫。
-      - { wait: 12 }
+      - narr: 我們安靜的吃著東西，窗外的蟲一直叫。
+      - { wait: 10 }
       - yuan: 妳這次真的只是回來賣房子？
       - { sfx: envelope, at: center, dist: near, text: 沙 }
       - narr: 我把那封信推到他那邊。他沒有伸手拿。
@@ -1168,12 +1180,34 @@ scenes:
       - pause: 1.5
       - { yuan: 但我會去接妳。, learn: c1_yuan_pickup, mem: m_yuan_pickup }
       - pause: 3
-      - narr: 他後來在椅子上睡著了，呼吸聲很慢。
-      - if: "!flag.ruoqing_closed"
+      - narr: 我摸到杯子，捧在手裡，半天才說了一聲好。
+      - pause: 2
+      - { sfx: door_close, at: back, dist: mid, text: 喀 }
+      - narr: 他把空的便當盒收走，門帶上的時候很輕。屋子裡剩下蟲叫，杯子在我手心裡一點一點涼掉。
+      - if: flag.tingan_pressed
         then:
-          - think: 明天我要去問陳醫生、問那個記者，問周警官那份摘要為什麼念得那麼熟。
+          - think: 那個記者說她只見過我姊幾次，她回答之前，慢了兩秒。
         else:
-          - think: 明天我要去找那個記者，問她知不知道研究所的事。還有周警官，那份摘要他為什麼念得那麼熟。
+          - if: know.k_tingan_card
+            then:
+              - narr: 外套口袋裡那張名片的硬角，一直頂著我的手腕。
+              - think: 葉庭安。
+              - think: 她問起我姊的時候，我應該多問幾句的。
+            else:
+              - think: 那個記者問林家有沒有人在研究所做過事，我說不知道，她好像鬆了一口氣。
+              - think: 為什麼？
+      - if: flag.ruoqing_closed
+        then:
+          - think: 下午我問若晴跟我姊是什麼關係，她就走開了。
+          - think: 要是我沒問那一句，她會不會也跑回來，跟我說她晚上要去哪裡。
+        else:
+          - if: seen.c1_station
+            then:
+              - think: 她跟我說她要去舊車站，我也跟去了，就站在離她幾步的地方。
+            else:
+              - think: 她跑回來跟我說她要去舊車站，我聽見了，然後自己回家。
+      - pause: 1.5
+      - think: 如果她今天晚上沒有去那裡呢？
     next: c1_bell
 
   # ─────────────────────────── 23:59 鐘聲 ───────────────────────────
@@ -1189,17 +1223,17 @@ scenes:
       - { sfx: bell_toll_far, at: front-left, dist: far, text: 噹—— }
       - wait: 3
       - think: ……鐘？
-      - think: 鐘樓沒有鐘。
+      - think: 予安跟我說鐘樓的鐘明明拆掉了。
       - heart: slow
       - { sfx: bell_toll_far, at: front-left, dist: far, text: 噹—— }
       - pause: 2
       - { sfx: door_open, at: back, text: 吱 }
-      - narr: 我推開門。予安沒有醒。
+      - narr: 我推開門。
       - { sfx: bell_toll, at: front-left, text: 噹——— }
       - wait: 3
-      - narr: 是從左前方來的。鐘樓的方向。
+      - narr: 是從左前方來的！鐘樓的方向。
       - { sfx: laugh_soft, at: right, dist: mid, text: 哈哈 }
-      - narr: 街上有一對情侶走過去。他們在笑。
+      - narr: 街上有一對情侶走過去，他們在笑。
       - { woman: ……然後他就說——, as: 路過的女生 }
       - narr: 他們沒有停下來。
       - { sfx: bell_toll, at: front-left, text: 噹——— }
@@ -1208,21 +1242,21 @@ scenes:
       - heart: fast
       - narr: 我抓著門框，木頭的毛刺扎進指腹，我也沒有放開。
       - { sfx: bell_toll, at: front-left, text: 噹——— , vib: bell }
-      - wait: 3.2
+      - wait: 2
       - { sfx: bell_toll, at: front-left, text: 噹——— }
-      - wait: 3.2
+      - wait: 2
       - { sfx: bell_toll, at: front-left, text: 噹——— , vib: bell }
-      - wait: 3.2
+      - wait: 2
       - { sfx: bell_toll, at: front-left, text: 噹——— }
-      - wait: 3.2
+      - wait: 2
       - { sfx: bell_toll, at: front-left, text: 噹——— }
-      - wait: 3.2
+      - wait: 2
       - think: 九。
       - { sfx: bell_toll, at: front-left, text: 噹——— , vib: bell }
-      - wait: 3.2
+      - wait: 2
       - think: 十。
       - { sfx: bell_toll, at: front-left, text: 噹——— }
-      - wait: 3.2
+      - wait: 2
       - think: 十一。
       - { sfx: bell_toll, at: front-left, dist: near, text: 噹———, vib: long, shake: hard }
       - learn: k_bell

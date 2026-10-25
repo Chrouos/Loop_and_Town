@@ -135,8 +135,8 @@ interface Buses {
 
 const sleep = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
 
-/** Ambience at full is the level the beds were mixed at; sound effects can go up to +6 dB over theirs. */
-const ambienceGain = (v: number): number => perceptual(v);
+/** Beds stay 6 dB behind their original mix so story cues have room to stand out. */
+const ambienceGain = (v: number): number => perceptual(v) * 0.5;
 const sfxGain = (v: number): number => perceptual(v) * 2;
 /** Interface sounds sit a little under the effects (0.9 at the default effects volume). */
 const UI_TRIM = 0.62;
@@ -490,12 +490,12 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
     // weight, or the rustle of a speaker turning to talk (a new speaker, or the same one after a silence).
     if (speaker !== 'phone') {
       if (kind === 'life') {
-        this.play('huddle_rustle', pos, { gain: 0.5 });
+        this.play('huddle_rustle', pos, { gain: 0.12 });
         return;
       }
       if (speaker === 'me') return;
       const now = this.ac?.currentTime ?? 0;
-      if (speaker !== this.lastSpeaker || now - this.lastSpokeAt > TURN_GAP_S) this.play('cloth_rustle', pos, { gain: 0.45 });
+      if (speaker !== this.lastSpeaker || now - this.lastSpokeAt > TURN_GAP_S) this.play('cloth_rustle', pos, { gain: 0.2 });
       this.lastSpeaker = speaker;
       this.lastSpokeAt = now;
       return;

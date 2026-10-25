@@ -37,7 +37,8 @@ export const LIFE_SFX_LEVELS: Partial<Record<SfxId, number>> = {
   metal_groan: 13.49,
   metal_rattle: 1.397,
   monitor_beep: 3.536,
-  mosquito_buzz: 3.756,
+  // Keep the close, tonal buzz beneath dialogue (18 dB below the measured trim).
+  mosquito_buzz: 0.473,
   mouse_squeak: 2.39,
   owl_hoot: 0.904,
   pebble_roll: 1.667,

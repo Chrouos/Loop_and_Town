@@ -777,7 +777,9 @@ export class Director {
     switch (beat.k) {
       case 'line': this.startLine(run, beat, t); return;
       case 'sfx': {
-        this.out.audio.play(beat.id, beat.pos, { gain: beat.gain });
+        // Loudness directs attention: anomalies and emphasized beats stand above everyday actions.
+        const important = HUSH_SFX.has(beat.id) || beat.shake !== undefined || beat.vib !== undefined;
+        this.out.audio.play(beat.id, beat.pos, { gain: beat.gain ?? (important ? 1 : 0.45) });
         if (beat.vib) this.vibrate(beat.vib);
         if (beat.text) this.addPeripheral('sfx', beat.text, beat.pos, t + SFX_TEXT_MS * (beat.pos.dist === 'far' ? 1.25 : 1), undefined, beat.src ?? SFX_SOURCE[beat.id]);
         this.ripple(beat.pos);
@@ -1038,7 +1040,7 @@ export class Director {
       }
       this.lifeVoiceAt = at;
     } else {
-      this.out.audio.play(event.sfx, pos, { gain: pos.dist === 'far' ? 0.45 : 0.6 });
+      this.out.audio.play(event.sfx, pos, { gain: pos.dist === 'far' ? 0.12 : 0.16 });
       this.addPeripheral('sfx', event.text, pos, t + SFX_TEXT_MS * (pos.dist === 'far' ? 1.25 : 1), undefined, event.src ?? (event.sfx && SFX_SOURCE[event.sfx]));
     }
     this.bump();
