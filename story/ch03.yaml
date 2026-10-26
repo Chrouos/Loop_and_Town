@@ -679,6 +679,11 @@ scenes:
       - heart: off
       - { sfx: phone_notify, at: front, dist: near, text: 叮 }
       - phone: 周志遠：檔案調好了。妳沒來。
+      - narr: 我把手機貼在胸口，等膝蓋不再發軟，才扶著電線桿站起來。
+      - { sfx: light_buzz, at: right, dist: mid, text: 滋 }
+      - narr: 頭頂的路燈一直在滋滋叫。天應該已經黑了。
+      - think: 若晴說她在家，聲音聽起來沒事。可是她那句「妳到底怎麼了」，我一句都沒有回答。
+      - think: 予安還在店裡等。是我叫他八點以前不要出門的，他到現在都還沒問為什麼。
       - think: 今天晚上要去哪裡？
       - choice:
           options:

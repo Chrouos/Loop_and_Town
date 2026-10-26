@@ -42,7 +42,7 @@ scenes:
       - think: 一封叫我不要回來的信，又被我帶回來了。
       - if: "!know.k_watch_1831 || !know.k_notebook_1831 || !know.k_photo_tingan"
         then:
-          - think: 姊姊桌上那幾樣東西，上一次我沒有每一樣都摸過。
+          - think: 姊姊桌上那幾樣東西，這次我一定要搞清楚。
       - if: know.k_in_station_hall && !know.k_cabinet_warm
         then:
           - think: 那天在舊站大廳，東牆那邊有個東西一直在嗡。她大概就倒在那面牆腳，那是什麼，我到最後都沒摸到。

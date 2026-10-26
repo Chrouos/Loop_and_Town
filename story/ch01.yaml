@@ -390,6 +390,10 @@ scenes:
     ambience: [old_house]
     cast: { yuan: front }
     beats:
+      - narr: 從她房間出來的時候，客廳的窗都開著，灰塵味淡了很多。
+      - narr: 我在裡面待了多久，自己也不知道。予安在廚房那邊，水龍頭開了又關。
+      - { sfx: phone_buzz, at: front, dist: near, text: 嗡 }
+      - narr: 他的手機響了一聲。他看完，走到我前面。
       - yuan: 我得回店裡一趟。下午有客人要來拿錶。
       - yuan: 妳呢？
       - choice:
@@ -409,7 +413,8 @@ scenes:
     beats:
       - narr: 我把客廳的東西一樣一樣摸過去。
       - narr: 沙發。電視。茶几上的遙控器，電池早就漏了，黏黏的。
-      - { wait: 24 }
+      - narr: 我停下動作。聽著人們在外面走動的聲音、說話的聲音、還有偶爾傳來的汽車引擎聲。
+      - { wait: 10 }
       - { sfx: step, at: right, dist: far, text: 叩、叩 }
       - { old_woman: 林家的？是林家的小妹回來了喔？, as: 窗外的老太太 }
       - me: 阿婆好。
@@ -419,7 +424,19 @@ scenes:
       - narr: 她嘆了一口氣，腳步聲慢慢走遠了。
       - think: 每天都很晚。她在做什麼？
       - pause: 2
-      - narr: 下午的時候，予安回來了。他買了便當，放在我手邊，說熱的在左邊。
+      - narr: 我在沙發上坐下來，就沒有再起來。
+      - narr: 窗口的太陽原本曬在我手背上，後來移到膝蓋，再後來，只剩地板那邊還有一點溫溫的。
+      - { wait: 12 }
+      - { sfx: door_open, at: front, text: 喀、吱 }
+      - narr: 門口的腳步聲。踩得很輕，好像怕吵醒誰。
+      - { yuan: 是我。, at: front }
+      - me: 客人呢？
+      - { yuan: 拿走了。, at: front }
+      - narr: 塑膠袋放到茶几上，窸窸窣窣的。
+      - { yuan: 想說妳一定還沒吃。, at: front }
+      - { yuan: 熱的在左邊，湯在右邊。蓋子我先幫妳打開了。, at: front }
+      - narr: 我伸手碰了一下左邊，紙盒燙得我縮了一下。這才想起來，從早上到現在，我什麼都沒吃。
+      - narr: 吃到一半，我摸到外套內側的口袋。信還在。
     next: c1_letter
 
   - id: c1_day_shop
@@ -448,7 +465,14 @@ scenes:
       - yuan: 說得很理所當然。
       - narr: 他沒有說後面那句。他把錶放回桌上。
       - pause: 2
-      - narr: 下午的時候，他說要送我回去拿東西。
+      - narr: 之後我們都沒有再說話。冰箱拿出來的茶，在我手裡慢慢退冰。
+      - { sfx: shop_bell, at: back, dist: near, text: 叮鈴 }
+      - { man: 少年仔，我的錶好了沒？, as: 來拿錶的阿伯, at: back }
+      - { yuan: 好了。走得很準，您回去戴看看。, at: front }
+      - narr: 阿伯在櫃台前試了很久，說了好幾次謝謝才走。
+      - { sfx: tools_clink, at: front, dist: near, text: 喀 }
+      - narr: 予安把工具盒蓋上。
+      - { yuan: 久等了，我送妳回去。, at: front }
     threads:
       oldclock:
         beats:
@@ -491,6 +515,9 @@ scenes:
       - narr: 右邊有一家店，門開著。咖啡的味道飄出來，裡面夾著一聲快門。
       - think: 那家咖啡店還在。
       - narr: 我沒有進去。我打給予安，請他來接我。
+      - pause: 2
+      - narr: 他來得很快。在我旁邊停下來，沒有問我去了哪裡，只問我累不累。
+      - narr: 回去的路上，我沒有跟他講那台貨車的事。
     next: c1_letter
 
   # ─────────────────────────── 15:30 信 ───────────────────────────
@@ -576,8 +603,16 @@ scenes:
       - pause: 1
       - narr: 手伸進外套口袋，又碰到信封的邊。我沒有把它拿出來。
       - narr: 抽回手的時候，袖口擦過鼻尖，還有一點淡淡的咖啡味。
-      - narr: 想起了早上經過的那家店，當時還沒開門，只聽到裡面有人在磨豆子。
-      - think: 去喝一杯吧。總比坐在這裡摸那封信好。
+      - if: seen.c1_day_street
+        then:
+          - narr: 想起了中午在老街聽到的那一聲快門。
+        else:
+          - narr: 想起了早上經過的那家店，當時還沒開門，只聽到裡面有人在準備。
+      - think: 去喝一杯吧。總比坐在這裡胡思亂想。
+      - if: flag.yuan_with_me
+        then:
+          - me: 我想去老街那家咖啡店坐一下。
+          - yuan: 我送妳到門口。我回店裡拿個東西，等一下再過來找妳。
     next: c1_cafe
 
   # ─────────────────────────── 16:10 咖啡店 ───────────────────────────
@@ -775,14 +810,15 @@ scenes:
           - ruoqing: 我還沒決定要不要讓妳知道。可是我已經說了。
           - { sfx: step_run, at: back, dist: far, text: 噠噠 }
           - narr: 她又跑走了。
+          - narr: 我站在原地，手心裡都是汗。剛剛她說的那幾句，我在心裡又念了一次。
         else:
-          - if: flag.yuan_with_me
-            then:
-              - narr: 我站在街口，予安在旁邊問我要不要回家。
-            else:
-              - narr: 我站在街口，打給予安，請他來接我。
           - narr: 傍晚的風開始冷了。賣烤地瓜的車從遠處過去。
           - think: 那個咖啡店的女生。她扣背帶的聲音，我一直記得。
+      - if: flag.yuan_with_me
+        then:
+          - narr: 予安剛好回來找我。他站到我旁邊，問我要不要回家。
+        else:
+          - narr: 我站在街口，打給予安，請他來接我。
     next: c1_1752
 
   # ─────────────────────────── 17:52 訊息 ───────────────────────────
@@ -792,6 +828,7 @@ scenes:
     ambience: [old_house]
     cast: { yuan: right }
     beats:
+      - narr: 回到家，我在客廳坐下來。外套沒脫，手機擱在腿上。
       - if: flag.ruoqing_number
         then:
           - { sfx: phone_notify, at: right, dist: near, text: 叮咚, vib: buzz }
@@ -799,16 +836,25 @@ scenes:
           - { phone: 妳還在鎮上嗎？, learn: c1_message }
           - phone: 我想了一下。妳還是過來比較好。
           - { phone: 有些東西本來就不是我的。, mem: m_message }
-          - think: 舊車站。
+          - pause: 2
+          - think: ……舊車站。
       - if: flag.yuan_with_me
         then:
           - yuan: 怎麼了？
+          - if: flag.ruoqing_number
+            then:
+              - me: 咖啡店那個女生傳訊息來。
+              - yuan: 若晴喔？她說什麼？
+              - me: 叫我過去。
+              - narr: 他沒有接話。我聽見他的手指在桌面上點了兩下，又停住。
+            else:
+              - me: 沒事。在想事情。
       # 第五章才知道 17:58 對他是什麼：回來重過這一天，她可以陪他坐過那一分鐘，一個字都不提。
       - if: "flag.yuan_with_me && later.k_yuan_1758"
         then:
           - narr: 我按了一下手機側鍵。
           - phone: 十七點五十二分。
-          - think: 再過六分鐘，就是他的那一分鐘。
+          - think: 再過六分鐘。
           - choice:
               options:
                 - text: （叫他先坐一下，晚點再走）
@@ -825,7 +871,27 @@ scenes:
                     - narr: 又過了一陣子，是他先站起來的。
                 - text: （不提）
                   then:
-                    - narr: 我把那六分鐘吞回去。那一分鐘是他的，不是我拿來安排的東西。
+                    - narr: 話到了嘴邊，我又嚥回去，把手機扣回腿上。
+                    - think: 那一分鐘是他的。我已經替他安排過太多次了。
+      - if: flag.yuan_with_me
+        then:
+          - yuan: 天要黑了。
+          - yuan: 妳還想去哪裡看看嗎？我載妳。
+          - narr: 他問得很隨便，像在問晚餐要吃什麼。我知道他是怕我一直坐在這裡摸那封信。
+        else:
+          - { sfx: phone_ring, at: right, dist: near, text: 鈴——, vib: buzz }
+          - narr: 我接起手機。
+          - { yuan: 是我。, at: right, dist: near }
+          - me: 嗯。
+          - pause: 1
+          - { yuan: 妳聲音怪怪的。怎麼了？, at: right, dist: near }
+          - me: 沒事。有點累。
+          - { yuan: 晚上還想去哪裡嗎？我這邊忙完，可以過去載妳。, at: right, dist: near }
+          - me: 我再看看。
+          - { yuan: 好。有事打給我。, at: right, dist: near }
+          - { sfx: phone_hangup, at: right, dist: near, text: 嘟 }
+          - narr: 電話掛掉以後，屋子裡只剩冰箱低低的嗡聲。
+      - think: 還想去哪裡？
       - choice:
           options:
             - text: （去舊車站）
@@ -842,7 +908,33 @@ scenes:
                     - { man: 舊車站？小姐，那邊早就沒車了啦。, as: 計程車司機, at: right }
                     - me: 我知道。麻煩你。
                 - goto: c1_station
-            - text: （留在家裡）
+            - text: （到巷口走走）
+              then:
+                - if: flag.yuan_with_me
+                  then:
+                    - me: 陪我到巷口走走就好。
+                    - yuan: 好。
+                    - { sfx: door_close, at: back, dist: near, text: 碰 }
+                    - narr: 巷子裡有人在炒菜，鍋鏟一直刮著鍋底。予安走在我左邊，走得比平常慢。
+                  else:
+                    - { sfx: door_close, at: back, dist: near, text: 碰 }
+                    - { sfx: cane_tap, at: front, dist: near, text: 叩 }
+                    - narr: 我拿了手杖出門。巷子裡有人在炒菜，鍋鏟一直刮著鍋底。
+                - narr: 走到巷口，風從大馬路那邊灌進來，有機車一台一台過去。
+                - narr: 我在那裡站了一下，想不到還能往哪裡走，就沿著牆走回去了。
+                - goto: c1_1831_home
+            - text: （回知夏的房間坐一下）
+              then:
+                - narr: 我走進她的房間，坐在床沿。床墊很軟，一坐就陷下去。
+                - narr: 窗簾還是一下一下碰著窗框，跟早上一樣。
+                - if: seen.c1_day_house
+                  then:
+                    - think: 阿婆說她每天都很晚才回來。這個房間，晚上大部分時候都是空的吧。
+                - if: flag.yuan_with_me
+                  then:
+                    - narr: 予安沒有跟進來。我聽見他在客廳，把椅子靠回桌邊。
+                - goto: c1_1831_home
+            - text: （哪裡都不去）
               goto: c1_1831_home
 
   # ─────────────────────────── 18:18 舊車站 ───────────────────────────
@@ -1115,6 +1207,9 @@ scenes:
     beats:
       - { sfx: door_open, at: back, text: 吱 }
       - narr: 派出所的電扇轉得很吵，有人在遠處講電話。
+      - if: "seen.c1_station && !flag.yuan_with_me"
+        then:
+          - narr: 員警幫我打給予安。他趕到的時候一直在喘，外套的拉鍊都沒拉。
       - narr: 醫院已經確認，若晴沒有救回來。予安陪我坐在這裡，等警官把電話講完。
       - narr: 他開口時，菸味也跟著靠過來。沒有聽見點菸的聲音。
       - if: seen.c1_station
@@ -1211,7 +1306,8 @@ scenes:
     place: 林家老屋，知夏的房間
     ambience: [house_night]
     beats:
-      - narr: 我回到知夏的房間。
+      - narr: 予安送我回到家門口。他說他去買點吃的，等一下再過來。
+      - narr: 我一個人走進知夏的房間。
       - narr: 我沒有開燈，也不需要開燈。
       - if: flag.c1_watch
         then:
