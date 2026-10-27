@@ -657,9 +657,9 @@ scenes:
                 - me: 聽起來我很無聊。
                 - ruoqing: 沒有啦！我只是覺得那個畫面很好看。
                 - narr: 她笑了一聲，又把相機拿近了些。
-                - ruoqing: 我傳給妳好不好？我可以順便打幾句說明。
-                - me: 好啊。不過下次拍之前先叫我一聲。
-                - ruoqing: 好，記住了。
+                - ruoqing: 我還是第一次這樣講照片給人聽。
+                - me: 妳講得滿清楚的。不過下次拍之前先叫我一聲。
+                - ruoqing: 好啦，我記住了。
             - text: 「刪掉吧。下次先問我。」
               then:
                 - set: c1_cafe_photo_deleted
@@ -669,8 +669,8 @@ scenes:
                 - ruoqing: 嗯，我知道了。
                 - pause: 1
                 - ruoqing: 我平常拍的都是街景，今天真的太順手了。
-                - me: 那妳下次拍街景就好。
-                - ruoqing: 好啦，我會記得先問的。
+                - me: 拍街景也可能拍到人吧。
+                - ruoqing: ……也是。下次我會先問。
       - { sfx: cup_set, at: front, dist: near, text: 叩 }
       - ruoqing: 對了，妳是來玩的嗎？
       - me: 不是。我是林家的孩子，回來處理老房子。
@@ -1075,7 +1075,8 @@ scenes:
           - think: 她剛剛往我這邊走了。現在聲音卻不在原來的位置。
         else:
           - think: 我前面還有東西擋著。她的聲音呢？
-      - narr: 那個金屬扣又響了。喀……喀……聲音很輕，卻還聽得見。
+      - think: 那個金屬扣……是若晴背帶上的聲音。
+      - narr: 喀……喀……在其他聲音裡很輕，卻還聽得見。
       - if: flag.c1_1831_called_out
         then:
           - locate:
