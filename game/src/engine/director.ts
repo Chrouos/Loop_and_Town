@@ -450,11 +450,12 @@ export class Director {
   /** The sound keeps coming back until she points at it (or the moment passes). */
   private repeatLocate(key: number, beat: Extract<Beat, { k: 'locate' }>, t: number): void {
     if (this.view.interact?.key !== key) return;
-    this.out.audio.play(beat.sfx, { dir: beat.at, dist: 'mid' });
+    this.out.audio.play(beat.sfx, { dir: beat.at, dist: 'mid' }, { gain: beat.gain ?? 1 });
     beat.decoys.forEach((decoy, index) => this.schedule(t + 500 + index * 420, () => {
       if (this.view.interact?.key === key) this.out.audio.play(decoy.sfx, { dir: decoy.at, dist: 'mid' }, { gain: 0.8 });
     }));
-    this.schedule(t + 2600, () => this.repeatLocate(key, beat, t + 2600));
+    const intervalMs = Math.max(700, (beat.interval ?? 2.6) * 1000);
+    this.schedule(t + intervalMs, () => this.repeatLocate(key, beat, t + intervalMs));
   }
 
   private resolveInteract(run: Run, ok: boolean): void {
