@@ -1044,8 +1044,14 @@ scenes:
               then:
                 - set: c1_1831_called_out
                 - me: 若晴！快過來！
-                - { sfx: step, at: front-right, dist: near, text: 叩 }
-                - { sfx: strap_click, at: front-right, dist: near, text: 喀 }
+                - { sfx: step_run, at: front-right, dist: mid, text: 噠噠 }
+                - { sfx: strap_click, at: front-right, dist: mid, text: 喀 }
+                - pause: 0.3
+                - { sfx: step_run, at: right, dist: near, text: 噠噠 }
+                - { sfx: strap_click, at: right, dist: near, text: 喀 }
+                - narr: 她沿著右邊的牆跑過來，腳步聲從我身旁過去，往出口那邊跑。
+                - { sfx: step_run, at: back-right, dist: mid, text: 噠噠 }
+                - { sfx: strap_click, at: back-right, dist: mid, text: 喀 }
             - text: （往她那邊走）
               then:
                 - set: c1_1831_approached
@@ -1059,7 +1065,7 @@ scenes:
       - { sfx: thud, at: front, dist: near, text: 咚 }
       - if: flag.c1_1831_called_out
         then:
-          - { sfx: strap_click, at: right, dist: mid, text: 喀啦啦 }
+          - { sfx: strap_click, at: back-right, dist: mid, text: 喀啦啦 }
         else:
           - { sfx: strap_click, at: front-right, dist: mid, text: 喀啦啦 }
       - { sfx: glass_break, at: front-left, text: 啪嚓 }
@@ -1073,7 +1079,7 @@ scenes:
       - think: 外面的人都停住了。
       - if: flag.c1_1831_called_out
         then:
-          - think: 她剛剛往我這邊走了。現在聲音卻不在原來的位置。
+          - think: 她剛剛從我旁邊跑過去，往出口那邊。聲音是在後面嗎？
         else:
           - think: 我前面還有東西擋著。她的聲音呢？
       - think: 那個金屬扣……是若晴背帶上的聲音。
@@ -1082,7 +1088,7 @@ scenes:
         then:
           - locate:
               sfx: strap_click
-              at: right
+              at: back-right
               exact: true
               decoys:
                 - { sfx: glass_break, at: front-left }
@@ -1116,9 +1122,9 @@ scenes:
     beats:
       - if: flag.c1_1831_called_out
         then:
-          - narr: 右邊，不遠。我數著步子走過去，第四步，鞋尖碰到一個硬的東西。
+          - narr: 右後方，不遠。我轉過身，沿著聲音走過去。第四步，鞋尖碰到一個硬的東西。
         else:
-          - narr: 右前方，不遠。我數著步子走過去，第四步，鞋尖碰到一個硬的東西.
+          - narr: 右前方，不遠。我數著步子走過去。第四步，鞋尖碰到一個硬的東西。
       - narr: 我跪下來，把地上的碎玻璃撥開。手摸到相機，背帶的扣還是溫的。
       - set: c1_found_ruoqing
       - pause: 1.5
