@@ -358,12 +358,12 @@ scenes:
               then:
                 - if: flag.c1_watch && flag.c1_notebook
                   then:
-                    - think: 錶和筆記本都指著同一個時間。這不像巧合。
+                    - think: 錶停在那個時間，筆記本也一直寫。真的只是巧合嗎？
                     - set: c1_room_time_link
                   else:
                     - if: flag.c1_photo
                       then:
-                        - think: 照片裡那個揹著大包包的女生，也許知道姊姊那幾年在做什麼。
+                        - think: 照片裡那個女生……她會不會知道姊那時候在忙什麼？
                 - goto: c1_day
             - text: （站在原地，聽這個房間）
               disabled_if: flag.c1_room_listen_done
@@ -655,20 +655,20 @@ scenes:
       - { ruoqing: 然後陽光灑在妳的臉上，影子拉得更長了。, as: 年輕的女聲 }
       - pause: 1.5
       - think: 從來沒有人這樣跟我描述一張照片。
-      - ruoqing: ……抱歉，我應該先問妳能不能拍。照片要留下來，還是現在刪掉？
+      - ruoqing: 啊，對不起，我都沒先問妳。這張要刪掉嗎？
       - choice:
           options:
-            - text: 「留下吧。可以再念給我聽。」
+            - text: 「不用刪。妳再說一點給我聽。」
               then:
                 - set: c1_cafe_photo_kept
-                - ruoqing: 好。我不會沒問過就拿去用。
-                - narr: 她把相機放低，又替我描述了一次桌腳的影子。
-            - text: 「刪掉。下次先問我。」
+                - ruoqing: 好啊。那我再說一點。
+                - narr: 她又說起窗邊的光，還有手杖拉長的影子。
+            - text: 「刪掉吧。下次先問我。」
               then:
                 - set: c1_cafe_photo_deleted
                 - { sfx: camera_shutter, at: front, dist: near, text: 喀 }
-                - ruoqing: 刪掉了。對不起，下次我會先問。
-                - think: 她沒有再替我決定這張照片該不該存在。
+                - ruoqing: 好，刪掉了。不好意思啦。
+                - think: 我聽見她按了幾下相機，然後把它收起來。
       - { sfx: cup_set, at: front, dist: near, text: 叩 }
       - me: 我是林家的孩子，回來處理老房子。
       - pause: 1
@@ -916,11 +916,11 @@ scenes:
           - narr: 電話掛掉以後，屋子裡只剩冰箱低低的嗡聲。
       - if: flag.c1_room_time_link
         then:
-          - think: 早上摸到的錶和筆記本都指向十八點三十一分。再過不到四十分鐘，我還是想知道那是什麼意思。
+          - think: 錶停在六點三十一分，筆記本也寫了好多次。再過一下就到了……到底會怎樣？
         else:
           - if: flag.c1_watch || flag.c1_notebook
             then:
-              - think: 早上碰過的那個時間，又從腦子裡浮出來。十八點三十一分。
+              - think: 十八點三十一分。早上看到的那個時間，又想起來了。
       - think: 還想去哪裡？
       - choice:
           options:
@@ -1046,15 +1046,15 @@ scenes:
             - text: 「一起走。」
               then:
                 - set: c1_1831_called_out
-                - me: 若晴！不要管那些紙，跟著我的聲音走！
-                - narr: 她的腳步聲往我這邊挪了半步，背帶金屬扣跟著響了一聲。
+                - me: 若晴！先別管那些了，快過來！
+                - narr: 她往我這邊走了一小步。背帶上的扣子喀了一聲。
                 - ruoqing: 等我一下——
             - text: （往她那邊走）
               then:
                 - set: c1_1831_approached
-                - narr: 我沒有喊她，先把手杖往右前方探出去，朝她的腳步聲走了一步。
-                - narr: 杖尖碰上地上一塊硬物，發出短促的敲擊聲。
-                - ruoqing: 小心，妳別過來！
+                - narr: 我沒出聲，先把手杖往右邊探，朝她走了一步。
+                - narr: 杖尖碰到什麼硬硬的東西，叩了一聲。
+                - ruoqing: 欸！小心！不要過來！
       - clock: "18:31"
       - { sfx: blackout, at: front, dist: near, text: ——, vib: thud }
       - { sfx: silence_drop, at: center }
@@ -1073,9 +1073,9 @@ scenes:
       - think: 外面的人都停住了。
       - if: flag.c1_1831_called_out
         then:
-          - think: 我喊她過來，她真的朝我走了半步。可是剛才那聲巨響，把她最後的位置蓋掉了。
+          - think: 她剛才明明往我這邊走了……現在呢？剛剛那聲太大，我什麼都沒聽清楚。
         else:
-          - think: 我剛剛往她那邊走了一步。手杖碰到的障礙還在前面，不能直接衝過去。
+          - think: 我剛剛往她那邊走了。前面還有東西擋著，我不能亂衝。
       - narr: 黑暗裡有一個很小的金屬聲，喀、喀，一直沒停。是她背帶上的扣，還在晃。
       - locate:
           sfx: strap_click
