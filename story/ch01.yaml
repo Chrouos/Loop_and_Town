@@ -1028,7 +1028,8 @@ scenes:
               then:
                 - set: c1_1831_called_out
                 - me: 若晴！快過來！
-                - narr: 她往我這邊走了一步，背帶上的扣子喀了一聲。
+                - { sfx: step, at: front-right, dist: near, text: 叩 }
+                - { sfx: strap_click, at: front-right, dist: near, text: 喀 }
             - text: （往她那邊走）
               then:
                 - set: c1_1831_approached
