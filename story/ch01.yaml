@@ -636,18 +636,45 @@ scenes:
       - narr: 很近的一聲快門。
       - { ruoqing: 啊，歹勢歹勢。手比腦袋快。, as: 年輕的女聲 }
       - { ruoqing: 妳剛剛坐下來的時候，光剛好打在妳臉上。, as: 年輕的女聲 }
-      - { ruoqing: 你介意的話我可以刪掉！, as: 年輕的女聲 }
+      - { ruoqing: 妳介意的話我可以刪掉！, as: 年輕的女聲 }
       - me: 拍到什麼？
       - { ruoqing: ……妳想知道喔？, as: 年輕的女聲 }
       - me: 我看不到，妳說給我聽吧。
       - pause: 1.5
       - { ruoqing: 嗯……窗戶有一點霧霧的，然後妳的手杖靠在桌腳，影子剛好拉得很長。, as: 年輕的女聲 }
-      - { ruoqing: 你望著影子發呆，像是在等什麼的感覺。, as: 年輕的女聲 }
+      - { ruoqing: 妳望著影子發呆，像是在等什麼的感覺。, as: 年輕的女聲 }
       - { ruoqing: 然後陽光灑在妳的臉上，影子拉得更長了。, as: 年輕的女聲 }
       - pause: 1.5
       - think: 從來沒有人這樣跟我描述一張照片。
+      - choice:
+          options:
+            - text: 「不用刪。妳再說一點給我聽。」
+              then:
+                - set: c1_cafe_photo_kept
+                - ruoqing: 真的喔？那我想一下。
+                - pause: 1
+                - ruoqing: 窗外有樹，影子剛好落在桌角。妳的咖啡還沒來，手一直放在桌邊。
+                - me: 聽起來我很無聊。
+                - ruoqing: 沒有啦！我只是覺得那個畫面很好看。
+                - { sfx: laugh_soft, at: front, dist: near }
+                - { sfx: cloth_rustle, at: front, dist: near, text: 窸 }
+                - ruoqing: 我還是第一次這樣講照片給人聽。
+                - me: 妳講得滿清楚的。不過下次拍之前先叫我一聲。
+                - ruoqing: 好啦，我記住了。
+            - text: 「刪掉吧。下次先問我。」
+              then:
+                - set: c1_cafe_photo_deleted
+                - narr: 她在相機上按了幾下。
+                - ruoqing: 好，刪掉了。不好意思啦。
+                - me: 沒事。我只是不喜歡別人沒問就拍。
+                - ruoqing: 嗯，我知道了。
+                - pause: 1
+                - ruoqing: 我平常拍的都是街景，今天真的太順手了。
+                - me: 拍街景也可能拍到人吧。
+                - ruoqing: ……也是。下次我會先問。
       - { sfx: cup_set, at: front, dist: near, text: 叩 }
-      - me: 我是林家的孩子，回來處理老房子。
+      - ruoqing: 對了，妳是來玩的嗎？
+      - me: 不是。我是林家的孩子，回來處理老房子。
       - pause: 1
       - narr: 杯碟在桌面上蹭了一下，她的手似乎還沒放開。
       - me: 林知夏是我姊。
@@ -656,7 +683,9 @@ scenes:
       - heart: slow
       - narr: 我把杯子轉了半圈，杯耳碰到指節，我在思考。
       - me: 妳認識她？
-      - { sfx: strap_click, at: front, dist: near, text: 喀、喀 }
+      - { sfx: strap_click, at: front, dist: near, text: 喀 }
+      - pause: 0.5
+      - { sfx: strap_click, at: front, dist: near, text: 喀 }
       - ruoqing: 以前在圖書館見過。
       - think: 有點模糊的回答。
       - narr: 我聽見她身上有東西在響，很小的金屬扣，一下，又一下。
@@ -799,6 +828,10 @@ scenes:
           - { sfx: step_run, at: back, text: 噠噠噠 }
           - { ruoqing: 等一下！, shake: light }
           - narr: 聲音就在我背後炸開，我整個肩膀縮起來。是咖啡店的女生，她跑得有點喘。
+          - { sfx: strap_click, at: back, dist: near, text: 喀 }
+          - pause: 0.25
+          - { sfx: strap_click, at: back, dist: near, text: 喀 }
+          - pause: 0.25
           - { sfx: strap_click, at: back, dist: near, text: 喀 }
           - ruoqing: 剛剛在店裡，有些話不好說。
           - pause: 1
@@ -1015,17 +1048,32 @@ scenes:
           options:
             - text: 「一起走。」
               then:
-                - narr: 我朝她的聲音伸出手。
+                - set: c1_1831_called_out
+                - me: 若晴！快過來！
+                - { sfx: step_run, at: front-right, dist: mid, text: 噠噠 }
+                - { sfx: strap_click, at: front-right, dist: mid, text: 喀 }
+                - pause: 0.3
+                - { sfx: step_run, at: right, dist: near, text: 噠噠 }
+                - { sfx: strap_click, at: right, dist: near, text: 喀 }
+                - narr: 她沿著右邊的牆跑過來，腳步聲從我身旁過去，往出口那邊跑。
+                - { sfx: step_run, at: back-right, dist: mid, text: 噠噠 }
+                - { sfx: strap_click, at: back-right, dist: mid, text: 喀 }
             - text: （往她那邊走）
               then:
-                - narr: 我往前走了一步。
+                - set: c1_1831_approached
+                - narr: 我朝她那邊跨出一步，手杖碰到什麼硬硬的東西。
+                - ruoqing: 小心！
       - clock: "18:31"
       - { sfx: blackout, at: front, dist: near, text: ——, vib: thud }
       - { sfx: silence_drop, at: center }
       - pause: 0.8
       - { sfx: metal_crash, at: right, dist: mid, text: 轟——, vib: crash }
       - { sfx: thud, at: front, dist: near, text: 咚 }
-      - { sfx: strap_click, at: front-right, dist: near, text: 喀啦啦 }
+      - if: flag.c1_1831_called_out
+        then:
+          - { sfx: strap_click, at: back-right, dist: mid, text: 喀啦啦 }
+        else:
+          - { sfx: strap_click, at: front-right, dist: mid, text: 喀啦啦 }
       - { sfx: glass_break, at: front-left, text: 啪嚓 }
       - { sfx: tinnitus, at: center }
       - pause: 2
@@ -1034,99 +1082,142 @@ scenes:
       - { me: 若晴！, shake: light }
       - { sfx: gasp_crowd, at: back-left, dist: far, text: 啊—— }
       - { man: 停電了！看不到——什麼都看不到！, as: 外面有人在喊 }
-      - think: 外面的人都停住了。我記得若晴剛才站在哪裡。
-      - narr: 黑暗裡有一個很小的金屬聲，喀、喀，一直沒停。是她背帶上的扣，還在晃。
-      - locate:
-          sfx: strap_click
-          at: front-right
-          exact: true
-          decoys:
-            - { sfx: glass_break, at: front-left }
-            - { sfx: gasp_crowd, at: back-left }
-          tries: 1
-          timeout: 15
-          prompt: 背帶的扣在哪裡響？
-          success:
-            - narr: 右前方，不遠。我數著步子走過去，第四步，鞋尖碰到一個硬的東西。
-            - narr: 我跪下來，把地上的碎玻璃撥開。手摸到相機，背帶的扣還是溫的。
-            - set: c1_found_ruoqing
-            - pause: 1.5
-            - narr: 然後是她的手。
-            - heart: pound
-            - pause: 2
-            - narr: 她倒在牆腳。我伸手去托她的頭，手背先撞到一塊鐵板，燙的，裡面還在低低地嗡。
-            - narr: 她另一隻手壓在一條電線上。電線比我的手指還粗，外皮滑滑的，是新的，一路鑽進牆裡。
-            - { think: 剛才那個嗡聲，是從這個鐵櫃裡出來的。, learn: k_cabinet_warm, mem: m_c1_cabinet }
-            - pause: 1.5
-            - narr: 我把她的手指包在掌心裡，等它們握回來。它們沒有動。
-            - { sfx: phone_buzz, at: right, dist: near, text: 嗡, vib: buzz }
-            - { phone: 心率過高，已記錄。十八點三十一分。, learn: k_ruoqing_died, mem: m_1831 }
-            - pause: 2
-            - daze: heavy
-            - { sfx: tinnitus, at: center }
-            - narr: 我還握著她的手，握到自己的手指也沒有感覺了，分不出哪一隻比較冷。
-            - { sfx: power_up, at: back, text: 嗡——喀、喀 }
-            - narr: 燈管重新滋滋響起，外面有人喊「有電了」，接著是一聲尖叫。
-            - narr: 門口那些人現在都看得到她了，看得到她的臉是什麼顏色，眼睛有沒有閉上。整個大廳只有跪在她旁邊的我不知道。
-            - think: 十八點三十一分，不是死亡時間。那她為什麼不動？
-            - narr: 我想把手抽出來去摸她的臉，又怕一放開，就再也找不到她在哪裡。
-            - { sfx: siren_far, at: back, dist: far, text: 喔咿——喔咿—— }
-            - narr: 地板在震，很多雙鞋往這邊跑，跑到門口又停住，沒有人敢進來。
-            - pause: 2
-            - daze: off
-            - narr: 警笛一聲一聲變清楚，我這才發現自己還跪在碎玻璃上，褲管黏在腿上。
-            - if: flag.yuan_with_me
-              then:
-                - { sfx: step_run, at: back, text: 噠噠噠噠 }
-                - yuan: 妳在哪？！
-                - yuan: ……妳有沒有怎樣？妳有沒有受傷？
-                - me: 予安。
-                - me: 她不動了。
-              else:
-                - { sfx: step_run, at: back, text: 噠噠噠 }
-                - { man: 小姐，妳先放手，讓我們來。, as: 員警, at: back, dist: near }
-                - narr: 有人從後面扶住我的手肘，把我的手指一根一根從她手上拿開。我沒有用力，他還是拿得很慢。
-                - { man: 妳膝蓋在流血欸。先跟我出去，好不好？, as: 員警, at: back, dist: near }
-                - me: 她剛剛還在講話。
-          fail:
-            - narr: 我朝自己以為的方向走過去。手杖掃出去，碰到的只有碎玻璃跟空空的地板。
-            - narr: 背帶的扣還在響，可是我越走，它越像在我背後。
-            - narr: 我不敢再用走的，跪下來，兩隻手撐著地往前爬。
-            - { narr: 有一片玻璃扎進掌心。我換另一隻手撐，繼續爬。, shake: light }
-            - pause: 1.5
-            - narr: 然後那個扣子不響了。
-            - heart: pound
-            - me: 若晴，妳說話。
-            - pause: 2.5
-            - { sfx: phone_buzz, at: right, dist: near, text: 嗡, vib: buzz }
-            - { phone: 心率過高，已記錄。十八點三十一分。, mem: m_1831 }
-            - daze: heavy
-            - { sfx: tinnitus, at: center }
-            - narr: 我跪在原地，兩隻手往四周摸，摸到的全是玻璃。我不敢再動，怕多爬一步，就離她更遠。
-            - { sfx: power_up, at: back, text: 嗡——喀、喀 }
-            - narr: 燈管重新滋滋響起，外面有人喊「有電了」。接著是一聲尖叫，從我剛才沒有去的那一邊傳來。
-            - narr: 門口那些人現在都看得到了，看得到她倒在哪裡，也看得到我爬錯了邊。
-            - think: 我明明記得她站在哪裡。
-            - think: 十八點三十一分，不是死亡時間。那她為什麼不回答？
-            - { sfx: siren_far, at: back, dist: far, text: 喔咿——喔咿—— }
-            - narr: 地板在震，很多雙鞋往這邊跑，經過我，停在那一邊。
-            - pause: 2
-            - daze: off
-            - { sfx: step_run, at: back, text: 噠噠噠 }
-            - { man: 小姐！妳不要動！, as: 員警, at: back, dist: near }
-            - narr: 有人蹲到我旁邊，抓住我的手腕，把我的手翻過來。他把掌心那片玻璃捏出來的時候，我才覺得痛。
-            - { man: 妳是跟她一起來的？, as: 員警, at: back, dist: near }
-            - me: 她在哪裡？
-            - { man: 這個……沒有呼吸了。, as: 另一個員警, at: right, dist: mid, learn: k_ruoqing_died }
-            - { narr: 我撐著地想站起來，往那個聲音過去。扶著我的那隻手沒有放。, shake: light }
-            - { man: 妳先跟我出去，這邊讓我們處理。, as: 員警, at: back, dist: near }
-            - if: flag.yuan_with_me
-              then:
-                - { sfx: step_run, at: back, text: 噠噠噠噠 }
-                - yuan: 妳在哪？！
-                - yuan: ……妳的手怎麼了？
-                - me: 予安。
-                - me: 我找不到她。
+      - think: 外面的人都停住了。
+      - if: flag.c1_1831_called_out
+        then:
+          - think: 她剛剛從我旁邊跑過去，往出口那邊。聲音是在後面嗎？
+        else:
+          - think: 我前面還有東西擋著。她的聲音呢？
+      - think: 那個金屬扣……是若晴背帶上的聲音。
+      - narr: 其他聲音裡，那個金屬扣還在一下一下地響。
+      - if: flag.c1_1831_called_out
+        then:
+          - locate:
+              sfx: strap_click
+              at: back-right
+              interval: 1.8
+              gain: 0.75
+              exact: true
+              decoys:
+                - { sfx: glass_break, at: front-left }
+                - { sfx: gasp_crowd, at: back-left }
+              tries: 1
+              timeout: 15
+              prompt: 背帶的扣在哪裡響？
+              success:
+                - goto: c1_locate_success
+              fail:
+                - goto: c1_locate_fail
+        else:
+          - locate:
+              sfx: strap_click
+              at: front-right
+              interval: 1.8
+              gain: 0.75
+              exact: true
+              decoys:
+                - { sfx: glass_break, at: front-left }
+                - { sfx: gasp_crowd, at: back-left }
+              tries: 1
+              timeout: 15
+              prompt: 背帶的扣在哪裡響？
+              success:
+                - goto: c1_locate_success
+              fail:
+                - goto: c1_locate_fail
+    next: c1_police
+
+  - id: c1_locate_success
+    cast: { ruoqing: front, yuan: back, man: back-left }
+    beats:
+      - if: flag.c1_1831_called_out
+        then:
+          - narr: 右後方，不遠。我轉過身，沿著聲音走過去。第四步，鞋尖碰到一個硬的東西。
+        else:
+          - narr: 右前方，不遠。我數著步子走過去。第四步，鞋尖碰到一個硬的東西。
+      - narr: 我跪下來，把地上的碎玻璃撥開。手摸到相機，背帶的扣還是溫的。
+      - set: c1_found_ruoqing
+      - pause: 1.5
+      - narr: 然後是她的手。
+      - heart: pound
+      - pause: 2
+      - narr: 她倒在牆腳。我伸手去托她的頭，手背先撞到一塊鐵板，燙的，裡面還在低低地嗡。
+      - narr: 她另一隻手壓在一條電線上。電線比我的手指還粗，外皮滑滑的，是新的，一路鑽進牆裡。
+      - { think: 剛才那個嗡聲，是從這個鐵櫃裡出來的。, learn: k_cabinet_warm, mem: m_c1_cabinet }
+      - pause: 1.5
+      - narr: 我把她的手指包在掌心裡，等它們握回來。它們沒有動。
+      - { sfx: phone_buzz, at: right, dist: near, text: 嗡, vib: buzz }
+      - { phone: 心率過高，已記錄。十八點三十一分。, mem: m_1831 }
+      - pause: 2
+      - daze: heavy
+      - { sfx: tinnitus, at: center }
+      - narr: 我還握著她的手，握到自己的手指也沒有感覺了，分不出哪一隻比較冷。
+      - { sfx: power_up, at: back, text: 嗡——喀、喀 }
+      - narr: 燈管重新滋滋響起，外面有人喊「有電了」，接著是一聲尖叫。
+      - narr: 門口那些人現在都看得到她了，看得到她的臉是什麼顏色，眼睛有沒有閉上。整個大廳只有跪在她旁邊的我不知道。
+      - think: 十八點三十一分，不是死亡時間。那她為什麼不動？
+      - narr: 我想把手抽出來去摸她的臉，又怕一放開，就再也找不到她在哪裡。
+      - { sfx: siren_far, at: back, dist: far, text: 喔咿——喔咿—— }
+      - narr: 地板在震，很多雙鞋往這邊跑，跑到門口又停住，沒有人敢進來。
+      - pause: 2
+      - daze: off
+      - narr: 警笛一聲一聲變清楚，我這才發現自己還跪在碎玻璃上，褲管黏在腿上。
+      - if: flag.yuan_with_me
+        then:
+          - { sfx: step_run, at: back, text: 噠噠噠噠 }
+          - yuan: 妳在哪？！
+          - yuan: ……妳有沒有怎樣？妳有沒有受傷？
+          - me: 予安。
+          - me: 她不動了。
+        else:
+          - { sfx: step_run, at: back, text: 噠噠噠 }
+          - { man: 小姐，妳先放手，讓我們來。, as: 員警, at: back, dist: near }
+          - narr: 有人從後面扶住我的手肘，把我的手指一根一根從她手上拿開。我沒有用力，他還是拿得很慢。
+          - { man: 妳膝蓋在流血欸。先跟我出去，好不好？, as: 員警, at: back, dist: near }
+          - me: 她剛剛還在講話。
+    next: c1_police
+
+  - id: c1_locate_fail
+    cast: { ruoqing: front, yuan: back, man: back-left }
+    beats:
+      - narr: 我朝自己以為的方向走過去。手杖掃出去，碰到的只有碎玻璃跟空空的地板。
+      - narr: 背帶的扣還在響，可是我越走，它越像在我背後。
+      - narr: 我不敢再用走的，跪下來，兩隻手撐著地往前爬。
+      - { narr: 有一片玻璃扎進掌心。我換另一隻手撐，繼續爬。, shake: light }
+      - pause: 1.5
+      - narr: 然後那個扣子不響了。
+      - heart: pound
+      - me: 若晴，妳說話。
+      - pause: 2.5
+      - { sfx: phone_buzz, at: right, dist: near, text: 嗡, vib: buzz }
+      - { phone: 心率過高，已記錄。十八點三十一分。, mem: m_1831 }
+      - daze: heavy
+      - { sfx: tinnitus, at: center }
+      - narr: 我跪在原地，兩隻手往四周摸，摸到的全是玻璃。我不敢再動，怕多爬一步，就離她更遠。
+      - { sfx: power_up, at: back, text: 嗡——喀、喀 }
+      - narr: 燈管重新滋滋響起，外面有人喊「有電了」。接著是一聲尖叫，從我剛才沒有去的那一邊傳來。
+      - narr: 門口那些人現在都看得到了，看得到她倒在哪裡，也看得到我爬錯了邊。
+      - think: 我明明記得她站在哪裡。
+      - think: 十八點三十一分，不是死亡時間。那她為什麼不回答？
+      - { sfx: siren_far, at: back, dist: far, text: 喔咿——喔咿—— }
+      - narr: 地板在震，很多雙鞋往這邊跑，經過我，停在那一邊。
+      - pause: 2
+      - daze: off
+      - { sfx: step_run, at: back, text: 噠噠噠 }
+      - { man: 小姐！妳不要動！, as: 員警, at: back, dist: near }
+      - narr: 有人蹲到我旁邊，抓住我的手腕，把我的手翻過來。他把掌心那片玻璃捏出來的時候，我才覺得痛。
+      - { man: 妳是跟她一起來的？, as: 員警, at: back, dist: near }
+      - me: 她在哪裡？
+      - { man: 這個……沒有呼吸了。, as: 另一個員警, at: right, dist: mid, learn: k_ruoqing_died }
+      - { narr: 我撐著地想站起來，往那個聲音過去。扶著我的那隻手沒有放。, shake: light }
+      - { man: 妳先跟我出去，這邊讓我們處理。, as: 員警, at: back, dist: near }
+      - if: flag.yuan_with_me
+        then:
+          - { sfx: step_run, at: back, text: 噠噠噠噠 }
+          - yuan: 妳在哪？！
+          - yuan: ……妳的手怎麼了？
+          - me: 予安。
+          - me: 我找不到她。
     next: c1_police
 
   - id: c1_1831_home
@@ -1211,6 +1302,7 @@ scenes:
         then:
           - narr: 員警幫我打給予安。他趕到的時候一直在喘，外套的拉鍊都沒拉。
       - narr: 醫院已經確認，若晴沒有救回來。予安陪我坐在這裡，等警官把電話講完。
+      - learn: k_ruoqing_died
       - narr: 他開口時，菸味也跟著靠過來。沒有聽見點菸的聲音。
       - if: seen.c1_station
         then:
@@ -1319,7 +1411,7 @@ scenes:
           - pause: 1
           - narr: 翻過來，錶背有一些很細的刻痕。
           - pause: 1.5
-          - narr: 讀不出來
+          - narr: 讀不出來。
       - { sfx: phone_buzz, at: front, dist: near, text: 嗡 }
       - narr: 我把手機鏡頭對準，嘗試轉了好幾個角度。
       - pause: 2

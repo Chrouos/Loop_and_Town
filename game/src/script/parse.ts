@@ -212,7 +212,7 @@ function parseBeat(raw: unknown, where: string, errors: Errors): Beat | undefine
     allow('locate');
     const spec = raw.locate;
     if (!isObj(spec)) { errors.push(`${where}：locate 必須是 map`); return undefined; }
-    for (const key of Object.keys(spec)) if (!['sfx', 'at', 'decoys', 'tries', 'exact', 'timeout', 'prompt', 'success', 'fail'].includes(key)) errors.push(`${where}：locate 未知欄位「${key}」`);
+    for (const key of Object.keys(spec)) if (!['sfx', 'at', 'decoys', 'tries', 'exact', 'timeout', 'interval', 'gain', 'prompt', 'success', 'fail'].includes(key)) errors.push(`${where}：locate 未知欄位「${key}」`);
     const sfx = String(spec.sfx);
     const at = String(spec.at);
     if (!isSfx(sfx)) errors.push(`${where}：未知音效「${sfx}」`);
@@ -226,6 +226,8 @@ function parseBeat(raw: unknown, where: string, errors: Errors): Beat | undefine
       tries: Math.max(1, Number(spec.tries ?? 2)),
       exact: spec.exact === true,
       timeout: spec.timeout === undefined ? undefined : Number(spec.timeout),
+      interval: spec.interval === undefined ? undefined : Number(spec.interval),
+      gain: spec.gain === undefined ? undefined : Number(spec.gain),
       prompt: str(spec.prompt),
       success: parseBeats(spec.success, `${where}.success`, errors),
       fail: parseBeats(spec.fail, `${where}.fail`, errors),
