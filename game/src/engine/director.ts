@@ -268,6 +268,19 @@ export class Director {
     this.beginChapter(key, true);
   }
 
+  /**
+   * Testing (?scene=c1_1752): start straight at one scene of its chapter, with earlier chapters' knowledge when asked,
+   * and any loop flags the scene expects (?flags=yuan_with_me). Flags the chapter would have set on the way stay unset.
+   */
+  jumpToScene(sceneId: string, grantEarlierKnowledge: boolean, flags: string[] = []): boolean {
+    const scene = this.script.scenes.get(sceneId);
+    if (!scene) return false;
+    this.jumpToChapter(scene.chapter, grantEarlierKnowledge);
+    this.flags = new Set(flags);
+    this.afterPhase = () => this.transition(sceneId);
+    return true;
+  }
+
   /** Every chapter in play order, for the chapter list. */
   get chapterList(): { key: string; title: string }[] {
     return this.script.order.map((key) => ({ key, title: this.chapter(key).title }));
@@ -651,9 +664,10 @@ export class Director {
   private transition(sceneId: string, resumeWait?: GameSave['wait']): void {
     const scene = this.script.scenes.get(sceneId);
     if (!scene) throw new Error(`找不到場景 ${sceneId}`);
-    this.clearScene();
-    // A scene without its own time/place continues the moment: barely a breath between them.
+    // A scene without its own time/place continues the moment: barely a breath between them, and her heart
+    // does not stop for it.
     const continuous = !scene.time && !scene.place;
+    this.clearScene(continuous && !resumeWait);
     const outMs = continuous ? 280 : OUT_MS;
     if (!continuous) this.out.audio.duck(0.5, OUT_MS);
     this.view.brief = continuous;
@@ -708,10 +722,10 @@ export class Director {
     this.bump();
   }
 
-  private clearScene(): void {
+  private clearScene(keepHeart = false): void {
     this.view.recall = null;
     this.view.interact = null;
-    this.setHeart('off');
+    if (!keepHeart) this.setHeart('off');
     this.setDaze('off');
     this.setNoise('off');
     // Leaving a live scene, the last line lingers as an echo so it fades out with the world instead of blinking off.
@@ -1299,8 +1313,8 @@ export class Director {
 
   /**
    * Her heart keeps beating on the scene clock (so it pauses with the game) until changed or the scene ends.
-   * Tense or panicking, whatever the script asks for comes one step faster; and the more wound up she is, the
-   * quicker and louder each level beats.
+   * Tense or panicking, a scripted `fast` comes as `pound`; and the more wound up she is, the quicker and louder
+   * each level beats.
    */
   private setHeart(level: HeartLevel): void {
     this.heartAsked = level;
@@ -1322,9 +1336,9 @@ export class Director {
     beatOnce();
   }
 
+  /** Wound up, a racing heart races harder; an uneasy one stays uneasy (only quicker), so it does not keep jumping. */
   private feltHeart(level: HeartLevel): HeartLevel {
-    if (level === 'off' || this.view.tension < 2) return level;
-    return level === 'slow' ? 'fast' : 'pound';
+    return level === 'fast' && this.view.tension >= 2 ? 'pound' : level;
   }
 
   /** In a panic with nothing scripted, her heart is still there under everything: sound only, no pulse on screen. */

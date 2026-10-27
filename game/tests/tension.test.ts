@@ -77,7 +77,7 @@ describe('hidden tension', () => {
     expect(director.view.tension).toBe(1);
   });
 
-  it('tense, the heart the script asks for beats one step faster', () => {
+  it('tense, a racing heart races harder; an uneasy one stays slow', () => {
     const calm = setup('- heart: fast\n- pause: 30');
     calm.run(500);
     expect(calm.director.view.heart?.level).toBe('fast');
@@ -86,20 +86,20 @@ describe('hidden tension', () => {
     expect(tense.director.view.heart?.level).toBe('pound');
     const slow = setup('- heart: slow\n- pause: 30', { tension: 60 });
     slow.run(500);
-    expect(slow.director.view.heart?.level).toBe('fast');
+    expect(slow.director.view.heart?.level).toBe('slow');
   });
 
-  it('a heart already beating catches up when she crosses into tense', () => {
+  it('a heart already racing catches up when she crosses into tense', () => {
     const { director, run } = setup(`
-- heart: slow
+- heart: fast
 - pause: 1
 - tension: 30
 - pause: 30`, { tension: 30 });
     run(500);
-    expect(director.view.heart?.level).toBe('slow');
+    expect(director.view.heart?.level).toBe('fast');
     run(1500);
     expect(director.view.tension).toBe(2);
-    expect(director.view.heart?.level).toBe('fast');
+    expect(director.view.heart?.level).toBe('pound');
   });
 
   it('in a panic with no heart scripted, it still beats faintly underneath', () => {
@@ -205,5 +205,70 @@ describe('hidden tension', () => {
       const { errors } = buildScript([{ name: 'a.yaml', source: chapter(`- ${bad}`) }]);
       expect(errors.join('\n')).toContain('tension');
     }
+  });
+});
+
+describe('scene jumps and continuous scenes', () => {
+  const SRC = `
+chapter: 1
+title: 測試
+start: s1
+advance:
+  - if: "true"
+    to: 1
+scenes:
+  - id: s1
+    time: "08:00"
+    place: 家
+    life: "off"
+    beats:
+      - heart: fast
+      - pause: 1
+      - if: "false"
+        then: [{ set: yuan_with_me }]
+      - goto: s2
+  - id: s2
+    life: "off"
+    beats:
+      - pause: 2
+      - goto: s3
+  - id: s3
+    time: "09:00"
+    place: 街上
+    life: "off"
+    beats:
+      - if: flag.yuan_with_me
+        then: [{ set: saw_yuan }]
+      - pause: 30
+      - end: reset
+`;
+  function make() {
+    const { script, errors } = buildScript([{ name: 'a.yaml', source: SRC }]);
+    expect(errors).toEqual([]);
+    let save: GameSave = freshSave();
+    const director = new Director(script, save, { audio: silentAudio(), vibrate: () => undefined, persist: (next) => { save = next; }, wallNow: () => 0 });
+    const run = (ms: number) => { for (let t = 0; t < ms; t += 50) director.tick(50); };
+    return { director, run };
+  }
+
+  it('her heart keeps beating into a scene that continues the same moment, and stops at a new time and place', () => {
+    const { director, run } = make();
+    director.jumpToScene('s1', false);
+    for (let i = 0; i < 400 && director.view.sceneId !== 's2'; i++) run(50);
+    expect(director.view.sceneId).toBe('s2');
+    expect(director.view.heart?.level).toBe('fast');
+    for (let i = 0; i < 400 && director.view.sceneId !== 's3'; i++) run(50);
+    expect(director.view.sceneId).toBe('s3');
+    expect(director.view.heart).toBeNull();
+  });
+
+  it('?scene jumps straight to a scene, with the loop flags it is given', () => {
+    const { director, run } = make();
+    expect(director.jumpToScene('nope', true)).toBe(false);
+    expect(director.jumpToScene('s3', true, ['yuan_with_me'])).toBe(true);
+    for (let i = 0; i < 400 && director.view.sceneId !== 's3'; i++) run(50);
+    run(500);
+    expect(director.view.sceneId).toBe('s3');
+    expect(director.loopFlags.has('saw_yuan')).toBe(true);
   });
 });
