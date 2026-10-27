@@ -656,7 +656,8 @@ scenes:
                 - ruoqing: 窗外有樹，影子剛好落在桌角。妳的咖啡還沒來，手一直放在桌邊。
                 - me: 聽起來我很無聊。
                 - ruoqing: 沒有啦！我只是覺得那個畫面很好看。
-                - narr: 她笑了一聲，又把相機拿近了些。
+                - { sfx: laugh_soft, at: front, dist: near }
+                - { sfx: cloth_rustle, at: front, dist: near, text: 窸 }
                 - ruoqing: 我還是第一次這樣講照片給人聽。
                 - me: 妳講得滿清楚的。不過下次拍之前先叫我一聲。
                 - ruoqing: 好啦，我記住了。
