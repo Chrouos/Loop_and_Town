@@ -651,14 +651,29 @@ scenes:
             - text: 「不用刪。妳再說一點給我聽。」
               then:
                 - set: c1_cafe_photo_kept
-                - ruoqing: 好啊。窗外還有一棵樹，影子剛好落在桌角。
+                - ruoqing: 真的喔？那我想一下。
+                - pause: 1
+                - ruoqing: 窗外有樹，影子剛好落在桌角。妳的咖啡還沒來，手一直放在桌邊。
+                - me: 聽起來我很無聊。
+                - ruoqing: 沒有啦！我只是覺得那個畫面很好看。
+                - narr: 她笑了一聲，又把相機拿近了些。
+                - ruoqing: 我傳給妳好不好？我可以順便打幾句說明。
+                - me: 好啊。不過下次拍之前先叫我一聲。
+                - ruoqing: 好，記住了。
             - text: 「刪掉吧。下次先問我。」
               then:
                 - set: c1_cafe_photo_deleted
                 - narr: 她在相機上按了幾下。
                 - ruoqing: 好，刪掉了。不好意思啦。
+                - me: 沒事。我只是不喜歡別人沒問就拍。
+                - ruoqing: 嗯，我知道了。
+                - pause: 1
+                - ruoqing: 我平常拍的都是街景，今天真的太順手了。
+                - me: 那妳下次拍街景就好。
+                - ruoqing: 好啦，我會記得先問的。
       - { sfx: cup_set, at: front, dist: near, text: 叩 }
-      - me: 我是林家的孩子，回來處理老房子。
+      - ruoqing: 對了，妳是來玩的嗎？
+      - me: 不是。我是林家的孩子，回來處理老房子。
       - pause: 1
       - narr: 杯碟在桌面上蹭了一下，她的手似乎還沒放開。
       - me: 林知夏是我姊。
