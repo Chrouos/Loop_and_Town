@@ -355,7 +355,16 @@ scenes:
                 - narr: 他沒有再問。門口的地板響了一聲，他換了一隻腳站。
             - text: （離開房間）
               if: flag.c1_photo || flag.c1_watch || flag.c1_notebook
-              goto: c1_day
+              then:
+                - if: flag.c1_watch && flag.c1_notebook
+                  then:
+                    - think: 錶和筆記本都指著同一個時間。這不像巧合。
+                    - set: c1_room_time_link
+                  else:
+                    - if: flag.c1_photo
+                      then:
+                        - think: 照片裡那個揹著大包包的女生，也許知道姊姊那幾年在做什麼。
+                - goto: c1_day
             - text: （站在原地，聽這個房間）
               disabled_if: flag.c1_room_listen_done
               then:
@@ -636,16 +645,30 @@ scenes:
       - narr: 很近的一聲快門。
       - { ruoqing: 啊，歹勢歹勢。手比腦袋快。, as: 年輕的女聲 }
       - { ruoqing: 妳剛剛坐下來的時候，光剛好打在妳臉上。, as: 年輕的女聲 }
-      - { ruoqing: 你介意的話我可以刪掉！, as: 年輕的女聲 }
+      - { ruoqing: 妳介意的話我可以刪掉！, as: 年輕的女聲 }
       - me: 拍到什麼？
       - { ruoqing: ……妳想知道喔？, as: 年輕的女聲 }
       - me: 我看不到，妳說給我聽吧。
       - pause: 1.5
       - { ruoqing: 嗯……窗戶有一點霧霧的，然後妳的手杖靠在桌腳，影子剛好拉得很長。, as: 年輕的女聲 }
-      - { ruoqing: 你望著影子發呆，像是在等什麼的感覺。, as: 年輕的女聲 }
+      - { ruoqing: 妳望著影子發呆，像是在等什麼的感覺。, as: 年輕的女聲 }
       - { ruoqing: 然後陽光灑在妳的臉上，影子拉得更長了。, as: 年輕的女聲 }
       - pause: 1.5
       - think: 從來沒有人這樣跟我描述一張照片。
+      - ruoqing: ……抱歉，我應該先問妳能不能拍。照片要留下來，還是現在刪掉？
+      - choice:
+          options:
+            - text: 「留下吧。可以再念給我聽。」
+              then:
+                - set: c1_cafe_photo_kept
+                - ruoqing: 好。我不會沒問過就拿去用。
+                - narr: 她把相機放低，又替我描述了一次桌腳的影子。
+            - text: 「刪掉。下次先問我。」
+              then:
+                - set: c1_cafe_photo_deleted
+                - { sfx: camera_shutter, at: front, dist: near, text: 喀 }
+                - ruoqing: 刪掉了。對不起，下次我會先問。
+                - think: 她沒有再替我決定這張照片該不該存在。
       - { sfx: cup_set, at: front, dist: near, text: 叩 }
       - me: 我是林家的孩子，回來處理老房子。
       - pause: 1
@@ -891,6 +914,13 @@ scenes:
           - { yuan: 好。有事打給我。, at: right, dist: near }
           - { sfx: phone_hangup, at: right, dist: near, text: 嘟 }
           - narr: 電話掛掉以後，屋子裡只剩冰箱低低的嗡聲。
+      - if: flag.c1_room_time_link
+        then:
+          - think: 早上摸到的錶和筆記本都指向十八點三十一分。再過不到四十分鐘，我還是想知道那是什麼意思。
+        else:
+          - if: flag.c1_watch || flag.c1_notebook
+            then:
+              - think: 早上碰過的那個時間，又從腦子裡浮出來。十八點三十一分。
       - think: 還想去哪裡？
       - choice:
           options:
@@ -1015,10 +1045,16 @@ scenes:
           options:
             - text: 「一起走。」
               then:
-                - narr: 我朝她的聲音伸出手。
+                - set: c1_1831_called_out
+                - me: 若晴！不要管那些紙，跟著我的聲音走！
+                - narr: 她的腳步聲往我這邊挪了半步，背帶金屬扣跟著響了一聲。
+                - ruoqing: 等我一下——
             - text: （往她那邊走）
               then:
-                - narr: 我往前走了一步。
+                - set: c1_1831_approached
+                - narr: 我沒有喊她，先把手杖往右前方探出去，朝她的腳步聲走了一步。
+                - narr: 杖尖碰上地上一塊硬物，發出短促的敲擊聲。
+                - ruoqing: 小心，妳別過來！
       - clock: "18:31"
       - { sfx: blackout, at: front, dist: near, text: ——, vib: thud }
       - { sfx: silence_drop, at: center }
@@ -1034,7 +1070,12 @@ scenes:
       - { me: 若晴！, shake: light }
       - { sfx: gasp_crowd, at: back-left, dist: far, text: 啊—— }
       - { man: 停電了！看不到——什麼都看不到！, as: 外面有人在喊 }
-      - think: 外面的人都停住了。我記得若晴剛才站在哪裡。
+      - think: 外面的人都停住了。
+      - if: flag.c1_1831_called_out
+        then:
+          - think: 我喊她過來，她真的朝我走了半步。可是剛才那聲巨響，把她最後的位置蓋掉了。
+        else:
+          - think: 我剛剛往她那邊走了一步。手杖碰到的障礙還在前面，不能直接衝過去。
       - narr: 黑暗裡有一個很小的金屬聲，喀、喀，一直沒停。是她背帶上的扣，還在晃。
       - locate:
           sfx: strap_click
@@ -1060,7 +1101,7 @@ scenes:
             - pause: 1.5
             - narr: 我把她的手指包在掌心裡，等它們握回來。它們沒有動。
             - { sfx: phone_buzz, at: right, dist: near, text: 嗡, vib: buzz }
-            - { phone: 心率過高，已記錄。十八點三十一分。, learn: k_ruoqing_died, mem: m_1831 }
+            - { phone: 心率過高，已記錄。十八點三十一分。, mem: m_1831 }
             - pause: 2
             - daze: heavy
             - { sfx: tinnitus, at: center }
@@ -1211,6 +1252,7 @@ scenes:
         then:
           - narr: 員警幫我打給予安。他趕到的時候一直在喘，外套的拉鍊都沒拉。
       - narr: 醫院已經確認，若晴沒有救回來。予安陪我坐在這裡，等警官把電話講完。
+      - learn: k_ruoqing_died
       - narr: 他開口時，菸味也跟著靠過來。沒有聽見點菸的聲音。
       - if: seen.c1_station
         then:
@@ -1319,7 +1361,7 @@ scenes:
           - pause: 1
           - narr: 翻過來，錶背有一些很細的刻痕。
           - pause: 1.5
-          - narr: 讀不出來
+          - narr: 讀不出來。
       - { sfx: phone_buzz, at: front, dist: near, text: 嗡 }
       - narr: 我把手機鏡頭對準，嘗試轉了好幾個角度。
       - pause: 2
