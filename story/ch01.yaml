@@ -683,7 +683,9 @@ scenes:
       - heart: slow
       - narr: 我把杯子轉了半圈，杯耳碰到指節，我在思考。
       - me: 妳認識她？
-      - { sfx: strap_click, at: front, dist: near, text: 喀、喀 }
+      - { sfx: strap_click, at: front, dist: near, text: 喀 }
+      - pause: 0.5
+      - { sfx: strap_click, at: front, dist: near, text: 喀 }
       - ruoqing: 以前在圖書館見過。
       - think: 有點模糊的回答。
       - narr: 我聽見她身上有東西在響，很小的金屬扣，一下，又一下。
@@ -826,7 +828,11 @@ scenes:
           - { sfx: step_run, at: back, text: 噠噠噠 }
           - { ruoqing: 等一下！, shake: light }
           - narr: 聲音就在我背後炸開，我整個肩膀縮起來。是咖啡店的女生，她跑得有點喘。
-          - { sfx: strap_click, at: back, dist: near, text: 喀、喀、喀 }
+          - { sfx: strap_click, at: back, dist: near, text: 喀 }
+          - pause: 0.25
+          - { sfx: strap_click, at: back, dist: near, text: 喀 }
+          - pause: 0.25
+          - { sfx: strap_click, at: back, dist: near, text: 喀 }
           - ruoqing: 剛剛在店裡，有些話不好說。
           - pause: 1
           - { ruoqing: 我晚點要去舊車站。, learn: k_ruoqing_station_plan, mem: m_ruoqing_plan }
@@ -1083,12 +1089,14 @@ scenes:
         else:
           - think: 我前面還有東西擋著。她的聲音呢？
       - think: 那個金屬扣……是若晴背帶上的聲音。
-      - narr: 喀……喀……在其他聲音裡很輕，卻還聽得見。
+      - narr: 其他聲音裡，那個金屬扣還在一下一下地響。
       - if: flag.c1_1831_called_out
         then:
           - locate:
               sfx: strap_click
               at: back-right
+              interval: 1.8
+              gain: 0.75
               exact: true
               decoys:
                 - { sfx: glass_break, at: front-left }
@@ -1104,6 +1112,8 @@ scenes:
           - locate:
               sfx: strap_click
               at: front-right
+              interval: 1.8
+              gain: 0.75
               exact: true
               decoys:
                 - { sfx: glass_break, at: front-left }
