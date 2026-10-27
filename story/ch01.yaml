@@ -355,8 +355,7 @@ scenes:
                 - narr: 他沒有再問。門口的地板響了一聲，他換了一隻腳站。
             - text: （離開房間）
               if: flag.c1_photo || flag.c1_watch || flag.c1_notebook
-              then:
-                - goto: c1_day
+              goto: c1_day
             - text: （站在原地，聽這個房間）
               disabled_if: flag.c1_room_listen_done
               then:
