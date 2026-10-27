@@ -356,14 +356,6 @@ scenes:
             - text: （離開房間）
               if: flag.c1_photo || flag.c1_watch || flag.c1_notebook
               then:
-                - if: flag.c1_watch && flag.c1_notebook
-                  then:
-                    - think: 錶停在那個時間，筆記本也一直寫。真的只是巧合嗎？
-                    - set: c1_room_time_link
-                  else:
-                    - if: flag.c1_photo
-                      then:
-                        - think: 照片裡那個女生……她會不會知道姊那時候在忙什麼？
                 - goto: c1_day
             - text: （站在原地，聽這個房間）
               disabled_if: flag.c1_room_listen_done
@@ -655,20 +647,17 @@ scenes:
       - { ruoqing: 然後陽光灑在妳的臉上，影子拉得更長了。, as: 年輕的女聲 }
       - pause: 1.5
       - think: 從來沒有人這樣跟我描述一張照片。
-      - ruoqing: 啊，對不起，我都沒先問妳。這張要刪掉嗎？
       - choice:
           options:
             - text: 「不用刪。妳再說一點給我聽。」
               then:
                 - set: c1_cafe_photo_kept
-                - ruoqing: 好啊。那我再說一點。
-                - narr: 她又說起窗邊的光，還有手杖拉長的影子。
+                - ruoqing: 好啊。窗外還有一棵樹，影子剛好落在桌角。
             - text: 「刪掉吧。下次先問我。」
               then:
                 - set: c1_cafe_photo_deleted
-                - { sfx: camera_shutter, at: front, dist: near, text: 喀 }
+                - narr: 她在相機上按了幾下。
                 - ruoqing: 好，刪掉了。不好意思啦。
-                - think: 我聽見她按了幾下相機，然後把它收起來。
       - { sfx: cup_set, at: front, dist: near, text: 叩 }
       - me: 我是林家的孩子，回來處理老房子。
       - pause: 1
@@ -914,13 +903,6 @@ scenes:
           - { yuan: 好。有事打給我。, at: right, dist: near }
           - { sfx: phone_hangup, at: right, dist: near, text: 嘟 }
           - narr: 電話掛掉以後，屋子裡只剩冰箱低低的嗡聲。
-      - if: flag.c1_room_time_link
-        then:
-          - think: 錶停在六點三十一分，筆記本也寫了好多次。姊那時候到底遇到了什麼事？
-        else:
-          - if: flag.c1_watch || flag.c1_notebook
-            then:
-              - think: 十八點三十一分。早上看到的那個時間，又想起來了。
       - think: 還想去哪裡？
       - choice:
           options:
@@ -1046,15 +1028,13 @@ scenes:
             - text: 「一起走。」
               then:
                 - set: c1_1831_called_out
-                - me: 若晴！先別管那些了，快過來！
-                - narr: 她往我這邊走了一小步。背帶上的扣子喀了一聲。
-                - ruoqing: 等我一下——
+                - me: 若晴！快過來！
+                - narr: 她往我這邊走了一步，背帶上的扣子喀了一聲。
             - text: （往她那邊走）
               then:
                 - set: c1_1831_approached
-                - narr: 我沒出聲，先把手杖往右邊探，朝她走了一步。
-                - narr: 杖尖碰到什麼硬硬的東西，叩了一聲。
-                - ruoqing: 欸！小心！不要過來！
+                - narr: 我朝她那邊跨出一步，手杖碰到什麼硬硬的東西。
+                - ruoqing: 小心！
       - clock: "18:31"
       - { sfx: blackout, at: front, dist: near, text: ——, vib: thud }
       - { sfx: silence_drop, at: center }
@@ -1073,9 +1053,9 @@ scenes:
       - think: 外面的人都停住了。
       - if: flag.c1_1831_called_out
         then:
-          - think: 她剛才明明往我這邊走了……現在呢？剛剛那聲太大，我什麼都沒聽清楚。
+          - think: 她剛剛往我這邊走了。現在聲音卻不在原來的位置。
         else:
-          - think: 我剛剛往她那邊走了。前面還有東西擋著，我不能亂衝。
+          - think: 我前面還有東西擋著。她的聲音呢？
       - narr: 黑暗裡有一個很小的金屬聲，喀、喀，一直沒停。是她背帶上的扣，還在晃。
       - locate:
           sfx: strap_click
