@@ -19,6 +19,7 @@ function setup() {
       } else if (view.recall) director.recallPick(null);
       else if (view.interact?.type === 'touch') director.touchDone();
       else if (view.interact?.type === 'punch') director.punchDone();
+      else if (view.interact?.type === 'approach') director.approachCall();
       else if (view.interact?.type === 'locate') director.locatePick('right');
       else director.hurry();
       if (view.keep) director.skipKeep();

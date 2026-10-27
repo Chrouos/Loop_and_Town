@@ -639,12 +639,22 @@ scenes:
       - heart: fast
       - { sfx: siren_far, at: back, dist: far, text: 喔咿——喔咿—— }
       - narr: 警笛從鎮上一路靠過來，好幾雙鞋踩過碎石。
+      - noise: heavy
+        with:
+          - { say: 救護車到了沒？, voice: man, at: [back, back-left], dist: far }
+          - { say: 讓開讓開，不要站在這裡！, voice: man, at: [right, front-right], dist: mid }
+          - { say: 是誰？裡面是誰？, voice: woman, at: [back, right], dist: far }
+          - { text: 噠噠噠, sfx: step_run, src: 有人在跑, at: [back, right, front-right], dist: mid }
+          - { text: 喔咿——, sfx: siren_far, at: [back], dist: far }
+          - { text: 啊——, sfx: gasp_crowd, src: 圍觀的人, at: [right, front-right], dist: far }
+      - narr: 有人在喊，有人在講電話，有人一直問是誰。我分不出哪一句是在講通道裡的人。
       - { sfx: step_run, at: left, dist: mid, text: 噠噠噠 }
       - { man: 在裡面！通道裡面啦！, as: 陌生的男聲 }
       - { man: 上面的鐵架整個塌下來，壓在他身上……, as: 陌生的男聲 }
       - pause: 2
       - { man: ……沒呼吸了。, as: 陌生的男聲, learn: k_boxun_died }
       - { man: 是醫院的陳醫生。, as: 陌生的男聲 }
+      - noise: "off"
       - { sfx: tinnitus, at: center }
       - daze: heavy
       - heart: pound

@@ -284,8 +284,30 @@ scenes:
     cast: { yuan: front }
     beats:
       - { sfx: cup_set, at: front, dist: near, text: 叩 }
-      - yuan: 茶。冰的。在妳左手邊。
-      - { sfx: glass_clink, at: left, dist: near, text: 叮 }
+      - yuan: 茶。冰的。
+      - narr: 杯子放在我前面，左邊還是右邊他沒說。我沒有伸手，先等冰塊自己響。
+      - locate:
+          sfx: glass_clink
+          at: front-left
+          decoys: [{ sfx: tools_clink, at: right }]
+          tries: 1
+          exact: true
+          timeout: 14
+          prompt: 冰塊在哪裡響？
+          success:
+            - narr: 指尖碰到杯壁，冰的，外面結了一層水珠。我把杯子拉到自己面前。
+            - narr: 對面有一隻手縮回去，袖口擦過桌面。他本來要把杯子推過來。
+            - yuan: ……妳找得到。
+            - me: 冰塊會響。
+          fail:
+            - { sfx: glass_clink, at: front-left, dist: near, text: 匡, shake: light }
+            - narr: 手背掃到杯子，杯子倒了。冰塊在桌上滾，茶沿著桌面流到我的褲子上，冷得我整個人一縮。
+            - yuan: 別動、別動。
+            - { sfx: cloth_rustle, at: front-left, dist: near, text: 窸窣 }
+            - narr: 他拿抹布從我手邊擦過去，擦得很快，一句都沒有怪我。
+            - yuan: 左前面。我應該先講的。
+            - { sfx: glass_clink, at: front-left, dist: near, text: 叮 }
+            - narr: 新倒的那杯，他放好以後把我的手拉過去，讓指尖碰到杯壁才放開。
       - if: know.k_yuan_no_sugar
         then:
           - me: 你自己的咖啡，也不加糖。
@@ -596,6 +618,7 @@ scenes:
       - { sfx: phone_buzz, at: right, dist: near, text: 嗡 }
       - phone: 十八點三十分。
       - heart: fast
+      - noise: light
       - narr: 我在那些滴答裡找十八點三十一分，聽不出哪一聲是它。
       - clock: "18:31"
       - pause: 2
@@ -604,6 +627,7 @@ scenes:
       - { sfx: clock_chime, at: back-left, dist: mid, text: 噹, shake: light }
       - narr: 左後方那座修不好的小鐘，自己響了一聲。我的背整個彈離椅子。
       - pause: 3
+      - noise: "off"
       - narr: 燈管的聲音沒有變，遠處也沒有東西倒下來。
       - yuan: 怎麼了？
       - me: 沒事。

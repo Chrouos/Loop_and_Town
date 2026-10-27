@@ -143,6 +143,11 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
   animation: lt-sfx var(--life, 3000ms) var(--ease) forwards;
 }
 .lt-p.kind-life.crowded { visibility: hidden; }
+/* panic noise: strangers' words get brighter and are allowed to spill over the line she is trying to hear */
+.noise-light .lt-p.kind-life, .noise-heavy .lt-p.kind-life { color: var(--ink-soft); filter: none; }
+.noise-heavy .lt-p.kind-life.crowded { visibility: visible; }
+.noise-light .lt-center-inner { opacity: 0.85; }
+.noise-heavy .lt-center-inner { opacity: 0.7; filter: blur(0.5px); }
 /* what the sound is, the way she would name it: small, under the onomatopoeia */
 .lt-p-src {
   display: block; margin-top: 0.35em; text-align: center;
@@ -407,6 +412,8 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 .lt-locate-spot.wrong .lt-locate-dot { border-color: var(--ink-ghost); opacity: 0.4; }
 .lt-locate-key { position: absolute; bottom: 4px; font-family: var(--mono); font-size: calc(0.56rem * var(--text-scale, 1)); color: var(--ink-ghost); }
 .lt-locate-note { top: calc(50% + 40px); }
+.lt-approach-pad { position: absolute; inset: 0; background: none; border: 0; cursor: pointer; }
+.lt-approach .lt-locate-prompt { width: min(86vw, 520px); text-align: center; }
 
 .lt-punch-row { position: absolute; left: 50%; top: calc(50% + 78px); transform: translateX(-50%); display: flex; gap: 22px; }
 .lt-punch-cell { display: grid; grid-template-columns: repeat(2, 34px); grid-template-rows: repeat(3, 34px); grid-auto-flow: column; gap: 4px; padding: 8px; border: 1px solid var(--ink-ghost); border-radius: 4px; opacity: 0.45; transition: opacity 300ms; }

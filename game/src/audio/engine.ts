@@ -18,8 +18,8 @@ import { SampleBank, sampleRecipe, type SampleBankStats } from './samples';
 import { SFX_RECIPES, UI_SFX } from './sounds';
 import { phoneTick } from './voice';
 
-/** `to`: the sound travels there from `pos` while it plays. */
-export type SfxOpts = { gain?: number; rate?: number; variant?: number; to?: SpatialPos };
+/** `to`: the sound travels there from `pos` while it plays. `radius` overrides how far away `pos` is, for steps between near/mid/far. */
+export type SfxOpts = { gain?: number; rate?: number; variant?: number; to?: SpatialPos; radius?: number };
 
 export interface AudioEngine {
   unlock(): Promise<void>;
@@ -38,6 +38,8 @@ export interface AudioEngine {
   setAttention(level: number): void;
   /** Pain or shock: 0 = clear, 1 = the world comes through as if under water. Her own body stays clear. */
   setDaze(level: number): void;
+  /** Panic: 1 = the ambience as mixed, up to 3 = pressing in on her. */
+  setNoise(loud: number): void;
   duck(amount: number, ms: number): void;
   silence(ms: number): void;
   suspend(): void;
@@ -94,6 +96,7 @@ class SilentEngine implements AudioEngine {
   voice(): void {}
   setAttention(): void {}
   setDaze(): void {}
+  setNoise(): void {}
   duck(): void {}
   silence(): void {}
   suspend(): void {}
@@ -128,6 +131,7 @@ interface Buses {
   ambIn: GainNode;
   ambTone: BiquadFilterNode;
   ambDuck: GainNode;
+  ambLoud: GainNode;
   ambVerb: GainNode;
   sfx: GainNode;
   sfxVerb: GainNode;
@@ -265,7 +269,8 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
     ambTone.frequency.value = OPEN;
     ambTone.Q.value = 0.5;
     const ambDuck = gain(1);
-    ambIn.connect(ambTone).connect(ambDuck).connect(world);
+    const ambLoud = gain(1);
+    ambIn.connect(ambTone).connect(ambDuck).connect(ambLoud).connect(world);
 
     const sfx = gain(sfxGain(this.sfxVolume));
     sfx.connect(world);
@@ -308,7 +313,7 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
     }
 
     this.ac = ac;
-    this.bus = { master, world, attention, daze, dazeGain, body, ambIn, ambTone, ambDuck, ambVerb, sfx, sfxVerb, voice, ui, reverbIn };
+    this.bus = { master, world, attention, daze, dazeGain, body, ambIn, ambTone, ambDuck, ambLoud, ambVerb, sfx, sfxVerb, voice, ui, reverbIn };
     try {
       this.bank = new SampleBank(ac);
     } catch {
@@ -461,7 +466,7 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
       const shot = spawnShot(ac, recipe, {
         dest: UI_SFX.has(id) ? bus.ui : BODY_SFX.has(id) ? bus.body : bus.sfx,
         reverb: BODY_SFX.has(id) ? null : bus.sfxVerb,
-        place: placementOf(pos),
+        place: opts?.radius !== undefined ? { ...placementOf(pos), r: opts.radius } : placementOf(pos),
         glide: opts?.to ? placementOf(opts.to) : undefined,
         t: ac.currentTime + 0.01,
         gain: clamp(opts?.gain ?? 1, 0, 4),
@@ -540,6 +545,15 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
     // sinking in is quick, coming back takes a while
     expRampTo(bus.daze.frequency, OPEN * Math.pow(DAZED / OPEN, l), now, l > 0 ? 0.5 : 1.6);
     glide(bus.dazeGain.gain, 1 - 0.5 * l, now, l > 0 ? 0.4 : 1.2);
+  }
+
+  setNoise(loud: number): void {
+    const ac = this.ac;
+    const bus = this.bus;
+    if (!ac || !bus) return;
+    const l = clamp(Number.isFinite(loud) ? loud : 1, 1, 3);
+    // It swells in over a couple of breaths, and drains away more slowly.
+    glide(bus.ambLoud.gain, l, ac.currentTime, l > 1 ? 0.5 : 1.2);
   }
 
   setAttention(level: number): void {

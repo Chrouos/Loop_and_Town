@@ -1,9 +1,9 @@
 import { load } from 'js-yaml';
 import { SFX_SAMPLES } from '../audio/samples';
-import { DISTANCES, VOICES, isAmbience, isDirection, isSfx, VIBRATIONS, type Direction, type Distance, type SfxId, type VibrationId, type VoiceId } from '../audio/catalog';
+import { DIRECTIONS, DISTANCES, VOICES, isAmbience, isDirection, isSfx, VIBRATIONS, type Direction, type Distance, type SfxId, type VibrationId, type VoiceId } from '../audio/catalog';
 import type { LifeEvent, LifeLine } from '../engine/life';
 import { parseCond } from './conditions';
-import { DAZE_LEVELS, HEART_LEVELS, SHAKE_LEVELS, type Beat, type Chapter, type ChoiceOption, type DazeLevel, type EndKind, type HeartLevel, type LineBeat, type Pos, type Scene, type ShakeLevel } from './types';
+import { DAZE_LEVELS, HEART_LEVELS, NOISE_LEVELS, SHAKE_LEVELS, type Beat, type Chapter, type ChoiceOption, type DazeLevel, type EndKind, type HeartLevel, type NoiseLevel, type LineBeat, type Pos, type Scene, type ShakeLevel } from './types';
 
 export const CHARACTER_KEYS = ['yuan', 'ruoqing', 'boxun', 'tingan', 'zhiyuan', 'zhixia', 'man', 'woman', 'child', 'old_man', 'old_woman', 'announcer'] as const;
 const LINE_KEYS = new Set<string>(['narr', 'me', 'think', 'phone', ...CHARACTER_KEYS]);
@@ -195,6 +195,20 @@ function parseBeat(raw: unknown, where: string, errors: Errors): Beat | undefine
     if (!(DAZE_LEVELS as readonly string[]).includes(level)) { errors.push(`${where}：未知恍惚「${level}」（${DAZE_LEVELS.join('／')}）`); return undefined; }
     return { k: 'daze', level: level as DazeLevel };
   }
+  if ('noise' in raw) {
+    allow('noise', 'speed', 'loud', 'with');
+    const level = String(raw.noise);
+    if (!(NOISE_LEVELS as readonly string[]).includes(level)) { errors.push(`${where}：未知雜音「${level}」（${NOISE_LEVELS.join('／')}）`); return undefined; }
+    const speed = raw.speed === undefined ? undefined : Number(raw.speed);
+    const loud = raw.loud === undefined ? undefined : Number(raw.loud);
+    if (speed !== undefined && !(speed >= 1 && speed <= 10)) errors.push(`${where}：noise 的 speed 是 1 到 10 倍`);
+    if (loud !== undefined && !(loud >= 1 && loud <= 3)) errors.push(`${where}：noise 的 loud 是 1 到 3 倍`);
+    if (level === 'off' && (speed !== undefined || loud !== undefined || raw.with !== undefined)) errors.push(`${where}：noise: off 不用寫 speed／loud／with`);
+    // with: sounds and voices that only exist while she panics (the crowd at the door), in the scene `life:` format.
+    const extra = raw.with === undefined ? undefined : parseLife(raw.with, `${where}.with`, errors);
+    if (extra === 'off') errors.push(`${where}：noise 的 with 是聲音清單`);
+    return { k: 'noise', level: level as NoiseLevel, speed, loud, ...(Array.isArray(extra) && extra.length ? { with: extra } : {}) };
+  }
   if ('clock' in raw) {
     allow('clock');
     return { k: 'clock', time: String(raw.clock) };
@@ -212,11 +226,12 @@ function parseBeat(raw: unknown, where: string, errors: Errors): Beat | undefine
     allow('locate');
     const spec = raw.locate;
     if (!isObj(spec)) { errors.push(`${where}：locate 必須是 map`); return undefined; }
-    for (const key of Object.keys(spec)) if (!['sfx', 'at', 'decoys', 'tries', 'exact', 'timeout', 'interval', 'gain', 'prompt', 'success', 'fail'].includes(key)) errors.push(`${where}：locate 未知欄位「${key}」`);
+    for (const key of Object.keys(spec)) if (!['sfx', 'at', 'decoys', 'tries', 'exact', 'lag', 'timeout', 'interval', 'gain', 'prompt', 'success', 'fail'].includes(key)) errors.push(`${where}：locate 未知欄位「${key}」`);
     const sfx = String(spec.sfx);
     const at = String(spec.at);
     if (!isSfx(sfx)) errors.push(`${where}：未知音效「${sfx}」`);
     if (!isDirection(at)) errors.push(`${where}：locate 的 at 必須是八個方位之一`);
+    if (spec.lag !== undefined && !(Number(spec.lag) > 0 && Number(spec.lag) < 0.5)) errors.push(`${where}：locate 的 lag 是 0 到 0.5 秒之間`);
     const decoys = (Array.isArray(spec.decoys) ? spec.decoys : []).flatMap((decoy, n) => {
       if (!isObj(decoy) || !isSfx(String(decoy.sfx)) || !isDirection(String(decoy.at))) { errors.push(`${where}.decoys[${n}]：需要合法的 sfx 與 at`); return []; }
       return [{ sfx: String(decoy.sfx) as never, at: String(decoy.at) as never }];
@@ -225,12 +240,37 @@ function parseBeat(raw: unknown, where: string, errors: Errors): Beat | undefine
       k: 'locate', sfx: sfx as never, at: at as never, decoys,
       tries: Math.max(1, Number(spec.tries ?? 2)),
       exact: spec.exact === true,
+      lag: spec.lag === undefined ? undefined : Number(spec.lag),
       timeout: spec.timeout === undefined ? undefined : Number(spec.timeout),
       interval: spec.interval === undefined ? undefined : Number(spec.interval),
       gain: spec.gain === undefined ? undefined : Number(spec.gain),
       prompt: str(spec.prompt),
       success: parseBeats(spec.success, `${where}.success`, errors),
       fail: parseBeats(spec.fail, `${where}.fail`, errors),
+    };
+  }
+  if ('approach' in raw) {
+    allow('approach');
+    const spec = raw.approach;
+    if (!isObj(spec)) { errors.push(`${where}：approach 必須是 map`); return undefined; }
+    for (const key of Object.keys(spec)) if (!['sfx', 'at', 'past', 'steps', 'interval', 'text', 'prompt', 'hit', 'early', 'late'].includes(key)) errors.push(`${where}：approach 未知欄位「${key}」`);
+    const sfx = String(spec.sfx);
+    const at = String(spec.at ?? 'front');
+    if (!isSfx(sfx)) errors.push(`${where}：未知音效「${sfx}」`);
+    if (!isDirection(at)) errors.push(`${where}：approach 的 at 必須是八個方位之一`);
+    // Unless told otherwise, whoever walks up to her keeps going straight past.
+    const past = spec.past === undefined && isDirection(at) ? DIRECTIONS[(DIRECTIONS.indexOf(at) + 4) % DIRECTIONS.length] : String(spec.past);
+    if (!isDirection(past)) errors.push(`${where}：approach 的 past 必須是八個方位之一`);
+    const steps = Number(spec.steps ?? 6);
+    const interval = Number(spec.interval ?? 0.8);
+    if (!(Number.isInteger(steps) && steps >= 3)) errors.push(`${where}：approach 的 steps 至少 3 步`);
+    if (!(interval >= 0.3)) errors.push(`${where}：approach 的 interval 至少 0.3 秒`);
+    return {
+      k: 'approach', sfx: sfx as never, at: at as never, past: past as never, steps, interval,
+      text: str(spec.text), prompt: str(spec.prompt),
+      hit: parseBeats(spec.hit, `${where}.hit`, errors),
+      early: parseBeats(spec.early, `${where}.early`, errors),
+      late: parseBeats(spec.late, `${where}.late`, errors),
     };
   }
   if ('punch' in raw) {

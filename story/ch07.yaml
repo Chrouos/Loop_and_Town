@@ -1129,7 +1129,10 @@ scenes:
       - if: flag.c7_placed
         then:
           - heart: pound
+          - noise: heavy
           - narr: 我的指甲摳進櫃台的木頭邊，摳到有一片木屑翹起來，扎進指縫。
+          - narr: 滿屋子的滴答越走越快，一座追著一座，追到我數不清現在是幾點。
+          - noise: "off"
           - daze: light
           - narr: 滿屋子上發條的滴答一下子變得好遠，胸口的心跳重得像有人在裡面敲門。
           - think: 我說過，這一次一個人都不放。電話裡那幾句話，還是把他們放到了某個地方。
@@ -1157,8 +1160,37 @@ scenes:
           - yuan: 我得一個一個重新對時。
           - me: 我幫你。
           - yuan: ……妳看不——
-          - me: 我聽得出哪一個走得快。
+          - me: 我聽得出哪一個跟不上。
           - { sfx: laugh_soft_m, at: front, dist: near, text: 呵 }
+          - { sfx: tools_clink, at: front, dist: near, text: 喀 }
+          - narr: 他開著收音機的整點報時，一座一座按調時鈕。插電的掛鐘重新走起來，和上發條的那些慢慢疊成同一拍。
+          - yuan: 好了。妳聽聽看。
+          - locate:
+              sfx: clock_tick
+              at: back-left
+              lag: 0.22
+              decoys:
+                - { sfx: clock_tick, at: front }
+                - { sfx: clock_tick, at: front-left }
+                - { sfx: clock_tick, at: right }
+                - { sfx: clock_tick, at: back-right }
+              tries: 2
+              exact: true
+              timeout: 25
+              prompt: 哪一座慢了半拍？
+              success:
+                - narr: 我抬手往左後方指。那一聲每次都晚一點點，像有人跟著大家拍手，總是慢半下。
+                - pause: 1.5
+                - yuan: ……那座不用對。
+                - yuan: 我爸的。他修了一輩子，它每天還是慢一點。
+                - yuan: 他說它就是比較慢熱。
+              fail:
+                - narr: 我指的那一座，他說剛剛才對好。
+                - { sfx: chair_scrape, at: front, dist: near, text: 嘎 }
+                - narr: 他走到我旁邊，托著我的手腕，把手往左後方移過去。
+                - yuan: 這座。我爸的，他修了一輩子，它每天還是慢一點。
+                - yuan: 不用對。他說它就是比較慢熱。
+          - narr: 他說不用對，可是我聽見他的指節在那座鐘的木殼上輕輕敲了兩下，才走回櫃台。
     next: c7_night
 
   # ─────────────────────────── 22:50 ───────────────────────────

@@ -697,6 +697,25 @@ scenes:
       - { tingan: 「不能直接餵給機器，不代表它不是資料。」, mem: m_c4_not_data }
       - narr: 庭安學她說話的時候，速度慢了下來。
       - think: 我記得這個語氣。知夏要贏的時候，都講得很慢。
+      - if: know.k_desk_sister
+        then:
+          - narr: 我把手掌放到桌墊右手邊那一塊。那三個字的凹痕還在，我沒有再摸一次。
+        else:
+          - narr: 我把手掌平放在桌上。桌面鋪著一張絨布桌墊，邊緣捲起來，摸起來有點硬。
+          - narr: 靠右手邊那一塊，絨毛被壓扁了一片，底下有很淺的凹痕。有人在這裡墊著紙，用力寫過字。
+          - touch:
+              cells: [給, 妹, 妹]
+              style: groove
+              prompt: 指腹貼著桌墊，從左邊慢慢滑過去
+              timeout: 40
+          - learn: k_desk_sister
+          - heart: slow
+          - narr: 我的指腹停在最後一個字上，按著不放，絨布底下的木頭被我按得有點溫。
+          - think: 她坐在這張桌子，寫過一個要給我的東西。
+          - think: 行李箱裡那六封信，我一封都沒拆。是在這裡寫的嗎？
+          - tingan: 妳在摸什麼？
+          - me: 桌墊。
+          - heart: off
       - { cue: librarian, at: back, text: 叩、叩, sfx: step }
       - pause: 2
       - tingan: 走吧。剩下的我不想在這裡講。
@@ -1063,8 +1082,11 @@ scenes:
           - { sfx: cup_set, at: right, dist: mid, text: 叩 }
           - { old_woman: 是咖啡店的若晴啦。造孽喔。, as: 老闆娘 }
           - heart: pound
+          - noise: heavy
+          - narr: 油鍋、碗筷、隔壁桌的笑聲，一下子全部變大，大得像整間店擠到我耳朵旁邊。
           - { sfx: cup_set, at: front, dist: near, text: 喀啷, shake: light }
           - narr: 我的手肘碰翻了茶杯，茶沿著桌面流下來，滴到我腿上。
+          - noise: "off"
           - daze: heavy
           - { sfx: tinnitus, at: center }
           - pause: 3

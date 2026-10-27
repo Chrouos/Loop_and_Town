@@ -360,14 +360,41 @@ scenes:
           - think: 他傍晚要去舊車站，總要從這扇門出來。幾點出來我不知道，只能早一點來等。
       - { wait: 15, clock: "17:20", until: "17:38" }
       - clock: "17:38"
-      - { sfx: door_open, at: front, dist: near, text: 喀 }
-      - narr: 鐵門推開，消毒水的味道比腳步先到。
-      - { sfx: step, at: front, dist: near, text: 叩 }
+      - { sfx: door_open, at: front, dist: far, text: 喀 }
+      - narr: 前面很遠的地方，鐵門推開了。風先把消毒水的味道送過來。
+      - narr: 腳步往這邊走，每一步都夾著紙袋擦過外套的沙沙聲。是他。
       - heart: slow
-      - narr: 我往前站了一步。牙關咬得太緊，開口前得先把它鬆開。
-      - me: 陳醫生。
-      - pause: 1.5
-      - boxun: ……請問妳是？
+      - approach:
+          sfx: step
+          at: front
+          past: back-right
+          steps: 7
+          interval: 0.75
+          text: 叩
+          prompt: 等他走到面前，再叫他
+          hit:
+            - narr: 腳步到了我前面一步的地方。我往前站，牙關咬得太緊，開口前得先把它鬆開。
+            - me: 陳醫生。
+            - { sfx: step, at: front, dist: near, text: 叩 }
+            - narr: 他停住了，腋下的紙袋也跟著不響。
+            - pause: 1
+            - boxun: ……請問妳是？
+          early:
+            - me: 陳醫生！
+            - narr: 排風口剛好在這時候轉強，把我的聲音吹散在半路，腳步沒有停。
+            - narr: 我只好等。等到紙袋的沙沙聲近得像擦在我自己的袖子上，才又叫一次。
+            - me: 陳醫生。
+            - { sfx: step, at: front-right, dist: near, text: 叩 }
+            - narr: 他往旁邊閃了半步，鞋底在地上擦出聲音。我自己也被嚇到，手杖尖敲在地上，喀的一聲。
+            - boxun: ……妳嚇到我了。請問妳是？
+          late:
+            - narr: 紙袋的沙沙聲從我右手邊擦過去了。
+            - narr: 我轉身追著那個聲音，手杖掃到路邊的花台，敲出一聲悶響。
+            - me: 陳醫生！
+            - { sfx: step, at: back-right, dist: mid, text: 叩 }
+            - narr: 他又走了兩步才停。轉回來的時候，鞋底在柏油上磨了一下。
+            - move: { boxun: front }
+            - boxun: ……請問妳是？
       - me: 林知夏的妹妹。
       - boxun: 有什麼事嗎？我有點趕。
       - { sfx: paper_rustle, at: front, dist: near, text: 沙 }
@@ -717,9 +744,19 @@ scenes:
       - { sfx: siren_far, at: back, dist: far, text: 喔咿——喔咿—— }
       - clock: "19:00"
       - narr: 警笛隔了好久才到，一群人的鞋子踩過碎石。
+      - noise: heavy
+        with:
+          - { say: 這邊！側邊這邊！, voice: man, at: [front, front-right], dist: far }
+          - { say: 車子先不要過來啦！, voice: man, at: [left, back-left], dist: mid }
+          - { say: 有人看到怎麼了嗎？, voice: woman, at: [back, right], dist: far }
+          - { text: 沙沙——, sfx: static_burst, src: 無線電, at: [front, front-right], dist: mid }
+          - { text: 咻——, sfx: car_pass, src: 車, at: [left, right], dist: mid }
+          - { text: 噠噠噠, sfx: step_run, at: [front, right, back], dist: mid }
+      - narr: 車聲、腳步聲、無線電的雜音全擠在馬路中間。我抓著護欄，一句都抓不住。
       - { man: 通道裡面有人！, as: 陌生的男聲 }
       - { man: 是醫院的陳醫生啦……, as: 陌生的男聲, learn: c3_boxun_died_again }
       - { man: 上面的鐵架塌下來，救護的說已經沒有呼吸了。, as: 陌生的男聲 }
+      - noise: "off"
       - daze: heavy
       - { sfx: tinnitus, at: center }
       - narr: 耳朵裡嗡的一聲，那些人的鞋子和喊聲全被推到一面牆後面。

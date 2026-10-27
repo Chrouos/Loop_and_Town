@@ -364,7 +364,7 @@ scenes:
                     - set: c1_room_listen_1
                     - pause: 3
                     - narr: 窗簾被風吹得很輕地碰了一下窗框。
-                    - if: flag.c1_watch || flag.c1_notebook
+                    - if: flag.c1_watch || flag.c1_notebook || know.k_watch_1831 || know.k_notebook_1831
                       then:
                         - think: 姊，妳到底在算什麼。
                       else:
@@ -527,6 +527,7 @@ scenes:
     ambience: [old_house]
     cast: { yuan: front }
     beats:
+      - { sfx: kettle, at: front-right, dist: mid, text: 咕嘟咕嘟, src: 爐子上的水壺 }
       - { sfx: envelope, at: center, dist: near, text: 沙 }
       - narr: 我把信拿出來的時候，予安正好在倒水。
       - pause: 1
@@ -551,7 +552,10 @@ scenes:
       - narr: 耳朵裡嗡了一聲。爐子上的水、窗外的機車，一下子都退到很遠的地方。
       - narr: 他把信紙抽出來。紙響到一半，就沒聲音了。
       - daze: off
-      - narr: 先回來的是爐火很細的嘶嘶聲，然後是他的呼吸，就在我前面。
+      - { sfx: stove_flame, at: front-right, dist: mid, text: 嘶—— }
+      - narr: 先回來的是爐火很細的嘶嘶聲，
+      - { sfx: breath_m, at: front, dist: near, text: 呼…… }
+      - narr: 然後是他的呼吸，就在我前面。
       - yuan: 這是……點字？
       - me: 嗯。
       - yuan: 寫什麼？
@@ -1187,10 +1191,19 @@ scenes:
       - pause: 1.5
       - narr: 然後那個扣子不響了。
       - heart: pound
+      - noise: heavy
+        with:
+          - { say: 裡面有人嗎？, voice: man, at: [back, back-left], dist: far }
+          - { say: 手電筒！誰有手電筒？, voice: woman, at: [back, back-right], dist: far }
+          - { say: 不要進去啦，玻璃都碎了！, voice: old_woman, at: [back-left], dist: far }
+          - { text: 啊——, sfx: gasp_crowd, src: 門口的人, at: [back, back-left, back-right], dist: far }
+          - { text: 噠噠噠, sfx: step_run, at: [back-left, back-right], dist: far }
+      - narr: 門口的人在喊，鐵皮在響，鴿子在頭頂拍翅膀。每一個聲音都大得像貼在我耳朵旁邊，我分不出哪一個是她。
       - me: 若晴，妳說話。
       - pause: 2.5
       - { sfx: phone_buzz, at: right, dist: near, text: 嗡, vib: buzz }
       - { phone: 心率過高，已記錄。十八點三十一分。, mem: m_1831 }
+      - noise: "off"
       - daze: heavy
       - { sfx: tinnitus, at: center }
       - narr: 我跪在原地，兩隻手往四周摸，摸到的全是玻璃。我不敢再動，怕多爬一步，就離她更遠。
@@ -1351,17 +1364,17 @@ scenes:
       - narr: 遠處講電話的人、門外的機車，全都隔到一層玻璃外面去了。
       - pause: 3
       - narr: 電扇轉過來，又轉過去。
-      - if: flag.c1_watch && flag.c1_notebook
+      - if: know.k_watch_1831 && know.k_notebook_1831
         then:
           - think: 手錶停在這個時間，筆記本也寫滿這個時間。
           - think: 若晴，還有我姊。
           - think: 這是巧合嗎？可能嗎？
         else:
-          - if: flag.c1_watch
+          - if: know.k_watch_1831
             then:
               - think: 她的手錶也停在這個時間。若晴，還有我姊。
             else:
-              - if: flag.c1_notebook
+              - if: know.k_notebook_1831
                 then:
                   - think: 筆記本背面，她寫滿的也是這個時間。若晴，還有我姊。
                 else:
@@ -1401,7 +1414,7 @@ scenes:
       - narr: 予安送我回到家門口。他說他去買點吃的，等一下再過來。
       - narr: 我一個人走進知夏的房間。
       - narr: 我沒有開燈，也不需要開燈。
-      - if: flag.c1_watch
+      - if: know.k_watch_1831
         then:
           - narr: 手錶還在桌上，在我早上放下的那個地方。
           - pause: 1.5
@@ -1530,6 +1543,7 @@ scenes:
       - { sfx: bell_toll, at: front-left, text: 噹——— }
       - wait: 2
       - think: 十一。
+      - heart: pound
       - { sfx: bell_toll, at: front-left, dist: near, text: 噹———, vib: long, shake: hard }
       - learn: k_bell
       - pause: 2

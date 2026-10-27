@@ -10,6 +10,7 @@ const DONE_LINGER_MS = 900;
 export function Interaction({ director, interact }: { director: Director; interact: InteractView }) {
   if (interact.type === 'touch') return <TouchStrip key={interact.key} director={director} interact={interact} />;
   if (interact.type === 'locate') return <LocateRing key={interact.key} director={director} interact={interact} />;
+  if (interact.type === 'approach') return <ApproachCall key={interact.key} director={director} interact={interact} />;
   return <PunchSlate key={interact.key} director={director} interact={interact} />;
 }
 
@@ -158,6 +159,29 @@ function LocateRing({ director, interact }: { director: Director; interact: Extr
 const LABEL: Record<Direction, string> = {
   front: '前方', 'front-right': '右前方', right: '右邊', 'back-right': '右後方', back: '後方', 'back-left': '左後方', left: '左邊', 'front-left': '左前方',
 };
+
+// ───────────────────────── 聽距離 ─────────────────────────
+
+/** The whole screen is her mouth: tap anywhere (or Space / Enter) to speak up when the steps reach her. */
+function ApproachCall({ director, interact }: { director: Director; interact: Extract<InteractView, { type: 'approach' }> }) {
+  useEffect(() => {
+    const down = (event: KeyboardEvent) => {
+      if (event.key !== ' ' && event.key !== 'Enter') return;
+      event.preventDefault();
+      event.stopPropagation();
+      if (!event.repeat) director.approachCall();
+    };
+    window.addEventListener('keydown', down, true);
+    return () => window.removeEventListener('keydown', down, true);
+  }, [director]);
+  return (
+    <div className="lt-interact lt-approach" onPointerUp={(event) => event.stopPropagation()}>
+      <button type="button" className="lt-approach-pad" aria-label="開口" onClick={(event) => { event.stopPropagation(); director.approachCall(); }} />
+      <div className="lt-locate-prompt">{interact.prompt ?? '等聲音到面前，再開口'}</div>
+      <div className="lt-interact-note lt-locate-note">點一下畫面開口</div>
+    </div>
+  );
+}
 
 // ───────────────────────── 點字板 ─────────────────────────
 

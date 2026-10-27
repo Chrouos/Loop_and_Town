@@ -350,7 +350,7 @@ function Chapters({ director, dev, onPicked }: { director: Director; dev: boolea
   const numeral = (key: string) => CHAPTER_NUMERALS[key] ?? key;
   const action = (key: string, index: number) => {
     if (key === target) return save.replay ? '現在回去' : '從早上重來';
-    return index < targetIndex ? '回去聽一天' : '跳過去';
+    return index < targetIndex ? '回去這一天' : '跳過去';
   };
   return (
     <div className="lt-panel">

@@ -104,6 +104,78 @@ describe('hands and ears interactions', () => {
     expect(director.loopFlags.has('punched')).toBe(true);
   });
 
+  const APPROACH = `
+chapter: 1
+title: 測試
+start: s1
+advance:
+  - if: "true"
+    to: 1
+scenes:
+  - id: s1
+    beats:
+      - approach:
+          sfx: step
+          at: front
+          steps: 6
+          interval: 0.8
+          text: 叩
+          hit:
+            - set: hit
+          early:
+            - set: early
+          late:
+            - set: late
+      - pause: 30
+      - end: reset
+`;
+
+  it('approach: speaking up too soon, as the steps reach her, or after they pass', () => {
+    // Steps start 0.7 s in (the turn back to the main line) and land every 0.8 s; the last two toward her count.
+    for (const [waitMs, flag] of [[1200, 'early'], [4300, 'hit'], [6400, 'late']] as const) {
+      const { director, run, until } = setup(APPROACH);
+      until('approach');
+      run(waitMs);
+      expect(director.view.interact?.type).toBe('approach');
+      director.approachCall();
+      run(100);
+      expect([...director.loopFlags].filter((name) => ['hit', 'early', 'late'].includes(name))).toEqual([flag]);
+    }
+  });
+
+  it('approach: saying nothing lets the steps walk past (late)', () => {
+    const { director, run, until } = setup(APPROACH);
+    until('approach');
+    run(9000);
+    expect(director.view.interact).toBeNull();
+    expect(director.loopFlags.has('late')).toBe(true);
+  });
+
+  it('approach: past defaults to the opposite side and threads cannot hold one', () => {
+    const { script } = buildScript([{ name: 'a.yaml', source: APPROACH }]);
+    const beat = script.scenes.get('s1')!.beats[0];
+    expect(beat.k === 'approach' && beat.past).toBe('back');
+    const inThread = APPROACH.replace('    beats:\n      - approach:', '    threads:\n      t:\n        beats:\n          - approach:\n              sfx: step\n    beats:\n      - approach:');
+    expect(buildScript([{ name: 'a.yaml', source: inThread }]).errors.join('\n')).toMatch(/thread 裡不能有 approach/);
+  });
+
+  it('locate with lag: the others tick together once a second, the one she is after comes just behind', () => {
+    const lagged = SCRIPT.replace('          tries: 2\n', '          tries: 2\n          lag: 0.25\n');
+    const { script, errors } = buildScript([{ name: 'a.yaml', source: lagged }]);
+    expect(errors).toEqual([]);
+    const log: string[] = [];
+    let save: GameSave = { ...freshSave(), started: true, scene: 's1' };
+    const director = new Director(script, save, { audio: silentAudio(log), vibrate: () => undefined, persist: (next) => { save = next; }, wallNow: () => 0 });
+    director.start();
+    for (let i = 0; i < 600 && director.view.interact?.type !== 'touch'; i++) director.tick(50);
+    log.length = 0;
+    director.touchDone();
+    for (let i = 0; i < 600 && director.view.interact?.type !== 'locate'; i++) director.tick(50);
+    for (let t = 0; t < 1900; t += 50) director.tick(50);
+    const heard = log.filter((entry) => entry === 'sfx:hum_rise' || entry === 'sfx:light_buzz');
+    expect(heard.slice(0, 4)).toEqual(['sfx:light_buzz', 'sfx:hum_rise', 'sfx:light_buzz', 'sfx:hum_rise']);
+  });
+
   it('validator keeps interactions out of side threads and checks their sounds', () => {
     const bad = SCRIPT.replace('sfx: hum_rise', 'sfx: no_such_sound');
     expect(buildScript([{ name: 'a.yaml', source: bad }]).errors.join('\n')).toMatch(/no_such_sound/);

@@ -1,7 +1,7 @@
 import type { AudioEngine } from '../audio/engine';
 import { DIRECTIONS, DIRECTION_ANGLE, DISTANCES, SFX_SOURCE, type AmbienceId, type Direction, type SfxId, type VibrationId } from '../audio/catalog';
 import { condRefs, evalCond, type CondContext } from '../script/conditions';
-import { CHAPTER_NUMERALS, SPEAKER_LABELS, type Beat, type Chapter, type Cond, type ChoiceOption, type EndKind, type DazeLevel, type GameScript, type HeartLevel, type LineBeat, type LineKind, type Pos, type Scene, type ShakeLevel } from '../script/types';
+import { CHAPTER_NUMERALS, SPEAKER_LABELS, type Beat, type Chapter, type Cond, type ChoiceOption, type EndKind, type DazeLevel, type GameScript, type HeartLevel, type LineBeat, type NoiseLevel, type LineKind, type Pos, type Scene, type ShakeLevel } from '../script/types';
 import { driftClock, heardClock, planClock, type ClockPlan } from './clock';
 import { lineTiming, type Phrase } from './text';
 import { HUSH_MS, HUSH_SFX, isVoice, lifeOf, type LifeEvent } from './life';
@@ -27,6 +27,13 @@ const HEART: Record<Exclude<HeartLevel, 'off'>, { ms: number; gain: number; rate
   fast: { ms: 580, gain: 0.48, rate: 1.15, vib: true },
   pound: { ms: 430, gain: 0.72, rate: 1.35, vib: true },
 };
+/** Panic noise: how many times faster the background comes, and how much louder. A script can override either. */
+const NOISE: Record<Exclude<NoiseLevel, 'off'>, { speed: number; loud: number }> = {
+  light: { speed: 2.5, loud: 1.5 },
+  heavy: { speed: 5, loud: 2.2 },
+};
+/** At speed 1, one extra background beat every this long; speed divides it. */
+const NOISE_BASE_MS = 2000;
 
 export type CenterLine = {
   key: number;
@@ -84,6 +91,8 @@ export type View = {
   heart: { level: Exclude<HeartLevel, 'off'>; beat: number } | null;
   /** Pain or shock: the stage blurs and the world goes muffled. */
   daze: Exclude<DazeLevel, 'off'> | null;
+  /** Panic: the background floods in around the centre line. */
+  noise: { level: Exclude<NoiseLevel, 'off'>; speed: number; loud: number } | null;
   chapterKey: string;
   loop: number;
 };
@@ -91,6 +100,7 @@ export type View = {
 export type InteractView =
   | { type: 'touch'; key: number; cells: string[]; style: 'braille' | 'groove' | 'engrave'; prompt?: string }
   | { type: 'locate'; key: number; prompt?: string; triesLeft: number; hint: Direction | null; wrong: Direction[] }
+  | { type: 'approach'; key: number; prompt?: string }
   | { type: 'punch'; key: number; cells: number[][]; label?: string; prompt?: string };
 
 export type DirectorOutput = {
@@ -110,11 +120,18 @@ type Run = {
   blocked: boolean;
   done: boolean;
   pos: Pos;
-  pendingInteract?: { beat: Extract<Beat, { k: 'touch' | 'locate' | 'punch' }>; deadline: number; triesLeft: number };
+  pendingInteract?: { beat: InteractBeat; deadline: number; triesLeft: number; start: number };
   pendingChoice?: { beat: Extract<Beat, { k: 'choice' }>; options: ChoiceOption[]; deadline: number; fallback: number; recallIndex?: number; remaining?: number };
 };
 
 const CENTER: Pos = { dir: 'center', dist: 'near' };
+
+type InteractBeat = Extract<Beat, { k: 'touch' | 'locate' | 'approach' | 'punch' }>;
+/** 聽距離: how far each step lands (audio radius), from the far end of the street to right in front of her. */
+const APPROACH_FAR = 6;
+const APPROACH_NEAR = 0.9;
+const APPROACH_PAST = [1.4, 2.8, 4.5];
+const distOf = (r: number): Pos['dist'] => (r >= 4 ? 'far' : r >= 1.8 ? 'mid' : 'near');
 
 export class Director {
   readonly script: GameScript;
@@ -152,6 +169,7 @@ export class Director {
   private lifeSaid = new Set<LifeEvent>();
   private lifeVoiceAt = -Infinity;
   private heartGen = 0;
+  private noiseGen = 0;
   // The corner clock creeps along the main line between the times the script names.
   private clockPlan: ClockPlan | null = null;
   private clockFrom: { clock?: string; step: number } = { step: 0 };
@@ -425,6 +443,21 @@ export class Director {
     this.bump();
   }
 
+  /** 聽距離: she speaks up. Whether it lands depends on how close the steps are right now. */
+  approachCall(): void {
+    const main = this.runs.get('main');
+    const pending = main?.pendingInteract;
+    if (!main || !pending || pending.beat.k !== 'approach' || this.view.interact?.type !== 'approach') return;
+    const beat = pending.beat;
+    const stepAt = (i: number) => pending.start + i * beat.interval * 1000;
+    const now = this.view.t;
+    const branch = now < stepAt(beat.steps - 2) - beat.interval * 350 ? beat.early
+      : now > stepAt(beat.steps - 1) + beat.interval * 900 ? beat.late
+        : beat.hit;
+    this.resolveInteract(main, branch === beat.hit, branch);
+    this.advanceTo(this.view.t);
+  }
+
   private finishInteract(type: InteractView['type'], ok: boolean): void {
     const main = this.runs.get('main');
     if (!main?.pendingInteract || main.pendingInteract.beat.k !== type) return;
@@ -432,10 +465,12 @@ export class Director {
     this.advanceTo(this.view.t);
   }
 
-  private startInteract(run: Run, beat: Extract<Beat, { k: 'touch' | 'locate' | 'punch' }>, t: number): void {
-    const timeoutMs = beat.k === 'locate' ? (beat.timeout !== undefined ? beat.timeout * 1000 : Infinity) : beat.timeout * 1000;
+  private startInteract(run: Run, beat: InteractBeat, t: number): void {
+    // An approach lasts as long as the walk: every step toward her, then three going away.
+    const timeoutMs = beat.k === 'approach' ? (beat.steps + APPROACH_PAST.length) * beat.interval * 1000
+      : beat.k === 'locate' ? (beat.timeout !== undefined ? beat.timeout * 1000 : Infinity) : beat.timeout * 1000;
     run.blocked = true;
-    run.pendingInteract = { beat, deadline: t + timeoutMs + SHIFT_MS, triesLeft: beat.k === 'locate' ? beat.tries : 1 };
+    run.pendingInteract = { beat, deadline: t + timeoutMs + SHIFT_MS, triesLeft: beat.k === 'locate' ? beat.tries : 1, start: t + SHIFT_MS };
     if (this.view.focus !== 'main' && this.shift?.to !== 'main') this.beginShift('main');
     const key = this.keyCounter++;
     if (beat.k === 'touch') this.view.interact = { type: 'touch', key, cells: beat.cells, style: beat.style, prompt: beat.prompt };
@@ -444,12 +479,41 @@ export class Director {
       this.view.interact = { type: 'locate', key, prompt: beat.prompt, triesLeft: beat.tries, hint: null, wrong: [] };
       this.repeatLocate(key, beat, t);
     }
+    if (beat.k === 'approach') {
+      this.view.interact = { type: 'approach', key, prompt: beat.prompt };
+      this.walkUp(key, beat, t + SHIFT_MS);
+    }
     this.bump();
+  }
+
+  /** Each step lands closer and louder; past her, the same steps fade the other way. */
+  private walkUp(key: number, beat: Extract<Beat, { k: 'approach' }>, start: number): void {
+    const n = beat.steps;
+    const steps = [
+      ...Array.from({ length: n }, (_, i) => ({ dir: beat.at, r: APPROACH_FAR - (APPROACH_FAR - APPROACH_NEAR) * (i / (n - 1)), gain: 0.35 + 0.65 * (i / (n - 1)), close: i >= n - 2 })),
+      ...APPROACH_PAST.map((r, j) => ({ dir: beat.past, r, gain: 0.8 - j * 0.2, close: false })),
+    ];
+    steps.forEach((step, i) => this.schedule(start + i * beat.interval * 1000, () => {
+      if (this.view.interact?.key !== key) return;
+      const pos: Pos = { dir: step.dir, dist: distOf(step.r) };
+      this.out.audio.play(beat.sfx, pos, { gain: step.gain, radius: step.r });
+      if (beat.text) this.addPeripheral('sfx', beat.text, pos, this.view.t + beat.interval * 900, undefined, SFX_SOURCE[beat.sfx]);
+      this.ripple(pos);
+      if (step.close) this.vibrate('tap');
+      this.bump();
+    }));
   }
 
   /** The sound keeps coming back until she points at it (or the moment passes). */
   private repeatLocate(key: number, beat: Extract<Beat, { k: 'locate' }>, t: number): void {
     if (this.view.interact?.key !== key) return;
+    // lag: everything ticks together once a second, and the one she is after comes a little behind.
+    if (beat.lag !== undefined) {
+      beat.decoys.forEach((decoy) => this.out.audio.play(decoy.sfx, { dir: decoy.at, dist: 'mid' }, { gain: 0.8 }));
+      this.schedule(t + beat.lag * 1000, () => { if (this.view.interact?.key === key) this.out.audio.play(beat.sfx, { dir: beat.at, dist: 'mid' }, { gain: (beat.gain ?? 1) * 0.8 }); });
+      this.schedule(t + 1000, () => this.repeatLocate(key, beat, t + 1000));
+      return;
+    }
     this.out.audio.play(beat.sfx, { dir: beat.at, dist: 'mid' }, { gain: beat.gain ?? 1 });
     beat.decoys.forEach((decoy, index) => this.schedule(t + 500 + index * 420, () => {
       if (this.view.interact?.key === key) this.out.audio.play(decoy.sfx, { dir: decoy.at, dist: 'mid' }, { gain: 0.8 });
@@ -458,13 +522,15 @@ export class Director {
     this.schedule(t + intervalMs, () => this.repeatLocate(key, beat, t + intervalMs));
   }
 
-  private resolveInteract(run: Run, ok: boolean): void {
+  private resolveInteract(run: Run, ok: boolean, branch?: Beat[]): void {
     const pending = run.pendingInteract;
     if (!pending) return;
     run.pendingInteract = undefined;
     run.blocked = false;
     this.view.interact = null;
     if (pending.beat.k === 'locate') run.stack.push({ beats: ok ? pending.beat.success : pending.beat.fail, i: 0 });
+    // Nobody spoke up in time: the steps went past and she calls after them.
+    if (pending.beat.k === 'approach') run.stack.push({ beats: branch ?? pending.beat.late, i: 0 });
     run.busyUntil = this.view.t;
     this.bump();
   }
@@ -593,6 +659,7 @@ export class Director {
     this.view.interact = null;
     this.setHeart('off');
     this.setDaze('off');
+    this.setNoise('off');
     // Leaving a live scene, the last line lingers as an echo so it fades out with the world instead of blinking off.
     const live = this.view.phase === 'scene';
     const lingering = !live ? null
@@ -711,7 +778,7 @@ export class Director {
         this.applyChoice(run, option);
       }
       // Hands and ears take their time, but the day does not stop: she gets there on her own, or misses it.
-      if (run.pendingInteract && run.pendingInteract.deadline <= t) this.resolveInteract(run, run.pendingInteract.beat.k !== 'locate');
+      if (run.pendingInteract && run.pendingInteract.deadline <= t) this.resolveInteract(run, run.pendingInteract.beat.k !== 'locate' && run.pendingInteract.beat.k !== 'approach');
       while (!run.done && !run.blocked && run.busyUntil <= this.view.t && this.view.phase === 'scene') {
         this.finishLine(run);
         this.step(run);
@@ -806,10 +873,11 @@ export class Director {
       case 'shake': this.jolt(beat.level); this.vibrate(beat.level === 'hard' ? 'crash' : 'thud'); run.busyUntil = t; this.bump(); return;
       case 'heart': this.setHeart(beat.level); run.busyUntil = t; return;
       case 'daze': this.setDaze(beat.level); run.busyUntil = t; return;
+      case 'noise': this.setNoise(beat.level, beat.speed, beat.loud, beat.with); run.busyUntil = t; return;
       case 'clock': this.setClock(beat.time); run.busyUntil = t; this.bump(); return;
       case 'cue': this.startThread(beat, t); run.busyUntil = t + 400; return;
       case 'choice': this.offerChoice(run, beat, t); return;
-      case 'touch': case 'locate': case 'punch': this.startInteract(run, beat, t); return;
+      case 'touch': case 'locate': case 'approach': case 'punch': this.startInteract(run, beat, t); return;
       case 'if': run.stack.push({ beats: evalCond(beat.cond, this.condContext()) ? beat.then : beat.else, i: 0 }); run.busyUntil = t; return;
       case 'set': beat.flags.forEach((flag) => this.flags.add(flag)); run.busyUntil = t; return;
       case 'learn': beat.ids.forEach((id) => this.learn(id)); run.busyUntil = t; return;
@@ -1017,8 +1085,8 @@ export class Director {
     });
   }
 
-  private lifeBeat(events: LifeEvent[], t: number): void {
-    const event = this.pickLife(events, t);
+  private lifeBeat(events: LifeEvent[], t: number, noise?: { speed: number; loud: number }): void {
+    const event = this.pickLife(events, t, noise ? LIFE_VOICE_GAP_MS / (noise.speed * 2) : LIFE_VOICE_GAP_MS);
     if (!event) return;
     // Never on top of someone in the scene or a sound she could turn to — unless the scene put it there itself.
     const own = Array.isArray(this.scene?.life) && this.scene.life.includes(event);
@@ -1052,7 +1120,7 @@ export class Director {
       }
       this.lifeVoiceAt = at;
     } else {
-      this.out.audio.play(event.sfx, pos, { gain: pos.dist === 'far' ? 0.12 : 0.16 });
+      this.out.audio.play(event.sfx, pos, { gain: (pos.dist === 'far' ? 0.12 : 0.16) * (noise?.loud ?? 1) });
       this.addPeripheral('sfx', event.text, pos, t + SFX_TEXT_MS * (pos.dist === 'far' ? 1.25 : 1), undefined, event.src ?? (event.sfx && SFX_SOURCE[event.sfx]));
     }
     this.bump();
@@ -1062,10 +1130,10 @@ export class Director {
    * Sounds may come back (a cup is set down more than once), just not the last few.
    * Voices are rarer and never repeat until every line in the pool has been heard.
    */
-  private pickLife(events: LifeEvent[], t: number): LifeEvent | undefined {
+  private pickLife(events: LifeEvent[], t: number, voiceGap = LIFE_VOICE_GAP_MS): LifeEvent | undefined {
     const voices = events.filter(isVoice);
     if (voices.length && voices.every((event) => this.lifeSaid.has(event))) voices.forEach((event) => this.lifeSaid.delete(event));
-    const voiceOk = t - this.lifeVoiceAt >= LIFE_VOICE_GAP_MS;
+    const voiceOk = t - this.lifeVoiceAt >= voiceGap;
     const pool = events.filter((event) => (isVoice(event) ? voiceOk && !this.lifeSaid.has(event) : !this.lifeRecent.includes(event)));
     const sounds = events.filter((event) => !isVoice(event));
     const from = pool.length ? pool : sounds;
@@ -1195,6 +1263,34 @@ export class Director {
     this.bump();
   }
 
+  /** Panic: on top of the scene's usual background, extra beats of it keep coming, closer together and louder. */
+  private setNoise(level: NoiseLevel, speed?: number, loud?: number, extra?: LifeEvent[]): void {
+    const gen = ++this.noiseGen;
+    if (level === 'off') {
+      if (!this.view.noise) return;
+      this.view.noise = null;
+      this.out.audio.setNoise(1);
+      this.bump();
+      return;
+    }
+    const noise = { level, speed: speed ?? NOISE[level].speed, loud: loud ?? NOISE[level].loud };
+    this.view.noise = noise;
+    this.out.audio.setNoise(noise.loud);
+    const pulse = () => {
+      if (gen !== this.noiseGen || this.view.phase !== 'scene') return;
+      const t = this.view.t;
+      const scene = this.scene;
+      const life = scene?.life === 'off' ? null : lifeOf(this.ambience, scene?.life);
+      // The panic's own sounds come up more often than the room's.
+      const events = extra?.length ? [...extra, ...extra, ...(life?.events ?? [])] : life?.events;
+      // A hush (the power cut, a scream) quiets the everyday background, not her panic: the script asked for this.
+      if (events?.length) { this.lifeBeat(events, t, noise); this.lifeBusyAt = t; }
+      this.schedule(t + (NOISE_BASE_MS / noise.speed) * (0.6 + Math.random() * 0.8), pulse);
+    };
+    this.schedule(this.view.t + 300, pulse);
+    this.bump();
+  }
+
   private vibrate(id: VibrationId): void { if (this.settings.vibration) this.out.vibrate(id); }
 
   private persist(): void { this.out.persist(this.save); }
@@ -1208,7 +1304,7 @@ export class Director {
   private emptyView(): View {
     return {
       phase: 'idle', brief: false, t: 0, center: null, echo: null, periph: [], ripples: [], choice: null, focus: null, shiftingTo: null,
-      waiting: null, clockMark: 0, keep: null, recall: null, interact: null, memoryCount: this.save.memories.length, shake: 0, shakeLevel: 'light', heart: null, daze: null, chapterKey: this.save.chapter, loop: this.save.loop,
+      waiting: null, clockMark: 0, keep: null, recall: null, interact: null, memoryCount: this.save.memories.length, shake: 0, shakeLevel: 'light', heart: null, daze: null, noise: null, chapterKey: this.save.chapter, loop: this.save.loop,
     };
   }
 
@@ -1236,6 +1332,7 @@ export function learnIdsOf(chapter: Chapter): string[] {
       if (beat.k === 'line' && beat.learn) ids.push(beat.learn);
       if (beat.k === 'if') { if (!replayOnly(beat.cond)) visit(beat.then); visit(beat.else); }
       if (beat.k === 'locate') { visit(beat.success); visit(beat.fail); }
+      if (beat.k === 'approach') { visit(beat.hit); visit(beat.early); visit(beat.late); }
       if (beat.k === 'choice') beat.options.forEach((option) => { if (replayOnly(option.cond)) return; visit(option.then); option.recall?.accept.forEach((entry) => visit(entry.then)); });
     }
   };

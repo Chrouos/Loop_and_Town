@@ -814,7 +814,10 @@ scenes:
       - { sfx: paper_rustle, at: front-left, dist: near, text: 沙 }
       - ruoqing: 還有信封。
       - ruoqing: 「林知夏」這三個字是知夏姊寫的。我很確定，她「夏」的最後一筆都拖很長。
-      - ruoqing: 角落還有兩個小字，也是鉛筆。「給妹妹」。
+      - ruoqing: 角落還有三個小字，也是鉛筆。「給妹妹」。
+      - if: know.k_desk_sister
+        then:
+          - think: 圖書館地方史室那張桌墊上，我用指腹摸過這三個字。原來是寫在這個信封上。
       - ruoqing: 可是地址不是她的字。
       - ruoqing: 地址是另一個人寫的。很方，一筆一畫，像在寫收據。
       - heart: fast

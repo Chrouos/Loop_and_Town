@@ -234,7 +234,7 @@ export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown 
       <div className={`lt-heart${heart}`} aria-hidden="true" />
       <div className="lt-world">
         <div className={`lt-daze${view.daze ? ` daze-${view.daze}` : ''}`}>
-          <div className={`lt-body${heart}`}>
+          <div className={`lt-body${heart}${view.noise ? ` noise-${view.noise.level}` : ''}`}>
             {view.ripples.map((ripple) => <div key={ripple.key} data-key={ripple.key} className={`lt-ripple dist-${ripple.pos.dist}`} />)}
             {turn && <div className={`lt-turn${turnGone ? ' gone' : ''}`} />}
 
