@@ -17,6 +17,10 @@ export type DazeLevel = (typeof DAZE_LEVELS)[number];
 
 export const NOISE_LEVELS = ['off', 'light', 'heavy'] as const;
 export type NoiseLevel = (typeof NOISE_LEVELS)[number];
+/** Hidden tension, 0–100, carried across chapters: how wound up her body is from what has happened so far. */
+export const TENSION_MAX = 100;
+/** A single `tension:` beat moves it by at most this much. */
+export const TENSION_STEP_MAX = 40;
 
 export type Cond =
   | { op: 'true' }
@@ -58,6 +62,8 @@ export type Beat =
   | { k: 'daze'; level: DazeLevel }
   /** Panic: the noise around her comes faster and louder until it crowds the voice she is trying to hear. */
   | { k: 'noise'; level: NoiseLevel; speed?: number; loud?: number; with?: LifeEvent[] }
+  /** What just happened winds her up (+) or lets her breathe (−); see Director TENSION_BANDS. */
+  | { k: 'tension'; delta: number }
   | { k: 'clock'; time: string }
   | { k: 'cue'; thread: string; pos: Pos; text: string; sfx?: SfxId; grab: boolean; src?: string }
   | { k: 'choice'; timeout?: number; default?: number; options: ChoiceOption[] }

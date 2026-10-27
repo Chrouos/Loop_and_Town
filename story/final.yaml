@@ -266,6 +266,7 @@ scenes:
                 - narr: 我的腳趾在鞋子裡縮起來，好像這樣就能站得比較穩。
                 - me: 沒有人。我就是知道。
                 - think: 我講得太快了，像把一張她不可能贏的牌直接甩到桌上。
+                - tension: 8
             - recall:
                 accept:
                   - mem: m_c7_seen_results
@@ -423,10 +424,12 @@ scenes:
                 - pause: 1
                 - yuan: ……好。
                 - think: 他連為什麼都沒問。
+                - tension: 6
             - text: 「知夏打給你那通電話，你沒接。這次也要錯過嗎？」
               if: "know.k_yuan_1758"
               then:
                 - set: f_y_push_1758
+                - tension: 10
             - recall:
                 accept:
                   - mem: m_yuan_pickup
@@ -588,6 +591,7 @@ scenes:
             - text: 「妳今天傍晚，會死在舊車站。」
               then:
                 - set: f_r_push
+                - tension: 8
             - recall:
                 accept:
                   - mem: m_c2_after_tide
@@ -714,10 +718,12 @@ scenes:
               if: know.k_boxun_which_time && know.k_maintenance_passage
               then:
                 - set: f_b_push
+                - tension: 8
             - text: 「你不聽我的，今天就會死在舊車站。」
               if: "!(know.k_boxun_which_time && know.k_maintenance_passage)"
               then:
                 - set: f_b_push
+                - tension: 8
             - recall:
                 accept:
                   - mem: m_c3_not_same
@@ -838,6 +844,7 @@ scenes:
             - text: 「你抽屜深處有一台沒登錄的錄音機。不交出來，我就去找督察。」
               then:
                 - set: f_z_push
+                - tension: 6
             - recall:
                 accept:
                   - mem: m_c4_on_the_way
@@ -957,6 +964,8 @@ scenes:
                     - ruoqing: 欸，我都還沒出聲耶。
                     - me: 妳的背帶扣。從門口響到這裡。
                     - { ruoqing: ……妳連這個都記得喔。我自己都沒在聽。, mem: m_f_strap_heard }
+                    - narr: 右前方的椅子輕輕晃了一下。我把指甲從掌心鬆開。
+                    - tension: -6
                 - text: 「……是誰？」
                   then:
                     - ruoqing: 是我啦，若晴。欸妳幹嘛講那麼小聲。
@@ -1064,6 +1073,7 @@ scenes:
           - tingan: 同步日誌。每天十八點三十一分，會開一個交接的窗口。
           - tingan: 你們聽，三份的時間對得起來。來源還完全不一樣。
           - tingan: 今天的比對紀錄也有重複固定同一個人的錯誤。名字是妳。
+          - tension: 6
           - if: know.k_my_death_page
             then:
               - think: 知夏那一頁上，也是這個名字。後面寫著十八點三十一分。
@@ -1151,11 +1161,12 @@ scenes:
       - pause: 4
       - clock: "18:31"
       - { sfx: phone_buzz, at: right, dist: near, text: 嗡, vib: buzz }
-      - phone: 心率過高，已記錄。十八點三十一分。
+      - phone: 心率 <心率>，過高，已記錄。十八點三十一分。
       - { sfx: blackout, at: front, dist: near, text: ——, vib: thud }
       - narr: 燈管的滋滋聲斷了。門外有工人喊「又停電」，接著是一聲倒抽的氣。
       - { sfx: glass_break, at: front-left, dist: far, text: 啪嚓 }
       - narr: 很遠的地方有玻璃掉下來碎了，沒有人叫。
+      - tension: 15
       - narr: 我在入口停了一會兒，等碎玻璃的聲音散掉，再把手杖往前探。
       - { sfx: power_up, at: back, dist: mid, text: 嗡——喀 }
       - if: "know.k_hum_1831"
@@ -1234,6 +1245,57 @@ scenes:
       - clock: "18:32"
       - narr: 我再按一次側鍵。
       - phone: 十八點三十二分。
+      - { sfx: step, at: front-left, dist: far, text: 嚓 }
+      - narr: 左前方有人踩到碎玻璃，嚓的一聲在空空的大廳裡彈了好幾次。
+      - { man: 有人在裡面嗎？配電箱在哪一邊啦……, at: front-left, dist: far, as: 工人 }
+      - think: 門外喊停電的那個工人。他在找配電箱，不是在找我。
+      - narr: 他沒有繞開，腳步直直朝我這邊過來。手電筒照到哪裡，我不知道。
+      - heart: fast
+      - think: 等他近到聽得清楚再出聲。太早喊，回音會把我的聲音丟到四面牆上。
+      - approach:
+          sfx: step
+          at: front-left
+          past: back
+          steps: 7
+          interval: 0.75
+          text: 嚓
+          prompt: 等他走近，再出聲
+          hit:
+            - narr: 我聞到他身上的柴油味才開口，手杖往前伸，橫在我們中間。
+            - me: 前面有人。我在這裡。
+            - { sfx: step, at: front-left, dist: near, text: 嚓 }
+            - narr: 他的鞋底在玻璃上滑了一下，停住了。
+            - { man: 喔，歹勢歹勢！我手電筒照地上，沒看到妳。, at: front-left, dist: near, as: 工人 }
+            - { man: 妳腳先不要動，地上都是玻璃。, at: front-left, dist: near, as: 工人 }
+            - { sfx: glass_clink, at: front-left, dist: near, text: 鏗、鏗啷 }
+            - narr: 他用鞋子把碎片撥到旁邊。等聲音停了，我才把腳尖挪出去。
+          early:
+            - me: 我在這裡！
+            - narr: 回音把我的聲音甩到四面牆上，連我自己都聽不出是從哪裡喊的。
+            - { man: 蛤？誰？在哪裡？, at: front-left, dist: mid, as: 工人 }
+            - narr: 他停了半步又往前走，越走越快，玻璃在他鞋底下一路碎。
+            - narr: 我握手杖的手全是汗，等到那一聲嚓近得像在我腳邊，才又喊一次。
+            - me: 這裡，你前面！
+            - { sfx: step, at: front-left, dist: near, text: 嚓 }
+            - { man: 啊，嚇死人。妳怎麼站在這裡，暗暗的。, at: front-left, dist: near, as: 工人 }
+          late:
+            - narr: 嚓、嚓，腳步一下子就到了面前，我的嘴還沒張開。
+            - { sfx: thud, at: front-left, dist: near, text: 碰, vib: thud }
+            - narr: 他的肩膀撞上我的肩膀。我往後退，鞋跟踩碎了一片玻璃。
+            - { man: 哇！妳、妳怎麼站在這裡？, at: front-left, dist: near, as: 工人 }
+            - heart: pound
+            - narr: 我兩隻手抓著手杖舉在胸前，擋一個不知道還會從哪裡撞過來的東西。
+            - if: "flag.ev_yuan"
+              then:
+                - { yuan: 是工人。我在妳後面。, at: back-right, dist: near }
+                - narr: 予安的手扣住我的手肘。我數到第三下呼吸，才把手杖放下來。
+              else:
+                - narr: 過了好一陣子，我才把手杖放下來，杖尖貼著地面掃開腳邊的碎片。
+            - { man: 歹勢啦，我手電筒照地上，真的沒看到妳。, at: front, dist: near, as: 工人 }
+      - { man: 這裡在施工，要走就走正門喔。暗暗的不要亂走。, at: front-left, dist: near, as: 工人 }
+      - { sfx: step, at: back, dist: mid, text: 嚓、嚓 }
+      - narr: 他的腳步往正門那邊去了。我的小腿到這時候才開始發抖。
+      - heart: slow
       - if: flag.ev_ruoqing
         then:
           - { ruoqing: 我先回店裡弄報名。照片也傳給你們，哪裡不清楚再打給我。, at: back, dist: mid }
@@ -1296,6 +1358,7 @@ scenes:
           - { sfx: relay_click, at: right, dist: near, text: 喀噠 }
           - { sfx: hum_fall, at: right, dist: near, text: 嗡…… }
           - narr: 我把手掌貼在鐵皮上。剛剛一直往上爬的那個東西，停住了。
+          - tension: -10
           - heart: slow
           - { tingan: 它現在只是關起來，壞了也不會自己打開。, at: right, dist: near, as: 電話裡的庭安 }
           - { tingan: 可是還沒寫死。要等最後封存才算數。, at: right, dist: near, as: 電話裡的庭安 }
@@ -1325,6 +1388,7 @@ scenes:
               - if: "!flag.ev_yuan"
                 then:
                   - narr: 我的手放在面板上，沿著四顆螺絲摸了一圈。裡面的接頭，我還碰不到。
+                  - tension: 8
                   - heart: fast
                   - narr: 手指停在螺絲上，抖得指甲一直輕輕碰著鐵皮。
                   - think: 沒有人替我確認面板後面，哪些接頭只是傳訊號，哪些還連著別的設備。
@@ -1417,6 +1481,7 @@ scenes:
                 - narr: 他往後又退了一步，衣料的聲音停了。
       - narr: 結果最吵的是我自己的心跳，一下一下撞著耳膜，蓋過鐵皮裡的任何聲音。
       - narr: 我慢慢吐氣，再吸進來，等心跳自己慢下來。
+      - tension: -8
       - heart: slow
       - pause: 3
       - heart: off
@@ -1556,6 +1621,7 @@ scenes:
                 - tingan: 封存。觀測者那一欄——
                 - narr: 我的喉嚨乾得發痛，第一個字卡了一下才出來。
                 - me: 林。知夏的妹妹。
+                - tension: -15
                 - { sfx: relay_click, at: front, dist: far, text: 喀 }
                 - narr: 伺服器還在轉。現在它只能算，不能再動手了。
                 - heart: off
@@ -1577,6 +1643,7 @@ scenes:
                     - me: 嗯。
                 - tingan: 只封今天。送出。
                 - { sfx: relay_click, at: front, dist: mid, text: 喀 }
+                - tension: -6
             - text: 「……再一次。」
               then:
                 - set: f_pick_b
@@ -1597,6 +1664,7 @@ scenes:
                 - if: know.k_my_death_page
                   then:
                     - think: 那一頁上寫的是我。再一次，它也可能再被寫一次，寫的是我，或者別人。
+                - tension: 20
                 - heart: pound
                 - narr: 我把指甲掐進掌心，一直掐，掐到整個手掌發燙。
                 - { sfx: tinnitus, at: center }
@@ -1665,6 +1733,7 @@ scenes:
       - narr: 風，很遠的車，右邊有人在呼吸。
       - wait: 5
       - narr: 鐘沒有響。
+      - tension: -25
       - heart: off
       - pause: 3
       - narr: 看得見的人，大概只會覺得這是一個普通的晚上。
@@ -1675,6 +1744,8 @@ scenes:
       - pause: 3
       - { sfx: phone_buzz, at: right, dist: near, text: 嗡, vib: buzz }
       - { phone: 十月四日，零點零分。, mem: m_f_oct4 }
+      - narr: 我沒有放開側鍵，叫它再念一次心率。
+      - phone: 心率 <心率>。
       - pause: 4
       - yuan: ……妳在哭嗎？
       - me: 沒有。
@@ -1693,6 +1764,7 @@ scenes:
       - { sfx: rain_burst, at: front, dist: mid, text: 嘩—— }
       - narr: 我在灰潮鎮醒來的時候，外面在下雨。
       - think: 十月三日的早上，從來沒有下過雨。
+      - tension: -12
       - narr: 我摸到枕頭邊的手機，叫它報日期。
       - phone: 十月四日。七點十分。
       - { sfx: car_pass, at: left, dist: far, text: 噗、噗噗—— }
@@ -1842,6 +1914,7 @@ scenes:
       - narr: 我在等第二聲。兩隻手抓著台階的邊緣，水泥的顆粒刺進指腹。
       - wait: 5
       - narr: 第二聲一直沒有來。
+      - tension: -12
       - narr: 它停在半空中，像一個人話講到一半，決定不講了。
       - heart: off
       - pause: 3

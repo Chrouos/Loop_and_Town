@@ -240,6 +240,8 @@ scenes:
                 - yuan: 不是修錶用的那種。
                 - pause: 1.5
                 - yuan: 可能以前整理的時候丟了啦。
+                - narr: 他背過身去拉抽屜。我知道我問得太快了，手指在膝蓋上摳著褲子的縫線。
+                - tension: 8
             - text: （不問，等他）
               then:
                 - pause: 3.5
@@ -363,7 +365,9 @@ scenes:
                 - yuan: ……她走的時候，我還在加糖。
                 - pause: 1.5
                 - yuan: 算了。
+                - narr: 我把冰茶杯轉了半圈，杯底在桌上刮出一聲，刮得我自己牙酸。
                 - think: 我拿一個死掉的人來擋，還擋得很爛。
+                - tension: 8
             - recall:
                 accept:
                   - mem: m_yuan_pickup
@@ -417,6 +421,10 @@ scenes:
           - pause: 2
           - yuan: ……我還是不信。
           - yuan: 可是那句話是我的。我沒辦法當作沒聽到。
+      - if: flag.c5_noon_truth
+        then:
+          - narr: 講完的時候，我的肩膀鬆下來，才知道它一直是硬的。
+          - tension: -8
       - heart: off
       - pause: 1.5
       - { sfx: clock_chime, at: back-left, dist: mid, text: 噹 }
@@ -540,8 +548,47 @@ scenes:
     cast: { yuan: right, boxun: back-right }
     beats:
       - { sfx: shop_bell, at: back, dist: near, text: 叮鈴 }
-      - narr: 從咖啡店出來，風開始冷了。予安在門口等我。
+      - narr: 從咖啡店出來，風開始冷了。門口沒有人。
+      - think: 他說十分鐘。已經快半個鐘頭了。
       - { sfx: truck_reverse, at: left, dist: far, text: 嗶、嗶、嗶 }
+      - heart: slow
+      - narr: 下班的人從兩邊擠過騎樓。我背貼著咖啡店的玻璃門，把手杖收在胸前，怕敲到別人的腳。
+      - narr: 零件行在右手邊。他從那邊回來，左腳會比右腳重一點。
+      - narr: 拖鞋、皮鞋、一台用推的腳踏車，全都混在一起。
+      - approach:
+          sfx: step
+          at: right
+          past: left
+          steps: 7
+          interval: 0.8
+          text: 叩
+          prompt: 等那個左腳比較重的腳步到面前，再叫他
+          hit:
+            - narr: 那個腳步到了我右手邊，一步遠。左腳落下去，比右腳慢一點、重一點。
+            - me: 予安。
+            - { sfx: step, at: right, dist: near, text: 叩 }
+            - narr: 腳步停住了。我背後那片玻璃，好像也沒那麼冰了。
+            - yuan: ……又被妳聽出來。老闆找零件找好久，歹勢。
+          early:
+            - me: 予安！
+            - { sfx: step, at: right, dist: near, text: 啪、啪 }
+            - narr: 停在我面前的是一雙拖鞋。
+            - { old_man: 蛤？妳叫誰？, as: 路人, at: right }
+            - narr: 我說了聲對不起，耳朵燙到脖子。拖鞋嘖了一聲，走掉了。
+            - narr: 我只好再等，等那個左腳比較重的聲音貼到面前，才又叫一次。
+            - me: 予安。
+            - yuan: 在這。妳怎麼站在外面？
+          late:
+            - narr: 那個腳步從我面前過去了，往左手邊越走越小。
+            - heart: fast
+            - narr: 我追了兩步，手杖敲到騎樓的柱子，噹一聲彈回來，震得虎口發麻。
+            - me: 予安！
+            - { sfx: step_run, at: left, dist: mid, text: 叩叩叩 }
+            - narr: 跑回來的腳步，左腳還是比較重。
+            - yuan: 我在這、我在這。我以為妳還在裡面。
+            - narr: 他的手扶住我的手肘。我這才聽見自己在喘，喘得像剛爬完五樓。
+            - set: c5_lost_him
+      - narr: 他站到我右邊。我把手機拿出來。
       - phone: 撥號中。灰潮鎮醫院。
       - heart: slow
       - narr: 我把手機貼緊耳朵，貼到耳殼發燙，數著響了幾聲。
@@ -558,6 +605,9 @@ scenes:
       - heart: off
       - think: 若晴和陳醫生都說好了。
       - think: 剩下予安。
+      - if: flag.c5_lost_him
+        then:
+          - narr: 我講電話的時候，他的手一直沒有離開我的手肘。講完了也沒有。
       - yuan: 要回去了嗎？
       - choice:
           options:
@@ -571,6 +621,8 @@ scenes:
                 - yuan: ……好的。
                 - think: 他總是先答應。
                 - think: 我就是知道他會答應，才這樣問的。
+                - narr: 他答應得太快，我反而不知道手要放哪裡，只好去抓背包的帶子。
+                - tension: 8
             - text: 「予安。我把我知道的告訴你。你自己決定。」
               then:
                 - set: c5_truth
@@ -595,6 +647,8 @@ scenes:
                 - yuan: 嗯。是我決定的。
                 - narr: 「我決定的」這幾個字，他講得有點卡，像第一次用左手寫字。
                 - heart: off
+                - narr: 我把壓在地磚縫裡的手杖抬起來。手心是濕的，可是不抖了。
+                - tension: -6
     next: c5_1831
 
   # ─────────────────────────── 18:20 鐘錶店 ───────────────────────────
@@ -618,6 +672,7 @@ scenes:
       - { sfx: phone_buzz, at: right, dist: near, text: 嗡 }
       - phone: 十八點三十分。
       - heart: fast
+      - tension: 12
       - noise: light
       - narr: 我在那些滴答裡找十八點三十一分，聽不出哪一聲是它。
       - clock: "18:31"
@@ -626,6 +681,7 @@ scenes:
       - phone: 十八點三十一分。
       - { sfx: clock_chime, at: back-left, dist: mid, text: 噹, shake: light }
       - narr: 左後方那座修不好的小鐘，自己響了一聲。我的背整個彈離椅子。
+      - phone: 心率 <心率>，過高，已記錄。十八點三十一分。
       - pause: 3
       - noise: "off"
       - narr: 燈管的聲音沒有變，遠處也沒有東西倒下來。
@@ -636,6 +692,7 @@ scenes:
       - phone: 許若晴：我在家。
       - heart: off
       - narr: 我靠回椅背，才發現肩膀一直聳著，酸到脖子後面。
+      - tension: -18
       - narr: 他把錶放回桌上。它開始走了。
       - { sfx: watch_tick, at: front, dist: near, text: 滴答、滴答 }
     next: c5_dinner
@@ -702,6 +759,8 @@ scenes:
                 - text: （把它留在自己這裡）
                   then:
                     - think: 我記得就好。他是這樣說的。
+                    - narr: 那句話吞下去，卡在胸口，跟麵一起，怎麼嚥都嚥不下去。
+                    - tension: 6
       # 關口：說了實話，卻又替他排好行程，他就把自己的事收回去。
       - if: flag.c5_truth && flag.c5_arranged
         then:
@@ -763,6 +822,7 @@ scenes:
                     - narr: 我沒有碰到他，只是把手放在那裡。
                     - pause: 2.5
                     - narr: 過了一會兒，他的指節碰了一下我的。很輕。
+                    - tension: -10
                 - text: （不說話）
                   then:
                     - pause: 3
@@ -792,7 +852,8 @@ scenes:
       - { cue: tv, at: back-left, text: 沙沙——, sfx: static_burst }
       - heart: off
       - yuan: 先吃。冷了就不好吃了。
-      - narr: 我們把麵吃完，湯也喝完了。
+      - narr: 我們把麵吃完，湯也喝完了。熱湯一路暖到胃裡。
+      - tension: -8
     threads:
       tv:
         beats:

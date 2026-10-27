@@ -3,7 +3,7 @@ import { SFX_SAMPLES } from '../audio/samples';
 import { DIRECTIONS, DISTANCES, VOICES, isAmbience, isDirection, isSfx, VIBRATIONS, type Direction, type Distance, type SfxId, type VibrationId, type VoiceId } from '../audio/catalog';
 import type { LifeEvent, LifeLine } from '../engine/life';
 import { parseCond } from './conditions';
-import { DAZE_LEVELS, HEART_LEVELS, NOISE_LEVELS, SHAKE_LEVELS, type Beat, type Chapter, type ChoiceOption, type DazeLevel, type EndKind, type HeartLevel, type NoiseLevel, type LineBeat, type Pos, type Scene, type ShakeLevel } from './types';
+import { DAZE_LEVELS, HEART_LEVELS, NOISE_LEVELS, SHAKE_LEVELS, TENSION_STEP_MAX, type Beat, type Chapter, type ChoiceOption, type DazeLevel, type EndKind, type HeartLevel, type NoiseLevel, type LineBeat, type Pos, type Scene, type ShakeLevel } from './types';
 
 export const CHARACTER_KEYS = ['yuan', 'ruoqing', 'boxun', 'tingan', 'zhiyuan', 'zhixia', 'man', 'woman', 'child', 'old_man', 'old_woman', 'announcer'] as const;
 const LINE_KEYS = new Set<string>(['narr', 'me', 'think', 'phone', ...CHARACTER_KEYS]);
@@ -208,6 +208,12 @@ function parseBeat(raw: unknown, where: string, errors: Errors): Beat | undefine
     const extra = raw.with === undefined ? undefined : parseLife(raw.with, `${where}.with`, errors);
     if (extra === 'off') errors.push(`${where}：noise 的 with 是聲音清單`);
     return { k: 'noise', level: level as NoiseLevel, speed, loud, ...(Array.isArray(extra) && extra.length ? { with: extra } : {}) };
+  }
+  if ('tension' in raw) {
+    allow('tension');
+    const delta = Number(raw.tension);
+    if (!Number.isInteger(delta) || delta === 0 || Math.abs(delta) > TENSION_STEP_MAX) { errors.push(`${where}：tension 是 -${TENSION_STEP_MAX} 到 ${TENSION_STEP_MAX} 之間、不為 0 的整數`); return undefined; }
+    return { k: 'tension', delta };
   }
   if ('clock' in raw) {
     allow('clock');

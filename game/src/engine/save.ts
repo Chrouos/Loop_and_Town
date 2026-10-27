@@ -62,6 +62,8 @@ export type GameSave = {
   reached: string[];
   /** Set while replaying an earlier chapter from the chapter list: where (and on which loop of it) to return at midnight. */
   replay: { chapter: string; chLoop: number } | null;
+  /** Hidden tension 0–100: carried from chapter to chapter (it is one long day for her), eased a little each midnight. */
+  tension: number;
 };
 
 export const DEFAULT_SETTINGS: Settings = { audio: true, volume: 0.8, ambience: 0.7, sfx: 0.85, voice: 0.45, vibration: true, motion: true, soundLabels: true, textSpeed: 'normal', fontSize: 'normal', autoAdvance: true };
@@ -84,6 +86,7 @@ export function freshSave(previous?: Pick<GameSave, 'settings' | 'endings' | 'ca
     settings: { ...DEFAULT_SETTINGS, ...(previous?.settings ?? {}) },
     reached: [],
     replay: null,
+    tension: 0,
   };
 }
 
