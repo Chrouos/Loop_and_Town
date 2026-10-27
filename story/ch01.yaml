@@ -916,7 +916,7 @@ scenes:
           - narr: 電話掛掉以後，屋子裡只剩冰箱低低的嗡聲。
       - if: flag.c1_room_time_link
         then:
-          - think: 錶停在六點三十一分，筆記本也寫了好多次。再過一下就到了……到底會怎樣？
+          - think: 錶停在六點三十一分，筆記本也寫了好多次。姊那時候到底遇到了什麼事？
         else:
           - if: flag.c1_watch || flag.c1_notebook
             then:
