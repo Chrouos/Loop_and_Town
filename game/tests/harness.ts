@@ -24,6 +24,7 @@ export function silentAudio(log: string[] = []): AudioEngine {
     voice: noop,
     setAttention: noop,
     setDaze: (level: number) => { log.push(`daze:${level}`); },
+    setNoise: (loud: number) => { log.push(`noise:${loud}`); },
     duck: noop,
     silence: noop,
     suspend: noop,
@@ -80,6 +81,7 @@ export function autoplay(options: { seed: number; maxLoops: number; startChapter
     if (view.interact && random() < 0.3) {
       if (view.interact.type === 'touch') director.touchDone();
       else if (view.interact.type === 'punch') director.punchDone();
+      else if (view.interact.type === 'approach') director.approachCall();
       else director.locatePick(DIRECTIONS[Math.floor(random() * DIRECTIONS.length)]);
     }
     if (view.recall) {

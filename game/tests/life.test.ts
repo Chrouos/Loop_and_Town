@@ -44,6 +44,7 @@ it('all production scene sounds and attention cues have audible bindings', () =>
         if (option.recall) { for (const entry of option.recall.accept) visit(entry.then); visit(option.recall.miss); }
       }
       if (beat.k === 'locate') { visit(beat.success); visit(beat.fail); }
+      if (beat.k === 'approach') { visit(beat.hit); visit(beat.early); visit(beat.late); }
     }
   };
   for (const scene of script.scenes.values()) {

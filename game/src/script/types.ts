@@ -15,6 +15,13 @@ export type HeartLevel = (typeof HEART_LEVELS)[number];
 export const DAZE_LEVELS = ['off', 'light', 'heavy'] as const;
 export type DazeLevel = (typeof DAZE_LEVELS)[number];
 
+export const NOISE_LEVELS = ['off', 'light', 'heavy'] as const;
+export type NoiseLevel = (typeof NOISE_LEVELS)[number];
+/** Hidden tension, 0–100, carried across chapters: how wound up her body is from what has happened so far. */
+export const TENSION_MAX = 100;
+/** A single `tension:` beat moves it by at most this much. */
+export const TENSION_STEP_MAX = 40;
+
 export type Cond =
   | { op: 'true' }
   | { op: 'false' }
@@ -53,13 +60,19 @@ export type Beat =
   | { k: 'shake'; level: ShakeLevel }
   | { k: 'heart'; level: HeartLevel }
   | { k: 'daze'; level: DazeLevel }
+  /** Panic: the noise around her comes faster and louder until it crowds the voice she is trying to hear. */
+  | { k: 'noise'; level: NoiseLevel; speed?: number; loud?: number; with?: LifeEvent[] }
+  /** What just happened winds her up (+) or lets her breathe (−); see Director TENSION_BANDS. */
+  | { k: 'tension'; delta: number }
   | { k: 'clock'; time: string }
   | { k: 'cue'; thread: string; pos: Pos; text: string; sfx?: SfxId; grab: boolean; src?: string }
   | { k: 'choice'; timeout?: number; default?: number; options: ChoiceOption[] }
   /** 摸讀: drag a finger left to right across cells; each one surfaces only when touched slowly enough. */
   | { k: 'touch'; cells: string[]; style: 'braille' | 'groove' | 'engrave'; prompt?: string; timeout: number }
   /** 聽聲辨位: a sound repeats from one direction (with decoys); she points to it. */
-  | { k: 'locate'; sfx: SfxId; at: Direction; decoys: { sfx: SfxId; at: Direction }[]; tries: number; exact?: boolean; timeout?: number; interval?: number; gain?: number; prompt?: string; success: Beat[]; fail: Beat[] }
+  | { k: 'locate'; sfx: SfxId; at: Direction; decoys: { sfx: SfxId; at: Direction }[]; tries: number; exact?: boolean; lag?: number; timeout?: number; interval?: number; gain?: number; prompt?: string; success: Beat[]; fail: Beat[] }
+  /** 聽距離: a sound walks toward her from `at`, one step at a time; she speaks up when it reaches her. Too early it cannot hear her, too late it has gone past. */
+  | { k: 'approach'; sfx: SfxId; at: Direction; past: Direction; steps: number; interval: number; text?: string; prompt?: string; hit: Beat[]; early: Beat[]; late: Beat[] }
   /** 點字板: punch braille cells from the back of the paper (mirrored); cells are dot numbers as they will be read. */
   | { k: 'punch'; cells: number[][]; label?: string; prompt?: string; timeout: number }
   | { k: 'if'; cond: Cond; then: Beat[]; else: Beat[] }

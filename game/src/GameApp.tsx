@@ -25,6 +25,8 @@ function params() {
     mute: search.has('mute'),
     // ?dev lists every chapter in the chapter list, not only the ones this save has reached.
     dev: search.has('dev'),
+    // ?tension=70 starts her that wound up (testing the hidden tension bands).
+    tension: search.get('tension'),
   };
 }
 
@@ -39,7 +41,9 @@ export function GameApp({ storage = safeStorage() }: { storage?: Storage }) {
   const director = useMemo(() => {
     if (options.reset) storage?.removeItem('listening-town-save-v1');
     const save = readSave(storage);
-    return new Director(report.script, save, { audio, vibrate, persist: (next: GameSave) => writeSave(storage, next), wallNow: () => Date.now() }, { speed: options.speed });
+    const created = new Director(report.script, save, { audio, vibrate, persist: (next: GameSave) => writeSave(storage, next), wallNow: () => Date.now() }, { speed: options.speed });
+    if (options.tension !== null && Number.isFinite(Number(options.tension))) created.setTension(Number(options.tension));
+    return created;
   }, [audio, options, report, storage]);
   useSyncExternalStore(director.subscribe, director.getVersion);
   const view = director.view;
@@ -183,6 +187,7 @@ export function GameApp({ storage = safeStorage() }: { storage?: Storage }) {
       >
         <span className="lt-corner-dot" />
       </button>
+      {options.dev && <div className="lt-dev-tension" aria-hidden="true">緊張 {director.tension}</div>}
       {view.keep && <KeepPrompt director={director} memory={view.keep} />}
       {menu && (
         <Menu
@@ -350,7 +355,7 @@ function Chapters({ director, dev, onPicked }: { director: Director; dev: boolea
   const numeral = (key: string) => CHAPTER_NUMERALS[key] ?? key;
   const action = (key: string, index: number) => {
     if (key === target) return save.replay ? '現在回去' : '從早上重來';
-    return index < targetIndex ? '回去聽一天' : '跳過去';
+    return index < targetIndex ? '回去這一天' : '跳過去';
   };
   return (
     <div className="lt-panel">

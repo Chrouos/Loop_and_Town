@@ -81,6 +81,7 @@ scenes:
                 - think: 若晴會去。這次我不打那通電話。
                 - heart: slow
                 - narr: 我把手機翻過來扣在腿上，指甲沿著塑膠殼的邊一直刮。
+                - tension: 8
       - { sfx: station_chime, at: front, dist: far, text: 叮咚—— }
       - { announcer: 下一站，灰潮鎮。, as: 廣播 }
       - { sfx: train_brake, at: front, dist: mid, text: 嘰—— }
@@ -309,6 +310,7 @@ scenes:
           - narr: 他站起來，手掌停在我肩膀後面，沒有碰到，一路把我帶到門口。
           - { sfx: door_close, at: back, dist: near, text: 碰 }
           - narr: 門在背後關上。走廊的日光燈滋滋響，予安不在椅子上，大概出去講電話了。
+          - tension: 8
           - think: 我沒有走。
           - heart: slow
           - narr: 我側身把耳朵貼上門板。門上的漆起了皮，刮著我的臉頰。
@@ -501,6 +503,7 @@ scenes:
           - narr: 手杖尖抵著門檻。冷氣正好吹在我後頸，涼得我縮了一下肩膀。
           - think: 今天以前，我沒有掛過他的號。他問的不是這間診間。
           - think: 我沒有回答。他其實在等。
+          - tension: 6
       - if: flag.c4_bx_open
         then:
           - pause: 2
@@ -697,6 +700,25 @@ scenes:
       - { tingan: 「不能直接餵給機器，不代表它不是資料。」, mem: m_c4_not_data }
       - narr: 庭安學她說話的時候，速度慢了下來。
       - think: 我記得這個語氣。知夏要贏的時候，都講得很慢。
+      - if: know.k_desk_sister
+        then:
+          - narr: 我把手掌放到桌墊右手邊那一塊。那三個字的凹痕還在，我沒有再摸一次。
+        else:
+          - narr: 我把手掌平放在桌上。桌面鋪著一張絨布桌墊，邊緣捲起來，摸起來有點硬。
+          - narr: 靠右手邊那一塊，絨毛被壓扁了一片，底下有很淺的凹痕。有人在這裡墊著紙，用力寫過字。
+          - touch:
+              cells: [給, 妹, 妹]
+              style: groove
+              prompt: 指腹貼著桌墊，從左邊慢慢滑過去
+              timeout: 40
+          - learn: k_desk_sister
+          - heart: slow
+          - narr: 我的指腹停在最後一個字上，按著不放，絨布底下的木頭被我按得有點溫。
+          - think: 她坐在這張桌子，寫過一個要給我的東西。
+          - think: 行李箱裡那六封信，我一封都沒拆。是在這裡寫的嗎？
+          - tingan: 妳在摸什麼？
+          - me: 桌墊。
+          - heart: off
       - { cue: librarian, at: back, text: 叩、叩, sfx: step }
       - pause: 2
       - tingan: 走吧。剩下的我不想在這裡講。
@@ -726,6 +748,54 @@ scenes:
                 - { sfx: cloth_rustle, at: left, dist: near, text: 窸窣 }
       - { sfx: cane_tap, at: front, dist: near, text: 叩, shake: light }
       - narr: 手杖尖卡進一道裂縫，我往前一頓，空著的那隻手在風裡抓了一把。
+      - { sfx: phone_ring, at: left, dist: near, text: 嘟嚕嚕 }
+      - tingan: 報社打來的。我接一下，妳站這裡不要動。
+      - { sfx: step, at: front-left, dist: mid, text: 叩、叩 }
+      - narr: 她往坡上走了幾步。風一吹，她講電話的聲音就碎成一段一段。
+      - { sfx: truck_reverse, at: front-left, dist: far, text: 嗶、嗶 }
+      - narr: 坡上有倒車的嗶嗶聲，底下壓著一具很低的柴油引擎。
+      - think: 這條坡只夠一台車走。坡頂迴不了車，它是倒著退下來的。
+      - { sfx: wind_gust, at: right, dist: mid, text: 颯—— }
+      - narr: 海風從右邊整片灌過來，浪也在拍。嗶聲被風吹得一下左一下右。
+      - heart: slow
+      - narr: 我把手杖收到胸前，兩隻腳釘在柏油上，一步都不敢亂踩。
+      - locate:
+          sfx: truck_reverse
+          at: front-left
+          interval: 1.6
+          decoys:
+            - { sfx: wave, at: right }
+            - { sfx: wind_gust, at: back-right }
+          tries: 2
+          timeout: 14
+          prompt: 倒車的嗶聲從哪裡來？
+          success:
+            - narr: 左前方，坡上。它一格一格往下退，退的是我左手邊那半條路。
+            - narr: 我往右退，手杖往後掃到路肩的草，再退一步，鞋跟陷進鬆軟的土。
+            - { sfx: truck_reverse, at: left, dist: near, text: 嗶、嗶 }
+            - narr: 車尾從我左手邊擦過去，柴油的熱氣噴在臉上。
+            - { man: 歹勢喔！研究所那條線今天接好了，下去載東西啦！, as: 司機, at: left, dist: mid }
+            - heart: off
+            - narr: 我站在草裡，等嗶聲一路退到坡底，才把手杖放回地上。
+            - tingan: 妳怎麼閃到這裡來？我才要叫妳。
+            - me: 它一直在叫。聽得出來在哪。
+          fail:
+            - { sfx: truck_reverse, at: front-left, dist: near, text: 嗶嗶嗶 }
+            - narr: 嗶聲一下子貼到耳朵旁邊。我躲錯了邊，正好退到它倒車的路上。
+            - { tingan: 林小姐！, at: front-left, shake: light }
+            - { sfx: thud, at: left, dist: near, text: 碰, shake: hard }
+            - narr: 有人抓住我外套的後領往外一扯，我整個人跌坐在路肩，手掌擦過碎石。
+            - heart: pound
+            - { sfx: car_horn, at: left, dist: near, text: 叭——！ }
+            - narr: 車尾從我剛才站的地方退過去，柴油的熱氣噴了我一臉。
+            - { man: 看不到就不要站路中間啦！, as: 司機, at: left, dist: mid }
+            - tension: 8
+            - narr: 我兩隻手撐在碎石上，掌心一陣一陣刺痛，腿軟得一下子站不起來。
+            - tingan: ……妳有沒有怎樣？我才走開十秒。
+            - me: 沒事。手而已。
+            - set: c4_slope_fell
+            - narr: 她蹲下來，把我掌心裡的小石子一顆一顆撥掉。
+            - heart: slow
       - if: know.k_zhixia_tingan_split
         then:
           - tingan: 後來，研究從預測，走到介入。
@@ -885,6 +955,7 @@ scenes:
           - { sfx: chair_scrape, at: front-right, dist: near, text: 嘎 }
           - narr: 她站起來去關窗。窗框卡住，她推了兩下才推上。
           - think: 她差一點就說了。是我剛才那句話，讓她把嘴閉上的。
+          - tension: 8
           - goto: c4_1831
       - tingan: 如果妳回來，不讓妳知道她做過什麼。
       - pause: 2
@@ -902,6 +973,7 @@ scenes:
       - tingan: 在這裡。十八點三十一分。
       - tingan: 所以她才那樣對妳。
       - heart: pound
+      - tension: 20
       - { sfx: thud, at: front, dist: near, text: 匡！, shake: hard }
       - narr: 我的手往桌上一拍，整張鐵桌被推得往前滑，桌上的東西全在跳。
       - pause: 3
@@ -985,6 +1057,8 @@ scenes:
                     - pause: 3
                     - { sfx: cloth_rustle, at: right, dist: near, text: 窸窣 }
                     - narr: 她沒有再問。雨衣響了一下，她坐得離我近了一點。
+                    - narr: 她的肩膀靠著我的肩膀。隔著雨衣，還是溫的。
+                    - tension: -8
         else:
           - if: flag.c4_t_self
             then:
@@ -1008,6 +1082,8 @@ scenes:
           - pause: 2
           - { sfx: phone_notify, at: right, dist: near, text: 叮 }
           - phone: 許若晴：我在家。妳到底是誰？
+          - narr: 我一直撐在桌緣的手，這時候才鬆開。
+          - tension: -8
           - think: 若晴在家，陳醫生在病房，予安在店裡。
           - think: 我把今天放好了。
           - think: 可是這排機器，還是在同一分鐘喘了一口氣。
@@ -1023,6 +1099,7 @@ scenes:
           - narr: 警笛從山坡下面很遠的地方傳上來，一直沒停。
           - tingan: 舊車站那邊？
           - heart: fast
+          - tension: 10
           - think: 我沒接她的話。我在算時間。
           - narr: 我用指尖在大腿上點著數，數到第幾分鐘，自己也亂了。
           - think: 若晴照原本的時間到了舊車站，陳醫生也是。
@@ -1056,6 +1133,13 @@ scenes:
       - yuan: 我點了兩碗麵。妳的不加蔥。
       - think: 我沒有跟他說過我不吃蔥。
       - think: 他記得的，是五年前的我。
+      - if: flag.c4_slope_fell
+        then:
+          - yuan: 妳的手怎麼了？
+          - narr: 我把手掌翻過來。擦破的地方已經乾了，碰到桌面還會刺。
+          - me: 坡上有車在倒，我閃錯邊。
+          - pause: 1
+          - yuan: ……下次要上山，先跟我講一聲。
       - if: "!flag.dispersed"
         then:
           - { old_man: ……今晚六點半左右，灰潮鎮舊車站發生意外。, as: 電視, at: back-left }
@@ -1063,8 +1147,12 @@ scenes:
           - { sfx: cup_set, at: right, dist: mid, text: 叩 }
           - { old_woman: 是咖啡店的若晴啦。造孽喔。, as: 老闆娘 }
           - heart: pound
+          - tension: 20
+          - noise: heavy
+          - narr: 油鍋、碗筷、隔壁桌的笑聲，一下子全部變大，大得像整間店擠到我耳朵旁邊。
           - { sfx: cup_set, at: front, dist: near, text: 喀啷, shake: light }
           - narr: 我的手肘碰翻了茶杯，茶沿著桌面流下來，滴到我腿上。
+          - noise: "off"
           - daze: heavy
           - { sfx: tinnitus, at: center }
           - pause: 3
@@ -1075,6 +1163,9 @@ scenes:
           - pause: 2
           - daze: off
           - narr: 油鍋又滋滋響起來。電視已經換到下一則，在講明天的天氣。
+          - { sfx: phone_buzz, at: right, dist: near, text: 嗡, vib: buzz }
+          - phone: 心率 <心率>，過高，已記錄。二十點四十二分。
+          - narr: 我摸到口袋裡的手機，按住側鍵，按到它不再震。
           - narr: 他把筷子擱在碗邊，叩一聲，之後就沒有再拿起來。
           - think: 我知道會這樣。
           - { think: 我知道，我還是讓它發生了。, mem: m_c4_let_it }
@@ -1153,6 +1244,8 @@ scenes:
                     - narr: 他把我的碗，往我這邊推了一點。
       - { cue: kitchen, at: right, text: 鏘、嘶——, sfx: glass_clink }
       - narr: 麵已經不太燙了。我們把它吃完。
+      - narr: 最後一口湯是溫的，順著喉嚨一路暖到胃裡。
+      - tension: -12
       - heart: off
       - { wait: 12 }
     next: c4_bell

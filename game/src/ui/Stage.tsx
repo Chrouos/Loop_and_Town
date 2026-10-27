@@ -95,9 +95,23 @@ function placeSounds(root: HTMLElement, periph: Peripheral[], ripples: View['rip
   const said = root.querySelector('.lt-line:not(.lt-echo) .lt-text');
   if (choices) {
     choices.style.top = '';
-    if (said) {
-      const below = said.getBoundingClientRect().bottom - origin.top + 28;
-      if (below > choices.getBoundingClientRect().top - origin.top) choices.style.top = `${below}px`;
+    choices.classList.remove('tight');
+    // Never lifted onto what she is reading, nor onto the echo above it.
+    const lines = [...root.querySelectorAll('.lt-line:not(.leaving) .lt-text')].map((el) => el.getBoundingClientRect().bottom - origin.top + 28);
+    const floor = Math.max(H * 0.18, ...lines);
+    // Every option should be seen at once: below the line if it fits, else lifted toward it, else in tighter rows.
+    // Only a list that still cannot fit is left to scroll.
+    const settle = () => {
+      const top = Math.max(choices.getBoundingClientRect().top - origin.top, said ? floor : 0);
+      const need = choices.scrollHeight;
+      const lifted = Math.min(top, Math.max(floor, H - 16 - need));
+      choices.style.top = `${lifted}px`;
+      return H - 16 - lifted >= need;
+    };
+    if (!settle()) {
+      choices.style.top = '';
+      choices.classList.add('tight');
+      settle();
     }
     choices.style.maxHeight = `${Math.max(0, H - (choices.getBoundingClientRect().top - origin.top) - 16)}px`;
   }
@@ -174,7 +188,7 @@ export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown 
 
   const shifting = view.shiftingTo !== null || (view.phase === 'scene' && view.focus === null);
   const focusPos = view.focus && view.focus !== 'main' ? view.periph.find((item) => item.kind === 'cue' && item.thread === view.focus)?.pos : undefined;
-  const className = ['lt-stage', `phase-${view.phase}`, view.phase === 'out' && view.brief ? 'brief' : '', shifting ? 'shifting' : '', shaking ? `shake shake-${shaking}` : '', director.settings.motion ? '' : 'still'].join(' ');
+  const className = ['lt-stage', `phase-${view.phase}`, view.phase === 'out' && view.brief ? 'brief' : '', shifting ? 'shifting' : '', shaking ? `shake shake-${shaking}` : '', view.tension ? `tension-${view.tension}` : '', director.settings.motion ? '' : 'still'].join(' ');
   const firstCue = firstCueHint ? view.periph.find((item) => item.kind === 'cue' && item.thread !== view.focus) : undefined;
 
   useEffect(() => { if (firstCue) onCueHintShown(); }, [firstCue?.key]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -230,11 +244,11 @@ export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown 
   });
 
   return (
-    <div className={className} ref={root}>
+    <div className={className} ref={root} style={{ ['--wound' as string]: (director.tension / 100).toFixed(2) }}>
       <div className={`lt-heart${heart}`} aria-hidden="true" />
       <div className="lt-world">
         <div className={`lt-daze${view.daze ? ` daze-${view.daze}` : ''}`}>
-          <div className={`lt-body${heart}`}>
+          <div className={`lt-body${heart}${view.noise ? ` noise-${view.noise.level}` : ''}`}>
             {view.ripples.map((ripple) => <div key={ripple.key} data-key={ripple.key} className={`lt-ripple dist-${ripple.pos.dist}`} />)}
             {turn && <div className={`lt-turn${turnGone ? ' gone' : ''}`} />}
 

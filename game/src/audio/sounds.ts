@@ -860,6 +860,17 @@ const BASE_SFX_RECIPES: Record<Exclude<SfxId, AmbientEventId | keyof typeof LIFE
       return endOf(c, e1, e2, e3);
     },
   },
+  stove_flame: {
+    // A gas ring turned low: a soft airy hiss that flutters a little, over the faint roar of the flame.
+    play(c) {
+      const t = c.t;
+      const dur = rand(3.2, 4);
+      const pts: Pts = [[0, 0], [0.4, 1], [dur * 0.3, 0.85], [dur * 0.55, 1], [dur * 0.8, 0.9], [dur, 0]];
+      const e1 = nshape(c, c.out, t, { kind: 'pink', type: 'bandpass', f: vary(1700, 0.08) * c.p, q: 0.7, pts: pts.map(([a, b]) => [a, b * 0.14] as const) });
+      const e2 = nshape(c, c.out, t, { kind: 'brown', type: 'lowpass', f: 260, q: 0.5, pts: pts.map(([a, b]) => [a, b * 0.2] as const) });
+      return endOf(c, e1, e2);
+    },
+  },
   kettle: {
     play(c) {
       const t = c.t;
@@ -908,6 +919,18 @@ const BASE_SFX_RECIPES: Record<Exclude<SfxId, AmbientEventId | keyof typeof LIFE
       const e1 = modal(c, c.out, t, vary(5200, 0.1) * c.p, parts, 0.06);
       const e2 = click(c, c.out, t, 7000, 0.12, 1, 0.004);
       const e3 = chance(0.4) ? modal(c, c.out, t + rand(0.03, 0.06), vary(4800, 0.1) * c.p, parts, 0.03) : t;
+      return endOf(c, e1, e2, e3);
+    },
+  },
+  clock_tick: {
+    jitter: 0.02,
+    // One swing of a pendulum clock: the same partials as the clock shop's beds, struck once.
+    play(c) {
+      const t = c.t;
+      const f = vary(1400, 0.03) * c.p;
+      const e1 = modal(c, c.out, t, f, [[1, 1, 0.012], [2.31, 0.45, 0.007], [3.7, 0.2, 0.005]], 0.45);
+      const e2 = click(c, c.out, t, 4200 * c.p, 0.3, 1.2, 0.004);
+      const e3 = thump(c, c.out, t, f * 0.42, f * 0.3, 0.035, 0.18);
       return endOf(c, e1, e2, e3);
     },
   },

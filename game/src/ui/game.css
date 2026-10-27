@@ -66,6 +66,16 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 .lt-heart.heart-pound { --lo: 0.42; --hi: 1; --beat: 420ms; }
 .lt-heart.beat-0 { animation: lt-glow-a var(--beat) ease-out forwards; }
 .lt-heart.beat-1 { animation: lt-glow-b var(--beat) ease-out forwards; }
+/* ── hidden tension: the more wound up she is, the less the words hold still. The live line only softens;
+   what she already heard (the echo) goes first. Panic keeps a faint red at the edges even with no heart scripted. ── */
+.lt-text { transition: filter 2400ms var(--ease); }
+/* --wound is tension / 100 (set on the stage): the blur grows with it, not in steps. */
+.tension-1 .lt-echo .lt-text, .tension-2 .lt-echo .lt-text, .tension-3 .lt-echo .lt-text { filter: blur(calc(var(--wound, 0) * 4px)); }
+.tension-2 .lt-line:not(.lt-echo) .lt-text, .tension-3 .lt-line:not(.lt-echo) .lt-text { --blur: calc((var(--wound, 0) - 0.3) * 3.4px); filter: blur(var(--blur)); }
+/* panic: the words swim in and out of focus and double up, like eyes that cannot settle */
+.tension-3 .lt-line:not(.lt-echo) .lt-text { animation: lt-unsteady 2.2s ease-in-out infinite; }
+.lt-stage.still .lt-text { animation: none; }
+.tension-3 .lt-heart:not([class*='heart-']) { opacity: 0.16; }
 .lt-world { position: absolute; inset: 0; transition: opacity 900ms var(--ease), filter 900ms var(--ease); will-change: transform; }
 .lt-stage.phase-out .lt-world, .lt-stage.phase-card .lt-world, .lt-stage.phase-reset .lt-world { opacity: 0; filter: blur(6px); }
 /* into a continuous scene: a breath short enough to finish, not a fade cut off halfway */
@@ -143,6 +153,11 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
   animation: lt-sfx var(--life, 3000ms) var(--ease) forwards;
 }
 .lt-p.kind-life.crowded { visibility: hidden; }
+/* panic noise: strangers' words get brighter and are allowed to spill over the line she is trying to hear */
+.noise-light .lt-p.kind-life, .noise-heavy .lt-p.kind-life { color: var(--ink-soft); filter: none; }
+.noise-heavy .lt-p.kind-life.crowded { visibility: visible; }
+.noise-light .lt-center-inner { opacity: 0.85; }
+.noise-heavy .lt-center-inner { opacity: 0.7; filter: blur(0.5px); }
 /* what the sound is, the way she would name it: small, under the onomatopoeia */
 .lt-p-src {
   display: block; margin-top: 0.35em; text-align: center;
@@ -235,6 +250,7 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 }
 
 /* ── corner: memory / settings ── */
+.lt-dev-tension { position: fixed; left: 12px; bottom: 10px; font-family: var(--mono); font-size: 0.72rem; color: var(--ink-dim); pointer-events: none; z-index: 40; }
 .lt-corner {
   position: fixed; right: max(18px, env(safe-area-inset-right)); bottom: max(18px, env(safe-area-inset-bottom));
   width: 44px; height: 44px; display: grid; place-items: center; z-index: 5; opacity: 0.55; transition: opacity 300ms;
@@ -329,6 +345,10 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
   24% { transform: translate(-7px, 4px); } 36% { transform: translate(6px, -3px); }
   50% { transform: translate(-3px, 2px); } 66% { transform: translate(2px, -1px); } 82% { transform: translate(-1px, 0); }
 }
+@keyframes lt-unsteady {
+  0%, 100% { filter: blur(var(--blur)); text-shadow: none; }
+  50% { filter: blur(calc(var(--blur) + 0.6px)); text-shadow: 0.16em 0.05em 3px rgba(236, 230, 218, 0.4); }
+}
 @keyframes lt-swim { 0%, 100% { filter: blur(1px); transform: translate(0, 0) scale(1); } 50% { filter: blur(1.8px); transform: translate(3px, 2px) scale(1.006); } }
 @keyframes lt-swim-hard { 0%, 100% { filter: blur(2.2px); transform: translate(0, 0) scale(1) rotate(0); } 33% { filter: blur(3.6px); transform: translate(-6px, 3px) scale(1.012) rotate(-0.3deg); } 66% { filter: blur(2.8px); transform: translate(5px, -2px) scale(1.008) rotate(0.25deg); } }
 @keyframes lt-thump-a { 0%, 30%, 52%, 100% { transform: translateY(0); } 10% { transform: translateY(var(--jolt)); } 40% { transform: translateY(var(--dub)); } }
@@ -347,6 +367,11 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
   .lt-p.kind-cue { padding: 16px 12px; }
   .lt-choices { top: calc(50% + 78px); }
 }
+/* Not enough room below the line for every option (large text, short screen): tighter rows instead of a scroll bar. */
+.lt-choices { scrollbar-width: none; }
+.lt-choices::-webkit-scrollbar { display: none; }
+.lt-choices.tight { gap: 0; }
+.lt-choices.tight .lt-choice { padding: 5px 14px; line-height: 1.4; letter-spacing: 0.06em; font-size: calc(clamp(0.98rem, 1.8vw, 1.12rem) * min(var(--text-scale, 1), 1.15)); }
 
 /* ── memory input: saying a remembered line ── */
 .lt-choice.recall { color: var(--ink-faint); font-style: italic; letter-spacing: 0.18em; }
@@ -407,6 +432,8 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 .lt-locate-spot.wrong .lt-locate-dot { border-color: var(--ink-ghost); opacity: 0.4; }
 .lt-locate-key { position: absolute; bottom: 4px; font-family: var(--mono); font-size: calc(0.56rem * var(--text-scale, 1)); color: var(--ink-ghost); }
 .lt-locate-note { top: calc(50% + 40px); }
+.lt-approach-pad { position: absolute; inset: 0; background: none; border: 0; cursor: pointer; }
+.lt-approach .lt-locate-prompt { width: min(86vw, 520px); text-align: center; }
 
 .lt-punch-row { position: absolute; left: 50%; top: calc(50% + 78px); transform: translateX(-50%); display: flex; gap: 22px; }
 .lt-punch-cell { display: grid; grid-template-columns: repeat(2, 34px); grid-template-rows: repeat(3, 34px); grid-auto-flow: column; gap: 4px; padding: 8px; border: 1px solid var(--ink-ghost); border-radius: 4px; opacity: 0.45; transition: opacity 300ms; }
