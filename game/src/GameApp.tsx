@@ -20,6 +20,9 @@ function params() {
   return {
     speed: Math.max(1, Number(search.get('fast') ?? 1) || 1),
     chapter: search.get('chapter'),
+    // ?scene=c1_1752 starts at one scene (with earlier chapters' knowledge unless ?know=0); ?flags=a,b sets loop flags.
+    scene: search.get('scene'),
+    flags: (search.get('flags') ?? '').split(',').map((flag) => flag.trim()).filter(Boolean),
     know: search.get('know') !== '0',
     reset: search.has('reset'),
     mute: search.has('mute'),
@@ -100,6 +103,7 @@ export function GameApp({ storage = safeStorage() }: { storage?: Storage }) {
   const begin = useCallback(async () => {
     await audio.unlock();
     applySettings();
+    if (options.scene && director.jumpToScene(options.scene, options.know, options.flags)) { setScreen('play'); return; }
     if (options.chapter) { setScreen('play'); director.jumpToChapter(options.chapter, options.know); return; }
     if (director.save.finished) director.newGame();
     if (!director.save.calibrated && options.speed === 1) { setScreen('calibrate'); return; }
