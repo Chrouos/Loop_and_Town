@@ -289,14 +289,42 @@ scenes:
     beats:
       - { sfx: cup_set, at: front, dist: near, text: 叩 }
       - yuan: 茶。冰的。
-      - if: chloop >= 2 && know.k_yuan_1758
+      # 重過：她記得杯子在哪、記得五點五十八分，可是他今天還沒聽過實話。要不要講，還是要她自己開口。
+      - if: know.k_yuan_1758
         then:
           - { sfx: glass_clink, at: front-left, dist: near, text: 喀啷, src: 冰塊 }
           - narr: 冰塊在左前方響。我伸手過去，一次就碰到杯壁。
+          - yuan: 妳知道櫃子少了一個箱子，杯子放哪也不用我講。
           - yuan: 妳到底從哪裡知道這些？
-          - narr: 這個問題，他每一次都會問。這一次我只說了幾句，他也聽完了。
-          - set: [c5_truth, c5_noon_truth]
-          - think: 五點五十八分那通電話，他已經跟我說過了。他不記得而已。
+          - think: 這個問題，他每一次都會問。五點五十八分那通電話，他跟我說過了，只是他不記得。
+          - choice:
+              timeout: 18
+              options:
+                - text: 「如果我說，今天我已經過了很多次呢？」
+                  then:
+                    - set: [c5_truth, c5_noon_truth]
+                    - me: 每一次都是十月三日，到了午夜就重來。你每次都在月台等我。
+                    - pause: 2
+                    - yuan: 我不信。
+                    - yuan: 可是妳說。我聽。
+                    - narr: 這一次我講得比較短，挑他聽得進去的講。他還是一次都沒有打斷。
+                    - yuan: ……妳講的時候，沒有在騙我。這個我聽得出來。
+                    - tension: -8
+                - text: 「我姊以前跟我說過很多你的事。」
+                  then:
+                    - set: c5_evaded
+                    - yuan: 知夏姊？
+                    - pause: 1.5
+                    - yuan: ……算了。
+                    - narr: 我把冰茶杯轉了半圈，杯底在桌上刮出一聲，刮得我自己牙酸。
+                    - think: 我拿一個死掉的人來擋，還擋得很爛。
+                    - tension: 8
+              silence:
+                - pause: 3
+                - yuan: ……好。
+                - yuan: 我不問。
+                - narr: 冰塊在杯子裡塌了一角。他起身去前面，抽屜拉開又關上。
+          - pause: 1.5
           - yuan: 下午我要去拿零件。妳要喝咖啡的話，我帶妳過去。
           - goto: c5_cafe
       - narr: 杯子放在我前面，左邊還是右邊他沒說。我沒有伸手，先等冰塊自己響。
@@ -864,7 +892,7 @@ scenes:
           - { think: 他沒講的那一句，跟我沒講的這一句，大概一樣重。, learn: lead_c5_unsaid }
       - if: flag.c5_truth && !flag.c5_arranged
         then:
-          - if: chloop >= 2 && know.k_yuan_1758
+          - if: know.k_yuan_1758
             then:
               - pause: 2
               - yuan: ……妳今天說的那些。很多次的今天。

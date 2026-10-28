@@ -1566,7 +1566,7 @@ scenes:
       - yuan: ……
       - pause: 1
       - yuan: ……不會。
-      - { yuan: 但我會去接妳。, learn: k_c1_yuan_pickup, mem: m_yuan_pickup }
+      - { yuan: 但我會去接妳。, mem: m_yuan_pickup }
       - pause: 3
       - narr: 我摸到杯子，捧在手裡，半天才說了一聲好。
       - tension: -10

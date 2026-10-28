@@ -23,9 +23,10 @@ scenes:
       - { sfx: phone_buzz, at: right, dist: near, text: 嗡, vib: buzz }
       - phone: 鬧鐘。六點十二分。
       - narr: 車廂在晃。我的手放在膝蓋上，沒有伸進口袋。
-      - if: chloop >= 2
+      # 上一輪傍晚有人因為她的命令句受傷，她才會想起這件事（lead_c7_*）。
+      - if: know.lead_c7_tingan || know.lead_c7_ruoqing || know.lead_c7_boxun || know.lead_c7_zhiyuan
         then:
-          - think: 昨天傍晚說的那幾句話，有幾句不是在告訴他們，是在叫他們。聽到的人，就照著那幾句站錯了地方。
+          - think: 上一次傍晚說的那幾句話，有幾句不是在告訴他們，是在叫他們。聽到的人，就照著那幾句站錯了地方。
           - think: 今天再講一次。這一次，每一句都只講我知道的。
         else:
           - think: 昨天這個時候，我已經在腦子裡打完三通電話了。今天不打那種電話。
@@ -843,8 +844,8 @@ scenes:
       - me: 周警官，我是林知夏的妹妹。
       - pause: 2
       - me: 今天十八點三十一分，舊車站。我不知道會發生什麼事。
-      # 大廳的玻璃：她進過舊站大廳，或前一輪聽周警官在電話裡講過，才知道
-      - if: know.k_in_station_hall || chloop >= 2
+      # 大廳的玻璃：她進過舊站大廳，或哪一輪的十八點三十一分聽周警官在電話裡講過，才知道
+      - if: know.k_in_station_hall || know.k_c7_hall_glass
         then:
           - me: 可能什麼都沒有。也可能停電，大廳的玻璃會碎。
         else:
@@ -1205,7 +1206,7 @@ scenes:
       - if: flag.c7_p_zhiyuan
         then:
           - zhiyuan: ……我在大廳裡面。
-          - zhiyuan: 玻璃從上面整片下來。我的腳卡住了。
+          - { zhiyuan: 玻璃從上面整片下來。我的腳卡住了。, learn: k_c7_hall_glass }
           - tension: 18
           - if: flag.c7_p_ruoqing
             then:
@@ -1215,7 +1216,7 @@ scenes:
           - narr: 電話那頭只剩沙沙聲，和山坡下很遠的警笛。
           - learn: lead_c7_zhiyuan
         else:
-          - zhiyuan: 大廳的玻璃全碎了。
+          - { zhiyuan: 大廳的玻璃全碎了。, learn: k_c7_hall_glass }
           - if: flag.c7_p_ruoqing
             then:
               - zhiyuan: 有一個女生剛剛從側門跑進去，我拉不住。

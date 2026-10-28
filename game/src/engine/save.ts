@@ -100,7 +100,6 @@ const RENAMED_KNOWLEDGE: Record<string, string> = {
   c1_message: 'k_c1_message',
   c1_postoffice: 'k_c1_postoffice',
   c1_tingan_institute: 'k_c1_tingan_institute',
-  c1_yuan_pickup: 'k_c1_yuan_pickup',
   c2_pushed: 'k_c2_pushed',
   c2_lead_notice: 'lead_c2_notice',
   c2_ruoqing_died_again: 'k_c2_ruoqing_died_again',
@@ -120,7 +119,8 @@ const RENAMED_KNOWLEDGE: Record<string, string> = {
   c7_lead_zhiyuan: 'lead_c7_zhiyuan',
   c7_lead_tingan: 'lead_c7_tingan',
   f_lead_tingan: 'lead_f_tingan',
-  f_lead_yuan: 'lead_f_yuan',
+  // Split in two later the same day; the one the train recalled was the quiet one.
+  f_lead_yuan: 'lead_f_yuan_quiet',
   f_lead_ruoqing: 'lead_f_ruoqing',
   f_lead_boxun: 'lead_f_boxun',
   f_lead_zhiyuan: 'lead_f_zhiyuan',
@@ -136,7 +136,8 @@ export function readSave(storage: Storage | undefined): GameSave {
     if (parsed.version !== 1) return freshSave();
     const base = freshSave();
     const save = { ...base, ...parsed, settings: { ...DEFAULT_SETTINGS, ...(parsed.settings ?? {}) } } as GameSave;
-    save.knowledge = [...new Set((save.knowledge ?? []).map((id) => RENAMED_KNOWLEDGE[id] ?? id))];
+    // 予安's promise to pick her up is a relationship, kept only as a memory line now.
+    save.knowledge = [...new Set((save.knowledge ?? []).filter((id) => id !== 'c1_yuan_pickup').map((id) => RENAMED_KNOWLEDGE[id] ?? id))];
     // This loop's flags that had no chapter prefix took the one of the chapter they belong to.
     const prefix = save.chapter === 'final' ? 'f' : `c${save.chapter}`;
     save.flags = (save.flags ?? []).map((id) => (UNPREFIXED_FLAGS.has(id) ? `${prefix}_${id}` : id));

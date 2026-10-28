@@ -41,6 +41,9 @@ scenes:
       - think: 仲介、房東、學校資源教室的老師，復健中心那個每次都遲到的教練。
       - think: 予安，仲介跟他說的。然後就是整個鎮，鎮上就這麼小。
       - narr: 我一個一個數過去。名字數得出來，數不出哪一個會打點字。
+      - if: know.lead_c6_form && !know.k_c6_two_records
+        then:
+          - think: 上一次，陳醫生把病歷收回抽屜，又多講了一句：她初診填過一張單子。
       - { wait: 14, clock: "06:12" }
       - { sfx: thud, at: front-left, dist: near, gain: 0.18, text: 叩 }
       - narr: 頭上的行李架，我的行李箱跟著車廂輕輕撞了一下。最底層是那六封信，橡皮筋還綁著。
@@ -584,8 +587,42 @@ scenes:
       - me: 我想聽知夏的病歷。
       - pause: 2
       - boxun: 那不是可以隨便給家屬的東西。
-      - me: 給我我也讀不了。你念給我聽就好。
-      - pause: 2.5
+      # 關口：跟第四章一樣，他只念給「跟她一樣的人」聽。家屬來要，他用病人隱私擋掉；她起身時，他會漏講出一張自填單。
+      - choice:
+          options:
+            - text: 「你問過我：這是第幾次？」
+              if: know.k_boxun_which_time
+              then:
+                - pause: 3
+                - narr: 他手上那疊紙，沙的一聲停住了。
+                - boxun: ……我不記得問過妳。
+                - me: 你不記得。我記得。
+                - pause: 2
+                - boxun: 這句話，我只問過一個人。
+                - set: c6_bx_open
+            - text: 「她初診的時候，自己填過一張單子。」
+              if: know.lead_c6_form
+              then:
+                - pause: 2.5
+                - boxun: ……那張單子沒有進系統。
+                - boxun: 妳不應該知道有那張。
+                - me: 我知道。所以我才來。
+                - set: c6_bx_open
+            - text: 「給我我也讀不了。你念給我聽就好。」
+              then:
+                - pause: 2.5
+                - boxun: 念給家屬聽，也是給。
+      - if: "!flag.c6_bx_open"
+        then:
+          - boxun: 主訴、處置，妳去櫃台申請，醫院會給。其他的，家屬問，我也只能講到這裡。
+          - { sfx: drawer, at: front, dist: near, text: 喀 }
+          - narr: 紙收回抽屜，抽屜推緊。我扶著椅背站起來，椅腳在地磚上刮了一聲。
+          - { boxun: ……她初診的時候，自己填過一張單子。我到現在還不知道要歸在哪裡。, learn: lead_c6_form }
+          - heart: slow
+          - narr: 我的手停在門把上，金屬很冰。他沒有再說下去，筆又開始在紙上走。
+          - think: 一張她自己填的單子。他不是要給我，是自己多講了一句。
+          - heart: off
+          - goto: c6_walk
       - boxun: ……我念一段。
       - { sfx: paper_rustle, at: front, dist: near, text: 沙 }
       - boxun: 主訴：失眠，頭痛。

@@ -36,7 +36,10 @@ scenes:
           - if: know.lead_f_tingan
             then:
               - think: 有一次，我拿庭安不知道的事去敲她的門。門從裡面鎖了兩圈。
-          - if: know.lead_f_yuan
+          - if: know.lead_f_yuan_pushed
+            then:
+              - think: 有一次，我拿五點五十八分去撬予安。他背對著我，說：「請妳先回去。」
+          - if: know.lead_f_yuan_quiet
             then:
               - think: 有一次，予安說了「好」，可是他自己想要什麼，一個字都沒講。
           - if: know.lead_f_ruoqing
@@ -140,8 +143,12 @@ scenes:
           - clock: "08:40"
           - if: "know.k_spare_key"
             then:
+              - narr: 門口第三個花盆。我蹲下去，手指伸進盆底那道泥巴縫。
               - { sfx: key_jingle, at: front, dist: near, text: 鏘啷 }
-              - narr: 門口第三個花盆底下，鑰匙還在。予安沒有問，自己回店裡去了。
+              - { yuan: ……妳怎麼知道在那？, at: back }
+              - me: 猜的。
+              - pause: 1.5
+              - narr: 他沒有再問，可是走回店裡的腳步，比來的時候慢。
             else:
               - { sfx: door_creak, at: front, dist: near, text: 碰——吱呀 }
               - narr: 老家的門還是卡住。予安用肩膀頂開，就回店裡去了。
@@ -543,7 +550,7 @@ scenes:
               - heart: off
               - { sfx: shop_bell, at: back, dist: near, text: 叮鈴 }
               - narr: 我推門出去站在騎樓下，機車一台一台從面前騎過去，等心跳自己慢回來。
-              - learn: lead_f_yuan
+              - learn: lead_f_yuan_pushed
             else:
               - yuan: 妳要什麼？我寫給妳。
               - { sfx: pen_scratch, at: front, dist: near, text: 沙沙沙 }
@@ -552,7 +559,7 @@ scenes:
               - think: 他會幫忙，他一直都會。可是他自己想要什麼，他一個字都沒講。
               - think: 我要的不是這種「好」。
               - set: ev_yuan_partial
-              - learn: lead_f_yuan
+              - learn: lead_f_yuan_quiet
       - if: "know.k_yuan_sent_letter && !flag.f_y_push_1758"
         then:
           - { sfx: tools_clink, src: 鐵盒, at: back, dist: near, text: 叮 }
