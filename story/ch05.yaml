@@ -22,14 +22,14 @@ scenes:
         then:
           - narr: 後座的咳嗽和橘子皮的味道，又準時來了。
           - think: 我讓它們過去。
-          - if: "!know.k_yuan_1758 && know.c5_lead_arranged"
+          - if: "!know.k_yuan_1758 && know.lead_c5_arranged"
             then:
               - think: 上一次，我跟他說了實話，也替他排好六點到七點。晚上他有一句話到了嘴邊，又吞回去。
-          - if: "!know.k_yuan_1758 && know.c5_lead_unsaid && !know.c5_lead_arranged"
+          - if: "!know.k_yuan_1758 && know.lead_c5_unsaid && !know.lead_c5_arranged"
             then:
               - think: 上一次吃麵，他的筷子停過一次。他有話沒講，我也是。
               - think: 我還叫他六點到七點待在店裡。他答應得太快了。
-          - if: "!know.k_tower_kit && know.c5_lead_kit"
+          - if: "!know.k_tower_kit && know.lead_c5_kit"
             then:
               - think: 他說那個工具箱丟了。斷掉的錶帶他都捨不得丟。
           - think: 今天，我只想好好跟他吃一頓飯。
@@ -225,7 +225,7 @@ scenes:
       - yuan: ……一個工具箱。
       - yuan: 可能以前整理的時候丟了。
       - think: 斷掉的錶帶、沒有指針的錶盤、十幾年前的收據，他都留著。
-      - if: know.c5_lead_kit
+      - if: know.lead_c5_kit
         then:
           - think: 上一次我直接問那是什麼箱子，他就說丟了，之後一個字都不多講。
       # 關口：直接問，他就把話收回去；點破他捨不得丟，或者等他，他才會自己講。
@@ -257,7 +257,7 @@ scenes:
         then:
           - { sfx: tools_clink, at: front, dist: near, text: 叮 }
           - narr: 一支小螺絲起子在桌上滾了半圈。他把它按住，沒有再講。
-          - { think: 斷掉的錶帶他都留著。說丟了，是不想講。, learn: c5_lead_kit }
+          - { think: 斷掉的錶帶他都留著。說丟了，是不想講。, learn: lead_c5_kit }
           - { cue: oldclock, at: back-left, text: 噹……, sfx: clock_chime }
           - pause: 2
           - goto: c5_noon
@@ -856,12 +856,12 @@ scenes:
           - pause: 1.5
           - { sfx: spoon_stir, at: front, dist: near, text: 叮 }
           - narr: 他用湯匙撥了一下麵湯。吸了一口氣，像要講什麼，最後只把湯匙放回碗裡。
-          - { think: 他有一件事要講。我替他排好六點到七點，他就把它吞回去了。, learn: c5_lead_arranged }
+          - { think: 他有一件事要講。我替他排好六點到七點，他就把它吞回去了。, learn: lead_c5_arranged }
       - if: "!flag.c5_truth"
         then:
           - pause: 2
           - narr: 他吃到一半，筷子在碗邊停了一下，像是有話要講。後來沒有講。
-          - { think: 他沒講的那一句，跟我沒講的這一句，大概一樣重。, learn: c5_lead_unsaid }
+          - { think: 他沒講的那一句，跟我沒講的這一句，大概一樣重。, learn: lead_c5_unsaid }
       - if: flag.c5_truth && !flag.c5_arranged
         then:
           - if: chloop >= 2 && know.k_yuan_1758

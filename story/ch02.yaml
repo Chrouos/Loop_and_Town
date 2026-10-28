@@ -2,7 +2,7 @@ chapter: 2
 title: 活下來的人
 start: c2_train
 advance:
-  - if: flag.ruoqing_safe && know.k_boxun_died
+  - if: flag.c2_ruoqing_safe && know.k_boxun_died
     to: 3
 scenes:
   # ─────────────────────────────────────────── 06:12
@@ -16,15 +16,15 @@ scenes:
       - phone: 鬧鐘。六點十二分。
       - narr: 鐵軌的接縫一節一節敲上來，敲進鞋底。
       - { sfx: train_horn, at: front, dist: far, text: 嗚—— }
-      - if: know.c2_ruoqing_died_again
+      - if: know.k_c2_ruoqing_died_again
         then:
-          - if: know.c2_pushed
+          - if: know.k_c2_pushed
             then:
               - think: 又是六點十二分。嚇她、叫她不要去，我都試過了。她還是去了。
             else:
               - think: 又是六點十二分。我什麼都沒擋住，她還是去了。
           - pause: 1.5
-          - if: know.c2_lead_notice
+          - if: know.lead_c2_notice
             then:
               - think: 她出門前，手機又震了一次。那個通知，她一直沒有回。
           - think: 這次讓她把話講完。
@@ -124,7 +124,7 @@ scenes:
                 - think: 他一緊張，講話就變得很有禮貌。
                 - narr: 我握手杖的手鬆開一點，指節發痠，才知道剛剛握得多緊。
                 - tension: -6
-                - set: yuan_with_me
+                - set: c2_yuan_with_me
             - text: 「你去忙你的，我自己可以。」
               then:
                 - yuan: 妳確定？
@@ -154,7 +154,7 @@ scenes:
       - narr: 店裡是烘豆子的焦香，右邊的蒸汽管嘶嘶叫，水槽裡的杯子互相撞來撞去。
       - { sfx: coffee_grind, at: front-right, dist: mid, text: 嘎啦嘎啦 }
       - { sfx: step, at: front, dist: mid, text: 叩、叩 }
-      - if: flag.yuan_with_me
+      - if: flag.c2_yuan_with_me
         then:
           - ruoqing: 欸，予安哥？兩位喔？
           - { yuan: 兩位。兩杯黑的，不加糖。, learn: k_yuan_no_sugar }
@@ -292,7 +292,7 @@ scenes:
           - heart: fast
           - narr: 我整個人往旁邊彈開，肩膀撞上騎樓的柱子，手杖差點脫手。
           - tension: 8
-      - if: flag.yuan_with_me
+      - if: flag.c2_yuan_with_me
         then:
           - yuan: 電動貨車。我也沒聽到。
       - think: 一點半，老街，水溝蓋。我把那一聲喀記下來。
@@ -316,7 +316,7 @@ scenes:
       - { sfx: construction_drill, at: front, dist: mid, text: 嘰嘰嘰嘰 }
       - { sfx: hammer, at: front-left, dist: mid, text: 鏘、鏘 }
       - think: 我想先聽聽舊車站白天是什麼聲音。
-      - if: flag.yuan_with_me
+      - if: flag.c2_yuan_with_me
         then:
           - yuan: 前面拉封鎖線了。有一張公告。
           - yuan: 「舊車站正門，十月一日起封閉施工。」
@@ -358,7 +358,7 @@ scenes:
             - { sfx: truck_reverse, at: back-right, dist: near, text: 嗶！嗶！嗶！ }
             - heart: fast
             - narr: 我躲錯邊了。嗶嗶聲沒有變遠，整個壓到背上來，柴油味熱得嗆鼻。
-            - if: flag.yuan_with_me
+            - if: flag.c2_yuan_with_me
               then:
                 - narr: 有人抓住我的手臂往前扯，是機油的味道。我撞進他胸口，手杖掉在地上。
                 - { yuan: 車在妳後面！, at: left }
@@ -393,7 +393,7 @@ scenes:
           - ruoqing: 欸，妳還在喔？
       - ruoqing: 妳是知夏姊的妹妹齁？鎮上都在講妳回來了。
       - me: 嗯。
-      - if: flag.yuan_with_me
+      - if: flag.c2_yuan_with_me
         then:
           - narr: 予安在巷口等，說有事叫他。
       - me: 我在等妳休息。
@@ -403,9 +403,9 @@ scenes:
       - ruoqing: 沒啦，一個通知。
       - think: 再一個多小時，她就要出發了。
       - narr: 我把手杖從右手換到左手，過一下又換回來。
-      - if: know.c2_ruoqing_died_again
+      - if: know.k_c2_ruoqing_died_again
         then:
-          - if: know.c2_pushed
+          - if: know.k_c2_pushed
             then:
               - think: 之前就是在這裡講壞的。我急著替她把整件事講完。
             else:
@@ -424,7 +424,7 @@ scenes:
                 - ruoqing: 知夏姊以前留下來的。
                 - me: 不要去。
             - text: 「剛剛那個通知，妳還沒回吧？」
-              if: know.c2_lead_notice
+              if: know.lead_c2_notice
               then:
                 - pause: 1.5
                 - ruoqing: ……妳怎麼知道我還沒回？
@@ -442,22 +442,22 @@ scenes:
               options:
                 - text: 「妳會死。」
                   then:
-                    - learn: c2_pushed
+                    - learn: k_c2_pushed
                     - ruoqing: 蛤？
                     - ruoqing: 妳是要嚇我嗎？
                     - { sfx: strap_click, at: front, dist: near, text: 喀！ }
                     - ruoqing: 我會去。這是我自己的事。
                     - tension: 10
-                    - set: ruoqing_goes
+                    - set: c2_ruoqing_goes
                 - text: 「知夏一定也不希望——」
                   then:
-                    - learn: c2_pushed
+                    - learn: k_c2_pushed
                     - ruoqing: 妳不要跟我講她希望什麼。
                     - ruoqing: 她在的時候，妳也沒問過她希望什麼啊。
                     - narr: 我咬住牙，還是找不到一句可以回她的話。
                     - ruoqing: 我要進去上班了。
                     - tension: 10
-                    - set: ruoqing_goes
+                    - set: c2_ruoqing_goes
                 - recall:
                     accept:
                       - mem: m_c2_after_tide
@@ -524,7 +524,7 @@ scenes:
           - ruoqing: 好啦，陳醫生那邊我再跟他講。
           - ruoqing: 欸先講好喔，跟妳叫我不要去沒關係。
           - { ruoqing: 是我今天晚上本來就有自己的事。, mem: m_c2_own_thing }
-          - set: ruoqing_safe
+          - set: c2_ruoqing_safe
           - heart: off
           - tension: -10
           - think: 是她自己決定的。我只是沒有擋在她前面。
@@ -561,7 +561,7 @@ scenes:
     ambience: [wind_open, construction_far]
     cast: { boxun: front, yuan: back-right }
     beats:
-      - if: flag.yuan_with_me
+      - if: flag.c2_yuan_with_me
         then:
           - yuan: 到了。正門圍起來，進不去。
           - yuan: 我在後面。要走叫我。
@@ -633,7 +633,7 @@ scenes:
                 - narr: 我摸到一扇鐵門，冰的，整片都是鏽。旁邊沒有扶手，右手邊是空的。
                 - { boxun: 妳不要過來，這裡不好走！, at: left }
                 - { me: ……我跟不上。, mem: m_c2_cant_follow }
-                - if: flag.yuan_with_me
+                - if: flag.c2_yuan_with_me
                   then:
                     - narr: 有一隻手從後面抓住我的手肘，是機油的味道。
                     - { yuan: 妳剛剛差一點踩空。, at: back-right }
@@ -725,7 +725,7 @@ scenes:
       - boxun: 我習慣先把看到的寫下來。原因，之後再一項一項排除。
       - boxun: ……今天我不走那裡了。
       - tension: -8
-      - if: flag.yuan_with_me
+      - if: flag.c2_yuan_with_me
         then:
           - { yuan: 我們先走。, at: back-right }
           - narr: 予安的手臂伸過來。我抓著它走，碎石的聲音才一步一步回到腳底下。
@@ -768,7 +768,7 @@ scenes:
       - think: 十八點三十一分，這一次輪到他。
       - { sfx: phone_buzz, at: right, dist: near, text: 嗡, vib: buzz }
       - phone: 心率 <心率>，過高，已記錄。十八點五十二分。
-      - if: flag.yuan_with_me
+      - if: flag.c2_yuan_with_me
         then:
           - { yuan: 我們先走。, at: back-right }
           - yuan: 妳在發抖。扶著我。
@@ -871,7 +871,7 @@ scenes:
     ambience: [cafe]
     cast: { ruoqing: front-left, old_woman: back-left, yuan: right }
     beats:
-      - if: flag.yuan_with_me
+      - if: flag.c2_yuan_with_me
         then:
           - { sfx: phone_ring, at: right, dist: near, text: 鈴鈴—— }
           - narr: 予安的手機響了，他走開兩步才接。
@@ -911,7 +911,7 @@ scenes:
       - { sfx: step, at: front, dist: mid, text: 叩、叩、叩 }
       - narr: 她換了鞋，背帶扣隨著腳步一顛一顛地響。
       - { sfx: phone_buzz, at: front, dist: mid, text: 嗡、嗡 }
-      - { ruoqing: 吼，那個通知又來了。, learn: c2_lead_notice }
+      - { ruoqing: 吼，那個通知又來了。, learn: lead_c2_notice }
       - narr: 她沒有停下來回，手機震完就收進口袋。
       - { sfx: strap_click, at: front, dist: far, text: 喀……喀 }
       - think: 她要出發了。
@@ -933,7 +933,7 @@ scenes:
     cast: { ruoqing: front, boxun: front-right }
     beats:
       - narr: 我循著她的腳步跟到圍欄旁，手杖碰到圍欄的轉角。她從側邊繞進去，我等她走遠，才跟著進去。
-      - if: flag.yuan_with_me
+      - if: flag.c2_yuan_with_me
         then:
           - narr: 予安在圍欄外面叫了我一聲，我沒有回頭。
       - heart: slow
@@ -1001,7 +1001,7 @@ scenes:
       - daze: off
       - narr: 咳到最後，耳朵裡的嗡聲先停了，接著是灰塵落回地上的沙沙聲。
       - { sfx: phone_buzz, at: right, dist: near, text: 嗡, vib: buzz }
-      - { phone: 心率 <心率>，過高，已記錄。十八點三十一分。, learn: c2_ruoqing_died_again }
+      - { phone: 心率 <心率>，過高，已記錄。十八點三十一分。, learn: k_c2_ruoqing_died_again }
       - learn: k_in_station_hall
       - if: "!know.k_cabinet_warm"
         then:
@@ -1017,7 +1017,7 @@ scenes:
     cast: { old_woman: back-left }
     beats:
       - narr: 我坐回窗邊。她的位子空著，椅子還斜在桌邊，沒有推回去。
-      - if: flag.yuan_with_me
+      - if: flag.c2_yuan_with_me
         then:
           - narr: 予安坐到我對面，什麼都沒問。
       - { sfx: light_buzz, at: front, dist: mid, text: 滋—— }
@@ -1038,7 +1038,7 @@ scenes:
       - narr: 杯子碎在地上，沒有人去撿。
       - { sfx: cup_set, at: front, dist: near, text: 喀喀 }
       - narr: 我面前的杯子在碟子上喀喀響。是我的手在抖。
-      - learn: c2_ruoqing_died_again
+      - learn: k_c2_ruoqing_died_again
     next: c2_night
 
   # ─────────────────────────────────────────── 22:40
@@ -1050,7 +1050,7 @@ scenes:
     beats:
       - narr: 冰箱在樓下低低地運轉，窗外的蟲叫個不停。
       - narr: 我坐在姊姊的床沿，把鞋子踢掉，腳底貼著冰涼的磨石子地。
-      - if: flag.ruoqing_safe
+      - if: flag.c2_ruoqing_safe
         then:
           - tension: -10
       - if: "!know.k_notebook_1831"
@@ -1064,7 +1064,7 @@ scenes:
               timeout: 30
           - { think: 一、八。冒號。三、一。, learn: k_notebook_1831 }
           - narr: 下一行一樣，再下一行還是一樣。她寫到紙背都凸起來了。
-      - if: "chloop < 2 || flag.ruoqing_safe || !know.k_watch_engraving"
+      - if: "chloop < 2 || flag.c2_ruoqing_safe || !know.k_watch_engraving"
         then:
           - narr: 書桌上那只錶是冷的。我把它翻過來，指腹沿著背面的刻痕走，再把手機鏡頭貼上去。
           - phone: 如果你第二次看見十八點三十一分，
@@ -1080,14 +1080,14 @@ scenes:
           - think: 可是十八點三十一分，那條通道還是塌了。只是今天剛好沒有人在裡面。
           - narr: 錶躺在我手心，一點滴答也沒有。
         else:
-          - if: flag.ruoqing_safe && know.k_boxun_died
+          - if: flag.c2_ruoqing_safe && know.k_boxun_died
             then:
               - think: 若晴活著，陳醫生死了。
               - pause: 1.5
               - think: 第一個死的人我救下來了，十八點三十一分還是照樣來。
               - think: 他走進那條通道，是因為他等的人沒來。他等的人沒來，是因為我。
               - narr: 錶躺在我手心，一點滴答也沒有。
-              - if: flag.yuan_with_me
+              - if: flag.c2_yuan_with_me
                 then:
                   - { sfx: step, at: back, dist: mid, text: 叩、叩 }
                   - yuan: 我先回店裡。
@@ -1095,7 +1095,7 @@ scenes:
                   - think: 明天。
             else:
               - think: 我想救的人又死了一次。
-              - if: flag.ruoqing_goes
+              - if: flag.c2_ruoqing_goes
                 then:
                   - { think: 我又替她決定了一次。, mem: m_c2_decided_again }
                 else:
@@ -1127,7 +1127,7 @@ scenes:
       - { sfx: bell_toll, at: front-left, text: 噹——, vib: bell }
       - wait: 3
       - { sfx: bell_toll, at: front-left, text: 噹——, vib: bell }
-      - if: flag.ruoqing_safe
+      - if: flag.c2_ruoqing_safe
         then:
           - think: 若晴大概還醒著，在想那封通知要怎麼回。
         else:
@@ -1147,7 +1147,7 @@ scenes:
       - { sfx: bell_toll, at: front-left, text: 噹——, vib: bell }
       - wait: 3
       - { sfx: bell_toll, at: front-left, text: 噹——, vib: bell }
-      - if: flag.ruoqing_safe
+      - if: flag.c2_ruoqing_safe
         then:
           - think: 我本來以為，只要把第一個人移開就好了。
       - wait: 3
@@ -1175,7 +1175,7 @@ scenes:
       - { sfx: bell_toll, at: front-left, text: 噹—— }
       - pause: 1.5
       - { sfx: bell_toll, at: front-left, text: 噹—— }
-      - if: flag.ruoqing_safe
+      - if: flag.c2_ruoqing_safe
         then:
           - think: 若晴大概還醒著，在想那封通知要怎麼回。
         else:

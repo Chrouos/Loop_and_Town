@@ -5,7 +5,7 @@
 #
 # 本輪旗標
 #   v_*            今天已經去找過這個人（hub 隱藏選項）
-#   slot1..slot5   白天剛好五段時間
+#   f_slot1..f_slot5   白天剛好五段時間
 #   ev_*           對方在知情之下，自己決定給出完整的東西
 #   ev_*_partial   被輪迴知識施壓後，只給了一部分（不足以通過 Gate）
 #   g1..g5         Ending C 的五個 Gate
@@ -29,26 +29,26 @@ scenes:
       - pause: 1
       - { sfx: phone_buzz, at: right, dist: near, text: 嗡, vib: buzz }
       - phone: 鬧鐘。十月三日。六點十二分。
-      - if: "know.f_again"
+      - if: "know.k_f_again"
         then:
           - think: 我在機房說過「再一次」。
           - think: 那一次醒來，也是六點十二分。
-          - if: know.f_lead_tingan
+          - if: know.lead_f_tingan
             then:
               - think: 有一次，我拿庭安不知道的事去敲她的門。門從裡面鎖了兩圈。
-          - if: know.f_lead_yuan
+          - if: know.lead_f_yuan
             then:
               - think: 有一次，予安說了「好」，可是他自己想要什麼，一個字都沒講。
-          - if: know.f_lead_ruoqing
+          - if: know.lead_f_ruoqing
             then:
               - think: 有一次，我跟若晴講她會死。她一路走回吧檯，背帶扣一直響。
-          - if: know.f_lead_boxun
+          - if: know.lead_f_boxun
             then:
               - think: 有一次，我拿陳醫生自己的死去壓他。他只給我一份影本。
-          - if: know.f_lead_zhiyuan
+          - if: know.lead_f_zhiyuan
             then:
               - think: 有一次，我替周警官決定他什麼時候該講。抽屜就沒有拉開。
-          - if: know.f_lead_cabinet
+          - if: know.lead_f_cabinet
             then:
               - think: 有一次，我聽出嗡鳴在右邊，卻摸不到是哪一個櫃子。
           - pause: 1.5
@@ -123,7 +123,7 @@ scenes:
   # ─────────────────────────── 白天：五段時間 ───────────────────────────
   - id: f_hub
     beats:
-      - if: "flag.v_tingan && flag.v_yuan && flag.v_ruoqing && flag.v_boxun && flag.v_zhiyuan"
+      - if: "flag.f_v_tingan && flag.f_v_yuan && flag.f_v_ruoqing && flag.f_v_boxun && flag.f_v_zhiyuan"
         then:
           - clock: "17:30"
           - { sfx: phone_buzz, at: right, dist: near, text: 嗡 }
@@ -134,9 +134,9 @@ scenes:
             then:
               - phone: 陳柏勳：我帶那一份影本過去。其他的，當面再說。
           - goto: f_meeting
-      - if: "!flag.slot1"
+      - if: "!flag.f_slot1"
         then:
-          - set: slot1
+          - set: f_slot1
           - clock: "08:40"
           - if: "know.k_spare_key"
             then:
@@ -149,33 +149,33 @@ scenes:
           - phone: 八點四十分。
           - think: 時間剛好夠找五個人，多一個都不行。
         else:
-          - if: "!flag.slot2"
+          - if: "!flag.f_slot2"
             then:
-              - set: slot2
+              - set: f_slot2
               - clock: "10:30"
               - { sfx: bicycle_bell, at: left, dist: mid, text: 叮叮 }
               - phone: 十點三十分。
               - think: 還有四個人。
             else:
-              - if: "!flag.slot3"
+              - if: "!flag.f_slot3"
                 then:
-                  - set: slot3
+                  - set: f_slot3
                   - clock: "12:20"
                   - { sfx: construction_drill, at: back-right, dist: far, text: 噠噠噠噠 }
                   - narr: 我按了一下側鍵。
                   - phone: 十二點二十分。
                   - think: 施工停了一陣子，大概是去買便當，現在又開始了。
                 else:
-                  - if: "!flag.slot4"
+                  - if: "!flag.f_slot4"
                     then:
-                      - set: slot4
+                      - set: f_slot4
                       - clock: "14:10"
                       - { sfx: seagull, at: front-left, dist: far, text: 啊——啊—— }
                       - narr: 我又叫手機報了一次時間。
                       - phone: 十四點十分。
                       - think: 風轉了，開始從海那邊吹過來。
                     else:
-                      - set: slot5
+                      - set: f_slot5
                       - clock: "15:50"
                       - { sfx: car_pass, at: right, dist: far, text: 嗚—— }
                       - narr: 我壓了一下手機側邊。
@@ -195,19 +195,19 @@ scenes:
       - choice:
           options:
             - text: （去港邊的民宿，找庭安）
-              if: "!flag.v_tingan"
+              if: "!flag.f_v_tingan"
               goto: f_tingan
             - text: （去鐘錶店，找予安）
-              if: "!flag.v_yuan"
+              if: "!flag.f_v_yuan"
               goto: f_yuan
             - text: （去咖啡店，找若晴）
-              if: "!flag.v_ruoqing"
+              if: "!flag.f_v_ruoqing"
               goto: f_ruoqing
             - text: （去醫院，找陳醫生）
-              if: "!flag.v_boxun"
+              if: "!flag.f_v_boxun"
               goto: f_boxun
             - text: （去派出所，找周警官）
-              if: "!flag.v_zhiyuan"
+              if: "!flag.f_v_zhiyuan"
               goto: f_zhiyuan
             - text: （先站一下，聽這座鎮）
               disabled_if: flag.f_town_listen_done
@@ -245,7 +245,7 @@ scenes:
     ambience: [room_tone, sea_far]
     cast: { tingan: front }
     beats:
-      - set: v_tingan
+      - set: f_v_tingan
       - { sfx: hammer, at: front, dist: near, text: 叩、叩、叩 }
       - { sfx: door_open, at: front, dist: near, text: 吱 }
       - { sfx: cloth_rustle, at: front, dist: near, text: 窸窣 }
@@ -391,7 +391,7 @@ scenes:
           - heart: off
           - narr: 我把那張紙對摺再對摺，塞進口袋。下樓的扶手被海風吹得濕濕的，我一階一階踩穩了才走。
           - set: ev_tingan_partial
-          - learn: f_lead_tingan
+          - learn: lead_f_tingan
       - goto: f_hub
 
   # ─────────────────────────── 予安 ───────────────────────────
@@ -400,7 +400,7 @@ scenes:
     ambience: [clock_shop]
     cast: { yuan: front }
     beats:
-      - set: v_yuan
+      - set: f_v_yuan
       - { sfx: shop_bell, at: back, dist: near, text: 叮鈴 }
       - narr: 滿屋子的錶各走各的，沒有兩只對得上。
       - { sfx: tools_clink, at: front, dist: near, text: 叮 }
@@ -411,7 +411,7 @@ scenes:
           - narr: 我坐下。扶手上有一道裂縫，剛好卡得進指甲。
           - think: 有一次，他就坐在我對面，把那六封信念給我聽。
           - think: 念到第六封，他停了好久。整間店只剩錶在走。
-      - if: "flag.slot5"
+      - if: "flag.f_slot5"
         then:
           - yuan: 我還以為妳不會來了。
       - yuan: 妳說要問我一件事。
@@ -543,7 +543,7 @@ scenes:
               - heart: off
               - { sfx: shop_bell, at: back, dist: near, text: 叮鈴 }
               - narr: 我推門出去站在騎樓下，機車一台一台從面前騎過去，等心跳自己慢回來。
-              - learn: f_lead_yuan
+              - learn: lead_f_yuan
             else:
               - yuan: 妳要什麼？我寫給妳。
               - { sfx: pen_scratch, at: front, dist: near, text: 沙沙沙 }
@@ -552,7 +552,7 @@ scenes:
               - think: 他會幫忙，他一直都會。可是他自己想要什麼，他一個字都沒講。
               - think: 我要的不是這種「好」。
               - set: ev_yuan_partial
-              - learn: f_lead_yuan
+              - learn: lead_f_yuan
       - if: "know.k_yuan_sent_letter && !flag.f_y_push_1758"
         then:
           - { sfx: tools_clink, src: 鐵盒, at: back, dist: near, text: 叮 }
@@ -581,13 +581,13 @@ scenes:
     ambience: [cafe]
     cast: { ruoqing: front }
     beats:
-      - set: v_ruoqing
+      - set: f_v_ruoqing
       - { sfx: shop_bell, at: back, dist: near, text: 叮鈴 }
       - { sfx: coffee_grind, at: front-right, text: 嗡嘰嘰嘰 }
       - ruoqing: 歡迎光——
       - narr: 她的聲音卡在半句。大部分人第一次看到手杖，都是這樣。
       - ruoqing: 欸，窗邊那裡有扶手，妳要不要坐那邊？
-      - if: "flag.slot4 || flag.slot5"
+      - if: "flag.f_slot4 || flag.f_slot5"
         then:
           - { sfx: phone_buzz, at: front, dist: near, text: 嗡、嗡 }
           - narr: 她的手機在圍裙口袋裡震了兩下，她很快按掉。
@@ -695,7 +695,7 @@ scenes:
           - narr: 我的喉嚨發緊，剛剛那句「會死」好像還卡在裡面，吞不下去。
           - think: 她會怎麼回，我早就猜得到。
           - think: 我還是講了。
-          - learn: f_lead_ruoqing
+          - learn: lead_f_ruoqing
       - goto: f_hub
 
   # ─────────────────────────── 柏勳 ───────────────────────────
@@ -704,13 +704,13 @@ scenes:
     ambience: [hospital]
     cast: { boxun: front }
     beats:
-      - set: v_boxun
+      - set: f_v_boxun
       - { sfx: step, at: back-right, dist: far, text: 叩、叩 }
       - narr: 消毒水的味道。推車輪子壓過地板的接縫，喀隆一聲。
       - pause: 1
       - boxun: ……林小姐？
       - think: 他開口之前，一定會先停一下。
-      - if: "flag.slot5"
+      - if: "flag.f_slot5"
         then:
           - boxun: 我五點多要出去一趟。妳的時間不多。
       - choice:
@@ -828,7 +828,7 @@ scenes:
           - think: 我拿他自己的死去壓他。對他來說，那只是一句沒有根據的話。
           - narr: 他的腳步往病歷室走遠了。我把背從牆上撐起來，外套後面一片冰。
           - set: ev_boxun_partial
-          - learn: f_lead_boxun
+          - learn: lead_f_boxun
       - goto: f_hub
 
   # ─────────────────────────── 志遠 ───────────────────────────
@@ -837,7 +837,7 @@ scenes:
     ambience: [police_office]
     cast: { zhiyuan: front }
     beats:
-      - set: v_zhiyuan
+      - set: f_v_zhiyuan
       - { sfx: door_open, at: back, text: 吱 }
       - narr: 電扇轉得很吵。有菸味，可是沒有人在抽。
       - zhiyuan: 小姐，有什麼事？
@@ -909,7 +909,7 @@ scenes:
           - zhiyuan: 我就在這裡，哪裡都不去。
           - narr: 抽屜沒有拉開。電扇轉過來，又轉過去。
           - think: 他什麼時候該講出來，我替他決定了。
-          - learn: f_lead_zhiyuan
+          - learn: lead_f_zhiyuan
       - goto: f_hub
 
   # ─────────────────────────── 17:42 會議室 ───────────────────────────
@@ -1249,7 +1249,7 @@ scenes:
               - narr: 我往右走。手杖碰到柱子、碰到牆，又碰到一堆不知道是什麼的鐵。
               - narr: 嗡鳴在右邊，可是整面牆都在右邊。
               - think: 方向我聽得出來。它是什麼、裝在哪裡，我聽不出來。
-              - learn: f_lead_cabinet
+              - learn: lead_f_cabinet
               - if: know.k_new_cabinet
                 then:
                   - think: 若晴拍過這面牆。但今天沒有人替我核對，那幾個櫃子裡哪一個才是照片上的備援。
@@ -1617,7 +1617,7 @@ scenes:
             - text: 「……再一次。」
               then:
                 - set: f_pick_b
-                - learn: f_again
+                - learn: k_f_again
                 - pause: 3
                 - narr: 機房裡只剩伺服器在轉。
                 - if: "flag.ev_tingan"

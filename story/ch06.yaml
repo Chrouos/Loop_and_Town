@@ -602,7 +602,7 @@ scenes:
       - narr: 另一張有凹痕，很深。
       - think: 她的字。
       - phone: 偵測到手寫文字。
-      - { phone: 這件事，已經發生過。, learn: c6_two_records, mem: m_c6_already }
+      - { phone: 這件事，已經發生過。, learn: k_c6_two_records, mem: m_c6_already }
       - pause: 2.5
       - narr: 我的拇指壓在那幾道凹痕上，壓到指甲邊發白。走廊那頭的推車還在咿咿地響。
       - think: 同一個人，同一個星期。一張說她記得還沒發生的事，一張說那件事已經發生過了。
@@ -1034,7 +1034,7 @@ scenes:
       - if: know.k_tape_1803
         then:
           - narr: 一張卡：十八點零三分撥出，十八點零三分收到。
-      - if: know.c6_two_records
+      - if: know.k_c6_two_records
         then:
           - narr: 一張卡：個案堅稱。這件事已經發生過。
       - { sfx: braille_stylus, at: front, dist: near, text: 喀 }

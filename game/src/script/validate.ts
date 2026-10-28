@@ -53,6 +53,9 @@ function targets(scene: Scene): string[] {
   return out;
 }
 
+/** Knowledge (kept across loops) is named k_… for a clue or lead_… for how a gate failed; anything else is this loop's flag. */
+const PERMANENT = /^(k|lead)_/;
+
 export function buildScript(files: { name: string; source: string }[]): ScriptReport {
   const errors: string[] = [];
   const warnings: string[] = [];
@@ -81,6 +84,8 @@ export function buildScript(files: { name: string; source: string }[]): ScriptRe
   for (const scene of scenes.values()) {
     const all = [scene.beats, ...Object.values(scene.threads)];
     const note = (id: string) => {
+      // The name says how long it lasts: only k_ (a clue) and lead_ (how a gate failed) survive midnight.
+      if (!PERMANENT.test(id)) errors.push(`${scene.chapter === 'final' ? '最終章' : `第 ${scene.chapter} 章`}#${scene.id}：learn「${id}」要用 k_ 或 lead_ 開頭（跨輪保留的線索）；好感、關係這類每輪歸零的狀態用 set`);
       learned.add(id);
       const at = orderOf(scene.chapter);
       if (!firstLearned.has(id) || at < firstLearned.get(id)!) firstLearned.set(id, at);
@@ -109,7 +114,13 @@ export function buildScript(files: { name: string; source: string }[]): ScriptRe
     const flagsSet = new Set<string>();
     for (const scene of chapter.scenes) {
       for (const beats of [scene.beats, ...Object.values(scene.threads)]) {
-        walk(beats, (beat) => { if (beat.k === 'set') beat.flags.forEach((flag) => flagsSet.add(flag)); });
+        walk(beats, (beat) => {
+          if (beat.k !== 'set') return;
+          beat.flags.forEach((flag) => {
+            if (PERMANENT.test(flag)) errors.push(`${tag}#${scene.id}：set「${flag}」是這一輪的狀態，不要用 k_／lead_ 開頭（那是跨輪保留的線索）`);
+            flagsSet.add(flag);
+          });
+        });
       }
     }
 

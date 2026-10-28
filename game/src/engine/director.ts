@@ -284,7 +284,7 @@ export class Director {
 
   /**
    * Testing (?scene=c1_1752): start straight at one scene of its chapter, with earlier chapters' knowledge when asked,
-   * and any loop flags the scene expects (?flags=yuan_with_me). Flags the chapter would have set on the way stay unset.
+   * and any loop flags the scene expects (?flags=c1_yuan_with_me). Flags the chapter would have set on the way stay unset.
    */
   jumpToScene(sceneId: string, grantEarlierKnowledge: boolean, flags: string[] = []): boolean {
     const scene = this.script.scenes.get(sceneId);

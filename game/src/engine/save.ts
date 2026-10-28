@@ -90,6 +90,44 @@ export function freshSave(previous?: Pick<GameSave, 'settings' | 'endings' | 'ca
   };
 }
 
+/**
+ * 2026-10-29: knowledge ids took the k_ / lead_ prefixes, so a name says it lasts across loops (docs/design.md §11.2).
+ * Saves from before keep what she knew under the new names.
+ */
+const UNPREFIXED_FLAGS = new Set(['yuan_postoffice', 'yuan_with_me', 'ruoqing_closed', 'ruoqing_number', 'ruoqing_trust', 'tingan_pressed', 'ruoqing_goes', 'ruoqing_safe', 'boxun_stays', 'dispersed', 'slot1', 'slot2', 'slot3', 'slot4', 'slot5', 'v_tingan', 'v_yuan', 'v_ruoqing', 'v_boxun', 'v_zhiyuan']);
+const RENAMED_KNOWLEDGE: Record<string, string> = {
+  c1_tingan_lied: 'k_c1_tingan_lied',
+  c1_message: 'k_c1_message',
+  c1_postoffice: 'k_c1_postoffice',
+  c1_tingan_institute: 'k_c1_tingan_institute',
+  c1_yuan_pickup: 'k_c1_yuan_pickup',
+  c2_pushed: 'k_c2_pushed',
+  c2_lead_notice: 'lead_c2_notice',
+  c2_ruoqing_died_again: 'k_c2_ruoqing_died_again',
+  c3_boxun_died_again: 'k_c3_boxun_died_again',
+  c4_lead_drawer: 'lead_c4_drawer',
+  c4_lead_drawer_lost: 'lead_c4_drawer_lost',
+  c4_lead_count: 'lead_c4_count',
+  c4_heard_goals: 'k_c4_heard_goals',
+  c4_lead_promise: 'lead_c4_promise',
+  c4_let_it_happen: 'k_c4_let_it_happen',
+  c5_lead_kit: 'lead_c5_kit',
+  c5_lead_arranged: 'lead_c5_arranged',
+  c5_lead_unsaid: 'lead_c5_unsaid',
+  c6_two_records: 'k_c6_two_records',
+  c7_lead_boxun: 'lead_c7_boxun',
+  c7_lead_ruoqing: 'lead_c7_ruoqing',
+  c7_lead_zhiyuan: 'lead_c7_zhiyuan',
+  c7_lead_tingan: 'lead_c7_tingan',
+  f_lead_tingan: 'lead_f_tingan',
+  f_lead_yuan: 'lead_f_yuan',
+  f_lead_ruoqing: 'lead_f_ruoqing',
+  f_lead_boxun: 'lead_f_boxun',
+  f_lead_zhiyuan: 'lead_f_zhiyuan',
+  f_lead_cabinet: 'lead_f_cabinet',
+  f_again: 'k_f_again',
+};
+
 export function readSave(storage: Storage | undefined): GameSave {
   try {
     const raw = storage?.getItem(SAVE_KEY);
@@ -98,6 +136,10 @@ export function readSave(storage: Storage | undefined): GameSave {
     if (parsed.version !== 1) return freshSave();
     const base = freshSave();
     const save = { ...base, ...parsed, settings: { ...DEFAULT_SETTINGS, ...(parsed.settings ?? {}) } } as GameSave;
+    save.knowledge = [...new Set((save.knowledge ?? []).map((id) => RENAMED_KNOWLEDGE[id] ?? id))];
+    // This loop's flags that had no chapter prefix took the one of the chapter they belong to.
+    const prefix = save.chapter === 'final' ? 'f' : `c${save.chapter}`;
+    save.flags = (save.flags ?? []).map((id) => (UNPREFIXED_FLAGS.has(id) ? `${prefix}_${id}` : id));
     if (!Object.prototype.hasOwnProperty.call(FONT_SIZES, save.settings.fontSize)) save.settings.fontSize = 'normal';
     // Saves from before the chapter list: every chapter up to the current one counts as reached.
     if (!parsed.reached) {

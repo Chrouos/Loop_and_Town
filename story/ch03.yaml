@@ -14,7 +14,7 @@ scenes:
     beats:
       - { sfx: phone_buzz, at: right, dist: near, text: 嗡, vib: buzz }
       - phone: 鬧鐘。六點十二分。
-      - if: know.c3_boxun_died_again
+      - if: know.k_c3_boxun_died_again
         then:
           - think: 上一次我把所有人都移開了，只漏掉陳醫生。
           - think: 他還是走進了那條通道。
@@ -360,7 +360,7 @@ scenes:
     beats:
       - narr: 我在醫院後門等。冷氣的排風口嗡嗡吹，推車的輪子在走廊另一頭滾。
       - narr: 廣播在叫某個人的名字，叫了兩次都沒有人應。
-      - if: know.c3_boxun_died_again
+      - if: know.k_c3_boxun_died_again
         then:
           - think: 上一次他從這扇門出去，就沒有回來。
           - daze: light
@@ -434,11 +434,11 @@ scenes:
                 - tension: 8
                 - set: c3_b_threat
             - text: 「傍晚你會從舊車站旁邊那條通道上去。今天不要走那裡。」
-              if: know.k_maintenance_passage || know.c3_boxun_died_again
+              if: know.k_maintenance_passage || know.k_c3_boxun_died_again
               then:
                 - set: c3_b_passage
             - text: 「舊車站那條通道，你今天不要走進去。」
-              if: know.k_boxun_died && !know.k_maintenance_passage && !know.c3_boxun_died_again
+              if: know.k_boxun_died && !know.k_maintenance_passage && !know.k_c3_boxun_died_again
               then:
                 - set: c3_b_passage
             - recall:
@@ -460,7 +460,7 @@ scenes:
                       - boxun: 可是我確實打算從那裡上去。這件事，我還沒有跟任何人說。
                       - pause: 1.5
                       - boxun: 東西我鎖回辦公室。今天我不出這扇門。
-                      - set: [boxun_stays, c3_bx_quoted]
+                      - set: [c3_boxun_stays, c3_bx_quoted]
                   - mem: m_engraving
                     then:
                       - me: 我姊的手錶背面，刻了一句話。
@@ -474,7 +474,7 @@ scenes:
                       - pause: 1.5
                       - boxun: 這句話是什麼意思，我不知道，我不會猜。
                       - boxun: ……可是我不想當那個「下一個」。今天我留在醫院。
-                      - set: [boxun_stays, c3_bx_engraving]
+                      - set: [c3_boxun_stays, c3_bx_engraving]
                 miss:
                   - pause: 1.5
                   - boxun: ……抱歉，妳說什麼？
@@ -507,7 +507,7 @@ scenes:
                     - narr: 走廊那頭又有一輛推車滾過去，他還是沒有開口。
                     - boxun: 我七點以前本來就有病人。
                     - { boxun: 我留下來是因為病人。妳不用算在自己頭上。, mem: m_c3_not_because }
-                    - set: boxun_stays
+                    - set: c3_boxun_stays
                 - text: 「跟我姊有關，對不對？」
                   then:
                     - boxun: ……誰跟妳說的？
@@ -519,7 +519,7 @@ scenes:
                     - me: 她今天不會去了，她自己跟我說的。
                     - boxun: 那我確實也沒有理由去。
                     - boxun: 這份我放回辦公室。這件事，改天我們再談。
-                    - set: boxun_stays
+                    - set: c3_boxun_stays
                 - text: （伸手去拿紙袋）
                   then:
                     - { sfx: cloth_rustle, at: front, dist: near, text: 窸 }
@@ -543,7 +543,7 @@ scenes:
           - boxun: 真的停電的話，我人在醫院確實比較有用。
           - boxun: 我待到七點。過了六點半，請妳打給我，告訴我發生了什麼事。
           - boxun: 什麼都沒發生的話，也請妳告訴我。
-          - set: [boxun_stays, c3_bx_honest]
+          - set: [c3_boxun_stays, c3_bx_honest]
       - if: flag.c3_b_tomorrow
         then:
           - boxun: 她不去？她早上還跟我確認過。
@@ -554,7 +554,7 @@ scenes:
           - pause: 2
           - boxun: 這份東西，本來就不應該帶出醫院。
           - boxun: 好，改明天。我會自己打給她確認。
-          - set: [boxun_stays, c3_bx_tomorrow]
+          - set: [c3_boxun_stays, c3_bx_tomorrow]
       - if: flag.c3_b_threat
         then:
           - pause: 2
@@ -571,8 +571,8 @@ scenes:
           - pause: 2.5
           - boxun: 正門封了，我才想說從旁邊上去比較近。
           - boxun: ……東西我放回辦公室。今天哪裡都不去。
-          - set: boxun_stays
-      - if: "!flag.boxun_stays && !flag.c3_b_threat && !flag.c3_b_grab"
+          - set: c3_boxun_stays
+      - if: "!flag.c3_boxun_stays && !flag.c3_b_threat && !flag.c3_b_grab"
         then:
           - pause: 2
           - boxun: ……失陪了。
@@ -594,11 +594,11 @@ scenes:
                     - pause: 1.5
                     - boxun: 結果我還是差點走了。
                     - boxun: 我回去待到七點。過了六點半，打給我。
-                    - set: [boxun_stays, c3_bx_honest]
+                    - set: [c3_boxun_stays, c3_bx_honest]
               silence:
                 - narr: 我的嘴張開了，又閉上。手杖尖抵著地面，一直往下壓。
                 - tension: 8
-      - if: flag.boxun_stays
+      - if: flag.c3_boxun_stays
         then:
           - { sfx: door_close, at: front, dist: near, text: 碰 }
           - narr: 鐵門在他背後關上，他回去了。
@@ -634,7 +634,7 @@ scenes:
               - ruoqing: 我在家啦。這樣可以了吧？
       - phone: 撥號中。灰潮鎮醫院。
       - { sfx: phone_ring, at: back, dist: far, text: 嘟—— }
-      - if: flag.boxun_stays
+      - if: flag.c3_boxun_stays
         then:
           - if: flag.c3_bx_honest
             then:
@@ -661,7 +661,7 @@ scenes:
       - { phone: 葉庭安：妳不來了嗎？, mem: m_c3_tingan_waiting }
       - think: 我約了她，然後沒去。周警官那邊也一樣，我不會去。
       - { think: 我像在下棋。, mem: m_c3_chess }
-      - if: flag.boxun_stays
+      - if: flag.c3_boxun_stays
         then:
           - think: 我把每一顆棋子推到不會死的格子上，只剩我自己往那邊走。
         else:
@@ -681,7 +681,7 @@ scenes:
       - narr: 舊車站就在馬路對面。風從破掉的窗子灌進空大廳，繞一圈又鑽出來。
       - { sfx: wind_gust, at: front, dist: far, text: 颯—— }
       - think: 還有十一分鐘。
-      - if: "!flag.boxun_stays"
+      - if: "!flag.c3_boxun_stays"
         then:
           - narr: 我等不住，過了馬路。手杖沿著工地圍欄的鐵板往右掃，想找繞到側邊的路。
           - narr: 鐵板走到盡頭，地面開始往下斜，碎石在杖尖底下一直滑。
@@ -746,7 +746,7 @@ scenes:
       - { wait: 25, clock: "18:25", until: "18:29" }
       - narr: 我又按了一次。
       - phone: 十八點二十九分。
-      - if: flag.boxun_stays
+      - if: flag.c3_boxun_stays
         then:
           - think: 我做到了。
         else:
@@ -754,14 +754,14 @@ scenes:
       - { wait: 15, clock: "18:29", until: "18:30" }
       - phone: 十八點三十分。
       - heart: fast
-      - if: flag.boxun_stays
+      - if: flag.c3_boxun_stays
         then:
           - { sfx: laugh_soft, at: front, dist: near, text: 呵 }
           - narr: 我笑出一點聲音，連自己都嚇了一跳。
         else:
           - narr: 我把耳朵對著舊站側邊那一塊，那邊連風聲都沒有。
       - pause: 3
-      - if: flag.boxun_stays
+      - if: flag.c3_boxun_stays
         then:
           - goto: c3_1831
         else:
@@ -775,7 +775,7 @@ scenes:
     beats:
       - { sfx: wind_gust, at: front, dist: far, text: 颯—— }
       - narr: 風從舊車站破掉的窗子灌進去，繞一圈又鑽出來。跟上一次一樣。
-      - if: "!flag.boxun_stays"
+      - if: "!flag.c3_boxun_stays"
         then:
           - think: 側邊那道坡，上一次我就下不去。指腹被鐵板割到的地方，好像又在痛。
       - heart: slow
@@ -783,7 +783,7 @@ scenes:
       - phone: 十八點三十分。
       - heart: fast
       - narr: 我把手杖握得太緊，虎口那一圈都麻了。
-      - if: flag.boxun_stays
+      - if: flag.c3_boxun_stays
         then:
           - goto: c3_1831
         else:
@@ -880,7 +880,7 @@ scenes:
           - { text: 吵吵鬧鬧, sfx: crowd_walla, src: 路邊的人, at: [front, front-right, back], dist: far }
       - narr: 車聲、腳步聲、無線電的雜音全擠在馬路中間。只有一個男人喊得特別大聲，穿得過來。
       - { man: 通道裡面有人！, as: 陌生的男聲 }
-      - { man: 是醫院的陳醫生啦……, as: 陌生的男聲, learn: c3_boxun_died_again }
+      - { man: 是醫院的陳醫生啦……, as: 陌生的男聲, learn: k_c3_boxun_died_again }
       - { man: 上面的鐵架塌下來，救護的說已經沒有呼吸了。, as: 陌生的男聲 }
       - noise: "off"
       - tension: 20
@@ -996,7 +996,7 @@ scenes:
       - { sfx: page_turn, at: front, dist: near, text: 啪沙 }
       - { phone: 不要把「沒有人死」當成成功。, learn: k_note_not_success, mem: m_c3_not_success }
       - pause: 3
-      - if: flag.boxun_stays
+      - if: flag.c3_boxun_stays
         then:
           - think: 今天沒有人死，我是這樣以為的。
           - think: 知夏，妳也過過這樣的一天嗎？什麼事都沒發生，然後呢？
@@ -1104,7 +1104,7 @@ scenes:
       - { sfx: bell_toll, at: front-left, text: 噹——, vib: bell }
       - wait: 3
       - { sfx: bell_toll, at: front-left, text: 噹——, vib: bell }
-      - if: flag.boxun_stays
+      - if: flag.c3_boxun_stays
         then:
           - think: 今天沒有人死，鐘還是響了。
         else:
@@ -1114,7 +1114,7 @@ scenes:
           - narr: 我握著拳頭往胸口捶，捶到骨頭發疼，裡面那顆東西還是跳得那麼快。
       - wait: 3
       - { sfx: bell_toll, at: front-left, text: 噹——, vib: bell }
-      - if: "!flag.boxun_stays"
+      - if: "!flag.c3_boxun_stays"
         then:
           - { sfx: cane_tap, at: front, dist: near, text: 喀 }
           - { sfx: thud, at: front, dist: mid, text: 匡啷——, vib: crash, shake: hard }
@@ -1124,7 +1124,7 @@ scenes:
       - { sfx: bell_toll, at: front-left, text: 噹——, vib: bell }
       - wait: 3
       - { sfx: bell_toll, at: front-left, text: 噹——, vib: bell }
-      - if: flag.boxun_stays
+      - if: flag.c3_boxun_stays
         then:
           - { think: 如果沒有人死，為什麼還是重來？, mem: m_c3_why_reset }
       - wait: 3

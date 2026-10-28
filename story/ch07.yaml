@@ -632,7 +632,7 @@ scenes:
       - tingan: 我跟她共事過。我比妳以為的還容易信。
       - me: 我在研究所等過那一分鐘，聽過機器的聲音變高。
       - me: 可是今天會不會一樣，我不知道。
-      - if: know.c7_lead_tingan
+      - if: know.lead_c7_tingan
         then:
           - think: 有一次我叫她留下來。她照我說的，一直站在機櫃旁邊，跳電那一下手被電到。
       - choice:
@@ -685,7 +685,7 @@ scenes:
       - pause: 1.5
       - me: 妳今天傍晚要去舊車站。陳醫生要交給妳一樣東西。
       - ruoqing: ……欸，妳怎麼知道？
-      - if: know.c7_lead_ruoqing
+      - if: know.lead_c7_ruoqing
         then:
           - think: 有一次我叫她不要去。她偏要去，還走進了大廳。
       - choice:
@@ -719,7 +719,7 @@ scenes:
           - think: 她沒有給我講下一句的機會。
           - goto: c7_tell_boxun
       - me: 十八點三十一分，那裡會停電。
-      - if: know.k_in_station_hall && (know.k_maintenance_passage || know.c3_boxun_died_again)
+      - if: know.k_in_station_hall && (know.k_maintenance_passage || know.k_c3_boxun_died_again)
         then:
           - me: 我在那裡聽過一個人倒下，不只一次。
         else:
@@ -775,7 +775,7 @@ scenes:
           - me: 舊車站側邊有一條停用的維修通道。
         else:
           - me: 舊車站側邊有一條通道。你知道是哪一條。
-      - if: know.k_maintenance_passage || know.c3_boxun_died_again
+      - if: know.k_maintenance_passage || know.k_c3_boxun_died_again
         then:
           - me: 十八點三十一分，那裡面會有東西倒下來。我聽過。
           - me: 我不知道是什麼，也不知道今天會不會。
@@ -788,7 +788,7 @@ scenes:
           - pause: 2.5
       - { sfx: car_pass, at: left, dist: near, text: 嗚—— }
       - narr: 一台車貼著騎樓開過去。我把手機壓緊耳朵，怕漏掉他那頭的一口氣。
-      - if: know.c7_lead_boxun
+      - if: know.lead_c7_boxun
         then:
           - think: 有一次我叫他照我說的做。他不收沒根據的話，就自己走進那條通道去查。
       - choice:
@@ -870,7 +870,7 @@ scenes:
       - zhiyuan: ……版本。
       - me: 我講不清楚。
       - zhiyuan: 妳是要我去？
-      - if: know.c7_lead_zhiyuan
+      - if: know.lead_c7_zhiyuan
         then:
           - think: 有一次我說「你去」。他就走進大廳，站在玻璃底下。
       - choice:
@@ -1199,7 +1199,7 @@ scenes:
           - boxun: 骨頭應該斷了。我自己是醫生，我知道。
           - tension: 15
           - { sfx: static_burst, at: back-right, dist: near, text: 嘶 }
-          - learn: c7_lead_boxun
+          - learn: lead_c7_boxun
       - { sfx: phone_ring, at: left, dist: near, text: 鈴—— }
       - { sfx: glass_break, at: left, dist: far, text: 啪嚓, shake: light }
       - if: flag.c7_p_zhiyuan
@@ -1210,10 +1210,10 @@ scenes:
           - if: flag.c7_p_ruoqing
             then:
               - zhiyuan: 那個咖啡店的女生也在裡面。她在哭，應該還能動。
-              - learn: c7_lead_ruoqing
+              - learn: lead_c7_ruoqing
           - { sfx: static_burst, at: left, dist: near, text: 嘶—— }
           - narr: 電話那頭只剩沙沙聲，和山坡下很遠的警笛。
-          - learn: c7_lead_zhiyuan
+          - learn: lead_c7_zhiyuan
         else:
           - zhiyuan: 大廳的玻璃全碎了。
           - if: flag.c7_p_ruoqing
@@ -1221,7 +1221,7 @@ scenes:
               - zhiyuan: 有一個女生剛剛從側門跑進去，我拉不住。
               - zhiyuan: 她手臂割到，在流血。救護車在路上。
               - tension: 12
-              - learn: c7_lead_ruoqing
+              - learn: lead_c7_ruoqing
             else:
               - zhiyuan: 我手割到。……沒事，不深。
               - zhiyuan: 裡面沒有人。我一直站在門口。
@@ -1231,7 +1231,7 @@ scenes:
           - phone: 葉庭安：機器全部重開了一次。我照妳說的，一直站在機櫃旁邊。
           - phone: 跳電那一下，手被電到。到現在還麻。
           - tension: 8
-          - learn: c7_lead_tingan
+          - learn: lead_c7_tingan
         else:
           - phone: 葉庭安：機器全部重開了一次。我在。我記下來了。
       - if: flag.c7_placed

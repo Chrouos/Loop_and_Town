@@ -72,7 +72,7 @@ describe('final chapter paths', () => {
     const result = play(pick(/再一次/), 1);
     expect(result.endings).toContain('b');
     expect(result.loop).toBe(2);
-    expect(result.knowledge.has('f_again')).toBe(true);
+    expect(result.knowledge.has('k_f_again')).toBe(true);
   });
 
   const PRESSURE_RUOQING: Policy = (options, sceneId) => {
