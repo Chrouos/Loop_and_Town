@@ -316,6 +316,7 @@ scenes:
                     - yuan: 知夏姊？
                     - pause: 1.5
                     - yuan: ……算了。
+                    - { sfx: cup_scrape, at: front, dist: near, text: 嘎 }
                     - narr: 我把冰茶杯轉了半圈，杯底在桌上刮出一聲，刮得我自己牙酸。
                     - think: 我拿一個死掉的人來擋，還擋得很爛。
                     - tension: 8
@@ -408,6 +409,7 @@ scenes:
                 - yuan: ……她走的時候，我還在加糖。
                 - pause: 1.5
                 - yuan: 算了。
+                - { sfx: cup_scrape, at: front, dist: near, text: 嘎 }
                 - narr: 我把冰茶杯轉了半圈，杯底在桌上刮出一聲，刮得我自己牙酸。
                 - think: 我拿一個死掉的人來擋，還擋得很爛。
                 - tension: 8

@@ -508,9 +508,9 @@ scenes:
                 - zhiyuan: ……妳聽了也不會比較好過。
           silence:
             - pause: 3
-            - { sfx: house_tick, at: front-right, dist: near, text: 叩, src: 手指 }
+            - { sfx: knuckle_knock, at: front-right, dist: near, text: 叩, src: 手指 }
             - narr: 他的手指在桌上敲了一下，隔了好幾秒，才敲第二下。
-            - { sfx: house_tick, at: front-right, dist: near, text: 叩, src: 手指 }
+            - { sfx: knuckle_knock, at: front-right, dist: near, text: 叩, src: 手指 }
             - think: 跟那一次一樣。第二下，總是隔得比較久。
       - { sfx: key_jingle, at: front-right, dist: mid, text: 鏘 }
       - { sfx: drawer, at: front-right, dist: mid, text: 喀啦——喀啦 }
@@ -1016,6 +1016,7 @@ scenes:
         else:
           - { sfx: laugh_soft, at: right, dist: mid, text: 呵呵 }
           - narr: 我沒有進去。若晴在裡面跟店長說笑，笑到一半咳了兩聲。
+          - { sfx: cough_w, at: right, dist: mid, text: 咳、咳 }
           - think: 東牆，灰色的櫃子，點字底下的鉛筆字。我把它們都帶回家。
       - narr: 天在變涼。我知道，是因為手杖的握把冷了。
     next: c6_table

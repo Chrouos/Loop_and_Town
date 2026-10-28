@@ -731,7 +731,7 @@ scenes:
             - narr: 輪子已經滾到我左前方才停。一隻粗粗的手拍上我的肩膀。
             - shake: light
             - narr: 我整個人往旁邊彈開，手杖尖在柏油上刮了一聲，差點沒握住。
-            - { sfx: cane_tap, at: right, dist: near, text: 喀 }
+            - { sfx: cane_scrape, at: right, dist: near, text: 嘶啦 }
             - { old_man: 啊，歹勢歹勢！我是要問妳要不要過馬路。, as: 推車的阿伯, at: front-left }
             - me: ……不用。我在等人。
             - narr: 我的聲音比我以為的還要尖。

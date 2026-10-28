@@ -553,6 +553,7 @@ scenes:
       - { sfx: kettle, at: front-right, dist: mid, text: 咕嘟咕嘟, src: 爐子上的水壺 }
       - { sfx: envelope, at: center, dist: near, text: 沙 }
       - narr: 我把信拿出來的時候，予安正好在倒水。
+      - { sfx: pour_water, at: front, dist: near, text: 嘩—— }
       - pause: 1
       - narr: 倒水的聲音停了。
       - yuan: 那是什麼？
@@ -950,7 +951,7 @@ scenes:
                     - { sfx: chair_scrape, at: right, dist: near, text: 嘎 }
                     - narr: 他沒有問為什麼。椅子響了一聲，他坐下來，之後就沒有再動。
                     - pause: 4
-                    - { sfx: house_tick, at: left, dist: far, text: 叩, src: 竹竿 }
+                    - { sfx: bamboo_knock, at: left, dist: far, text: 叩、喀, src: 竹竿 }
                     - narr: 窗外有人在收衣服，竹竿一根一根碰在一起。他剛才把手機擱上桌，叩一聲，之後一直沒有震。
                     - pause: 3
                     - { yuan: ……這個時間，我都不太想一個人待著。, mem: m_c1_not_alone }
@@ -1044,7 +1045,7 @@ scenes:
       - narr: 屋頂很高，大到我抓不到牆在哪裡。有風從破掉的窗戶進來。
       - heart: slow
       - narr: 地上有碎石子，鞋底踩下去都踩不實。我每走一步，先用腳尖探一下。
-      - { sfx: step, at: front-left, dist: mid, text: 叩、叩 }
+      - { sfx: gravel_step, at: front-left, dist: mid, text: 沙、沙 }
       - if: flag.c1_ruoqing_closed
         then:
           - { ruoqing: ……妳怎麼會跑來這裡？, at: front-left, dist: mid }
@@ -1365,6 +1366,7 @@ scenes:
       - { sfx: siren_far, at: front, dist: far, text: 喔咿——喔咿—— }
       - narr: 北邊，很遠。警笛一直沒有停。
       - heart: slow
+      - { sfx: nail_scratch, at: front, dist: near, text: 嘶、嘶 }
       - narr: 我的指甲一直在桌面上刮，刮到自己聽見那個聲音，才把手收回來。
       - tension: 5
       - pause: 3

@@ -67,7 +67,7 @@ scenes:
       - think: 這一個他，不知道我知道。
       - yuan: 今天要先去哪裡？我可以帶妳——
       - me: 你今天本來要做什麼？
-      - { sfx: rail_clack, src: 行李箱, at: front-right, dist: near, gain: 0.5, text: 喀 }
+      - { sfx: suitcase_roll, src: 行李箱, at: front-right, dist: near, text: 喀啦 }
       - narr: 他把我的行李箱換到另一隻手。輪子在月台磁磚的縫上喀了一下。
       - yuan: ……開店啊。下午有客人要來拿錶。
       - me: 你開你的店。傍晚我想去店裡找你，你在嗎？
@@ -933,7 +933,7 @@ scenes:
           - think: 那疊信在側背包裡。今天我沒有拿出來。
           - think: 六封信寫了什麼，我都記得。第六封他念到哪一行停下來，我也記得。
           - clock: "17:58"
-          - { sfx: thud, src: 手機, at: front, dist: near, gain: 0.18, text: 叩 }
+          - { sfx: phone_on_glass, src: 手機, at: front, dist: near, text: 叩 }
           - narr: 他把手機翻過來，扣在玻璃櫃台上。殼角碰到玻璃，叩的一聲。我也按了一下自己的手機。
           - phone: 十七點五十八分。
           - narr: 他手上的鑷子停了。我沒有說話，陪他坐在這一分鐘裡。
@@ -1014,7 +1014,7 @@ scenes:
       - yuan: 「如果妳讀到這封……」
       - narr: 他停在這裡。下一行在他手上，他沒有念。
       - clock: "17:58"
-      - { sfx: thud, src: 手機, at: front, dist: near, gain: 0.18, text: 叩 }
+      - { sfx: phone_on_glass, src: 手機, at: front, dist: near, text: 叩 }
       - narr: 他把手機翻過來，扣在玻璃櫃台上。殼角碰到玻璃，叩的一聲。我也按了一下自己的手機。
       - phone: 十七點五十八分。
       - if: know.k_yuan_1758
@@ -1086,7 +1086,7 @@ scenes:
       - me: 五點五十九。
       - yuan: 嗯。
       - pause: 2
-      - { sfx: wood_creak, src: 椅子, at: center, dist: near, text: 吱 }
+      - { sfx: chair_creak, src: 椅子, at: center, dist: near, text: 吱 }
       - narr: 我把兩手壓在大腿上，坐直。椅墊底下的彈簧吱了一聲。
       - me: 我還有事要告訴你。我不會叫你做什麼，我只是要你知道。
       - me: 十八點三十一分，舊車站會出事。也可能不會。我不知道。
@@ -1303,7 +1303,7 @@ scenes:
                 - narr: 他走到我旁邊，托著我的手腕，把手往左後方移過去。
                 - yuan: 這座。我爸的，他修了一輩子，它每天還是慢一點。
                 - yuan: 不用對。他說它就是比較慢熱。
-          - { sfx: house_tick, src: 木殼, at: back-left, dist: mid, text: 叩、叩 }
+          - { sfx: knuckle_knock, src: 木殼, at: back-left, dist: mid, text: 叩、叩 }
           - narr: 他說不用對，可是我聽見他的指節在那座鐘的木殼上輕輕敲了兩下，才走回櫃台。
           - tension: -8
     next: c7_night

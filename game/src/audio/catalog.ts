@@ -155,6 +155,11 @@ export const SFX = {
   air_flow: '空調送風', power_saw: '電鋸切割', excavator: '怪手作業', water_rush: '排水流動',
   leaf_rustle: '枯葉與草叢摩擦', fabric_flap: '旗布拍打', wire_whistle: '風吹電線',
   pebble_roll: '石頭隨水滾動', metal_rattle: '鬆動鐵皮碰撞',
+  // Small things the story names, each its own recording (they used to borrow another sound).
+  pour_water: '熱水倒進杯子', bamboo_knock: '中空的竹竿互相敲到', knuckle_knock: '指節敲在木桌上',
+  chair_creak: '椅背或椅子彈簧被往後靠時的吱響', cane_scrape: '手杖尖在柏油路上拖過', gravel_step: '踩在碎石上的腳步',
+  cup_scrape: '杯底在木桌上拖過', nail_scratch: '指甲刮過桌面', suitcase_roll: '行李箱輪子滾過地磚接縫',
+  phone_on_glass: '手機蓋著放到玻璃櫃台上', cough_w: '女人咳嗽（成年）', bike_squeak: '橡膠被捏、摩擦的吱聲',
 } as const;
 export type SfxId = keyof typeof SFX;
 
@@ -200,6 +205,9 @@ export const SFX_SOURCE: Partial<Record<SfxId, string>> = {
   can_rattle: '空罐子', skate_roll: '滑板', branch_snap: '樹枝', boat_engine: '漁船', ship_horn: '船笛',
   mouse_squeak: '老鼠', air_flow: '空調', power_saw: '電鋸', excavator: '怪手', water_rush: '排水',
   leaf_rustle: '枯葉', fabric_flap: '旗子', wire_whistle: '電線', pebble_roll: '石頭', metal_rattle: '鐵皮',
+  pour_water: '倒水', bamboo_knock: '竹竿', knuckle_knock: '敲桌子', chair_creak: '椅子', cane_scrape: '手杖',
+  gravel_step: '碎石', cup_scrape: '杯子', nail_scratch: '指甲', suitcase_roll: '行李箱', phone_on_glass: '手機',
+  cough_w: '咳嗽', bike_squeak: '橡膠',
 };
 
 export const AMBIENCE = {

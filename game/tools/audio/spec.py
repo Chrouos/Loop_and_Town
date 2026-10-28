@@ -488,3 +488,93 @@ sfx('crowd_walla', [walla('452408', 2.0, 8.0), walla('452408', 26.0, 32.0), wall
     [452408, 19304, 455717], st=-20, limit=8, peak=-6, fin=0.8, fout=1.2, gain=1.6,
     note='6 s of a packed room of people all talking at once: a full restaurant in Beijing (Mandarin, two passages), a busy bar in '
          'Hong Kong (Cantonese), a busy Chinese restaurant in Montreal; high-passed at 120 Hz, low-passed at 5 kHz, swelling in and out')
+
+# ================================================================ story sounds that were still synthesized (2026-10-29)
+def CL(sid, a, b, hp=None, lp=None):
+    """A cut with optional high/low-pass."""
+    def make():
+        x = cut(sid, a, b)
+        if hp:
+            x = highpass(x, hp)
+        if lp:
+            x = lowpass(x, lp)
+        return x
+    return make
+
+
+def tick_L(t):
+    # the old pendulum clock is recorded wide (its channels partly cancel in mono), so take the left one
+    return lambda: channel(seg(src('657255'), t - 0.02, t + 0.30), 'L')
+
+
+sfx('cart_roll', [C('67287', 6.5, 9.5), C('67287', 12.0, 15.0), C('67287', 16.0, 19.0)], [67287], st=-20, hp=60, fin=0.35, fout=0.5,
+    note='three 3 s passages of a hospital trolley being wheeled along (rattling castors and its load)')
+sfx('house_tick', [C('840321', 0.0, 0.13), C('321083', 0.0, 0.09), C('327817', 0.56, 0.90), C('327817', 3.72, 4.05)],
+    [840321, 321083, 327817], st=-21, hp=200, peak=-6, limit=12, fin=0.002, fout=0.03,
+    note='small wooden ticks and taps: two single wooden clicks and two light wood-on-wood taps')
+sfx('clock_tick', [tick_L(2.174), tick_L(2.918), tick_L(5.128), tick_L(7.348)], [657255], st=-24, hp=150, peak=-6, fin=0.002, fout=0.08,
+    note='four single ticks of an old pendulum clock (left channel), with their short ring')
+sfx('wood_creak', [C('506665', 0.0, 0.75), C('269722', 0.98, 1.45), C('269722', 2.20, 2.75), C('269722', 4.27, 4.80)],
+    [506665, 269722], st=-21, hp=80, fin=0.005, fout=0.08,
+    note='four single wood creaks (a creaking board, and creaks of an old wooden structure)')
+sfx('plastic_crinkle', [C('411221', 0.0, 0.80), C('142592', 0.45, 1.45), C('142592', 2.10, 3.10)], [411221, 142592], st=-20, hp=150, limit=10, fout=0.08,
+    note='a bag of chips rustled, and two handfuls of a plastic bag crinkled')
+sfx('fan_hum', [C('170870', 10.0, 13.0), C('170870', 30.0, 33.0), C('324666', 3.0, 6.0)], [170870, 324666], st=-20, hp=50, fin=0.5, fout=0.6,
+    note='3 s of an electric fan running (two passages), and 3 s of a refrigerator motor humming')
+sfx('air_flow', [C('85716', 20.0, 22.5), C('259205', 5.0, 7.5)], [85716, 259205], st=-20, hp=80, fin=0.6, fout=0.7,
+    note='2.5 s of an air vent blowing, and of a ventilation outlet')
+sfx('cricket_chirp', [CL('400663', 0.10, 1.00, hp=2000), CL('822935', 1.15, 2.80, hp=2000), CL('263865', 0.0, 1.45, hp=2000), CL('263865', 4.30, 5.25, hp=2000)],
+    [400663, 822935, 263865], st=-20, fin=0.02, fout=0.1,
+    note='single crickets chirping (four short phrases), high-passed at 2 kHz')
+sfx('car_horn', [C('423990', 0.08, 0.62), C('434878', 0.0, 0.75), C('349922', 1.42, 2.12)], [423990, 434878, 349922], st=-20, hp=150, fout=0.08,
+    note='short car horn honks: a double beep-beep and two single honks')
+sfx('stove_flame', [C('342637', 1.5, 5.0), C('342637', 8.0, 11.5)], [342637], st=-24, hp=100, fin=0.5, fout=0.6,
+    note='3.5 s of a gas cooking burner hissing on a low flame (two passages, after its ignition clicks)')
+sfx('pigeon_coo', [C('319512', 0.60, 1.75), C('319512', 3.50, 4.70), C('319512', 4.90, 6.00), C('319512', 8.00, 9.05)], [319512], st=-20, hp=150, fout=0.12,
+    note='four single coos of a pigeon')
+sfx('fry_sizzle', [C('194806', 2.0, 4.5), C('194806', 9.0, 11.5), C('194636', 20.0, 22.5)], [194806, 194636], st=-20, hp=100, fin=0.3, fout=0.4,
+    note='2.5 s of food frying in a pan (two passages), and of a Hong Kong wok on full flame')
+sfx('fabric_flap', [C('701647', 0.40, 2.00), C('701647', 3.40, 4.90), C('701647', 9.10, 10.70)], [701647], st=-20, hp=80, fin=0.05, fout=0.15,
+    note='three bursts of a sheet of fabric flapping in the wind')
+sfx('chopsticks', [C('345003', 0.28, 0.90), C('345003', 2.10, 2.70), C('345003', 6.33, 6.60), C('835828', 10.30, 11.05)], [345003, 835828], st=-22, hp=200, peak=-6, limit=10, fout=0.05,
+    note='chopsticks clicking together and against a bowl (three takes), and cutlery set down on a table')
+sfx('rail_clack', [CL('207134', 12.50, 12.98, hp=60), CL('207134', 4.10, 4.40, hp=60), CL('197124', 46.68, 47.05, hp=60), CL('197124', 52.88, 53.25, hp=60)],
+    [207134, 197124], st=-21, peak=-6, fin=0.01, fout=0.08,
+    note='wheels over rail joints heard from inside a moving train: double and single clacks from a metro ride and from a slow passenger car')
+sfx('shutter_roll', [C('617980', 1.0, 3.8), C('617980', 11.3, 14.1), C('524695', 1.2, 3.9), C('524695', 9.9, 12.1)], [617980, 524695], st=-20, hp=80, fin=0.1, fout=0.6,
+    note='a metal roller shutter rattling up or down (four passages from two recordings)')
+
+# ---------------------------------------------------------------- new story sounds (2026-10-29)
+def glass_set(sid, a, b, at):
+    """A phone set down, with a light glass tap where it lands (it is put on a glass counter)."""
+    return lambda: mix(cut(sid, a, b), highpass(cut('262958', 0.0, 0.2), 800) * 0.4, at=at)
+
+
+sfx('pour_water', [C('740116', 0.55, 4.85), C('60394', 0.65, 4.65), C('365526', 2.15, 4.30)], [740116, 60394, 365526], st=-21, hp=120, fin=0.08, fout=0.4,
+    note='hot water poured into a cup: boiling water into a large cup, a kettle poured into a cup (two recordings)')
+sfx('bamboo_knock', [C('588244', 0.0, 1.0), lambda: mix(cut('588244', 0.0, 1.0), cut('66220', 0.0, 0.25) * 0.7, at=0.16), C('66220', 0.0, 0.28)],
+    [588244, 66220], st=-20, hp=120, peak=-4, fout=0.25,
+    note='hollow bamboo knocked: a single resonant knock, the same knock with a second, drier bamboo hit right after it, and the dry hit alone')
+sfx('knuckle_knock', [C('427393', 0.0, 0.62), C('369710', 0.0, 0.30), C('812363', 0.34, 0.65), C('704935', 0.80, 1.30)],
+    [427393, 369710, 812363, 704935], st=-20, hp=100, peak=-4, fout=0.06,
+    note='knuckles knocking once on wood: a wooden table, two wooden surfaces and a wooden tap')
+sfx('chair_creak', [C('159645', 0.55, 2.25), C('159645', 3.75, 5.20), C('201992', 2.15, 4.05), C('175410', 0.0, 1.15)],
+    [159645, 201992, 175410], st=-21, hp=100, limit=12, fin=0.02, fout=0.12,
+    note='a chair creaking under someone shifting and leaning back: a squeaking wooden chair (two takes), a creaky chair, a moaning chair')
+sfx('cane_scrape', [C('792195', 0.58, 1.10), C('792195', 8.32, 8.80), C('792195', 5.58, 5.95), C('792195', 2.18, 2.48)], [792195], st=-21, hp=150, limit=10, fin=0.01, fout=0.06,
+    note='a stick dragged and scraped along a sidewalk (four strokes)')
+sfx('gravel_step', ev('352870', 4, a=4.0, b=30.0, hp=150, max_len=0.45, decay_db=28, min_gap=0.3, fixed=0.42), [352870], st=-21, hp=80, limit=12, peak=-6, fout=0.05,
+    note='four single footsteps on a gravel and dirt path, cut from a walk')
+sfx('cup_scrape', [C('207815', 0.05, 1.45), C('207815', 3.30, 4.75), C('585000', 0.15, 0.95), C('120843', 0.03, 0.50)], [207815, 585000, 120843], st=-21, hp=120, fout=0.08,
+    note='a cup dragged and slid across a table (four takes from three recordings)')
+sfx('nail_scratch', [C('629016', 0.0, 1.15), C('629016', 8.30, 9.60), C('445529', 0.20, 1.35)], [629016, 445529], st=-22, hp=300, limit=10, fin=0.02, fout=0.1,
+    note='fingernails scratching a table: scratching a table with bare hands (two passages), and nails scratching')
+sfx('suitcase_roll', [C('423705', 0.30, 3.30), C('423705', 1.30, 4.40), C('423707', 7.40, 10.80)], [423705, 423707], st=-20, hp=60, fin=0.3, fout=0.5,
+    note='a wheeled suitcase rolled along, its wheels knocking over the joints in the floor (three passages)')
+sfx('phone_on_glass', [glass_set('422649', 0.0, 0.85, 0.49), glass_set('637747', 0.40, 0.95, 0.08)], [422649, 637747, 262958], st=-21, hp=100, peak=-4, fout=0.06,
+    note='a phone put down on a counter, layered with a light glass tap at the moment it lands (two takes)')
+sfx('cough_w', [C('151213', 0.05, 1.00), C('343880', 0.05, 0.70), C('343986', 0.08, 0.75), C('87412', 0.20, 1.85)],
+    [151213, 343880, 343986, 87412], st=-21, hp=120, fout=0.06,
+    note="an adult woman's coughs: a cough, a double cough, two short coughs, a longer fit")
+sfx('bike_squeak', [C('187343', 0.03, 0.32), C('71224', 3.55, 3.95), C('71224', 5.98, 6.40)], [187343, 71224], st=-22, hp=300, fout=0.05,
+    note='short rubber squeaks: a rubber shoe sole, and two sneaker squeaks')

@@ -85,6 +85,7 @@ scenes:
                 - think: 十八點三十一分舊車站會發生什麼，我知道。
                 - think: 若晴會去。這次我不打那通電話。
                 - narr: 我把手機翻過來扣在腿上，指甲沿著塑膠殼的邊一直刮。
+                - { sfx: nail_scratch, at: center, dist: near, text: 嘶、嘶 }
                 - tension: 8
                 - set: c4_still
             - text: （還沒想好）
@@ -241,7 +242,7 @@ scenes:
       - zhiyuan: ……我姓周。
       - zhiyuan: 案子結了。
       - zhiyuan: 意外。家屬當年有簽名。
-      - { sfx: wood_creak, at: front, dist: near, text: 嘎, src: 椅背 }
+      - { sfx: chair_creak, at: front, dist: near, text: 嘎, src: 椅背 }
       - narr: 他說完「結了」，椅背嘎一聲往後靠。
       # 關口：他只為「他自己知道的事」開抽屜。家裡的東西、沉默都打不開；被請出門的那一輪，她在門外聽見抽屜。
       - choice:
@@ -328,9 +329,9 @@ scenes:
                   - think: 不是這句。他只會為他自己知道的事開抽屜。
           silence:
             - pause: 4
-            - { sfx: house_tick, at: front, dist: near, text: 叩, src: 桌面 }
+            - { sfx: knuckle_knock, at: front, dist: near, text: 叩, src: 桌面 }
             - narr: 他的指節在桌面敲了一下，隔了好一陣子才敲第二下。
-            - { sfx: house_tick, at: front, dist: near, text: 叩, src: 桌面 }
+            - { sfx: knuckle_knock, at: front, dist: near, text: 叩, src: 桌面 }
             - zhiyuan: ……妳還不走？
       - if: "!flag.c4_zy_open"
         then:

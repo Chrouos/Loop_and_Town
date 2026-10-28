@@ -436,6 +436,7 @@ scenes:
           - ruoqing: 如果妳是因為知夏姊，才跑來替我決定事情，
           - { ruoqing: 那妳可以不用管。, mem: m_c2_dont_decide }
           - heart: fast
+          - { sfx: bike_squeak, at: center, dist: near, text: 吱 }
           - narr: 我的手指掐著手杖的橡膠握把，掐到它吱了一聲。背帶扣不響了，她在等我開口。
           - choice:
               timeout: 20
@@ -573,7 +574,7 @@ scenes:
           - narr: 下午被人扯住的那隻手臂還在痠，我把它貼緊身體，不敢甩。
       - { sfx: wind_gust, at: front, dist: far, text: 颯—— }
       - narr: 牆後面是空掉的大廳，風從破窗鑽進去繞一圈，又鑽出來。
-      - { sfx: step, at: front, dist: mid, text: 叩……叩 }
+      - { sfx: gravel_step, at: front, dist: mid, text: 沙……沙 }
       - narr: 入口前有人來回踱步，皮鞋底磨著碎石，風裡帶著一點消毒水的味道。
       - if: know.k_boxun_at_station
         then:
@@ -729,6 +730,7 @@ scenes:
         then:
           - { yuan: 我們先走。, at: back-right }
           - narr: 予安的手臂伸過來。我抓著它走，碎石的聲音才一步一步回到腳底下。
+          - { sfx: gravel_step, at: center, dist: near, text: 沙、沙 }
       - heart: off
     next: c2_night
 
@@ -774,6 +776,7 @@ scenes:
           - yuan: 妳在發抖。扶著我。
           - daze: off
           - narr: 他的手臂是熱的。我抓著它走，碎石的聲音才一步一步回到腳底下。
+          - { sfx: gravel_step, at: center, dist: near, text: 沙、沙 }
           - tension: -10
     next: c2_after
 
@@ -996,7 +999,7 @@ scenes:
       - daze: heavy
       - heart: pound
       - narr: 我想再叫她，吸進來的全是灰，嗆得我彎下腰咳個不停。
-      - { sfx: cough, at: center, dist: near, text: 咳、咳咳 }
+      - { sfx: cough_w, at: center, dist: near, text: 咳、咳咳 }
       - narr: 嘴裡有鐵鏽味，大概是剛剛咬破了舌頭，我一點都不覺得痛。
       - daze: off
       - narr: 咳到最後，耳朵裡的嗡聲先停了，接著是灰塵落回地上的沙沙聲。

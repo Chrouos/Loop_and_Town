@@ -454,6 +454,14 @@ function murmurRecipe(o: { pitch: [number, number]; dur: [number, number]; rate?
   };
 }
 
+/**
+ * Fallback for a sound that has its own recording: while the file loads, a related recipe stands in,
+ * pitched by `p` (its level is matched to that recipe after the trims, see ALIKE below).
+ */
+function alike(id: SfxId, p: number): SfxRecipe {
+  return { play: (c) => SFX_RECIPES[id].play({ ...c, p: c.p * p }) };
+}
+
 const BASE_SFX_RECIPES: Record<Exclude<SfxId, AmbientEventId | keyof typeof LIFE_SFX_RECIPES>, SfxRecipe> = {
   // ------------------------------------------------------------ people & movement
   step: stepRecipe({}),
@@ -661,6 +669,19 @@ const BASE_SFX_RECIPES: Record<Exclude<SfxId, AmbientEventId | keyof typeof LIFE
   murmur_child: murmurRecipe({ pitch: [260, 340], dur: [1.2, 2.6], rate: 4.6 }),
   whisper: murmurRecipe({ pitch: [150, 230], dur: [1.6, 3], rate: 3.6, hush: true }),
   crowd_walla: murmurRecipe({ pitch: [100, 260], dur: [3.5, 6], voices: 6, rate: 4.4 }),
+  // small things the story names; their recordings carry them, these only stand in while loading
+  pour_water: alike('water_rush', 1.3),
+  bamboo_knock: alike('house_tick', 0.6),
+  knuckle_knock: alike('house_tick', 0.8),
+  chair_creak: alike('wood_creak', 1.15),
+  cane_scrape: alike('chair_scrape', 1.6),
+  gravel_step: alike('step_wet', 1.1),
+  cup_scrape: alike('chair_scrape', 2.2),
+  nail_scratch: alike('pen_scratch', 0.8),
+  suitcase_roll: alike('cart_roll', 1.2),
+  phone_on_glass: alike('cup_set', 0.8),
+  cough_w: alike('cough', 1.35),
+  bike_squeak: alike('mouse_squeak', 0.55),
   gasp_crowd: {
     play(c) {
       const t = c.t;
@@ -2294,10 +2315,18 @@ const TRIM: Partial<Record<SfxId, number>> = {
 };
 for (const [id, v] of Object.entries(TRIM) as Array<[SfxId, number]>) SFX_RECIPES[id].level = (SFX_RECIPES[id].level ?? 1) * v;
 
+/** Stand-ins play at the level of the recipe they borrow (times a trim). */
+const ALIKE: Partial<Record<SfxId, [SfxId, number]>> = {
+  pour_water: ['water_rush', 1], bamboo_knock: ['house_tick', 1], knuckle_knock: ['house_tick', 1], chair_creak: ['wood_creak', 1],
+  cane_scrape: ['chair_scrape', 0.7], gravel_step: ['step_wet', 1], cup_scrape: ['chair_scrape', 0.7], nail_scratch: ['pen_scratch', 1],
+  suitcase_roll: ['cart_roll', 1], phone_on_glass: ['cup_set', 1], cough_w: ['cough', 1], bike_squeak: ['mouse_squeak', 0.7],
+};
+for (const [id, [from, v]] of Object.entries(ALIKE) as Array<[SfxId, [SfxId, number]]>) SFX_RECIPES[id].level = (SFX_RECIPES[from].level ?? 1) * v;
+
 /** Human effects allow both recordings and synthesis, including immediate synthesis while recordings load. */
 export const HUMAN_SFX: ReadonlySet<SfxId> = new Set<SfxId>([
   'gasp_crowd', 'cough', 'sigh', 'sigh_m', 'breath', 'breath_m', 'laugh_soft', 'laugh_soft_m', 'laugh_soft_adult', 'laugh_soft_adult_m', 'kid_laugh', 'choice_appear',
-  'murmur_w', 'murmur_m', 'murmur_old', 'murmur_child', 'whisper', 'crowd_walla',
+  'murmur_w', 'murmur_m', 'murmur_old', 'murmur_child', 'whisper', 'crowd_walla', 'cough_w',
 ]);
 
 /** Sounds that belong to the "interface" (they bypass the attention muffle). */
