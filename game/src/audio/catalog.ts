@@ -37,6 +37,7 @@ export const SFX = {
   lock_turn: '鑰匙轉動門鎖',
   chair_scrape: '椅子在地上拖動',
   drawer: '抽屜拉開',
+  drawer_catch: '抽屜卡住的一下',
   cloth_rustle: '衣物摩擦',
   huddle_rustle: '有人湊在一起講話：衣服摩擦、身體挪動（不出人聲）',
   gasp_crowd: '人群的驚呼',
@@ -51,6 +52,13 @@ export const SFX = {
   laugh_soft_m: '輕笑（年輕男生）',
   laugh_soft_adult_m: '輕笑（成年男性）',
   kid_laugh: '小孩的笑聲',
+  // strangers talking, heard as voices without words (recordings, never a synthesized voice)
+  murmur_w: '女人在說話，聽不清內容',
+  murmur_m: '男人在說話，聽不清內容',
+  murmur_old: '老人家在說話，聽不清內容',
+  murmur_child: '小孩在說話，聽不清內容',
+  whisper: '有人壓低聲音說話',
+  crowd_walla: '一大群人同時在講話，人聲吵雜',
   // objects
   paper_rustle: '紙張摩擦',
   page_turn: '翻頁',
@@ -158,10 +166,12 @@ export type SfxId = keyof typeof SFX;
 export const SFX_SOURCE: Partial<Record<SfxId, string>> = {
   step: '腳步', step_heels: '硬底鞋', step_run: '有人在跑', step_wet: '踩水', cane_tap: '手杖',
   door_open: '開門', door_close: '關門', door_creak: '老門', door_slam: '甩門', shop_bell: '門鈴',
-  key_jingle: '鑰匙', lock_turn: '門鎖', chair_scrape: '拖椅子', drawer: '抽屜', cloth_rustle: '衣服',
+  key_jingle: '鑰匙', lock_turn: '門鎖', chair_scrape: '拖椅子', drawer: '抽屜', drawer_catch: '抽屜', cloth_rustle: '衣服',
   huddle_rustle: '有人湊近', gasp_crowd: '人群', cough: '咳嗽', sigh: '嘆氣', breath: '呼吸',
   laugh_soft: '笑聲', laugh_soft_adult: '笑聲', sigh_m: '嘆氣', breath_m: '呼吸', laugh_soft_m: '笑聲',
   laugh_soft_adult_m: '笑聲', kid_laugh: '小孩',
+  murmur_w: '有人在聊天', murmur_m: '有人在聊天', murmur_old: '有人在聊天', murmur_child: '小孩在講話',
+  whisper: '有人小聲說話', crowd_walla: '人聲吵雜',
   paper_rustle: '紙', page_turn: '翻頁', envelope: '信封', pen_scratch: '寫字', braille_stylus: '點字筆',
   cup_set: '杯子', spoon_stir: '湯匙', coffee_grind: '磨豆機', steam_hiss: '蒸汽', kettle: '水壺', stove_flame: '爐火',
   pipe_gurgle: '水管',
@@ -221,6 +231,10 @@ export const AMBIENCE = {
 export type AmbienceId = keyof typeof AMBIENCE;
 
 // Per-speaker "voice presence": a faint sound at the speaker's position while they talk.
+/** What a voice comes through when it is not a person beside her: the sound is the device's, never a voice. */
+export const VIAS = ['speaker', 'radio', 'tv', 'tape', 'phone'] as const;
+export type Via = (typeof VIAS)[number];
+
 export const VOICES = {
   me: { pitch: 210, breath: 0.4 },
   yuan: { pitch: 120, breath: 0.3 },

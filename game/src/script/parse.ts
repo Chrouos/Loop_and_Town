@@ -1,13 +1,13 @@
 import { load } from 'js-yaml';
 import { SFX_SAMPLES } from '../audio/samples';
-import { DIRECTIONS, DISTANCES, VOICES, isAmbience, isDirection, isSfx, VIBRATIONS, type Direction, type Distance, type SfxId, type VibrationId, type VoiceId } from '../audio/catalog';
+import { DIRECTIONS, DISTANCES, VOICES, isAmbience, isDirection, isSfx, VIBRATIONS, type Direction, type Distance, type SfxId, type VibrationId, type VoiceId, VIAS, type Via } from '../audio/catalog';
 import type { LifeEvent, LifeLine } from '../engine/life';
 import { parseCond } from './conditions';
 import { DAZE_LEVELS, HEART_LEVELS, NOISE_LEVELS, SHAKE_LEVELS, TENSION_STEP_MAX, type Beat, type Chapter, type ChoiceOption, type DazeLevel, type EndKind, type HeartLevel, type NoiseLevel, type LineBeat, type Pos, type Scene, type ShakeLevel } from './types';
 
 export const CHARACTER_KEYS = ['yuan', 'ruoqing', 'boxun', 'tingan', 'zhiyuan', 'zhixia', 'man', 'woman', 'child', 'old_man', 'old_woman', 'announcer'] as const;
 const LINE_KEYS = new Set<string>(['narr', 'me', 'think', 'phone', ...CHARACTER_KEYS]);
-const LINE_ATTRS = new Set(['at', 'to', 'as', 'learn', 'mem', 'dist', 'shake']);
+const LINE_ATTRS = new Set(['at', 'to', 'as', 'learn', 'mem', 'dist', 'shake', 'via']);
 const END_KINDS: EndKind[] = ['reset', 'ending_a', 'ending_b', 'ending_c'];
 
 type Errors = string[];
@@ -86,6 +86,11 @@ function parseLine(key: string, raw: Obj, where: string, errors: Errors): LineBe
   if (raw.learn !== undefined) line.learn = String(raw.learn);
   if (raw.mem !== undefined) line.mem = String(raw.mem);
   if (raw.shake !== undefined) line.shake = shake(raw.shake, where, errors);
+  if (raw.via !== undefined) {
+    const via = String(raw.via);
+    if (!(VIAS as readonly string[]).includes(via)) errors.push(`${where}：via 只能是 ${VIAS.join('／')}`);
+    else line.via = via as Via;
+  }
   return line;
 }
 
@@ -232,12 +237,13 @@ function parseBeat(raw: unknown, where: string, errors: Errors): Beat | undefine
     allow('locate');
     const spec = raw.locate;
     if (!isObj(spec)) { errors.push(`${where}：locate 必須是 map`); return undefined; }
-    for (const key of Object.keys(spec)) if (!['sfx', 'at', 'decoys', 'tries', 'exact', 'lag', 'timeout', 'interval', 'gain', 'prompt', 'success', 'fail'].includes(key)) errors.push(`${where}：locate 未知欄位「${key}」`);
+    for (const key of Object.keys(spec)) if (!['sfx', 'at', 'decoys', 'tries', 'exact', 'replay', 'lag', 'timeout', 'interval', 'gain', 'prompt', 'success', 'fail'].includes(key)) errors.push(`${where}：locate 未知欄位「${key}」`);
     const sfx = String(spec.sfx);
     const at = String(spec.at);
     if (!isSfx(sfx)) errors.push(`${where}：未知音效「${sfx}」`);
     if (!isDirection(at)) errors.push(`${where}：locate 的 at 必須是八個方位之一`);
     if (spec.lag !== undefined && !(Number(spec.lag) > 0 && Number(spec.lag) < 0.5)) errors.push(`${where}：locate 的 lag 是 0 到 0.5 秒之間`);
+    if (spec.replay === false && (spec.decoys !== undefined || spec.lag !== undefined || spec.interval !== undefined)) errors.push(`${where}：replay: false 不重播，不用 decoys／lag／interval（干擾聲寫在前面的劇情裡）`);
     const decoys = (Array.isArray(spec.decoys) ? spec.decoys : []).flatMap((decoy, n) => {
       if (!isObj(decoy) || !isSfx(String(decoy.sfx)) || !isDirection(String(decoy.at))) { errors.push(`${where}.decoys[${n}]：需要合法的 sfx 與 at`); return []; }
       return [{ sfx: String(decoy.sfx) as never, at: String(decoy.at) as never }];
@@ -246,6 +252,8 @@ function parseBeat(raw: unknown, where: string, errors: Errors): Beat | undefine
       k: 'locate', sfx: sfx as never, at: at as never, decoys,
       tries: Math.max(1, Number(spec.tries ?? 2)),
       exact: spec.exact === true,
+      // replay: false — nothing plays again; she points at where she heard it a moment ago.
+      ...(spec.replay === false ? { replay: false } : {}),
       lag: spec.lag === undefined ? undefined : Number(spec.lag),
       timeout: spec.timeout === undefined ? undefined : Number(spec.timeout),
       interval: spec.interval === undefined ? undefined : Number(spec.interval),
@@ -292,7 +300,7 @@ function parseBeat(raw: unknown, where: string, errors: Errors): Beat | undefine
     allow('choice');
     const choice = raw.choice;
     if (!isObj(choice) || !Array.isArray(choice.options)) { errors.push(`${where}：choice 需要 options`); return undefined; }
-    for (const key of Object.keys(choice)) if (!['timeout', 'default', 'options'].includes(key)) errors.push(`${where}：choice 未知欄位「${key}」`);
+    for (const key of Object.keys(choice)) if (!['timeout', 'default', 'options', 'silence'].includes(key)) errors.push(`${where}：choice 未知欄位「${key}」`);
     const options: ChoiceOption[] = [];
     choice.options.forEach((option, index) => {
       const at = `${where}.options[${index}]`;
@@ -331,6 +339,12 @@ function parseBeat(raw: unknown, where: string, errors: Errors): Beat | undefine
     const fallback = choice.default === undefined ? undefined : Number(choice.default);
     if (fallback !== undefined && (fallback < 0 || fallback >= options.length)) errors.push(`${where}：default 超出範圍`);
     if (fallback !== undefined && (options[fallback]?.cond || options[fallback]?.recall)) errors.push(`${where}：default 選項不能有 if 或 recall`);
+    // Saying nothing is not an option on screen: it is what happens when the time runs out.
+    if (choice.silence !== undefined) {
+      if (timeout === undefined) errors.push(`${where}：silence 需要 timeout`);
+      if (fallback !== undefined) errors.push(`${where}：有 silence 就不用 default`);
+      options.push({ text: '（沉默）', then: parseBeats(choice.silence, `${where}.silence`, errors), silent: true });
+    }
     return { k: 'choice', timeout, default: fallback, options };
   }
   if ('if' in raw) {
@@ -359,7 +373,7 @@ function parseLife(raw: unknown, where: string, errors: Errors): LifeEvent[] | '
     const at = `${where}[${index}]`;
     if (!isObj(item)) { errors.push(`${at}：必須是 map`); continue; }
     for (const field of Object.keys(item)) {
-      if (!['text', 'src', 'sfx', 'say', 'voice', 'reply', 'at', 'dist'].includes(field)) errors.push(`${at}：不支援欄位「${field}」`);
+      if (!['text', 'src', 'sfx', 'say', 'voice', 'reply', 'at', 'dist', 'whisper'].includes(field)) errors.push(`${at}：不支援欄位「${field}」`);
     }
     const dirs = item.at === undefined ? undefined : list(item.at);
     const badDir = (dirs ?? []).filter((dir) => !isDirection(dir));
@@ -379,7 +393,10 @@ function parseLife(raw: unknown, where: string, errors: Errors): LifeEvent[] | '
         if (!turnSay || !turnVoice || !(turnVoice in VOICES)) { errors.push(`${at}.reply[${n}]：需要 say 和已知的 voice`); continue; }
         turns.push({ say: turnSay, voice: turnVoice as VoiceId });
       }
-      events.push({ say, voice: voice as VoiceId, ...place, ...(turns.length ? { reply: turns } : {}) });
+      // whisper: true / false overrides the place (a library whispers, a shout never does)
+      if (item.whisper !== undefined && typeof item.whisper !== 'boolean') errors.push(`${at}：whisper 必須是 true 或 false`);
+      const whisper = typeof item.whisper === 'boolean' ? { whisper: item.whisper } : {};
+      events.push({ say, voice: voice as VoiceId, ...place, ...(turns.length ? { reply: turns } : {}), ...whisper });
       continue;
     }
     const text = str(item.text);

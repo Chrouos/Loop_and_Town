@@ -13,7 +13,7 @@ it('chapter two hands back what chapter one left on the desk', () => {
   for (let i = 0; i < 200000 && d.view.phase !== 'reset' && d.view.sceneId !== 'c2_bell'; i++) {
     const v = d.view;
     if (v.center && said.at(-1) !== v.center.text) said.push(v.center.text);
-    if (v.choice && v.focus === 'main' && v.t - v.choice.startedAt > 1500) d.choose(0);
+    if (v.choice && v.focus === 'main' && v.t - v.choice.startedAt > 1500) d.choose(v.choice.options[0].index);
     if (v.keep) d.skipKeep();
     d.tick(100);
   }

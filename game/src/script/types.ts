@@ -1,5 +1,5 @@
 import type { LifeEvent } from '../engine/life';
-import type { AmbienceId, Direction, Distance, SfxId, VibrationId, VoiceId } from '../audio/catalog';
+import type { AmbienceId, Direction, Distance, SfxId, VibrationId, VoiceId, Via } from '../audio/catalog';
 
 export type Pos = { dir: Direction | 'center'; dist: Distance };
 
@@ -42,12 +42,15 @@ export type LineBeat = {
   learn?: string;
   mem?: string;
   shake?: ShakeLevel;
+  /** Heard through a device (a loudspeaker, the radio, a TV, a tape, a phone call), not from someone beside her. */
+  via?: Via;
 };
 
 /** Memory Input: she says a remembered line out loud. Only the accepted memories change anything. */
 export type RecallAccept = { mem: string; then: Beat[]; goto?: string };
 export type Recall = { accept: RecallAccept[]; miss: Beat[] };
-export type ChoiceOption = { text: string; cond?: Cond; disabledCond?: Cond; then: Beat[]; goto?: string; recall?: Recall };
+/** `silent` is the choice's `silence:` branch: never shown, taken when time runs out with nothing picked. */
+export type ChoiceOption = { text: string; cond?: Cond; disabledCond?: Cond; then: Beat[]; goto?: string; recall?: Recall; silent?: boolean };
 
 export type Beat =
   | LineBeat
@@ -70,7 +73,7 @@ export type Beat =
   /** 摸讀: drag a finger left to right across cells; each one surfaces only when touched slowly enough. */
   | { k: 'touch'; cells: string[]; style: 'braille' | 'groove' | 'engrave'; prompt?: string; timeout: number }
   /** 聽聲辨位: a sound repeats from one direction (with decoys); she points to it. */
-  | { k: 'locate'; sfx: SfxId; at: Direction; decoys: { sfx: SfxId; at: Direction }[]; tries: number; exact?: boolean; lag?: number; timeout?: number; interval?: number; gain?: number; prompt?: string; success: Beat[]; fail: Beat[] }
+  | { k: 'locate'; sfx: SfxId; at: Direction; decoys: { sfx: SfxId; at: Direction }[]; tries: number; exact?: boolean; replay?: boolean; lag?: number; timeout?: number; interval?: number; gain?: number; prompt?: string; success: Beat[]; fail: Beat[] }
   /** 聽距離: a sound walks toward her from `at`, one step at a time; she speaks up when it reaches her. Too early it cannot hear her, too late it has gone past. */
   | { k: 'approach'; sfx: SfxId; at: Direction; past: Direction; steps: number; interval: number; text?: string; prompt?: string; hit: Beat[]; early: Beat[]; late: Beat[] }
   /** 點字板: punch braille cells from the back of the paper (mirrored); cells are dot numbers as they will be read. */

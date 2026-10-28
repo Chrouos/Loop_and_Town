@@ -11,7 +11,7 @@
 //   her own body (heartbeat, tinnitus) ── bodyBus: stays clear when the world is dazed ──┼→ master
 //   master(volume·enabled) → glue compressor → limiter → soft clip → destination ←───────┘
 
-import { AMBIENCE, isSfx, type AmbienceId, type SfxId, type SpatialPos, type VoiceId } from './catalog';
+import { AMBIENCE, isSfx, type AmbienceId, type SfxId, type SpatialPos, type Via, type VoiceId } from './catalog';
 import { startAmbience, type AmbienceLayer, type SampleBed, type SoundResolver } from './ambience';
 import { clamp, expRampTo, glide, hold, impulseResponse, placementOf, softClipCurve, spawnShot, type SfxRecipe, type Shot } from './core';
 import { SampleBank, sampleRecipe, type SampleBankStats } from './samples';
@@ -33,8 +33,12 @@ export interface AudioEngine {
   setSfxVolume(v: number): void;
   setAmbience(ids: AmbienceId[], fadeMs?: number): void;
   play(id: SfxId, pos: SpatialPos, opts?: SfxOpts): void;
-  /** A line spoken by `speaker` ('life' = a passer-by in the background). People make no vocal sound, only a small real one. */
-  voice(speaker: VoiceId, pos: SpatialPos, durationMs: number, kind?: 'line' | 'life'): void;
+  /**
+   * A line spoken by `speaker`. The cast make no vocal sound, only a small real one (the text is their voice).
+   * 'life' = a stranger in the background: a recording of someone talking, too far or muffled to make out;
+   * 'whisper' = the same stranger in a quiet place, whispering. `gain` scales it (panic, tension).
+   */
+  voice(speaker: VoiceId, pos: SpatialPos, durationMs: number, kind?: VoiceKind, gain?: number, via?: Via): void;
   setAttention(level: number): void;
   /** Pain or shock: 0 = clear, 1 = the world comes through as if under water. Her own body stays clear. */
   setDaze(level: number): void;
@@ -47,6 +51,44 @@ export interface AudioEngine {
 }
 
 export type SampleMode = 'auto' | 'synth';
+
+export type VoiceKind = 'line' | 'life' | 'whisper';
+
+/** What each device sounds like under the words: a loudspeaker or a call crackles, a radio or TV hisses, a tape runs. */
+const VIA_SOUND: Record<Via, { id: SfxId; gain: number; rate?: number }> = {
+  speaker: { id: 'static_burst', gain: 0.16, rate: 0.85 },
+  radio: { id: 'radio_noise', gain: 0.22 },
+  tv: { id: 'radio_noise', gain: 0.15, rate: 1.15 },
+  tape: { id: 'tape_hiss', gain: 0.24 },
+  phone: { id: 'static_burst', gain: 0.07, rate: 1.4 },
+};
+
+/** Strangers: whose recorded murmur stands in for their voice (rate < 1 = an older, lower voice). */
+const LIFE_MURMUR: Partial<Record<VoiceId, { id: SfxId; rate?: number }>> = {
+  man: { id: 'murmur_m' },
+  woman: { id: 'murmur_w' },
+  old_man: { id: 'murmur_old', rate: 0.94 },
+  old_woman: { id: 'murmur_old', rate: 1.08 },
+  child: { id: 'murmur_child' },
+};
+/**
+ * Background voices sit under the text but stay audible far off: the panner already drops ~16 dB at 'far'.
+ * Measured in the speech band, a far murmur lands a few dB over the busier beds (street, restaurant) and
+ * about 5 dB over a far footstep or cough, so it reads as a person and not as the room.
+ */
+/** Distance is already lifted for every sound (distanceLift), so strangers sit at one level wherever they stand. */
+const LIFE_VOICE_GAIN: Record<SpatialPos['dist'], number> = { near: 0.15, mid: 0.145, far: 0.143 };
+
+/**
+ * The panner's inverse rolloff takes a far sound (r = 6) down 16 dB, which buried distant life and story sounds.
+ * Lift each shot so far still sounds far but always comes through: overall it falls as r^-0.55 (mid about -4 dB,
+ * far about -9 dB) instead of r^-1.
+ */
+export function distanceLift(r: number): number {
+  return r > 1 ? Math.pow(r, 0.45) : 1;
+}
+/** Whispers are baked about 9 dB under talking (RMS), so a quiet room keeps them just above its hum. */
+const WHISPER_GAIN = 1;
 
 /** Optional diagnostics, implemented by the Web Audio engine (used by the lab page and tests). */
 export interface AudioEngineDebug {
@@ -469,7 +511,7 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
         place: opts?.radius !== undefined ? { ...placementOf(pos), r: opts.radius } : placementOf(pos),
         glide: opts?.to ? placementOf(opts.to) : undefined,
         t: ac.currentTime + 0.01,
-        gain: clamp(opts?.gain ?? 1, 0, 4),
+        gain: clamp((opts?.gain ?? 1) * distanceLift(opts?.radius ?? placementOf(pos).r), 0, 6),
         rate: clamp(opts?.rate ?? 1, 0.25, 4),
       });
       if (shot) this.shots.push(shot);
@@ -501,13 +543,26 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
     }
   }
 
-  voice(speaker: VoiceId, pos: SpatialPos, _durationMs?: number, kind: 'line' | 'life' = 'line'): void {
+  voice(speaker: VoiceId, pos: SpatialPos, _durationMs?: number, kind: VoiceKind = 'line', gain = 1, via?: Via): void {
     // No voice is ever simulated (a synthesized voice under the text read as uncanny; the text is the voice).
-    // Instead someone who starts talking is placed by a small real sound: a passer-by's clothes and shifting
-    // weight, or the rustle of a speaker turning to talk (a new speaker, or the same one after a silence).
+    // A voice through a device is placed by the device's own sound: the loudspeaker keying in, the radio's hiss.
+    const device = via ?? (speaker === 'announcer' ? 'speaker' : undefined);
+    if (device) {
+      const texture = VIA_SOUND[device];
+      this.play(texture.id, pos, { gain: texture.gain * (kind === 'line' ? 1 : 0.6), rate: texture.rate });
+      return;
+    }
+    // The cast are placed by a small real sound: the rustle of a speaker turning to talk (a new speaker, or
+    // the same one after a silence). Strangers in the background are real recordings of people talking,
+    // muffled and far enough that no word comes through; in a quiet place, of people whispering.
     if (speaker !== 'phone') {
-      if (kind === 'life') {
-        this.play('huddle_rustle', pos, { gain: 0.12 });
+      if (kind !== 'line') {
+        const level = clamp(Number.isFinite(gain) ? gain : 1, 0, 3) * (LIFE_VOICE_GAIN[pos.dist] ?? LIFE_VOICE_GAIN.mid);
+        const murmur = LIFE_MURMUR[speaker];
+        if (kind === 'whisper' && speaker !== 'announcer') this.play('whisper', pos, { gain: level * WHISPER_GAIN, rate: murmur?.rate });
+        else if (murmur) this.play(murmur.id, pos, { gain: level, rate: murmur.rate });
+        // A loudspeaker or a TV: keep it to the small real sound it always had.
+        else this.play('huddle_rustle', pos, { gain: 0.12 });
         return;
       }
       if (speaker === 'me') return;

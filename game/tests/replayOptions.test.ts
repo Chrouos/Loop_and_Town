@@ -20,7 +20,7 @@ function replay(chapter: string, knowledge: string[], prefer: string[]) {
     if (v.choice && v.focus === 'main' && v.t - v.choice.startedAt > 1500) {
       const texts = v.choice.options.map((o) => o.text);
       const pick = texts.findIndex((t) => prefer.some((p) => t.includes(p)));
-      d.choose(pick >= 0 ? pick : 0);
+      d.choose(v.choice.options[pick >= 0 ? pick : 0].index);
     }
     if (v.keep) d.skipKeep();
     if (v.sceneId?.endsWith('_bell')) break;

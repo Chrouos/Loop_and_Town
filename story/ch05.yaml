@@ -49,7 +49,7 @@ scenes:
           - narr: 後面有人咳嗽，跟每一次同一個時候。
           - { think: 這個鎮上，只有我記得昨天。, mem: m_c5_only_yesterday }
       - { sfx: station_chime, at: front, dist: far, text: 叮咚—— }
-      - { announcer: 下一站，灰潮鎮。, as: 廣播 }
+      - { announcer: 下一站，灰潮鎮。, as: 廣播, via: speaker }
       - { sfx: cane_tap, at: front, dist: near, text: 叩 }
       - narr: 我把手杖一節一節卡好。
       - { sfx: train_brake, at: front, dist: mid, text: 嘰—— }
@@ -291,6 +291,7 @@ scenes:
       - yuan: 茶。冰的。
       - if: chloop >= 2 && know.k_yuan_1758
         then:
+          - { sfx: glass_clink, at: front-left, dist: near, text: 喀啷, src: 冰塊 }
           - narr: 冰塊在左前方響。我伸手過去，一次就碰到杯壁。
           - yuan: 妳到底從哪裡知道這些？
           - narr: 這個問題，他每一次都會問。這一次我只說了幾句，他也聽完了。
@@ -326,11 +327,13 @@ scenes:
           - me: 你自己的咖啡，也不加糖。
           - pause: 2
           - narr: 他的杯子沒有落到桌上。過了兩秒，才叩一聲放下。
+          - { sfx: cup_set, at: front, dist: near, text: 叩 }
           - yuan: ……我以前有加糖。這兩年才不加的。
         else:
           - me: 你以前喝咖啡，不是都要加糖？
           - pause: 2
           - narr: 他的杯子沒有落到桌上。過了兩秒，才叩一聲放下。
+          - { sfx: cup_set, at: front, dist: near, text: 叩 }
           - yuan: ……這兩年才不加的。
       - yuan: 我們五年沒見了。
       - if: flag.c5_named_him
@@ -491,6 +494,7 @@ scenes:
           - narr: 我給不出理由。她還是答應了。
           - me: 過了六點半，傳個訊息給我就好。
           - narr: 我念了號碼給她。她存好，撥過來響一聲，我也存了她的。
+          - { sfx: phone_buzz, at: right, dist: near, text: 嗡, vib: buzz }
           - goto: c5_evening
       - { sfx: chair_scrape, at: front-left, dist: near, text: 嘎 }
       - { sfx: cup_set, at: front, dist: near, text: 叩 }
@@ -557,6 +561,7 @@ scenes:
       - narr: 我給不出理由，跟上次一樣。
       - narr: 她還是答應了。
       - me: 過了六點半，傳個訊息給我就好。
+      - { sfx: phone_buzz, at: right, dist: near, text: 嗡, vib: buzz }
       - narr: 我念了號碼給她。她存好，撥過來響一聲，我也存了她的。走開的時候，腳步比平常快。
       - { sfx: step, at: front-right, dist: mid, text: 叩、叩 }
       - think: 這句話我越講越順了。
@@ -604,6 +609,7 @@ scenes:
                 - narr: 停在我面前的是一雙拖鞋。
                 - { old_man: 蛤？妳叫誰？, as: 路人, at: right }
                 - narr: 我說了聲對不起，耳朵燙到脖子。拖鞋嘖了一聲，走掉了。
+                - { sfx: step, at: right, to: left, dist: mid, text: 啪、啪, src: 拖鞋 }
                 - narr: 我只好再等，等那個左腳比較重的聲音貼到面前，才又叫一次。
                 - me: 予安。
                 - yuan: 在這。妳怎麼站在外面？
@@ -797,7 +803,7 @@ scenes:
               then:
                 - yuan: 不加蔥。對吧？
                 - narr: 他記得的，還是五年前的我。
-      - { old_man: ……明天天氣晴，沿海風浪稍大……, as: 電視, at: back-left }
+      - { old_man: ……明天天氣晴，沿海風浪稍大……, as: 電視, at: back-left, via: tv }
       - { sfx: cup_set, at: right, dist: mid, text: 叩 }
       - { old_woman: 兩碗麵。小心燙喔。, as: 老闆娘 }
       - { cue: tv, at: back-left, text: 沙沙——, sfx: static_burst }
@@ -895,7 +901,6 @@ scenes:
               - narr: 他用湯匙撥了一下麵湯，沒有喝。湯匙碰碗那一聲很清楚，店裡的聲音才跟著回來。
               - choice:
                   timeout: 12
-                  default: 2
                   options:
                     - text: 「她打給你，不一定是要你做什麼。」
                       then:
@@ -908,10 +913,11 @@ scenes:
                         - pause: 2.5
                         - narr: 過了一會兒，他的指節碰了一下我的。很輕。
                         - tension: -10
-                    - text: （不說話）
-                      then:
-                        - pause: 3
-                        - narr: 油鍋還在響。電視在講明天的天氣。
+                  silence:
+                    - pause: 3
+                    - narr: 油鍋還在響。電視在講明天的天氣。
+                    - { man: 明天，十月四日，灰潮鎮多雲，午後有短暫陣雨。, as: 電視裡的氣象主播, at: front-left, dist: far, via: tv }
+                    - think: 十月四日。我一次都還沒有過到那一天。
       - if: know.k_yuan_went_station
         then:
           - choice:
@@ -943,8 +949,8 @@ scenes:
     threads:
       tv:
         beats:
-          - { old_man: ……舊城更新工程，下週進入第二階段……, as: 電視, at: back-left }
-          - { old_man: 包括舊車站備援線路，與鐘樓周邊管線……, as: 電視, at: back-left }
+          - { old_man: ……舊城更新工程，下週進入第二階段……, as: 電視, at: back-left, via: tv }
+          - { old_man: 包括舊車站備援線路，與鐘樓周邊管線……, as: 電視, at: back-left, via: tv }
           - { old_woman: 吵死了，轉台啦。, as: 老闆娘, at: right }
           - { sfx: static_burst, at: back-left, dist: mid, text: 嘶 }
     next: c5_bell

@@ -40,7 +40,7 @@ scenes:
           - think: 連咳嗽都準時。
           - narr: 我抓住前座的椅背，抓緊了，才聽見自己喘得跟跑過步一樣。
       - { sfx: station_chime, at: front, dist: far, text: 叮咚—— }
-      - { announcer: 下一站，灰潮鎮。, as: 廣播 }
+      - { announcer: 下一站，灰潮鎮。, as: 廣播, via: speaker }
       - think: 這一次，若晴不能去舊車站。
       - narr: 外套口袋裡的信還在。我用指腹壓過那一行凸點，每一顆都在原來的位置。
       - think: 一封叫我不要回來的信，又被我帶回來了。
@@ -176,6 +176,7 @@ scenes:
           - narr: 磨豆機和蒸汽管退到很遠，耳朵裡只剩她剛剛講的那幾個字，一直繞。
           - narr: 我用拇指去數手杖上那圈防滑紋，數到第七道，蒸汽管的嘶聲才回來。
           - daze: off
+          - { sfx: steam_hiss, at: right, dist: mid, text: 嘶—— }
       - { sfx: cup_set, at: front, dist: near, text: 叩 }
       - narr: 她沒有回櫃台，在隔壁桌坐下來，攤開一疊紙。
       - { sfx: paper_rustle, at: front, dist: near, text: 沙、沙 }
@@ -349,6 +350,7 @@ scenes:
             - { sfx: truck_reverse, at: right, dist: near, text: 嗶、嗶 }
             - narr: 車尾從我剛才站的地方退過去，柴油的熱氣撲上臉。
             - { man: 小姐，妳耳朵很利喔。, as: 工人 }
+            - { sfx: truck_reverse, at: right, dist: mid, to: front-right:far, text: 嗶……嗶 }
             - narr: 嗶嗶聲退到圍欄盡頭就轉了彎，往舊車站側邊那頭去了。
             - think: 正門封著，側邊還有路可以進去。
             - set: c2_dodged_truck
@@ -369,6 +371,7 @@ scenes:
             - narr: 我蹲下去摸手杖，摸了兩次才摸到，握把上全是我手心的汗。
             - set: c2_truck_grabbed
       - heart: off
+      - { sfx: construction_drill, at: front, dist: mid, text: 嘰嘰嘰嘰 }
       - narr: 柴油味散掉以後，電鑽的聲音又回到前面原來的地方。
       - think: 若晴這個時間應該還在店裡。傍晚她會去哪裡，我比誰都清楚。
     next: c2_warning
@@ -435,6 +438,7 @@ scenes:
           - heart: fast
           - narr: 我的手指掐著手杖的橡膠握把，掐到它吱了一聲。背帶扣不響了，她在等我開口。
           - choice:
+              timeout: 20
               options:
                 - text: 「妳會死。」
                   then:
@@ -496,13 +500,15 @@ scenes:
                     - narr: 我張開嘴，喉嚨像被人掐住，只擠出一口氣。
                     - tension: 6
                     - ruoqing: 我要回去上班了。
-                - text: （什麼都不說）
-                  then:
-                    - pause: 2
-                    - ruoqing: ……好吧。
-                    - { sfx: door_close, at: front, dist: near, text: 碰 }
-                    - narr: 門在我鼻尖前面關上，風把我的瀏海掀起來又放下。
-                    - tension: 8
+              silence:
+                - pause: 2
+                - ruoqing: ……好吧。
+                - { sfx: door_close, at: front, dist: near, text: 碰 }
+                - narr: 門在我鼻尖前面關上，風把我的瀏海掀起來又放下。
+                - pause: 2.5
+                - { sfx: strap_click, at: front, dist: near, gain: 0.5, text: 喀 }
+                - narr: 門板後面，背帶扣又喀了一聲。她沒有走開，就站在門的另一邊。
+                - tension: 8
       - if: flag.c2_reached
         then:
           - ruoqing: 外地一個攝影課啦，下午寄來的。
@@ -592,10 +598,10 @@ scenes:
             - text: 「她今天有自己的事。」
               then:
                 - boxun: 是嗎。那也好。
-            - text: （不回答）
-              then:
-                - pause: 2
-                - boxun: 算了，這不重要。
+          silence:
+            - pause: 2
+            - boxun: 算了，這不重要。
+            - boxun: 我等人等習慣了。在醫院裡，每個人都在等什麼。
       - { sfx: paper_rustle, at: front, dist: near, text: 沙 }
       - boxun: 那這份我先帶回去。
       - boxun: 放車上不妥，我得先拿上去研究所那邊鎖起來。
@@ -681,6 +687,7 @@ scenes:
       - phone: 撥號中。一一九。
       - daze: off
       - narr: 接線員一開口，耳朵裡那層嗡嗡聲才破開，風又從通道口灌回來。
+      - { sfx: wind_gust, at: left, dist: mid, text: 颯—— }
       - me: 舊車站，側邊的維修通道，裡面有人。
       - me: 我看不到。我只聽到東西倒下來。
     next: c2_station_after
@@ -742,6 +749,7 @@ scenes:
           - { text: 噠噠噠, sfx: step_run, src: 有人在跑, at: [back, right, front-right], dist: mid }
           - { text: 喔咿——, sfx: siren_far, at: [back], dist: far }
           - { text: 啊——, sfx: gasp_crowd, src: 圍觀的人, at: [right, front-right], dist: far }
+          - { text: 吵吵鬧鬧, sfx: crowd_walla, src: 圍觀的人, at: [back, right, front-right], dist: far }
       - narr: 有人在喊，有人在講電話，有人一直問是誰。我分不出哪一句是在講通道裡的人。
       - { sfx: step_run, at: left, dist: mid, text: 噠噠噠 }
       - { man: 在裡面！通道裡面啦！, as: 陌生的男聲 }
@@ -784,7 +792,6 @@ scenes:
       - think: 六點了。大概是陳醫生，等不到人。
       - choice:
           timeout: 6
-          default: 1
           options:
             - text: 「若晴，妳手機在響。」
               then:
@@ -792,9 +799,12 @@ scenes:
                 - { sfx: step_run, at: left, dist: mid, text: 噠噠 }
                 - narr: 她跑出來的時候，震動剛好停了。
                 - ruoqing: 喔，陳醫生。等一下回他。
-            - text: （不說話）
-              then:
-                - narr: 震了兩次，停了。
+          silence:
+            - narr: 震了兩次，停了。
+            - pause: 2.5
+            - { sfx: phone_buzz, at: front-left, dist: mid, text: 嗡 }
+            - narr: 又短短震了一下。是留言。
+            - narr: 後面的小房間，若晴還在打字，打幾個字就嘆一口氣。她沒有聽到。
       - clock: "18:12"
       - narr: 我把手機貼到耳邊，按了一下。
       - phone: 十八點十二分。
@@ -851,6 +861,7 @@ scenes:
       - narr: 我伸手碰到她的袖子，她沒有躲開。
       - daze: off
       - narr: 她袖子底下的手臂也在抖。冰箱的馬達聲這時候才回到我耳朵裡。
+      - { sfx: fan_hum, at: back, dist: mid, text: 嗡——, src: 冰箱 }
     next: c2_after
 
   # ─────────────────────────────────────────── 20:00–20:30
@@ -985,6 +996,7 @@ scenes:
       - daze: heavy
       - heart: pound
       - narr: 我想再叫她，吸進來的全是灰，嗆得我彎下腰咳個不停。
+      - { sfx: cough, at: center, dist: near, text: 咳、咳咳 }
       - narr: 嘴裡有鐵鏽味，大概是剛剛咬破了舌頭，我一點都不覺得痛。
       - daze: off
       - narr: 咳到最後，耳朵裡的嗡聲先停了，接著是灰塵落回地上的沙沙聲。
@@ -994,6 +1006,7 @@ scenes:
       - if: "!know.k_cabinet_warm"
         then:
           - narr: 我撐著地往右邊爬，爬到牆腳，手背撞上一塊鐵板。燙的，裡面還在低低地嗡。
+          - { sfx: hum_fall, at: right, dist: near, text: 嗡…… }
           - { think: 東牆上釘著一個鐵櫃，剛才那一聲是從這裡面出來的。, learn: k_cabinet_warm, mem: m_c2_cabinet }
     next: c2_night
 

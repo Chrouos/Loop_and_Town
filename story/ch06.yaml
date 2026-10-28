@@ -45,7 +45,7 @@ scenes:
       - { sfx: thud, at: front-left, dist: near, gain: 0.18, text: 叩 }
       - narr: 頭上的行李架，我的行李箱跟著車廂輕輕撞了一下。最底層是那六封信，橡皮筋還綁著。
       - { sfx: station_chime, at: front, dist: far, text: 叮——咚—— }
-      - { announcer: 下一站，灰潮鎮。, as: 廣播 }
+      - { announcer: 下一站，灰潮鎮。, as: 廣播, via: speaker }
       - think: 十八點三十一分，我已經知道今天要怎麼過。
       - think: 我要的是剩下的時間。
       - { sfx: train_brake, at: front, dist: mid, text: 嘰—— }
@@ -442,7 +442,6 @@ scenes:
       - heart: off
       - choice:
           timeout: 14
-          default: 3
           options:
             - text: 「他來還書的時候，有說什麼嗎？」
               then:
@@ -460,9 +459,11 @@ scenes:
                 - me: 嗯。
                 - { old_woman: 這次要記得還喔。……啊，歹勢，我不是那個意思。, as: 館員 }
                 - set: c6_book_borrowed
-            - text: （什麼都不說）
-              then:
-                - narr: 我的手放在布面上，沒有動。冷氣從頭頂一直吹下來。
+          silence:
+            - narr: 我的手放在布面上，沒有動。冷氣從頭頂一直吹下來。
+            - pause: 2.5
+            - { old_woman: 這本五年都沒有人借。我每年清一次灰，每次都會翻到這張卡。, as: 館員 }
+            - { old_woman: 翻到了，就再插回去。, as: 館員 }
     next: c6_walk
 
   # ─────────────────────────── 聲音與時間戳：派出所 ───────────────────────────
@@ -492,7 +493,6 @@ scenes:
       - zhiyuan: 誰跟妳講的。
       - choice:
           timeout: 10
-          default: 2
           options:
             - text: 「你。只是你不記得。」
               then:
@@ -503,10 +503,12 @@ scenes:
                 - zhiyuan: 再？
                 - me: 聽。
                 - zhiyuan: ……妳聽了也不會比較好過。
-            - text: （不回答，等他）
-              then:
-                - pause: 3
-                - narr: 他的手指在桌上敲了一下，隔了好幾秒，才敲第二下。
+          silence:
+            - pause: 3
+            - { sfx: house_tick, at: front-right, dist: near, text: 叩, src: 手指 }
+            - narr: 他的手指在桌上敲了一下，隔了好幾秒，才敲第二下。
+            - { sfx: house_tick, at: front-right, dist: near, text: 叩, src: 手指 }
+            - think: 跟那一次一樣。第二下，總是隔得比較久。
       - { sfx: key_jingle, at: front-right, dist: mid, text: 鏘 }
       - { sfx: drawer, at: front-right, dist: mid, text: 喀啦——喀啦 }
       - narr: 卡了兩次，跟我記得的一樣。
@@ -515,7 +517,7 @@ scenes:
       - narr: 五年前的風，舊站大廳的回聲。
       - think: 這一段我聽過。這一次我不聽他說什麼，我聽時間。
       - { sfx: bell_toll_far, at: front-left, dist: far, text: 噹…… }
-      - { zhiyuan: ……有人嗎？聽得到我嗎？, as: 錄音裡的男聲, at: front, dist: far }
+      - { zhiyuan: ……有人嗎？聽得到我嗎？, as: 錄音裡的男聲, at: front, dist: far, via: tape }
       - { sfx: recorder_click, at: front, dist: near, text: 喀 }
       - me: 那天，她的手機有通聯紀錄嗎？
       - pause: 2
@@ -538,7 +540,6 @@ scenes:
       - think: 收到什麼，誰給的。我沒有問，他也不會知道。
       - choice:
           timeout: 12
-          default: 3
           options:
             - text: 「你為什麼一直留著它？」
               then:
@@ -552,9 +553,9 @@ scenes:
               then:
                 - zhiyuan: 不用謝啦。
                 - zhiyuan: 我只是念給妳聽而已。
-            - text: （什麼都不說）
-              then:
-                - narr: 電扇轉過來又轉過去。他把錄音機收回抽屜，卡了兩次才推進去。
+          silence:
+            - narr: 電扇轉過來又轉過去。他把錄音機收回抽屜，卡了兩次才推進去。
+            - zhiyuan: ……這個抽屜，我報修三年了。
     next: c6_walk
 
   # ─────────────────────────── 別人記錄的知夏：醫院 ───────────────────────────
@@ -610,7 +611,6 @@ scenes:
       - boxun: 後來……我不習慣把推測說成事實。
       - choice:
           timeout: 14
-          default: 3
           options:
             - text: 「我收到一封點字信。署名是知夏。」
               then:
@@ -629,9 +629,8 @@ scenes:
                 - boxun: 我留著，不是為了誰。
                 - pause: 1.5
                 - boxun: ……也許是。
-            - text: （什麼都不說）
-              then:
-                - narr: 兩張紙還在我手上。他沒有伸手拿回去，我也沒有遞回去。
+          silence:
+            - narr: 兩張紙還在我手上。他沒有伸手拿回去，我也沒有遞回去。
     next: c6_walk
 
   # ─────────────────────────── 被毀掉仍存在：研究所 ───────────────────────────
@@ -728,7 +727,6 @@ scenes:
       - tingan: 有些東西，我現在還不能給妳。
       - choice:
           timeout: 14
-          default: 3
           options:
             - text: 「那封點字信，是妳寄的嗎？」
               then:
@@ -748,9 +746,9 @@ scenes:
                 - pause: 1.5
                 - tingan: ……妳不問為什麼？
                 - me: 妳有妳的理由。
-            - text: （什麼都不說）
-              then:
-                - narr: 機器的運轉聲一直沒變。她的雨衣沙了一下，就不動了。
+          silence:
+            - { sfx: cloth_rustle, at: front-left, dist: near, text: 沙, src: 雨衣 }
+            - narr: 機器的運轉聲一直沒變。她的雨衣沙了一下，就不動了。
     next: c6_walk
 
   # ─────────────────────────── 若晴的照片，和對著光的信 ───────────────────────────
@@ -801,7 +799,6 @@ scenes:
       - ruoqing: 這是我唯一一張拍到「多出來」的東西。本來想丟掉，它不像《退潮以後》。
       - choice:
           timeout: 14
-          default: 3
           options:
             - text: 「不要丟。」
               then:
@@ -819,9 +816,11 @@ scenes:
               then:
                 - narr: 相紙很滑，什麼都摸不到。一面牆被收進一張平平的紙裡。
                 - think: 我有她的聲音就夠了。
-            - text: （什麼都不說）
-              then:
-                - narr: 她把照片收回去，紙在桌上滑了一下。
+          silence:
+            - narr: 她把照片收回去，紙在桌上滑了一下。
+            - pause: 2
+            - ruoqing: ……好啦，不丟。我放進「不像的」那個資料夾。
+            - ruoqing: 裡面已經有三張了。
       - if: know.k_erased_line
         then:
           - think: 筆記本上那一行擦掉了，凹痕還在。這張紙底下，會不會也壓著什麼。
@@ -865,6 +864,7 @@ scenes:
       - narr: 她在講郵票，講鳥。聲音像是從窗玻璃外面傳進來的。
       - pause: 2
       - daze: off
+      - { sfx: paper_rustle, at: front, dist: near, text: 沙, src: 信紙 }
       - narr: 她把信紙放回桌上，紙角刮過木頭。櫃台那邊的杯盤聲才又回來。
       - ruoqing: ……妳早就知道了喔？才叫我看。
       - me: 我剛剛才知道。
@@ -977,6 +977,7 @@ scenes:
           - me: 我也不知道。
           - think: 這是真話。
         else:
+          - { sfx: laugh_soft, at: right, dist: mid, text: 呵呵 }
           - narr: 我沒有進去。若晴在裡面跟店長說笑，笑到一半咳了兩聲。
           - think: 東牆，灰色的櫃子，點字底下的鉛筆字。我把它們都帶回家。
       - narr: 天在變涼。我知道，是因為手杖的握把冷了。
@@ -1067,7 +1068,6 @@ scenes:
       - narr: 棉線還纏在我的食指上，繞了兩圈。
       - choice:
           timeout: 15
-          default: 2
           options:
             - text: 「有兩樣，說的是同一句話。」
               if: know.k_erased_line || know.k_pencil_under_braille
@@ -1089,9 +1089,8 @@ scenes:
               then:
                 - tingan: 那就先不要綁。
                 - tingan: 綁起來會很漂亮。漂亮的東西最會騙人。
-            - text: （什麼都不說）
-              then:
-                - narr: 棉線還纏在食指上。我沒有拉緊，也沒有放開。
+          silence:
+            - narr: 棉線還纏在食指上。我沒有拉緊，也沒有放開。
       - tingan: 我做這一行學到一件事。
       - { tingan: 一個圖案越完整，越要問是誰在畫。, mem: m_c6_who_draws }
       - pause: 2
@@ -1334,6 +1333,7 @@ scenes:
       - if: flag.c6_at_shop
         then:
           - narr: 滴答聲裡，我聽得出他在哪裡。他的呼吸放得很慢，像怕吵到什麼。
+          - { sfx: breath_m, at: front, dist: near, text: 呼…… }
         else:
           - { amb: [night_insects], fade: 0.8 }
           - narr: 冰箱的馬達剛好停了。屋子裡只剩他的呼吸，跟窗外的蟲。
@@ -1422,7 +1422,6 @@ scenes:
     beats:
       - choice:
           timeout: 20
-          default: 1
           options:
             - text: 「你拆了她的信。」
               then:
@@ -1435,18 +1434,6 @@ scenes:
                 - pause: 1
                 - yuan: ……這不是理由。對不起。
                 - narr: 他沒有再解釋。我等他解釋，他就是沒有。
-            - text: （什麼都不說）
-              then:
-                - pause: 4
-                - if: flag.c6_at_shop
-                  then:
-                    - { sfx: tools_clink, at: front, dist: near, text: 叮 }
-                    - narr: 他把一樣東西推到我手邊。鋁框，一排一排的小格子。
-                  else:
-                    - { sfx: cup_set, at: front, dist: near, text: 叩 }
-                    - narr: 他把點字板推到我手邊，鋁框碰到我的指尖。
-                - yuan: 明天要拿去還。……妳要的話，先放妳這裡。
-                - narr: 我沒有拿，也沒有推回去。
             - text: 「謝謝你沒有找別人念。」
               then:
                 - pause: 2
@@ -1454,6 +1441,17 @@ scenes:
                 - yuan: 我拆了她的信。
                 - me: 我知道。
                 - tension: -6
+          silence:
+            - pause: 4
+            - if: flag.c6_at_shop
+              then:
+                - { sfx: tools_clink, at: front, dist: near, text: 叮 }
+                - narr: 他把一樣東西推到我手邊。鋁框，一排一排的小格子。
+              else:
+                - { sfx: cup_set, at: front, dist: near, text: 叩 }
+                - narr: 他把點字板推到我手邊，鋁框碰到我的指尖。
+            - yuan: 明天要拿去還。……妳要的話，先放妳這裡。
+            - narr: 我沒有拿，也沒有推回去。
       - pause: 2
       - me: 予安。
       - yuan: 嗯。

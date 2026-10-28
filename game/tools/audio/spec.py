@@ -272,6 +272,8 @@ sfx('lock_turn', [C('615287', 3.40, 4.72)], [615287], st=-21, hp=100, limit=12, 
     note='a real key-operated door lock: short handling/turning movement into a firm mechanical clack; replaces the electronic hotel-card deadbolt')
 sfx('chair_scrape', [C('219677', 0.25, 1.50), C('219677', 2.25, 3.20)], [219677], st=-21, fout=0.1, note='a wooden chair moved on the floor (two takes)')
 sfx('drawer', [C('486081', 0.0, 1.1)], [486081], st=-21, fout=0.1, note='a wooden drawer opening')
+sfx('drawer_catch', [C('486081', 0.015, 0.14), C('486081', 0.355, 0.47)], [486081], st=-21, fout=0.04,
+    note='the same drawer jamming: two short wooden knocks cut from its opening')
 sfx('cloth_rustle', [C('19291', 0.48, 1.15), C('19291', 1.15, 1.98)], [19291], st=-24, fout=0.08, note='two short cloth rustles (sleeve)')
 sfx('cough', [C('722623', 3.80, 4.22), C('722623', 8.95, 9.30), C('722623', 20.44, 20.98)], [722623], st=-21, hp=120, fout=0.06,
     note='three single unprocessed coughs (audience-ambience recording)')
@@ -442,3 +444,47 @@ sfx('breath_m', [C('512741', 0.15, 2.30), C('512741', 4.88, 6.85), C('512741', 7
     note='one slow, close breath of a young man, in and out (three takes)')
 sfx('huddle_rustle', [C('269760', 14.25, 17.25), C('435296', 48.25, 51.25), C('435296', 54.0, 57.0)], [269760, 435296], st=-26, hp=150, limit=12, fin=0.4, fout=0.6,
     note='people leaning in to talk, heard without their words: clothes rubbing and shifting (three passages)')
+
+# ================================================================ strangers talking (background life)
+# No voice is ever synthesized. A passer-by's line is shown as text and heard as a real recording of someone
+# talking, cut at phrase boundaries, high-passed and low-passed so it reads as a voice but no word comes through
+# (the engine plays these at mid/far, which takes off more). Mostly Mandarin, Cantonese and Japanese chatter.
+def talk(sid, a, b, hp=150, lp=2000):
+    return lambda: lowpass(highpass(cut(sid, a, b), hp), lp, order=4)
+
+
+sfx('murmur_w', [talk('482822', 4.60, 8.60), talk('482822', 22.00, 25.10), talk('482822', 40.20, 43.40),
+                 talk('382581', 13.10, 16.30, lp=2200), talk('382581', 19.80, 23.60, lp=2200)],
+    [482822, 382581], st=-22, limit=10, peak=-6, fin=0.12, fout=0.35,
+    note='five phrases of women talking: young women chatting and giggling in Mandarin (vintage optical walla), and a woman in a '
+         'Japanese conversation; high-passed at 150 Hz and low-passed at 2–2.2 kHz (fourth order) so the voice stays but the words do not')
+sfx('murmur_m', [talk('382581', 70.80, 74.40), talk('382581', 88.10, 91.20), talk('401908', 15.30, 18.30), talk('401908', 31.80, 34.60)],
+    [382581, 401908], st=-22, limit=10, peak=-6, hp=90, fin=0.12, fout=0.35,
+    note='four phrases of men talking: a man in a Japanese conversation, and workers chatting in Mandarin in Beijing; '
+         'high-passed at 150 Hz and low-passed at 2 kHz (fourth order) so the words do not come through')
+sfx('murmur_old', [talk('452973', 50.10, 53.90), talk('452973', 65.30, 69.20), talk('452973', 143.00, 146.20),
+                   talk('452973', 147.00, 150.80), talk('452973', 153.20, 156.30)],
+    [452973], st=-22, limit=10, peak=-6, fin=0.15, fout=0.4,
+    note='five phrases of old men chatting in Mandarin over mahjong in a park; high-passed at 150 Hz and low-passed at 2 kHz (fourth order); '
+         'the engine plays them a little lower for old men and a little higher for old women')
+sfx('murmur_child', [talk('434711', 6.00, 8.60, hp=200, lp=2600), talk('434711', 15.80, 18.00, hp=200, lp=2600),
+                     talk('434711', 20.50, 23.60, hp=200, lp=2600), talk('434711', 59.70, 62.20, hp=200, lp=2600),
+                     talk('434711', 69.50, 72.40, hp=200, lp=2600)],
+    [434711], st=-23, limit=10, peak=-6, fin=0.1, fout=0.3,
+    note='five phrases of two small boys chatting in Cantonese on a Hong Kong MTR train after school (a public place, recorded by the uploader); '
+         'high-passed at 200 Hz and low-passed at 2.6 kHz (fourth order)')
+sfx('whisper', [talk('241131', 4.00, 7.20, hp=250, lp=2400), talk('241131', 12.00, 15.40, hp=250, lp=2400),
+                talk('241131', 26.00, 29.20, hp=250, lp=2400), talk('241131', 60.50, 63.80, hp=250, lp=2400)],
+    [241131], st=-23, limit=10, peak=-8, fin=0.25, fout=0.5,
+    note='four passages of intimate, hushed Mandarin walla by a group of dubbing artists (Neumann U87); high-passed at 250 Hz '
+         'and low-passed at 2.4 kHz (fourth order) so only the hush comes through')
+
+
+def walla(sid, a, b):
+    return lambda: lowpass(highpass(cut(sid, a, b), 120), 5000, order=2)
+
+
+sfx('crowd_walla', [walla('452408', 2.0, 8.0), walla('452408', 26.0, 32.0), walla('19304', 20.0, 26.0), walla('455717', 140.0, 146.0)],
+    [452408, 19304, 455717], st=-20, limit=8, peak=-6, fin=0.8, fout=1.2, gain=1.6,
+    note='6 s of a packed room of people all talking at once: a full restaurant in Beijing (Mandarin, two passages), a busy bar in '
+         'Hong Kong (Cantonese), a busy Chinese restaurant in Montreal; high-passed at 120 Hz, low-passed at 5 kHz, swelling in and out')

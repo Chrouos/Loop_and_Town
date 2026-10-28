@@ -1,4 +1,5 @@
 import { Director } from '../src/engine/director';
+import { DIRECTIONS, type Direction } from '../src/audio/catalog';
 import { freshSave, type GameSave } from '../src/engine/save';
 import { loadScriptFromDisk, silentAudio } from './harness';
 
@@ -6,7 +7,13 @@ import { loadScriptFromDisk, silentAudio } from './harness';
 // leaves a lead behind, and the next loop opens a new option instead of replaying everything.
 type Policy = (options: string[], sceneId: string, chLoop: number) => number;
 
-function play(chapter: string, policy: Policy, maxLoops: number) {
+/** Where the sound she is asked about really was; `ears: 'wrong'` points at the opposite side instead. */
+function locateAnswer(director: Director, ears: 'right' | 'wrong'): Direction {
+  const beat = (director as unknown as { runs: Map<string, { pendingInteract?: { beat: { at: Direction } } }> }).runs.get('main')!.pendingInteract!.beat;
+  return ears === 'right' ? beat.at : DIRECTIONS[(DIRECTIONS.indexOf(beat.at) + 4) % 8];
+}
+
+function play(chapter: string, policy: Policy, maxLoops: number, ears: 'right' | 'wrong' = 'right') {
   const { script, errors } = loadScriptFromDisk();
   if (errors.length) throw new Error(errors.join('\n'));
   let wall = 0;
@@ -26,9 +33,11 @@ function play(chapter: string, policy: Policy, maxLoops: number) {
     if (view.choice && view.focus === 'main') {
       const texts = view.choice.options.map((option) => option.text);
       optionsSeen.push(texts);
-      director.choose(policy(texts, view.sceneId ?? '', director.save.chLoop));
+      director.choose(view.choice.options[policy(texts, view.sceneId ?? '', director.save.chLoop)]?.index ?? -1);
     } else if (view.recall) {
       director.recallPick(null);
+    } else if (view.interact?.type === 'locate') {
+      director.locatePick(locateAnswer(director, ears));
     } else if (view.interact?.type === 'touch') {
       director.touchDone();
     } else if (view.interact?.type === 'punch') {
@@ -56,7 +65,8 @@ const prefer = (...patterns: RegExp[]) => (options: string[]) => {
 describe('chapter 4 gates', () => {
   it('saying nothing to 周警官 keeps the recorder shut, and the drawer lead opens it next loop', () => {
     const result = play('4', (options, sceneId, chLoop) => {
-      if (sceneId === 'c4_police' && chLoop === 1) return prefer(/什麼都不說/)(options);
+      // Saying nothing is not an option on screen: pick nothing and let the time run out.
+      if (sceneId === 'c4_police' && chLoop === 1) return -1;
       return prefer(/卡兩次/, /我已經聽過好幾次/, /她跟你說過/, /妳恨她嗎/, /妳答應過她什麼/)(options);
     }, 2);
     expect(result.knowledge.has('c4_lead_drawer')).toBe(true);
@@ -67,6 +77,16 @@ describe('chapter 4 gates', () => {
     expect(result.scenesByLoop[1]).not.toContain('c4_hospital');
     expect(result.scenesByLoop[1]).not.toContain('c4_library');
     expect(result.chapter).toBe('5');
+  });
+
+  it('missing where the drawer was leaves only a vague lead, and no drawer line next loop', () => {
+    const result = play('4', (options, sceneId) => {
+      if (sceneId === 'c4_police') return -1;
+      return prefer(/我已經聽過好幾次/, /她跟你說過/, /妳恨她嗎/, /妳答應過她什麼/)(options);
+    }, 2, 'wrong');
+    expect(result.knowledge.has('c4_lead_drawer_lost')).toBe(true);
+    expect(result.knowledge.has('c4_lead_drawer')).toBe(false);
+    expect(result.optionsSeen.some((texts) => texts.some((text) => text.includes('卡兩次')))).toBe(false);
   });
 
   it('a loop that already has a piece skips the place that gave it', () => {

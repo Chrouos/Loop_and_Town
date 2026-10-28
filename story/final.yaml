@@ -79,7 +79,7 @@ scenes:
         then:
           - narr: 行李箱靠在我腳邊。夾層裡那六封信，橡皮筋還綁著，跟每一次一樣。
       - { sfx: station_chime, at: front, dist: far, text: 叮——咚—— }
-      - { announcer: 下一站，灰潮鎮。, as: 廣播 }
+      - { announcer: 下一站，灰潮鎮。, as: 廣播, via: speaker }
       - { sfx: cane_tap, at: front, dist: near, text: 叩 }
       - narr: 我把手杖一節一節卡好。最後那一節卡進去的聲音，每次都比前面響。
     threads:
@@ -216,6 +216,7 @@ scenes:
                   then:
                     - set: f_town_listen_1
                     - pause: 2
+                    - { sfx: shutter_roll, at: front, dist: mid, text: 嘩啦啦—— }
                     - narr: 對面的鐵捲門拉上去，嘩啦啦一路響到頂。遠一點有阿伯在喊今天剛到的白帶魚。
                     - narr: 一張紙被風捲過來，貼著我的腳踝停住，又被吹走。
                     - think: 這些都會自己發生，不用我去動。
@@ -224,13 +225,17 @@ scenes:
                       then:
                         - set: f_town_listen_2
                         - pause: 2
+                        - { sfx: step, at: back-right, to: front-right, dist: mid, text: 叩、叩 }
                         - narr: 腳步聲從身後過來，在我旁邊慢了一下，又往前走。
+                        - { sfx: key_jingle, at: front-left, dist: mid, text: 鏘、鏘 }
                         - narr: 鑰匙碰在一起，響了兩聲。有人推開路邊的門，裡頭的人應了一聲。
                         - think: 我把手杖往自己這邊收了一點。
                       else:
                         - set: f_town_listen_done
                         - pause: 2
+                        - { sfx: wind_gust, at: front, dist: mid, text: 呼—— }
                         - narr: 風把遠處的人聲送過來。我握穩手杖，杖尖重新落到路面上。
+                        - { sfx: cane_tap, at: front, dist: near, text: 叩 }
                         - think: ……該走了。
       - goto: f_hub_pick
 
@@ -550,6 +555,7 @@ scenes:
               - learn: f_lead_yuan
       - if: "know.k_yuan_sent_letter && !flag.f_y_push_1758"
         then:
+          - { sfx: tools_clink, src: 鐵盒, at: back, dist: near, text: 叮 }
           - narr: 我站起來，手杖碰到門邊那個裝零件的鐵盒，叮了一聲。
           - choice:
               options:
@@ -680,6 +686,7 @@ scenes:
           - { sfx: strap_click, at: front, dist: near, text: 喀啦 }
           - ruoqing: ……蛤？
           - { ruoqing: 妳是誰啊？妳憑什麼——, shake: light }
+          - { sfx: glass_clink, src: 湯匙, at: left, dist: mid, text: 叮 }
           - narr: 她的聲音一下子拉得很高，隔壁桌的湯匙碰了杯緣，就不敢再動。
           - ruoqing: 如果妳是因為知夏姊，才跑來替我決定事情，
           - ruoqing: 那妳可以不用管我。
@@ -796,6 +803,7 @@ scenes:
           - narr: 他念她的語氣，跟念上一筆一模一樣。鍵盤聲一下子退得好遠。
           - narr: 我把手杖立在兩腳中間，額頭差一點就要靠上去。
           - daze: off
+          - { sfx: cart_roll, src: 推車, at: front-left, dist: far, text: 喀隆 }
           - narr: 推車又從走廊底推過來，喀隆一聲壓過接縫。他的聲音跟著回到我面前。
           - boxun: 今年四月，一名工人。十八點三十二分，手臂灼傷，舊站東側。
           - boxun: 我能查到的紀錄裡，這五年沒有其他在那個時間送來的舊站傷患。
@@ -1155,7 +1163,7 @@ scenes:
       - if: "flag.ev_tingan"
         then:
           - { sfx: phone_buzz, at: right, dist: near, text: 嗡 }
-          - { tingan: 主路徑這邊我盯著。窗口一開，我馬上跟妳講。, at: right, dist: near, as: 電話裡的庭安 }
+          - { tingan: 主路徑這邊我盯著。窗口一開，我馬上跟妳講。, at: right, dist: near, as: 電話裡的庭安, via: phone }
       - narr: 然後誰都不講話了。
       - { wait: 45, clock: "18:20", until: "18:29" }
       - narr: 我叫手機報時，音量壓到最小。
@@ -1231,8 +1239,8 @@ scenes:
                   - think: 一排小燈，比人高一點。跟她在咖啡店念給我聽的一樣。
           - if: "flag.ev_tingan"
             then:
-              - { tingan: 主路徑這邊也在跳，兩邊同時。, at: right, dist: near, as: 電話裡的庭安 }
-              - { tingan: 它們在對時。妳摸到的，是另外那一條。, at: right, dist: near, as: 電話裡的庭安 }
+              - { tingan: 主路徑這邊也在跳，兩邊同時。, at: right, dist: near, as: 電話裡的庭安, via: phone }
+              - { tingan: 它們在對時。妳摸到的，是另外那一條。, at: right, dist: near, as: 電話裡的庭安, via: phone }
           - { think: 一條在研究所，一條在我手底下。, mem: m_f_two_hums }
           - set: g1
         else:
@@ -1308,23 +1316,23 @@ scenes:
           - yuan: 下排……一、二、三。第三條是舊的，鐘樓那條。
           - yuan: 膠布是我爸纏的。他每次都會多繞一圈，摸得出來。
           - yuan: 這條沒有電，是訊號線。從這裡通到研究所，那邊也會回過來。
-          - { tingan: 好，主路徑的權限我這邊撤了。換你們。, at: right, dist: near, as: 電話裡的庭安 }
-          - { tingan: 等一下，先不要拔！我說拔再拔。, at: right, dist: near, as: 電話裡的庭安, shake: light }
+          - { tingan: 好，主路徑的權限我這邊撤了。換你們。, at: right, dist: near, as: 電話裡的庭安, via: phone }
+          - { tingan: 等一下，先不要拔！我說拔再拔。, at: right, dist: near, as: 電話裡的庭安, shake: light, via: phone }
           - heart: fast
-          - { tingan: 順序反過來的話，它會當成線路故障，自己再接回去。, at: right, dist: near, as: 電話裡的庭安 }
+          - { tingan: 順序反過來的話，它會當成線路故障，自己再接回去。, at: right, dist: near, as: 電話裡的庭安, via: phone }
           - yuan: ……了解。
           - narr: 他的手指捏著那條線，沒有動。我聽得到他在用鼻子慢慢吐氣。
           - narr: 我貼在鐵皮上的手掌也不敢動，指尖壓到發麻。
           - pause: 2
-          - { tingan: 備援權限撤銷……跑完了。好，拔。, at: right, dist: near, as: 電話裡的庭安 }
+          - { tingan: 備援權限撤銷……跑完了。好，拔。, at: right, dist: near, as: 電話裡的庭安, via: phone }
           - yuan: 拔了。
           - { sfx: relay_click, at: right, dist: near, text: 喀噠 }
           - { sfx: hum_fall, at: right, dist: near, text: 嗡…… }
           - narr: 我把手掌貼在鐵皮上。剛剛一直往上爬的那個東西，停住了。
           - tension: -10
           - heart: off
-          - { tingan: 它現在只是關起來，壞了也不會自己打開。, at: right, dist: near, as: 電話裡的庭安 }
-          - { tingan: 可是還沒寫死。要等最後封存才算數。, at: right, dist: near, as: 電話裡的庭安 }
+          - { tingan: 它現在只是關起來，壞了也不會自己打開。, at: right, dist: near, as: 電話裡的庭安, via: phone }
+          - { tingan: 可是還沒寫死。要等最後封存才算數。, at: right, dist: near, as: 電話裡的庭安, via: phone }
           - if: "flag.ev_boxun"
             then:
               - { sfx: phone_notify, at: right, dist: near, text: 叮 }
@@ -1340,9 +1348,9 @@ scenes:
             then:
               - if: "flag.ev_tingan"
                 then:
-                  - { tingan: 主路徑我可以撤。可是備援在哪裡？妳找到了嗎？, at: right, dist: near, as: 電話裡的庭安 }
+                  - { tingan: 主路徑我可以撤。可是備援在哪裡？妳找到了嗎？, at: right, dist: near, as: 電話裡的庭安, via: phone }
                   - me: 沒有。我沒找到。
-                  - { tingan: 那只撤這邊沒有用。它會從另一條接回去。, at: right, dist: near, as: 電話裡的庭安 }
+                  - { tingan: 那只撤這邊沒有用。它會從另一條接回去。, at: right, dist: near, as: 電話裡的庭安, via: phone }
                 else:
                   - think: 庭安不在。牆後面那個東西，連名字都沒有人知道。
               - think: 隔著牆聽到的嗡鳴，不能告訴我該撤哪一條權限。
@@ -1423,8 +1431,8 @@ scenes:
       - if: "flag.ev_boxun"
         then:
           - { sfx: phone_ring, at: right, dist: near, text: 鈴—— }
-          - { boxun: 醫院的分流預測還在跑，現在是唯讀。它說今晚不會下雨。, at: right, dist: near, as: 電話裡的陳醫生 }
-          - { boxun: 十八點三十一分到現在，急診沒有異常。我查了三次。, at: right, dist: near, as: 電話裡的陳醫生 }
+          - { boxun: 醫院的分流預測還在跑，現在是唯讀。它說今晚不會下雨。, at: right, dist: near, as: 電話裡的陳醫生, via: phone }
+          - { boxun: 十八點三十一分到現在，急診沒有異常。我查了三次。, at: right, dist: near, as: 電話裡的陳醫生, via: phone }
       - if: "flag.ev_zhiyuan"
         then:
           - narr: 周警官收起筆，退到我身後。接下來換我確認聲音。
@@ -1512,7 +1520,6 @@ scenes:
               - tingan: 要跟今天一起封進去嗎？封進去就調不出來了，連我都不行。
               - choice:
                   timeout: 15
-                  default: 2
                   options:
                     - text: 「封進去。」
                       then:
@@ -1523,10 +1530,9 @@ scenes:
                         - { sfx: paper_rustle, at: front, dist: near, text: 沙 }
                         - narr: 紙遞到我手上，摺痕還是兩道。我把它放進外套內側，跟那封信貼在一起。
                         - set: f_page_kept
-                    - text: （什麼都不說）
-                      then:
-                        - pause: 2
-                        - tingan: ……那我先夾回筆記後面。
+                  silence:
+                    - pause: 2
+                    - tingan: ……那我先夾回筆記後面。
               - pause: 1.5
             else:
               - think: 庭安的筆記最後面，還夾著那張我沒打開的紙。它要不要跟今天一起封起來，我沒有問。
@@ -1621,6 +1627,7 @@ scenes:
                         - me: 先不要封存。今晚的停用，可以撤回嗎？
                         - tingan: 主路徑可以恢復權限。可是日誌對不上，午夜它可能又會重試。
                         - me: ……我知道。
+                        - { sfx: typing, at: front, dist: near, text: 噠噠噠 }
                         - narr: 鍵盤響了一陣。她念出恢復的權限，我聽著，一句也沒有攔。
                       else:
                         - tingan: 再一次……什麼再一次？
@@ -1638,7 +1645,9 @@ scenes:
                     - narr: 伺服器的聲音退到很遠，耳朵裡只剩一條細細的嗡鳴，跟我的心跳。
                     - think: 我又替所有人選了一次。
                     - daze: off
+                    - { sfx: door_open, at: back, dist: mid, text: 吱 }
                     - narr: 有人推開機房的門，夜風灌進來，蟲叫聲才一樣一樣回到耳朵裡。
+                    - { sfx: cricket_chirp, at: back, dist: far, text: 唧——唧—— }
                   else:
                     - think: 封不起來。會封的人，今天沒有來。
                     - think: 今天會再來一次。這一次，不是我選的。
@@ -1855,7 +1864,7 @@ scenes:
           - yuan: 喂？……對，我在車站。等一下回你。
           - think: 五年前那一通，他沒有接。
       - { sfx: station_chime, at: front, dist: far, text: 叮——咚—— }
-      - { announcer: 往北的列車，即將進站。, as: 廣播 }
+      - { announcer: 往北的列車，即將進站。, as: 廣播, via: speaker }
       - { sfx: train_brake, at: front, text: 嘰———— }
       - yuan: 妳還會回來嗎？
       - pause: 2

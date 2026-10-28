@@ -30,7 +30,7 @@ function play(policy: Policy, maxLoops = 1, station: Direction[] = EAST_WALL, fo
     if (view.choice && view.focus === 'main') {
       const texts = view.choice.options.map((option) => option.text);
       if (view.sceneId === 'f_choice') finalOptions.push(texts);
-      director.choose(policy(texts, view.sceneId ?? ''));
+      director.choose(view.choice.options[policy(texts, view.sceneId ?? '')]?.index ?? -1);
     } else if (view.interact?.type === 'touch') {
       director.touchDone();
     } else if (view.interact?.type === 'punch') {

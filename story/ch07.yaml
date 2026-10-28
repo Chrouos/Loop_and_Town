@@ -47,7 +47,7 @@ scenes:
       - narr: 膝蓋上的手指沿著褲子的縫線來回刮，刮到布都熱了。
       - { wait: 12, clock: "06:12" }
       - { sfx: station_chime, at: front, dist: far, text: 叮——咚—— }
-      - { announcer: 下一站，灰潮鎮。, as: 廣播 }
+      - { announcer: 下一站，灰潮鎮。, as: 廣播, via: speaker }
       - { sfx: train_brake, at: front, dist: mid, text: 嘰—— }
     next: c7_arrival
 
@@ -66,6 +66,7 @@ scenes:
       - think: 這一個他，不知道我知道。
       - yuan: 今天要先去哪裡？我可以帶妳——
       - me: 你今天本來要做什麼？
+      - { sfx: rail_clack, src: 行李箱, at: front-right, dist: near, gain: 0.5, text: 喀 }
       - narr: 他把我的行李箱換到另一隻手。輪子在月台磁磚的縫上喀了一下。
       - yuan: ……開店啊。下午有客人要來拿錶。
       - me: 你開你的店。傍晚我想去店裡找你，你在嗎？
@@ -124,7 +125,6 @@ scenes:
       - tingan: 如果妳聽完，會恨她呢？
       - choice:
           timeout: 15
-          default: 2
           options:
             - text: 「那也是我自己的事。」
               then:
@@ -133,11 +133,6 @@ scenes:
             - text: 「我已經恨過她五年了。」
               then:
                 - tingan: 那妳可能會換一種方式恨她。
-            - text: （不回答，等她）
-              then:
-                - pause: 3
-                - { sfx: sigh, at: front-right, dist: near }
-                - narr: 她吐了一口氣，雨衣的領子跟著沙了一聲。
             - recall:
                 accept:
                   - mem: m_c4_hate_her
@@ -163,6 +158,10 @@ scenes:
                       - set: c7_t_recall
                 miss:
                   - think: 不是這句。這句回答不了她。
+          silence:
+            - pause: 3
+            - { sfx: sigh, at: front-right, dist: near }
+            - narr: 她吐了一口氣，雨衣的領子跟著沙了一聲。
       - if: flag.c7_t_recall
         then:
           - pause: 2
@@ -322,7 +321,6 @@ scenes:
       - pause: 3
       - choice:
           timeout: 15
-          default: 2
           options:
             - text: 「可是她救了我。」
               then:
@@ -336,10 +334,9 @@ scenes:
                 - { sfx: laugh_soft, at: right, dist: near, text: 呵 }
                 - narr: 庭安笑了一聲，很短，像是不小心漏出來的。
                 - tension: -8
-            - text: （不說話）
-              then:
-                - { sfx: cloth_rustle, at: right, dist: near, text: 窸窣 }
-                - narr: 風把她的雨衣吹得沙沙響。她也沒有再開口。
+          silence:
+            - { sfx: cloth_rustle, at: right, dist: near, text: 窸窣 }
+            - narr: 風把她的雨衣吹得沙沙響。她也沒有再開口。
       - think: 她用她對我的了解，把我推走。我用我對每個人的了解，把他們推到安全的地方。
       - pause: 2
       - think: 推的方向不一樣，手是同一隻。
@@ -382,7 +379,7 @@ scenes:
       - { sfx: pen_scratch, at: front, dist: near, text: 唰唰 }
       - narr: 有人在紙上寫字，寫得很用力。
       - { wait: 5 }
-      - { tingan: 妳現在不是只在提醒他們。, as: 錄音裡的庭安, at: front, dist: near }
+      - { tingan: 妳現在不是只在提醒他們。, as: 錄音裡的庭安, at: front, dist: near, via: tape }
       - pause: 3
       - { sfx: breath, at: front, dist: near }
       - narr: 有人吸了一口氣。
@@ -391,7 +388,7 @@ scenes:
       - { wait: 8 }
       - heart: fast
       - daze: light
-      - { tingan: 那妳打算一個人算到什麼時候？, as: 錄音裡的庭安, at: front, dist: near }
+      - { tingan: 那妳打算一個人算到什麼時候？, as: 錄音裡的庭安, at: front, dist: near, via: tape }
       - narr: 我沒有聽見下一句。我只聽見她。
       - pause: 3
       - think: 姊。
@@ -402,11 +399,11 @@ scenes:
       - daze: off
       - narr: 帶子的沙沙聲重新浮上來，我把手背從嘴上拿開，嘴唇被壓得發麻。
       - { wait: 6 }
-      - { tingan: 所以妳就替他們決定？, as: 錄音裡的庭安, at: front, dist: near }
+      - { tingan: 所以妳就替他們決定？, as: 錄音裡的庭安, at: front, dist: near, via: tape }
       - pause: 2.5
       - { zhixia: 我看過結果。, learn: k_zhixia_voice, mem: m_c7_seen_results }
       - pause: 4
-      - { tingan: 看過結果，不代表那個選擇就是妳的。, as: 錄音裡的庭安, at: front, dist: near }
+      - { tingan: 看過結果，不代表那個選擇就是妳的。, as: 錄音裡的庭安, at: front, dist: near, via: tape }
       - pause: 2.5
       - { sfx: chair_scrape, at: front, dist: mid, text: 嘎—— }
       - { sfx: door_close, at: front, dist: far, text: 碰 }
@@ -581,6 +578,7 @@ scenes:
             - narr: 他往坡下走，鐵器的聲音一路往右手邊遠了。
           early:
             - me: 請問……
+            - { sfx: wind_gust, at: front-right, dist: mid, text: 呼—— }
             - narr: 一陣風剛好從海那邊上來，把我的聲音推回喉嚨裡。腳步沒有停。
             - narr: 我只好等，等到鐵器的鏗聲近得像就貼在我的後頸。
             - me: 這邊有人。
@@ -692,7 +690,6 @@ scenes:
           - think: 有一次我叫她不要去。她偏要去，還走進了大廳。
       - choice:
           timeout: 14
-          default: 2
           options:
             - text: 「這個今天，我已經過了好幾次。妳先聽我說完。」
               then:
@@ -710,11 +707,13 @@ scenes:
                 - narr: 她轉身就走，背帶扣一路響到吧台後面。
                 - set: [c7_placed, c7_p_ruoqing]
                 - tension: 8
-            - text: （什麼都不說）
-              then:
-                - pause: 2.5
-                - { sfx: strap_click, at: front, dist: near, text: 喀 }
-                - ruoqing: ……欸，妳要講什麼就講啦。我還在上班耶。
+          silence:
+            - pause: 2.5
+            - { sfx: strap_click, at: front, dist: near, text: 喀 }
+            - ruoqing: ……欸，妳要講什麼就講啦。我還在上班耶。
+            - pause: 1.5
+            - { sfx: coffee_grind, at: front-right, dist: mid, text: 嗡嘰嘰 }
+            - ruoqing: 好啦，妳先坐。今天的豆子磨太多了，拿鐵我請。
       - if: flag.c7_p_ruoqing
         then:
           - think: 她沒有給我講下一句的機會。
@@ -737,6 +736,7 @@ scenes:
       - ruoqing: 那妳要我怎麼做？
       - me: 我沒有要妳怎麼做。我只是不想讓妳在什麼都不知道的情況下去。
       - pause: 3
+      - { sfx: strap_click, at: front, dist: near, text: 喀、喀 }
       - narr: 背帶扣又響了兩下，然後她把手放到桌上，扣子不響了。
       - if: flag.c7_r_full
         then:
@@ -875,7 +875,6 @@ scenes:
           - think: 有一次我說「你去」。他就走進大廳，站在玻璃底下。
       - choice:
           timeout: 12
-          default: 2
           options:
             - text: 「我要你知道。去不去，是你的事。」
               then:
@@ -887,12 +886,11 @@ scenes:
                 - narr: 他回答的方式，跟回無線電一樣。
                 - set: [c7_placed, c7_p_zhiyuan]
                 - tension: 8
-            - text: （不說話）
-              then:
-                - pause: 3
-                - zhiyuan: 妳打來，就是要我去的意思。
-                - me: ……我只是想讓你知道。
-                - narr: 這句話晚了一拍。我握著手機的手心全是汗，殼子一直往下滑。
+          silence:
+            - pause: 3
+            - zhiyuan: 妳打來，就是要我去的意思。
+            - me: ……我只是想讓你知道。
+            - narr: 這句話晚了一拍。我握著手機的手心全是汗，殼子一直往下滑。
       - pause: 2
       - zhiyuan: 五年前，我晚到了。
       - if: flag.c7_p_zhiyuan
@@ -934,6 +932,7 @@ scenes:
           - think: 那疊信在側背包裡。今天我沒有拿出來。
           - think: 六封信寫了什麼，我都記得。第六封他念到哪一行停下來，我也記得。
           - clock: "17:58"
+          - { sfx: thud, src: 手機, at: front, dist: near, gain: 0.18, text: 叩 }
           - narr: 他把手機翻過來，扣在玻璃櫃台上。殼角碰到玻璃，叩的一聲。我也按了一下自己的手機。
           - phone: 十七點五十八分。
           - narr: 他手上的鑷子停了。我沒有說話，陪他坐在這一分鐘裡。
@@ -962,9 +961,11 @@ scenes:
             - text: 「因為她把東西交給你，你都會好好拿著。」
               then:
                 - pause: 2.5
+                - { sfx: tools_clink, at: front, dist: near, text: 叮 }
                 - narr: 鑷子放到玻璃上，叮。他沒有問我怎麼知道。
             - text: （不回答，把整疊信推到他那邊）
               then:
+                - { sfx: paper_rustle, src: 信封, at: front, dist: near, text: 沙 }
                 - narr: 信封的邊角擦過玻璃櫃台，沙的一聲停在他手邊。
       - yuan: 等我一下，我拿拆信刀。
       - { sfx: drawer, at: front, dist: near, text: 喀啦 }
@@ -1012,6 +1013,7 @@ scenes:
       - yuan: 「如果妳讀到這封……」
       - narr: 他停在這裡。下一行在他手上，他沒有念。
       - clock: "17:58"
+      - { sfx: thud, src: 手機, at: front, dist: near, gain: 0.18, text: 叩 }
       - narr: 他把手機翻過來，扣在玻璃櫃台上。殼角碰到玻璃，叩的一聲。我也按了一下自己的手機。
       - phone: 十七點五十八分。
       - if: know.k_yuan_1758
@@ -1083,6 +1085,7 @@ scenes:
       - me: 五點五十九。
       - yuan: 嗯。
       - pause: 2
+      - { sfx: wood_creak, src: 椅子, at: center, dist: near, text: 吱 }
       - narr: 我把兩手壓在大腿上，坐直。椅墊底下的彈簧吱了一聲。
       - me: 我還有事要告訴你。我不會叫你做什麼，我只是要你知道。
       - me: 十八點三十一分，舊車站會出事。也可能不會。我不知道。
@@ -1299,6 +1302,7 @@ scenes:
                 - narr: 他走到我旁邊，托著我的手腕，把手往左後方移過去。
                 - yuan: 這座。我爸的，他修了一輩子，它每天還是慢一點。
                 - yuan: 不用對。他說它就是比較慢熱。
+          - { sfx: house_tick, src: 木殼, at: back-left, dist: mid, text: 叩、叩 }
           - narr: 他說不用對，可是我聽見他的指節在那座鐘的木殼上輕輕敲了兩下，才走回櫃台。
           - tension: -8
     next: c7_night

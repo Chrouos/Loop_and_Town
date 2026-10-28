@@ -93,6 +93,29 @@ describe('director', () => {
     expect(director.knows.has('k_main_one')).toBe(false);
   });
 
+  it('keeps the main conversation in the middle, blurred, while she listens elsewhere', () => {
+    const { director, run } = make();
+    enterScene(director, run);
+    run(600);
+    const first = director.view.center;
+    expect(first?.thread).toBe('main');
+    director.attend('side');
+    // The line she turned away from stays put as the away line instead of becoming an echo.
+    expect(director.view.away?.key).toBe(first?.key);
+    run(SHIFT_MS + 50);
+    expect(director.view.focus).toBe('side');
+    // The next main line arrives while she is still turned away: it replaces the away line, never a murmur.
+    run(2500);
+    expect(director.view.center?.thread).toBe('side');
+    expect(director.view.away?.text).toBe('第二句話也很長很長很長很長。');
+    expect(director.view.periph.some((item) => item.kind === 'murmur' && item.thread === 'main')).toBe(false);
+    director.attend('side');
+    run(SHIFT_MS + 50);
+    expect(director.view.focus).toBe('main');
+    expect(director.view.away).toBeNull();
+    expect(director.view.center?.text).toBe('第二句話也很長很長很長很長。');
+  });
+
   it('returns attention to the main thread after the side thread ends (elastic attention)', () => {
     const { director, run } = make();
     enterScene(director, run);
