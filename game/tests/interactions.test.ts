@@ -181,3 +181,29 @@ scenes:
     expect(buildScript([{ name: 'a.yaml', source: bad }]).errors.join('\n')).toMatch(/no_such_sound/);
   });
 });
+
+describe('locate from memory', () => {
+  it('replay: false plays nothing more; she points at where she heard it', () => {
+    const source = SCRIPT.replace("          decoys: [{ sfx: light_buzz, at: left }]\n", '          replay: false\n');
+    const { script, errors } = buildScript([{ name: 'a.yaml', source }]);
+    expect(errors).toEqual([]);
+    const log: string[] = [];
+    let save: GameSave = { ...freshSave(), started: true, scene: 's1' };
+    const director = new Director(script, save, { audio: silentAudio(log), vibrate: () => undefined, persist: (next) => { save = next; }, wallNow: () => 0 });
+    director.start();
+    const run = (ms: number) => { for (let t = 0; t < ms; t += 50) director.tick(50); };
+    for (let i = 0; i < 600 && director.view.interact?.type !== 'touch'; i++) run(50);
+    director.touchDone();
+    for (let i = 0; i < 600 && director.view.interact?.type !== 'locate'; i++) run(50);
+    run(8000);
+    expect(log.filter((entry) => entry === 'sfx:hum_rise')).toEqual([]);
+    director.locatePick('right');
+    run(100);
+    expect(director.loopFlags.has('found')).toBe(true);
+  });
+
+  it('replay: false takes no decoys', () => {
+    const { errors } = buildScript([{ name: 'a.yaml', source: SCRIPT.replace('          tries: 2\n', '          tries: 2\n          replay: false\n') }]);
+    expect(errors.some((error) => error.includes('replay: false'))).toBe(true);
+  });
+});

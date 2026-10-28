@@ -1,10 +1,10 @@
 import type { AudioEngine } from '../audio/engine';
-import { DIRECTIONS, DIRECTION_ANGLE, DISTANCES, SFX_SOURCE, type AmbienceId, type Direction, type SfxId, type VibrationId } from '../audio/catalog';
+import { DIRECTIONS, DIRECTION_ANGLE, DISTANCES, SFX_SOURCE, type AmbienceId, type Direction, type SfxId, type VibrationId, type VoiceId } from '../audio/catalog';
 import { condRefs, evalCond, type CondContext } from '../script/conditions';
 import { CHAPTER_NUMERALS, SPEAKER_LABELS, TENSION_MAX, type Beat, type Chapter, type Cond, type ChoiceOption, type EndKind, type DazeLevel, type GameScript, type HeartLevel, type LineBeat, type NoiseLevel, type LineKind, type Pos, type Scene, type ShakeLevel } from '../script/types';
 import { driftClock, heardClock, planClock, type ClockPlan } from './clock';
 import { lineTiming, type Phrase } from './text';
-import { HUSH_MS, HUSH_SFX, isVoice, lifeOf, type LifeEvent } from './life';
+import { HUSH_MS, HUSH_SFX, isVoice, isWhispered, lifeOf, type LifeEvent } from './life';
 import { MEMORY_CAPACITY, freshSave, type GameSave, type Memory, type Settings } from './save';
 
 // Presentation timings (scene-clock ms). Prototype parameters, core spec §26.
@@ -39,6 +39,9 @@ const NOISE: Record<Exclude<NoiseLevel, 'off'>, { speed: number; loud: number }>
   light: { speed: 2.5, loud: 1.5 },
   heavy: { speed: 5, loud: 2.2 },
 };
+/** People with no name in the story: heard as recorded voices, a little above the background ones (she is listening). */
+const STRANGERS: ReadonlySet<string> = new Set(['man', 'woman', 'old_man', 'old_woman', 'child']);
+const STRANGER_GAIN = 1.3;
 /** At speed 1, one extra background beat every this long; speed divides it. */
 const NOISE_BASE_MS = 2000;
 
@@ -99,9 +102,11 @@ export type View = {
   card?: Card;
   center: CenterLine | null;
   echo: (CenterLine & { until: number }) | null;
+  /** The main conversation's current line while she listens elsewhere: it keeps going in the middle, blurred. */
+  away: CenterLine | null;
   periph: Peripheral[];
   ripples: { key: number; pos: Pos }[];
-  choice: { key: number; options: { text: string; index: number; recall?: boolean; disabled?: boolean }[]; startedAt: number; timeout?: number } | null;
+  choice: { key: number; options: { text: string; index: number; disabled?: boolean }[]; startedAt: number; timeout?: number } | null;
   /** Memory Input picker: which remembered lines she could say right now. */
   recall: { key: number; memories: Memory[] } | null;
   /** A hands-or-ears moment the scene is waiting on. */
@@ -152,8 +157,11 @@ type Run = {
   blocked: boolean;
   done: boolean;
   pos: Pos;
+  /** A thread of strangers talking under their breath. */
+  whisper?: boolean;
   pendingInteract?: { beat: InteractBeat; deadline: number; triesLeft: number; start: number };
   pendingChoice?: { beat: Extract<Beat, { k: 'choice' }>; options: ChoiceOption[]; deadline: number; fallback: number; recallIndex?: number; remaining?: number };
+  // recallIndex: the open memory picker answers this option; -1 = this question takes no memory at all.
 };
 
 const CENTER: Pos = { dir: 'center', dist: 'near' };
@@ -281,7 +289,7 @@ export class Director {
 
   /**
    * Testing (?scene=c1_1752): start straight at one scene of its chapter, with earlier chapters' knowledge when asked,
-   * and any loop flags the scene expects (?flags=yuan_with_me). Flags the chapter would have set on the way stay unset.
+   * and any loop flags the scene expects (?flags=c1_yuan_with_me). Flags the chapter would have set on the way stay unset.
    */
   jumpToScene(sceneId: string, grantEarlierKnowledge: boolean, flags: string[] = []): boolean {
     const scene = this.script.scenes.get(sceneId);
@@ -406,7 +414,7 @@ export class Director {
     const pending = main?.pendingChoice;
     if (!main || !pending || this.view.focus !== 'main') return;
     const option = pending.options[index];
-    if (!option) return;
+    if (!option || option.silent) return;
     if (option.disabledCond && evalCond(option.disabledCond, this.condContext())) return;
     if (option.recall) { this.openRecall(main, index); return; }
     this.applyChoice(main, option);
@@ -418,9 +426,9 @@ export class Director {
     const main = this.runs.get('main');
     const pending = main?.pendingChoice;
     if (!main || !pending || pending.recallIndex === undefined || !this.view.recall) return;
-    const option = pending.options[pending.recallIndex];
+    const option = pending.recallIndex >= 0 ? pending.options[pending.recallIndex] : undefined;
     this.view.recall = null;
-    if (memoryKey === null || !option?.recall) {
+    if (memoryKey === null) {
       // Back to the choice; its clock starts again where it stopped.
       pending.deadline = this.view.t + (pending.remaining ?? Infinity);
       pending.recallIndex = undefined;
@@ -430,25 +438,33 @@ export class Director {
     const memory = this.save.memories.find((candidate) => candidate.key === memoryKey);
     if (!memory) { this.bump(); return; }
     this.triedRecall(pending.beat).add(memory.key);
-    const accepted = option.recall.accept.find((entry) => entry.mem === memory.id);
-    if (!accepted) this.addTension(TENSION_AUTO.recallMiss);
+    const accepted = option?.recall?.accept.find((entry) => entry.mem === memory.id);
+    // Wrong where a memory was wanted stings a little; trying one where none was is just a thought.
+    if (!accepted && option) this.addTension(TENSION_AUTO.recallMiss);
     main.pendingChoice = undefined;
     main.blocked = false;
     this.view.choice = null;
     const beats: Beat[] = accepted
       ? [...accepted.then, ...(accepted.goto ? [{ k: 'goto', scene: accepted.goto } as Beat] : [])]
       // A line that doesn't fit: she stops before saying it, and the question is still there.
-      : [...(option.recall.miss.length ? option.recall.miss : [{ k: 'line', kind: 'think', speaker: 'me', text: '……不對。不是這一句。' } as Beat]), pending.beat];
+      : [...(option?.recall?.miss.length ? option.recall.miss : [{ k: 'line', kind: 'think', speaker: 'me', text: option ? '……不對。不是這一句。' : '……不是現在。' } as Beat]), pending.beat];
     main.stack.push({ beats, i: 0 });
     main.busyUntil = this.view.t;
     this.bump();
     this.advanceTo(this.view.t);
   }
 
+  /** The memory she can reach for at any question, whether or not this one takes a memory. */
+  remember(): void {
+    const main = this.runs.get('main');
+    const pending = main?.pendingChoice;
+    if (!main || !pending || this.view.focus !== 'main' || this.view.recall) return;
+    this.openRecall(main, pending.options.findIndex((option) => option.recall));
+  }
+
   private openRecall(run: Run, index: number): void {
     const pending = run.pendingChoice!;
     const memories = this.recallable(pending.beat);
-    if (memories.length === 0) return;
     pending.recallIndex = index;
     pending.remaining = Number.isFinite(pending.deadline) ? Math.max(3000, pending.deadline - this.view.t) : Infinity;
     pending.deadline = Infinity;
@@ -538,7 +554,7 @@ export class Director {
     if (beat.k === 'punch') this.view.interact = { type: 'punch', key, cells: beat.cells, label: beat.label, prompt: beat.prompt };
     if (beat.k === 'locate') {
       this.view.interact = { type: 'locate', key, prompt: beat.prompt, triesLeft: beat.tries, hint: null, wrong: [] };
-      this.repeatLocate(key, beat, t);
+      if (beat.replay !== false) this.repeatLocate(key, beat, t);
     }
     if (beat.k === 'approach') {
       this.view.interact = { type: 'approach', key, prompt: beat.prompt };
@@ -748,6 +764,7 @@ export class Director {
     this.pendingGoto = null;
     this.pendingEnd = null;
     this.view.center = null;
+    this.view.away = null;
     this.view.echo = lingering;
     // Sounds already in the air finish on their own; only what belonged to the scene's threads goes.
     this.view.periph = live ? this.view.periph.filter((item) => item.kind === 'sfx' || item.kind === 'life') : [];
@@ -1009,11 +1026,18 @@ export class Director {
     const spoken = beat.kind === 'phone' ? heardClock(text, this.view.clock) : null;
     if (spoken) this.setClock(spoken);
     if (beat.kind === 'char' || beat.kind === 'me' || beat.kind === 'phone') {
-      this.out.audio.voice(beat.speaker === 'me' ? 'me' : beat.speaker, beat.kind === 'me' ? CENTER : pos, timing.revealMs);
+      // A stranger (no name, no device) is heard as a real voice too muffled to make out, or a whisper when they keep
+      // it down; the cast are placed by the rustle of turning to talk, and the text is their voice.
+      const stranger = beat.kind === 'char' && !beat.via && STRANGERS.has(beat.speaker);
+      if (stranger) {
+        const hushed = isWhispered({ say: '', voice: beat.speaker as VoiceId, whisper: beat.whisper ?? run.whisper }, this.ambience);
+        this.out.audio.voice(beat.speaker as VoiceId, pos, timing.revealMs, hushed ? 'whisper' : 'life', STRANGER_GAIN);
+      } else this.out.audio.voice(beat.speaker === 'me' ? 'me' : beat.speaker, beat.kind === 'me' ? CENTER : pos, timing.revealMs, 'line', 1, beat.via);
     }
     if (glide) this.trail(pos, glide, t, glideMs);
     else if (beat.kind === 'char') this.ripple(pos);
     if (focused) this.showCenter(center);
+    else if (run.id === 'main') this.view.away = center;
     else this.addPeripheral('murmur', murmurOf(text), beat.kind === 'char' ? pos : run.pos, run.line.end === Infinity ? t + timing.revealMs + timing.holdMs : run.line.end, run.id);
     this.bump();
   }
@@ -1038,6 +1062,7 @@ export class Director {
     if (!line) return;
     if (!line.learnChecked) this.checkPerception(run);
     run.line = null;
+    if (this.view.away?.key === line.center.key) { this.view.away = null; this.bump(); }
     if (this.view.center?.key === line.center.key) {
       this.view.echo = { ...this.view.center, until: this.view.t + ECHO_MS };
       this.view.center = null;
@@ -1071,7 +1096,7 @@ export class Director {
     const existing = this.runs.get(beat.thread);
     if (existing && !existing.done) return;
     // The sound comes first; whatever is being said there starts a moment later, so a quick turn catches it.
-    const run: Run = { id: beat.thread, stack: [{ beats, i: 0 }], busyUntil: t + (beat.grab ? SHIFT_MS + 200 : CUE_LEAD_MS), line: null, blocked: false, done: false, pos: beat.pos };
+    const run: Run = { id: beat.thread, stack: [{ beats, i: 0 }], busyUntil: t + (beat.grab ? SHIFT_MS + 200 : CUE_LEAD_MS), line: null, blocked: false, done: false, pos: beat.pos, whisper: beat.whisper };
     this.runs.set(beat.thread, run);
     if (beat.sfx) this.out.audio.play(beat.sfx, beat.pos);
     this.addPeripheral('cue', beat.text, beat.pos, Infinity, beat.thread, beat.src ?? (beat.sfx && SFX_SOURCE[beat.sfx]));
@@ -1099,14 +1124,14 @@ export class Director {
 
   private offerChoice(run: Run, beat: Extract<Beat, { k: 'choice' }>, t: number): void {
     const ctx = this.condContext();
-    const canRecall = this.recallable(beat).length > 0;
-    const options = beat.options.filter((option) => (!option.cond || evalCond(option.cond, ctx)) && (!option.recall || canRecall));
+    const options = beat.options.filter((option) => !option.cond || evalCond(option.cond, ctx));
     const original = beat.default !== undefined ? beat.options[beat.default] : undefined;
     // Silence falls back to the default, or the last ordinary option; never to "想起一句話".
     const disabled = options.map((option) => Boolean(option.disabledCond && evalCond(option.disabledCond, ctx)));
-    const lastPlain = options.map((option, index) => !option.recall && !disabled[index]).lastIndexOf(true);
+    const lastPlain = options.map((option, index) => !option.recall && !option.silent && !disabled[index]).lastIndexOf(true);
     const preferred = original ? options.indexOf(original) : -1;
-    const fallback = preferred >= 0 && !disabled[preferred] ? preferred : lastPlain;
+    const silent = options.findIndex((option) => option.silent);
+    const fallback = silent >= 0 ? silent : preferred >= 0 && !disabled[preferred] ? preferred : lastPlain;
     const timeoutMs = beat.timeout !== undefined && fallback >= 0 ? beat.timeout * 1000 : Infinity;
     run.blocked = true;
     run.pendingChoice = { beat, options, deadline: t + timeoutMs + SHIFT_MS, fallback };
@@ -1114,7 +1139,8 @@ export class Director {
     if (this.view.focus !== 'main' && this.shift?.to !== 'main') this.beginShift('main');
     this.view.choice = {
       key: this.keyCounter++,
-      options: options.map((option, index) => ({ text: option.text, index, recall: option.recall ? true : undefined, disabled: disabled[index] || undefined })),
+      // Saying nothing and reaching for a memory are not options on screen: one is the timer, the other is always at hand.
+      options: options.flatMap((option, index) => option.silent || option.recall ? [] : [{ text: option.text, index, disabled: disabled[index] || undefined }]),
       startedAt: t,
       timeout: beat.timeout,
     };
@@ -1188,7 +1214,10 @@ export class Director {
     const pos: Pos = { dir, dist: event.dist ?? (isVoice(event) ? 'far' : 'mid') };
     if (isVoice(event)) {
       const ms = Math.max(900, [...event.say].length * 110);
-      this.out.audio.voice(event.voice, pos, ms, 'life');
+      // Heard as a real voice too far or muffled to make out; in a quiet place, a whisper. Panic brings it closer.
+      const kind = isWhispered(event, this.ambience) ? 'whisper' : 'life';
+      const loud = (noise?.loud ?? 1) * wound.loud;
+      this.out.audio.voice(event.voice, pos, ms, kind, loud);
       this.addPeripheral('life', event.say, pos, t + ms + 2600);
       // The rest of the exchange, one turn after another, from the same spot.
       const turns = event.reply === undefined ? [] : Array.isArray(event.reply) ? event.reply : [event.reply];
@@ -1198,7 +1227,7 @@ export class Director {
         const turnMs = Math.max(900, [...turn.say].length * 110);
         this.schedule(at, () => {
           if (gen !== this.lifeGen || this.view.phase !== 'scene' || this.view.t < this.lifeHushUntil) return;
-          this.out.audio.voice(turn.voice, pos, turnMs, 'life');
+          this.out.audio.voice(turn.voice, pos, turnMs, kind, loud);
           this.addPeripheral('life', turn.say, pos, this.view.t + turnMs + 2600);
           this.lifeVoiceAt = this.view.t;
           this.bump();
@@ -1207,7 +1236,8 @@ export class Director {
       }
       this.lifeVoiceAt = at;
     } else {
-      this.out.audio.play(event.sfx, pos, { gain: (pos.dist === 'far' ? 0.12 : 0.16) * (noise?.loud ?? 1) * wound.loud });
+      // The engine lifts distance itself; one level here keeps a far sound far without losing it.
+      this.out.audio.play(event.sfx, pos, { gain: 0.16 * (noise?.loud ?? 1) * wound.loud });
       this.addPeripheral('sfx', event.text, pos, t + SFX_TEXT_MS * (pos.dist === 'far' ? 1.25 : 1), undefined, event.src ?? (event.sfx && SFX_SOURCE[event.sfx]));
     }
     this.bump();
@@ -1242,7 +1272,11 @@ export class Director {
     this.view.focus = null;
     const target = to === 'main' ? null : this.runs.get(to)?.pos ?? null;
     this.view.shiftingTo = target;
-    if (this.view.center) { this.view.echo = { ...this.view.center, until: this.view.t + ECHO_MS }; this.view.center = null; }
+    // Turning away from the main conversation leaves its line where it is, only blurred; anything else becomes an echo.
+    const mainLine = this.runs.get('main')?.line;
+    if (this.view.center && to !== 'main' && this.view.center.key === mainLine?.center.key) this.view.away = this.view.center;
+    else if (this.view.center) this.view.echo = { ...this.view.center, until: this.view.t + ECHO_MS };
+    this.view.center = null;
     if (from !== null) this.out.audio.play('focus_shift', target ?? CENTER, { gain: 0.6 });
     this.out.audio.setAttention(1);
   }
@@ -1256,6 +1290,7 @@ export class Director {
     this.out.audio.setAttention(0);
     // A line already in progress where we turned: only its tail is caught, and it is never "heard clearly".
     const live = this.runs.get(this.view.focus)?.line;
+    if (this.view.focus === 'main') this.view.away = null;
     if (live) {
       this.view.periph = this.view.periph.filter((item) => !(item.kind === 'murmur' && item.thread === this.view.focus));
       live.learnChecked = true;
@@ -1484,7 +1519,7 @@ export class Director {
 
   private emptyView(): View {
     return {
-      phase: 'idle', brief: false, t: 0, center: null, echo: null, periph: [], ripples: [], choice: null, focus: null, shiftingTo: null,
+      phase: 'idle', brief: false, t: 0, center: null, echo: null, away: null, periph: [], ripples: [], choice: null, focus: null, shiftingTo: null,
       waiting: null, clockMark: 0, keep: null, recall: null, interact: null, memoryCount: this.save.memories.length, shake: 0, shakeLevel: 'light', heart: null, daze: null, noise: null, tension: 0, chapterKey: this.save.chapter, loop: this.save.loop,
     };
   }

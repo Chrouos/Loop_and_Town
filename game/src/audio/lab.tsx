@@ -323,10 +323,13 @@ function Lab() {
       </div>
 
       <h2 style={css.h2}>說話的人 · 不模擬人聲</h2>
-      <p style={css.small}>有人開口時只在他的位置放一個真實的小聲音：換人說話（或隔 8 秒以上再開口）時一聲衣服摩擦；背景路人說話時是衣服與身體挪動。主角自己說話不出聲。</p>
+      <p style={css.small}>角色開口時只在他的位置放一個真實的小聲音：換人說話（或隔 8 秒以上再開口）時一聲衣服摩擦；主角自己說話不出聲。背景路人說話時放一段真的人聲錄音，悶到聽不出字；安靜的地方改成耳語。</p>
       <div style={css.row}>
         <Btn onClick={() => void unlock().then(() => { engine.voice('yuan', pos(), 1500); setLast('voice yuan（換人開口）'); })}>有人開口<span style={css.small}>衣服摩擦</span></Btn>
-        <Btn onClick={() => void unlock().then(() => { engine.voice('woman', pos(), 1500, 'life'); setLast('voice woman（背景路人）'); })}>背景路人說話<span style={css.small}>湊近的動靜</span></Btn>
+        {(['woman', 'man', 'old_man', 'old_woman', 'child'] as const).map((who) => (
+          <Btn key={who} onClick={() => void unlock().then(() => { engine.voice(who, pos(), 1500, 'life'); setLast(`voice ${who}（背景路人）`); })}>路人 {who}<span style={css.small}>聽不清的人聲</span></Btn>
+        ))}
+        <Btn onClick={() => void unlock().then(() => { engine.voice('woman', pos(), 1500, 'whisper'); setLast('voice woman（安靜處耳語）'); })}>路人耳語<span style={css.small}>圖書館、醫院</span></Btn>
       </div>
 
       <h2 style={css.h2}>環境層</h2>

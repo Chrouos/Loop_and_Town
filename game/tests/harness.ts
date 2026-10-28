@@ -70,7 +70,7 @@ export function autoplay(options: { seed: number; maxLoops: number; startChapter
       if (options.stopAtChapter && director.save.chapter === options.stopAtChapter) break;
     }
     if (view.choice && view.focus === 'main' && random() < 0.6) {
-      director.choose(Math.floor(random() * view.choice.options.length));
+      director.choose(view.choice.options[Math.floor(random() * view.choice.options.length)].index);
     } else if (view.phase === 'scene' && random() < 0.02) {
       const cues = view.periph.filter((item) => item.kind === 'cue' && item.thread);
       if (cues.length && random() < attendRate) director.attend(cues[Math.floor(random() * cues.length)].thread!);

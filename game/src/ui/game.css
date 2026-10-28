@@ -131,6 +131,22 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 .lt-echo.holding { animation-play-state: paused; opacity: 0.8; filter: none; }
 .lt-echo.leaving { pointer-events: none; }
 
+/* ── turned away: the main conversation keeps going in the middle, out of focus ── */
+.lt-stage.away .lt-center-inner { filter: blur(3px); opacity: 0.55; }
+.lt-line.lt-away { pointer-events: none; }
+
+/* ── beside a sound: what she turned toward is written where it comes from ── */
+.lt-side { position: absolute; width: min(72vw, 400px); text-align: center; pointer-events: none; animation: lt-fade-in 500ms var(--ease) both; }
+.lt-side[data-align="left"] { text-align: left; }
+.lt-side[data-align="right"] { text-align: right; }
+.lt-side .lt-line-in { padding: 8px 0; }
+.lt-side[data-align="left"] .lt-line-in { transform-origin: 0 100%; }
+.lt-side[data-align="right"] .lt-line-in { transform-origin: 100% 100%; }
+.lt-side[data-align="left"] .lt-sent { margin: 0 1em 0 0; }
+.lt-side[data-align="right"] .lt-sent { margin: 0 0 0 1em; }
+.lt-side .lt-text { font-size: calc(clamp(1.02rem, 2vw, 1.4rem) * var(--text-scale, 1)); }
+.lt-side .lt-label { margin-bottom: 0.5em; text-indent: 0; }
+
 /* ── periphery: sounds around her ── */
 .lt-p {
   position: absolute; transform: translate(-50%, -50%);
@@ -374,8 +390,12 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 .lt-choices.tight .lt-choice { padding: 5px 14px; line-height: 1.4; letter-spacing: 0.06em; font-size: calc(clamp(0.98rem, 1.8vw, 1.12rem) * min(var(--text-scale, 1), 1.15)); }
 
 /* ── memory input: saying a remembered line ── */
-.lt-choice.recall { color: var(--ink-faint); font-style: italic; letter-spacing: 0.18em; }
-.lt-choice.recall:hover, .lt-choice.recall:focus-visible { color: var(--ink-soft); }
+.lt-memory-door { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--ink-ghost); text-align: center; opacity: 0; animation: lt-fade-in 600ms var(--ease) forwards; }
+.lt-memory-open { padding: 6px 14px; color: var(--ink-faint); font-style: italic; letter-spacing: 0.24em; font-size: calc(0.82rem * var(--text-scale, 1)); transition: color 300ms; }
+.lt-memory-open:hover, .lt-memory-open:focus-visible { color: var(--ink-soft); }
+.lt-memory-door.teach .lt-memory-open { color: var(--ink-soft); animation: lt-breathe 2.4s ease-in-out infinite; }
+.lt-memory-teach { font-size: calc(0.74rem * var(--text-scale, 1)); letter-spacing: 0.14em; color: var(--ink-dim); line-height: 1.8; }
+.lt-choices.tight .lt-memory-door { margin-top: 4px; padding-top: 4px; }
 .lt-recall {
   position: absolute; left: 50%; top: calc(50% + 70px); transform: translateX(-50%);
   width: min(88vw, 560px); max-height: calc(50vh - 90px); overflow-y: auto; z-index: 4;

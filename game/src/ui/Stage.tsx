@@ -14,7 +14,7 @@ const GONE_MS = 480;
 // under way adds to its speed instead of jolting it.
 const EASE = 'cubic-bezier(0.4, 0, 0.2, 1)';
 
-type Role = 'center' | 'echo' | 'leaving';
+type Role = 'center' | 'away' | 'echo' | 'leaving';
 
 // An echo pushed out by the next one stays mounted briefly so it can fade from wherever it was.
 function useLeaving(echo: CenterLine | null, centerKey: number | undefined): CenterLine[] {
@@ -92,12 +92,12 @@ function placeSounds(root: HTMLElement, periph: Peripheral[], ripples: View['rip
   const gap = 14;
   // A long line on a narrow screen runs past where the choices start: let the choices step down below it.
   const choices = root.querySelector<HTMLElement>('.lt-choices');
-  const said = root.querySelector('.lt-line:not(.lt-echo) .lt-text');
+  const said = root.querySelector('.lt-center .lt-line:not(.lt-echo) .lt-text');
   if (choices) {
     choices.style.top = '';
     choices.classList.remove('tight');
     // Never lifted onto what she is reading, nor onto the echo above it.
-    const lines = [...root.querySelectorAll('.lt-line:not(.leaving) .lt-text')].map((el) => el.getBoundingClientRect().bottom - origin.top + 28);
+    const lines = [...root.querySelectorAll('.lt-center .lt-line:not(.leaving) .lt-text')].map((el) => el.getBoundingClientRect().bottom - origin.top + 28);
     const floor = Math.max(H * 0.18, ...lines);
     // Every option should be seen at once: below the line if it fits, else lifted toward it, else in tighter rows.
     // Only a list that still cannot fit is left to scroll.
@@ -123,12 +123,14 @@ function placeSounds(root: HTMLElement, periph: Peripheral[], ripples: View['rip
   const lineH = Math.min(Math.max(18.4, 0.023 * W), 25.6) * 1.85 * textScale;
   const halfW = Math.min(0.38 * W, 340);
   const keepOut: Box[] = [{ l: W / 2 - halfW - gap, r: W / 2 + halfW + gap, t: H / 2 - 3.5 * lineH - 30, b: H / 2 + 1.5 * lineH + 26 + gap }];
-  root.querySelectorAll('.lt-line:not(.leaving) .lt-text, .lt-line:not(.leaving) .lt-label, .lt-choice, .lt-wait, .lt-where').forEach((el) => keepOut.push(boxOf(el)));
+  root.querySelectorAll('.lt-center .lt-line:not(.leaving) .lt-text, .lt-center .lt-line:not(.leaving) .lt-label, .lt-choice, .lt-wait, .lt-where').forEach((el) => keepOut.push(boxOf(el)));
   const corner = document.querySelector('.lt-corner');
   if (corner) keepOut.push(boxOf(corner));
 
   // Measured things only (not the room kept for a longer line), unpadded: a label merely brushing the margin stays put.
   const fixed = keepOut.length;
+  // What she turned toward is written beside its sound: new sounds keep off it, but it never pushes that sound away.
+  root.querySelectorAll('.lt-side .lt-line:not(.leaving) .lt-text').forEach((el) => keepOut.push(boxOf(el)));
   const hits = (a: Box, b: Box) => a.l < b.r && a.r > b.l && a.t < b.b && a.b > b.t;
   const byKey = new Map(periph.map((item) => [String(item.key), item]));
   const centres = new Map<Pos, { x: number; y: number }>();
@@ -171,6 +173,25 @@ function placeSounds(root: HTMLElement, periph: Peripheral[], ripples: View['rip
   if (glow && at) { glow.style.left = `${at.x}px`; glow.style.top = `${at.y}px`; }
 }
 
+// Beside the sound it comes from: above it in the lower half of the screen, below it in the upper half, flush with
+// its outer edge, and never off screen. Once that sound has gone, the box stays where it was while it fades.
+function placeSide(root: HTMLElement, box: HTMLElement, cue: HTMLElement | null) {
+  if (!cue || cue.dataset.placed === undefined) return;
+  const W = root.clientWidth;
+  const H = root.clientHeight;
+  const margin = 16;
+  const x = parseFloat(cue.style.left);
+  const y = parseFloat(cue.style.top);
+  const w = box.offsetWidth;
+  const align = x < W * 0.4 ? 'left' : x > W * 0.6 ? 'right' : 'middle';
+  const left = align === 'left' ? x - cue.offsetWidth / 2 : align === 'right' ? x + cue.offsetWidth / 2 - w : x - w / 2;
+  box.style.left = `${Math.min(Math.max(left, margin), W - w - margin)}px`;
+  box.dataset.align = align;
+  const below = y < H / 2;
+  box.style.top = below ? `${y + cue.offsetHeight / 2 + 10}px` : '';
+  box.style.bottom = below ? '' : `${Math.max(margin, H - (y - cue.offsetHeight / 2 - 10))}px`;
+}
+
 type Props = { director: Director; view: View; onCapture: () => void; firstCueHint: boolean; onCueHintShown: () => void };
 
 export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown }: Props) {
@@ -188,7 +209,8 @@ export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown 
 
   const shifting = view.shiftingTo !== null || (view.phase === 'scene' && view.focus === null);
   const focusPos = view.focus && view.focus !== 'main' ? view.periph.find((item) => item.kind === 'cue' && item.thread === view.focus)?.pos : undefined;
-  const className = ['lt-stage', `phase-${view.phase}`, view.phase === 'out' && view.brief ? 'brief' : '', shifting ? 'shifting' : '', shaking ? `shake shake-${shaking}` : '', view.tension ? `tension-${view.tension}` : '', director.settings.motion ? '' : 'still'].join(' ');
+  const turnedAway = (view.focus !== null && view.focus !== 'main') || view.shiftingTo !== null;
+  const className = ['lt-stage', `phase-${view.phase}`, view.phase === 'out' && view.brief ? 'brief' : '', shifting ? 'shifting' : '', turnedAway ? 'away' : '', shaking ? `shake shake-${shaking}` : '', view.tension ? `tension-${view.tension}` : '', director.settings.motion ? '' : 'still'].join(' ');
   const firstCue = firstCueHint ? view.periph.find((item) => item.kind === 'cue' && item.thread !== view.focus) : undefined;
 
   useEffect(() => { if (firstCue) onCueHintShown(); }, [firstCue?.key]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -201,6 +223,14 @@ export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown 
     ...(echo ? [{ line: echo, role: 'echo' as const }] : []),
     ...(view.center ? [{ line: view.center, role: 'center' as const }] : []),
   ];
+  // The middle only ever carries the main conversation: sharp while she listens to it, blurred while she has turned away.
+  const awayLine = view.away && view.away.key !== view.center?.key ? view.away : null;
+  const middle = [...lines.filter(({ line }) => line.thread === 'main'), ...(awayLine ? [{ line: awayLine, role: 'away' as const }] : [])];
+  const middleSaying = middle.some(({ role }) => role === 'center' || role === 'away');
+  // What she turned toward is written beside its own sound.
+  const side = lines.filter(({ line }) => line.thread !== 'main');
+  const sideThread = side[side.length - 1]?.line.thread;
+  const sideCue = sideThread ? view.periph.find((item) => item.kind === 'cue' && item.thread === sideThread)?.key : undefined;
 
   const [turn, turnGone] = useLinger(view.shiftingTo);
   const [choice, choiceGone] = useLinger(view.choice && view.focus === 'main' ? view.choice : null);
@@ -218,7 +248,7 @@ export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown 
   // Between two lines the centre stays as tall as the last one, so the echo rises once, not once now and again
   // when the next line pushes it.
   const centerHeight = useRef(0);
-  const holdSlot = !view.center && lines.length > 0 && centerHeight.current > 0;
+  const holdSlot = !middleSaying && middle.length > 0 && centerHeight.current > 0;
 
   const root = useRef<HTMLDivElement>(null);
   const [screen, setScreen] = useState(0);
@@ -232,9 +262,11 @@ export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown 
   }, []);
   useLayoutEffect(() => {
     if (!root.current) return;
-    const said = root.current.querySelector<HTMLElement>('.lt-line:not(.lt-echo)');
-    if (view.center && said) centerHeight.current = said.offsetHeight;
-    else if (!lines.length) centerHeight.current = 0;
+    const said = root.current.querySelector<HTMLElement>('.lt-center .lt-line:not(.lt-echo)');
+    if (middleSaying && said) centerHeight.current = said.offsetHeight;
+    else if (!middle.length) centerHeight.current = 0;
+    const sideBox = root.current.querySelector<HTMLElement>('.lt-side');
+    if (sideBox) placeSide(root.current, sideBox, sideCue !== undefined ? root.current.querySelector<HTMLElement>(`.lt-p[data-key="${sideCue}"]`) : null);
     placeSounds(root.current, periph.map((entry) => entry.item), view.ripples, turn, placedFor.current !== screen || placedScale.current !== textScale, textScale);
     placedFor.current = screen;
     placedScale.current = textScale;
@@ -265,10 +297,16 @@ export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown 
 
             <div className="lt-center">
               <div className="lt-center-inner" style={{ transform: focusPos ? leanOf(focusPos) : undefined }}>
-                {lines.map(({ line, role }) => <Line key={line.key} line={line} role={role} director={director} view={view} onCapture={onCapture} />)}
+                {middle.map(({ line, role }) => <Line key={line.key} line={line} role={role} director={director} view={view} onCapture={onCapture} />)}
                 {holdSlot && <div className="lt-hold" style={{ height: centerHeight.current }} aria-hidden="true" />}
               </div>
             </div>
+
+            {side.length > 0 && (
+              <div className="lt-side">
+                {side.map(({ line, role }) => <Line key={line.key} line={line} role={role} side director={director} view={view} onCapture={onCapture} />)}
+              </div>
+            )}
 
             {choice && !view.recall && <Choices director={director} choice={choice} gone={choiceGone} />}
             {waiting && <Waiting gone={waitingGone} />}
@@ -327,8 +365,9 @@ export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown 
   }
 }
 
-function Line({ line, role, director, view, onCapture }: { line: CenterLine; role: Role; director: Director; view: View; onCapture: () => void }) {
-  const echo = role !== 'center';
+function Line({ line, role, side = false, director, view, onCapture }: { line: CenterLine; role: Role; side?: boolean; director: Director; view: View; onCapture: () => void }) {
+  const echo = role === 'echo' || role === 'leaving';
+  const current = role === 'center' || role === 'away';
   const [holding, setHolding] = useState(false);
   const [kept, setKept] = useState(false);
   const timer = useRef<number | null>(null);
@@ -336,8 +375,8 @@ function Line({ line, role, director, view, onCapture }: { line: CenterLine; rol
   // Phrase delays count from when this element mounted; re-deriving them each render would pull later phrases forward.
   const mountedAt = useRef(elapsed);
   // Once she stops listening the line freezes as far as she heard it, so nothing unheard pops in on the echo.
-  const heardAll = useRef(role !== 'center');
-  if (role === 'center') heardAll.current = elapsed >= line.revealMs / director.speed - 30;
+  const heardAll = useRef(!current);
+  if (current) heardAll.current = elapsed >= line.revealMs / director.speed - 30;
   const revealed = heardAll.current;
 
   // Slide instead of jumping whenever the line's slot moves (turning into an echo, the line below changing
@@ -345,7 +384,7 @@ function Line({ line, role, director, view, onCapture }: { line: CenterLine; rol
   // slides stack on top of one still running, so a second move mid-way bends the path instead of stopping it,
   // and the shape always starts from what is on screen. The slot is measured untransformed (bottom centre,
   // from the stage centre) so leans and the -50% centring never read as a move.
-  const rest = restingTransform(line, role);
+  const rest = restingTransform(line, role, side);
   const ref = useRef<HTMLDivElement>(null);
   const inner = useRef<HTMLDivElement>(null);
   const slot = useRef<{ x: number; y: number; rest: string } | null>(null);
@@ -382,7 +421,7 @@ function Line({ line, role, director, view, onCapture }: { line: CenterLine; rol
   // eases on from wherever the lean had got to.
   useLayoutEffect(() => {
     const body = inner.current;
-    if (role !== 'center' || line.kind !== 'char' || !line.to || !body?.animate || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (!current || side || line.kind !== 'char' || !line.to || !body?.animate || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const left = (line.glideMs ?? 0) / director.speed - Math.max(0, mountedAt.current);
     if (left <= 0) return;
     reshape.current = body.animate([{ transform: leanOf(line.pos) }, { transform: leanOf(line.to) }], { duration: left, easing: 'ease-in-out' });
@@ -400,7 +439,7 @@ function Line({ line, role, director, view, onCapture }: { line: CenterLine; rol
   }, [role]);
 
   const start = (event: ReactPointerEvent) => {
-    if (!line.perceived && !echo && line.kind === 'phone') return;
+    if (role === 'away' || (!line.perceived && !echo && line.kind === 'phone')) return;
     event.stopPropagation();
     setHolding(true);
     timer.current = window.setTimeout(() => {
@@ -414,7 +453,7 @@ function Line({ line, role, director, view, onCapture }: { line: CenterLine; rol
     setHolding(false);
   };
 
-  const classes = ['lt-line', `kind-${line.kind}`, echo ? 'lt-echo' : '', role === 'leaving' ? 'leaving' : '', revealed ? 'revealed' : '', holding ? 'holding' : '', kept ? 'kept' : ''].join(' ');
+  const classes = ['lt-line', `kind-${line.kind}`, echo ? 'lt-echo' : '', role === 'away' ? 'lt-away' : '', role === 'leaving' ? 'leaving' : '', revealed ? 'revealed' : '', holding ? 'holding' : '', kept ? 'kept' : ''].join(' ');
   return (
     <div
       ref={ref}
@@ -462,9 +501,11 @@ function sentencesOf(phrases: Phrase[]): { phrases: Phrase[]; br: boolean }[] {
 
 // Where a line rests: leaning toward whoever speaks; her own words a little lower; an echo shrunk toward its
 // bottom edge (scaled, not re-sized, so it keeps its rows instead of re-wrapping halfway).
-function restingTransform(line: CenterLine, role: Role): string {
+// Beside a sound there is no leaning: the place on screen already says where it comes from.
+function restingTransform(line: CenterLine, role: Role, side: boolean): string {
+  if (side) return role === 'center' ? 'none' : 'scale(0.82)';
   const lower = line.kind === 'me' ? 'translateY(26px)' : '';
-  if (role === 'center') return line.kind === 'char' ? leanOf(line.to ?? line.pos) : lower || 'none';
+  if (role === 'center' || role === 'away') return line.kind === 'char' ? leanOf(line.to ?? line.pos) : lower || 'none';
   const shrink = line.kind === 'narr' || line.kind === 'phone' ? 'scale(0.82)' : 'scale(0.66)';
   return `${lower} ${shrink}`.trim();
 }
@@ -477,7 +518,7 @@ function Choices({ director, choice, gone }: { director: Director; choice: NonNu
         <button
           key={index}
           type="button"
-          className={`lt-choice${option.recall ? ' recall' : ''}`}
+          className="lt-choice"
           disabled={gone || option.disabled}
           style={{ animationDelay: `${index * 140}ms, ${index * 140}ms` }}
           onClick={(event) => { event.stopPropagation(); director.choose(option.index); }}
@@ -485,7 +526,26 @@ function Choices({ director, choice, gone }: { director: Director; choice: NonNu
           <span className="lt-key">{index + 1}</span>{option.text}
         </button>
       ))}
+      <MemoryDoor director={director} gone={gone} delay={choice.options.length * 140} />
       {timeoutMs > 0 && <div className="lt-timer" />}
+    </div>
+  );
+}
+
+const MEMORY_HINT_KEY = 'listening-town-memory-hint';
+
+// The same door under every question, wanted or not, so its being there never gives anything away.
+// The first time she has something to carry through it, it says what it is for, once.
+function MemoryDoor({ director, gone, delay }: { director: Director; gone: boolean; delay: number }) {
+  const carrying = director.save.memories.length > 0;
+  const [teach] = useState(() => { try { return carrying && localStorage.getItem(MEMORY_HINT_KEY) !== 'done'; } catch { return false; } });
+  useEffect(() => { if (teach) try { localStorage.setItem(MEMORY_HINT_KEY, 'done'); } catch { /* ignore */ } }, [teach]);
+  return (
+    <div className={`lt-memory-door${teach ? ' teach' : ''}`} style={{ animationDelay: `${delay}ms` }}>
+      <button type="button" className="lt-memory-open" disabled={gone} onClick={(event) => { event.stopPropagation(); director.remember(); }} aria-keyshortcuts="M">
+        想起一句話……
+      </button>
+      {teach && <div className="lt-memory-teach">帶著的記憶，可以在別人問妳的時候說出口。</div>}
     </div>
   );
 }
@@ -500,6 +560,7 @@ export function RecallPicker({ director, recall }: { director: Director; recall:
     <div className="lt-recall" key={recall.key} role="dialog" aria-label="想起一句話" onPointerUp={(event) => event.stopPropagation()}>
       <div className="lt-recall-head">想起一句話</div>
       {firstTime && <div className="lt-recall-hint">挑一句妳記得的話，說出口。對方聽不懂也沒關係，可以再選別的。</div>}
+      {recall.memories.length === 0 && <div className="lt-recall-hint">現在什麼都想不起來。<br />長按一句話，就能記住它。</div>}
       <div className="lt-recall-list">
         {recall.memories.map((memory, index) => (
           <button key={memory.key} type="button" className="lt-recall-item" onClick={() => director.recallPick(memory.key)}>

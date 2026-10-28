@@ -117,3 +117,101 @@ scenes:
   expect(caption!.pos.dist).toBe(distance);
   expect(log).toContain(`sfx:${sfx}`);
 });
+
+it.each([
+  { ambience: 'library', event: '{ say: 這本可以借嗎？, voice: woman }', kind: 'whisper' },
+  { ambience: 'hospital', event: '{ say: 請問抽血在哪裡？, voice: old_woman }', kind: 'whisper' },
+  { ambience: 'library', event: '{ say: 有人跌倒了！, voice: man, whisper: false }', kind: 'life' },
+  { ambience: 'train_interior', event: '{ say: 借過一下。, voice: man }', kind: 'life' },
+  { ambience: 'train_interior', event: '{ say: 噓，他在睡。, voice: woman, whisper: true }', kind: 'whisper' },
+])('a stranger in $ambience is heard as $kind: $event', ({ ambience, event, kind }) => {
+  const { script, errors } = buildScript([{ name: 'test.yaml', source: `
+chapter: 1
+title: 測試
+start: s
+scenes:
+  - id: s
+    ambience: [${ambience}]
+    life:
+      - ${event}
+    beats:
+      - wait: 900
+      - end: reset
+` }]);
+  expect(errors).toEqual([]);
+  const own = script.scenes.get('s')!.life;
+  const voices: string[] = [];
+  const director = new Director(script, { ...freshSave(), started: true, scene: 's' }, {
+    audio: { ...silentAudio(), voice: (speaker, _pos, _ms, voiceKind) => { voices.push(`${speaker}:${voiceKind}`); } },
+    vibrate: () => undefined, persist: () => undefined, wallNow: () => 0,
+  });
+  director.start();
+  const say = (own as { say?: string }[])[0]!.say!;
+  // The place's own strangers take turns with this one; lines never repeat, so it comes up within a few minutes.
+  for (let i = 0; i < 9000 && !director.view.periph.some((item) => item.text === say); i++) director.tick(100);
+  expect(director.view.periph.some((item) => item.text === say)).toBe(true);
+  const speaker = event.match(/voice: (\w+)/)![1];
+  expect(voices).toContain(`${speaker}:${kind}`);
+});
+
+it('rejects a whisper that is not true or false', () => {
+  expect(customLife('{ say: 噓, voice: woman, whisper: maybe }').errors.join('\n')).toMatch(/whisper/);
+});
+
+describe('voices through a device', () => {
+  it('a line can say what it comes through, and only a known device', async () => {
+    const { buildScript } = await import('../src/script/validate');
+    const src = (via: string) => `
+chapter: 1
+title: 測試
+start: s1
+scenes:
+  - id: s1
+    beats:
+      - { man: 下一站，灰潮鎮。, as: 廣播, via: ${via} }
+      - end: reset
+`;
+    const ok = buildScript([{ name: 'a.yaml', source: src('speaker') }]);
+    expect(ok.errors).toEqual([]);
+    const line = ok.script.scenes.get('s1')!.beats[0];
+    expect(line).toMatchObject({ k: 'line', via: 'speaker', label: '廣播' });
+    expect(buildScript([{ name: 'a.yaml', source: src('megaphone') }]).errors.join('\n')).toContain('via');
+  });
+});
+
+describe('strangers the story names nothing for', () => {
+  it('a stranger in a thread is heard as a real voice; behind her on the train, under their breath', async () => {
+    const { buildScript } = await import('../src/script/validate');
+    const { Director } = await import('../src/engine/director');
+    const { freshSave } = await import('../src/engine/save');
+    const { silentAudio } = await import('./harness');
+    const { script, errors } = buildScript([{ name: 'a.yaml', source: `
+chapter: 1
+title: 測試
+start: s1
+scenes:
+  - id: s1
+    ambience: [train_interior]
+    life: "off"
+    beats:
+      - { cue: gossip, at: back-left, text: 窸窸窣窣, sfx: huddle_rustle, whisper: true }
+      - { man: 你家也收到了喔？, at: left }
+      - { yuan: 我在。 }
+      - pause: 20
+      - end: reset
+    threads:
+      gossip:
+        beats:
+          - { woman: 那邊不是出過事。, at: back-left }
+` }]);
+    expect(errors).toEqual([]);
+    const heard: string[] = [];
+    const audio = { ...silentAudio(), voice: (speaker: string, _pos: unknown, _ms: number, kind = 'line') => { heard.push(`${speaker}:${kind}`); } } as never;
+    const director = new Director(script, { ...freshSave(), started: true, scene: 's1' }, { audio, vibrate: () => undefined, persist: () => undefined, wallNow: () => 0 });
+    director.start();
+    for (let i = 0; i < 400; i++) director.tick(50);
+    expect(heard).toContain('woman:whisper');
+    expect(heard).toContain('man:life');
+    expect(heard).toContain('yuan:line');
+  });
+});

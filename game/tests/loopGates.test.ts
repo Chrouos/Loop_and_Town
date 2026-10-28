@@ -1,4 +1,5 @@
 import { Director } from '../src/engine/director';
+import { DIRECTIONS, type Direction } from '../src/audio/catalog';
 import { freshSave, type GameSave } from '../src/engine/save';
 import { loadScriptFromDisk, silentAudio } from './harness';
 
@@ -6,7 +7,13 @@ import { loadScriptFromDisk, silentAudio } from './harness';
 // leaves a lead behind, and the next loop opens a new option instead of replaying everything.
 type Policy = (options: string[], sceneId: string, chLoop: number) => number;
 
-function play(chapter: string, policy: Policy, maxLoops: number) {
+/** Where the sound she is asked about really was; `ears: 'wrong'` points at the opposite side instead. */
+function locateAnswer(director: Director, ears: 'right' | 'wrong'): Direction {
+  const beat = (director as unknown as { runs: Map<string, { pendingInteract?: { beat: { at: Direction } } }> }).runs.get('main')!.pendingInteract!.beat;
+  return ears === 'right' ? beat.at : DIRECTIONS[(DIRECTIONS.indexOf(beat.at) + 4) % 8];
+}
+
+function play(chapter: string, policy: Policy, maxLoops: number, ears: 'right' | 'wrong' = 'right') {
   const { script, errors } = loadScriptFromDisk();
   if (errors.length) throw new Error(errors.join('\n'));
   let wall = 0;
@@ -26,9 +33,11 @@ function play(chapter: string, policy: Policy, maxLoops: number) {
     if (view.choice && view.focus === 'main') {
       const texts = view.choice.options.map((option) => option.text);
       optionsSeen.push(texts);
-      director.choose(policy(texts, view.sceneId ?? '', director.save.chLoop));
+      director.choose(view.choice.options[policy(texts, view.sceneId ?? '', director.save.chLoop)]?.index ?? -1);
     } else if (view.recall) {
       director.recallPick(null);
+    } else if (view.interact?.type === 'locate') {
+      director.locatePick(locateAnswer(director, ears));
     } else if (view.interact?.type === 'touch') {
       director.touchDone();
     } else if (view.interact?.type === 'punch') {
@@ -56,10 +65,11 @@ const prefer = (...patterns: RegExp[]) => (options: string[]) => {
 describe('chapter 4 gates', () => {
   it('saying nothing to 周警官 keeps the recorder shut, and the drawer lead opens it next loop', () => {
     const result = play('4', (options, sceneId, chLoop) => {
-      if (sceneId === 'c4_police' && chLoop === 1) return prefer(/什麼都不說/)(options);
+      // Saying nothing is not an option on screen: pick nothing and let the time run out.
+      if (sceneId === 'c4_police' && chLoop === 1) return -1;
       return prefer(/卡兩次/, /我已經聽過好幾次/, /她跟你說過/, /妳恨她嗎/, /妳答應過她什麼/)(options);
     }, 2);
-    expect(result.knowledge.has('c4_lead_drawer')).toBe(true);
+    expect(result.knowledge.has('lead_c4_drawer')).toBe(true);
     expect(result.knowledge.has('k_recorder_voice')).toBe(true);
     expect(result.optionsSeen.some((texts) => texts.some((text) => text.includes('卡兩次')))).toBe(true);
     // Everything after the police station was heard in loop 1: straight from the police to 17:40 at the institute.
@@ -69,12 +79,22 @@ describe('chapter 4 gates', () => {
     expect(result.chapter).toBe('5');
   });
 
+  it('missing where the drawer was leaves only a vague lead, and no drawer line next loop', () => {
+    const result = play('4', (options, sceneId) => {
+      if (sceneId === 'c4_police') return -1;
+      return prefer(/我已經聽過好幾次/, /她跟你說過/, /妳恨她嗎/, /妳答應過她什麼/)(options);
+    }, 2, 'wrong');
+    expect(result.knowledge.has('lead_c4_drawer_lost')).toBe(true);
+    expect(result.knowledge.has('lead_c4_drawer')).toBe(false);
+    expect(result.optionsSeen.some((texts) => texts.some((text) => text.includes('卡兩次')))).toBe(false);
+  });
+
   it('a loop that already has a piece skips the place that gave it', () => {
     const result = play('4', (options, sceneId, chLoop) => {
       if (sceneId === 'c4_institute' && chLoop === 1) return prefer(/她是想救人/)(options);
       return prefer(/我已經聽過好幾次/, /她跟你說過/, /颱風封路/, /妳恨她嗎/, /妳答應過她什麼/)(options);
     }, 2);
-    expect(result.knowledge.has('c4_lead_promise')).toBe(true);
+    expect(result.knowledge.has('lead_c4_promise')).toBe(true);
     expect(result.scenesByLoop[0]).not.toContain('c4_memory');
     expect(result.scenesByLoop[1]).not.toContain('c4_police');
     expect(result.scenesByLoop[1]).not.toContain('c4_hospital');
@@ -86,7 +106,7 @@ describe('chapter 4 gates', () => {
 describe('chapter 5 gates', () => {
   it('telling him the truth and then arranging his evening keeps 17:58 from him', () => {
     const result = play('5', prefer(/今天我已經過了很多次呢/, /斷掉的錶帶/, /像上次那樣/), 1);
-    expect(result.knowledge.has('c5_lead_arranged')).toBe(true);
+    expect(result.knowledge.has('lead_c5_arranged')).toBe(true);
     expect(result.knowledge.has('k_yuan_1758')).toBe(false);
     expect(result.chapter).toBe('5');
   });
@@ -94,7 +114,7 @@ describe('chapter 5 gates', () => {
   it('asking straight about the toolbox closes it; the truth without arranging advances', () => {
     const first = play('5', prefer(/什麼樣的工具箱/, /今天我已經過了很多次呢/, /我把我知道的告訴你/), 1);
     expect(first.knowledge.has('k_tower_kit')).toBe(false);
-    expect(first.knowledge.has('c5_lead_kit')).toBe(true);
+    expect(first.knowledge.has('lead_c5_kit')).toBe(true);
     const good = play('5', prefer(/斷掉的錶帶/, /今天我已經過了很多次呢/, /我把我知道的告訴你/), 1);
     expect(good.chapter).toBe('6');
   });
@@ -106,7 +126,7 @@ describe('chapter 7 gates', () => {
       if (chLoop === 1) return prefer(/對。你去/)(options);
       return prefer(/是妳的事/, /妳先聽我說完/, /當成推測/, /去不去，是你的事/)(options);
     }, 2);
-    expect(result.knowledge.has('c7_lead_zhiyuan')).toBe(true);
+    expect(result.knowledge.has('lead_c7_zhiyuan')).toBe(true);
     expect(result.scenesByLoop[1]).not.toContain('c7_notes');
     expect(result.scenesByLoop[1]).toContain('c7_letter');
     expect(result.chapter).toBe('final');

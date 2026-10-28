@@ -436,9 +436,48 @@ describe('Web Audio engine (fake context)', () => {
     expect(dbg.stats().shots).toBe(1);
     engine.voice('ruoqing', at, 1500); // someone else starts talking
     expect(dbg.stats().shots).toBe(2);
-    engine.voice('woman', at, 1500, 'life'); // a passer-by: clothes and shifting weight
+    engine.voice('woman', at, 1500, 'life'); // a passer-by: a recording of someone talking, never a synthesized voice
     expect(dbg.stats().shots).toBe(3);
     expect(dbg.stats().voices).toBe(0);
+  });
+
+  it('gives each stranger a recorded murmur that suits them, and whispers in quiet places', async () => {
+    const engine = createAudioEngine();
+    await engine.unlock();
+    const play = vi.spyOn(engine, 'play');
+    const far = { dir: 'left', dist: 'far' } as const;
+    const mid = { dir: 'left', dist: 'mid' } as const;
+    engine.voice('man', far, 1500, 'life');
+    engine.voice('woman', far, 1500, 'life');
+    engine.voice('old_man', far, 1500, 'life');
+    engine.voice('old_woman', far, 1500, 'life');
+    engine.voice('child', mid, 1500, 'life');
+    engine.voice('woman', far, 1500, 'whisper');
+    engine.voice('announcer', far, 1500, 'whisper'); // a loudspeaker never whispers
+    engine.voice('man', far, 1500, 'life', 2); // panic brings it closer
+    const calls = play.mock.calls.map(([id, , opts]) => ({ id, gain: opts?.gain ?? 1, rate: opts?.rate }));
+    expect(calls.map((call) => call.id)).toEqual(['murmur_m', 'murmur_w', 'murmur_old', 'murmur_old', 'murmur_child', 'whisper', 'static_burst', 'murmur_m']);
+    expect(calls[2]!.rate).toBeLessThan(1); // an old man sounds lower
+    expect(calls[3]!.rate).toBeGreaterThan(1);
+    expect(calls[0]!.gain).toBeCloseTo(calls[4]!.gain, 1); // the engine lifts distance for every shot, so one level fits all
+    expect(calls[7]!.gain).toBeCloseTo(calls[0]!.gain * 2);
+    expect(errors).toEqual([]);
+  });
+
+  it('a voice through a device sounds like the device, never like someone beside her', async () => {
+    const engine = createAudioEngine();
+    await engine.unlock();
+    const play = vi.spyOn(engine, 'play');
+    const left = { dir: 'left', dist: 'mid' } as const;
+    engine.voice('man', left, 1500, 'line', 1, 'speaker');
+    engine.voice('man', left, 1500, 'line', 1, 'radio');
+    engine.voice('man', left, 1500, 'line', 1, 'tv');
+    engine.voice('tingan', left, 1500, 'line', 1, 'tape');
+    engine.voice('tingan', left, 1500, 'line', 1, 'phone');
+    engine.voice('announcer', left, 1500); // the station announcer is a loudspeaker on its own
+    engine.voice('yuan', left, 1500); // someone beside her: the rustle of turning to talk
+    expect(play.mock.calls.map(([id]) => id)).toEqual(['static_burst', 'radio_noise', 'radio_noise', 'tape_hiss', 'static_burst', 'static_burst', 'cloth_rustle']);
+    expect(errors).toEqual([]);
   });
 
   it('plays every human sound from synthesis when no recording can be decoded', async () => {

@@ -129,14 +129,14 @@ describe('story exploration exhaustion', () => {
   });
 
   it('town exhausts without using a visit slot, persists across returns, and leaves visits available', () => {
-    const { director, pick } = setup(report.script, 'f_hub_pick', 'final', ['slot1', 'f_tingan_address']);
+    const { director, pick } = setup(report.script, 'f_hub_pick', 'final', ['f_slot1', 'f_tingan_address']);
     expect(pick(town)).toContain('鐵捲門');
     expect(pick(town)).toContain('腳步聲');
     expect(pick(town)).toContain('該走了');
-    expect(director.loopFlags.has('slot2')).toBe(false);
+    expect(director.loopFlags.has('f_slot2')).toBe(false);
     expect(director.view.choice!.options.find((o) => o.text === town)?.disabled).toBe(true);
     expect(director.view.choice!.options.filter((o) => o.text !== town).every((o) => !o.disabled)).toBe(true);
-    const resumed = setup(report.script, 'f_hub_pick', 'final', [...director.loopFlags, 'v_yuan']);
+    const resumed = setup(report.script, 'f_hub_pick', 'final', [...director.loopFlags, 'f_v_yuan']);
     expect(resumed.director.view.choice!.options.find((o) => o.text === town)?.disabled).toBe(true);
     expect(resumed.director.view.choice!.options.some((o) => o.text.includes('找庭安'))).toBe(true);
   });

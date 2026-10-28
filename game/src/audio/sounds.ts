@@ -422,6 +422,46 @@ function maleChuckle(c: SfxCtx): number {
   return endOf(c, e);
 }
 
+/**
+ * Fallback for strangers talking while their recording loads: breath noise through moving formants,
+ * quiet and muffled. Indistinct people, never a synthesized voice; the recordings carry the real thing.
+ * `voices` > 1 overlaps several talkers (a crowd); `hush` drops the level and the top end (whispering).
+ */
+function murmurRecipe(o: { pitch: [number, number]; dur: [number, number]; rate?: number; voices?: number; hush?: boolean }): SfxRecipe {
+  return {
+    play(c) {
+      const t = c.t;
+      const dur = rand(o.dur[0], o.dur[1]);
+      const voices = o.voices ?? 1;
+      const bus = wetDry(c, voices > 1 ? 0.3 : 0.12);
+      let e = t;
+      for (let i = 0; i < voices; i++) {
+        const dest = voices > 1 ? c.g.pan(rand(-0.8, 0.8)) : bus;
+        if (dest !== bus) dest.connect(bus);
+        const start = t + (voices > 1 ? rand(0, 0.6) : 0.02);
+        const len = voices > 1 ? Math.max(0.8, dur - (start - t) - rand(0, 0.6)) : dur;
+        const rig = murmurRig(c.g, dest, start, start + len + 0.4, {
+          pitch: rand(o.pitch[0], o.pitch[1]) * c.p,
+          breath: o.hush ? 1 : 0.35,
+          level: (o.hush ? 0.03 : 0.05) / Math.sqrt(voices),
+          bright: o.hush ? 2600 : 1300,
+          rate: o.rate ?? 4,
+        });
+        e = Math.max(e, rig.speak(start, len));
+      }
+      return endOf(c, e);
+    },
+  };
+}
+
+/**
+ * Fallback for a sound that has its own recording: while the file loads, a related recipe stands in,
+ * pitched by `p` (its level is matched to that recipe after the trims, see ALIKE below).
+ */
+function alike(id: SfxId, p: number): SfxRecipe {
+  return { play: (c) => SFX_RECIPES[id].play({ ...c, p: c.p * p }) };
+}
+
 const BASE_SFX_RECIPES: Record<Exclude<SfxId, AmbientEventId | keyof typeof LIFE_SFX_RECIPES>, SfxRecipe> = {
   // ------------------------------------------------------------ people & movement
   step: stepRecipe({}),
@@ -591,6 +631,16 @@ const BASE_SFX_RECIPES: Record<Exclude<SfxId, AmbientEventId | keyof typeof LIFE
       return endOf(c, e1, e2, e3, e4, e5);
     },
   },
+  // the same drawer, jammed: one short wooden knock and no slide
+  drawer_catch: {
+    play(c) {
+      const t = c.t;
+      const e1 = nshape(c, c.out, t, { kind: 'brown', type: 'lowpass', f: 650, pts: [[0, 0], [0.01, 0.14], [0.06, 0.05], [0.1, 0]] });
+      const e2 = thump(c, c.out, t + 0.01, 160 * c.p, 100 * c.p, 0.04, 0.3);
+      const e3 = nburst(c, c.out, t + 0.01, { type: 'bandpass', f: 600, q: 1.4, t60: 0.04, level: 0.25 });
+      return endOf(c, e1, e2, e3);
+    },
+  },
   cloth_rustle: {
     play(c) {
       const t = c.t;
@@ -613,6 +663,25 @@ const BASE_SFX_RECIPES: Record<Exclude<SfxId, AmbientEventId | keyof typeof LIFE
       return endOf(c, e);
     },
   },
+  murmur_w: murmurRecipe({ pitch: [190, 260], dur: [1.6, 3.2] }),
+  murmur_m: murmurRecipe({ pitch: [100, 140], dur: [1.6, 3.2] }),
+  murmur_old: murmurRecipe({ pitch: [110, 190], dur: [1.6, 3.2], rate: 3.2 }),
+  murmur_child: murmurRecipe({ pitch: [260, 340], dur: [1.2, 2.6], rate: 4.6 }),
+  whisper: murmurRecipe({ pitch: [150, 230], dur: [1.6, 3], rate: 3.6, hush: true }),
+  crowd_walla: murmurRecipe({ pitch: [100, 260], dur: [3.5, 6], voices: 6, rate: 4.4 }),
+  // small things the story names; their recordings carry them, these only stand in while loading
+  pour_water: alike('water_rush', 1.3),
+  bamboo_knock: alike('house_tick', 0.6),
+  knuckle_knock: alike('house_tick', 0.8),
+  chair_creak: alike('wood_creak', 1.15),
+  cane_scrape: alike('chair_scrape', 1.6),
+  gravel_step: alike('step_wet', 1.1),
+  cup_scrape: alike('chair_scrape', 2.2),
+  nail_scratch: alike('pen_scratch', 0.8),
+  suitcase_roll: alike('cart_roll', 1.2),
+  phone_on_glass: alike('cup_set', 0.8),
+  cough_w: alike('cough', 1.35),
+  bike_squeak: alike('mouse_squeak', 0.55),
   gasp_crowd: {
     play(c) {
       const t = c.t;
@@ -2195,6 +2264,13 @@ const TRIM: Partial<Record<SfxId, number>> = {
   key_jingle: 8.75,
   door_open: 2,
   huddle_rustle: 6.125,
+  // strangers talking: the breath-only fallback stays ~7–9 dB under its recordings (2026-10-28 audit), never in front
+  murmur_w: 2,
+  murmur_m: 2,
+  murmur_old: 2,
+  murmur_child: 2,
+  whisper: 1.6,
+  crowd_walla: 4,
   breath: 1.6,
   breath_m: 1.6,
   page_turn: 4.832,
@@ -2239,9 +2315,18 @@ const TRIM: Partial<Record<SfxId, number>> = {
 };
 for (const [id, v] of Object.entries(TRIM) as Array<[SfxId, number]>) SFX_RECIPES[id].level = (SFX_RECIPES[id].level ?? 1) * v;
 
+/** Stand-ins play at the level of the recipe they borrow (times a trim). */
+const ALIKE: Partial<Record<SfxId, [SfxId, number]>> = {
+  pour_water: ['water_rush', 1], bamboo_knock: ['house_tick', 1], knuckle_knock: ['house_tick', 1], chair_creak: ['wood_creak', 1],
+  cane_scrape: ['chair_scrape', 0.7], gravel_step: ['step_wet', 1], cup_scrape: ['chair_scrape', 0.7], nail_scratch: ['pen_scratch', 1],
+  suitcase_roll: ['cart_roll', 1], phone_on_glass: ['cup_set', 1], cough_w: ['cough', 1], bike_squeak: ['mouse_squeak', 0.7],
+};
+for (const [id, [from, v]] of Object.entries(ALIKE) as Array<[SfxId, [SfxId, number]]>) SFX_RECIPES[id].level = (SFX_RECIPES[from].level ?? 1) * v;
+
 /** Human effects allow both recordings and synthesis, including immediate synthesis while recordings load. */
 export const HUMAN_SFX: ReadonlySet<SfxId> = new Set<SfxId>([
   'gasp_crowd', 'cough', 'sigh', 'sigh_m', 'breath', 'breath_m', 'laugh_soft', 'laugh_soft_m', 'laugh_soft_adult', 'laugh_soft_adult_m', 'kid_laugh', 'choice_appear',
+  'murmur_w', 'murmur_m', 'murmur_old', 'murmur_child', 'whisper', 'crowd_walla', 'cough_w',
 ]);
 
 /** Sounds that belong to the "interface" (they bypass the attention muffle). */

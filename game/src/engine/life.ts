@@ -8,10 +8,14 @@ import type { AmbienceId, Direction, Distance, SfxId, VoiceId } from '../audio/c
 /** `src` is the small caption saying what the sound is (defaults to the sfx's SFX_SOURCE). */
 export type LifeSound = { text: string; src?: string; sfx: SfxId; at?: Direction[]; dist?: Distance };
 export type LifeLine = { say: string; voice: VoiceId };
-/** `reply`: the other side of a small exchange, one line or a few turns (a family on the train, two neighbours). */
-export type LifeVoice = { say: string; voice: VoiceId; at?: Direction[]; dist?: Distance; reply?: LifeLine | LifeLine[] };
+/**
+ * `reply`: the other side of a small exchange, one line or a few turns (a family on the train, two neighbours).
+ * `whisper`: whispered (true) or said out loud (false); unset, the place decides (see `Life.whisper`).
+ */
+export type LifeVoice = { say: string; voice: VoiceId; at?: Direction[]; dist?: Distance; reply?: LifeLine | LifeLine[]; whisper?: boolean };
 export type LifeEvent = LifeSound | LifeVoice;
-export type Life = { every: [number, number]; events: LifeEvent[] };
+/** `whisper`: a quiet place (a library, a hospital, a house at night) where strangers lower their voices. */
+export type Life = { every: [number, number]; events: LifeEvent[]; whisper?: boolean };
 
 const AROUND: Direction[] = ['front-left', 'left', 'back-left', 'back', 'back-right', 'right', 'front-right'];
 const SIDES: Direction[] = ['left', 'right', 'back-left', 'back-right'];
@@ -33,6 +37,7 @@ export const LIFE: Partial<Record<AmbienceId, Life>> = {
       { text: '嘻嘻', sfx: 'kid_laugh', src: '小孩在笑', at: BACK, dist: 'far' },
       { text: '呵呵', sfx: 'laugh_soft_adult', at: ['back-right'], dist: 'far' },
       { text: '嗚——', sfx: 'train_horn', src: '火車鳴笛', at: ['front'], dist: 'far' },
+      { text: '吵吵鬧鬧', sfx: 'crowd_walla', src: '整車的人', at: ['back', 'front'], dist: 'far' },
       { say: '……那家的粽子我跟妳說，真的要早點去排……', voice: 'woman', at: ['back-right'], dist: 'far' },
       { say: '媽媽，還有幾站？', voice: 'child', at: BACK, dist: 'far', reply: [
         { say: '還早啦，妳先睡一下。', voice: 'woman' },
@@ -87,6 +92,7 @@ export const LIFE: Partial<Record<AmbienceId, Life>> = {
       { text: '嗶', sfx: 'scanner_beep', src: '刷卡', at: BACK, dist: 'mid' },
       { text: '哐啷', sfx: 'can_rattle', src: '販賣機', at: ['back-left', 'left'], dist: 'mid' },
       { text: '刷、刷', sfx: 'broom_sweep', src: '竹掃把', at: ['front-left', 'front-right'], dist: 'far' },
+      { text: '吵吵鬧鬧', sfx: 'crowd_walla', src: '出站的人', at: BACK, dist: 'far' },
       { say: '阿明！這裡啦！', voice: 'old_man', at: ['right', 'front-right'], dist: 'far' },
       { say: '行李我拿就好，妳走前面。', voice: 'woman', at: ['left', 'back-left'], dist: 'mid' },
       { say: '……往北的旅客，請在二號月台候車……', voice: 'announcer', at: ['front'], dist: 'far' },
@@ -123,6 +129,7 @@ export const LIFE: Partial<Record<AmbienceId, Life>> = {
       { text: '啾啾', sfx: 'bird_chirp', src: '麻雀', at: AROUND, dist: 'far' },
       { text: '叭、叭', sfx: 'car_horn', src: '喇叭', at: ['left', 'right'], dist: 'far' },
       { text: '滋——', sfx: 'fry_sizzle', src: '煎台', at: ['right', 'front-right'], dist: 'mid' },
+      { text: '吵吵鬧鬧', sfx: 'crowd_walla', src: '早市', at: ['front-left', 'front-right', 'left'], dist: 'far' },
       { say: '菜頭一斤多少？', voice: 'old_woman', at: ['left', 'front-left'], dist: 'far', reply: [
         { say: '算妳三十啦。', voice: 'man' },
         { say: '上禮拜才二十五欸。', voice: 'old_woman' },
@@ -165,6 +172,7 @@ export const LIFE: Partial<Record<AmbienceId, Life>> = {
       { text: '咚、咚', sfx: 'ball_bounce', at: BACK, dist: 'far' },
       { text: '噗嘶——', sfx: 'bus_hiss', at: ['left', 'right'], dist: 'far' },
       { text: '叮叮噹噹——', sfx: 'garbage_melody', src: '垃圾車', at: ['front-left', 'front-right'], dist: 'far' },
+      { text: '吵吵鬧鬧', sfx: 'crowd_walla', src: '路邊的人', at: SIDES, dist: 'far' },
       { say: '回來吃飯了啦！', voice: 'woman', at: ['front-left', 'front-right'], dist: 'far', reply: [
         { say: '再一下下就好！', voice: 'child' },
         { say: '你再一下下看看！', voice: 'woman' },
@@ -256,6 +264,7 @@ export const LIFE: Partial<Record<AmbienceId, Life>> = {
       { text: '哈哈哈', sfx: 'laugh_soft_adult_m', at: AROUND, dist: 'far' },
       { text: '呵呵', sfx: 'laugh_soft_adult', at: AROUND, dist: 'far' },
       { text: '咳', sfx: 'cough', at: AROUND, dist: 'far' },
+      { text: '吵吵鬧鬧', sfx: 'crowd_walla', src: '隔壁桌', at: SIDES, dist: 'mid' },
       { say: '老闆，再一碗！', voice: 'man', at: ['right', 'front-right'], dist: 'mid', reply: { say: '好，馬上來！', voice: 'woman' } },
       { say: '內用還外帶？', voice: 'woman', at: ['back-left', 'back'], dist: 'mid' },
       { say: '……今晚到明天，東北季風逐漸增強……', voice: 'announcer', at: ['back-left'], dist: 'far' },
@@ -323,6 +332,7 @@ export const LIFE: Partial<Record<AmbienceId, Life>> = {
   // Evening and night: the neighbours' TV through the wall, phone calls, a child who won't bathe.
   house_night: {
     every: [7, 12],
+    whisper: true,
     events: [
       { text: '唧——唧——', sfx: 'cricket_chirp', src: '蟋蟀', at: ['front-left', 'front-right'], dist: 'far' },
       { text: '嗡——', sfx: 'fan_hum', src: '冰箱', at: ['back-right'], dist: 'mid' },
@@ -339,7 +349,7 @@ export const LIFE: Partial<Record<AmbienceId, Life>> = {
       { say: '……這個價錢，只有今天晚上喔……', voice: 'announcer', at: ['left', 'right'], dist: 'far' },
       { say: '……媽，我說過了，過年再回去啦……', voice: 'woman', at: ['left', 'front-left'], dist: 'far', reply: { say: '……好啦好啦，我知道。', voice: 'woman' } },
       { say: '電視小聲一點啦，孩子在睡了。', voice: 'man', at: ['right', 'front-right'], dist: 'far', reply: { say: '你自己去轉啦。', voice: 'woman' } },
-      { say: '我不要洗澡！', voice: 'child', at: ['left', 'right'], dist: 'far', reply: [
+      { say: '我不要洗澡！', voice: 'child', at: ['left', 'right'], dist: 'far', whisper: false, reply: [
         { say: '不洗就不要上床。', voice: 'woman' },
         { say: '那我睡地板。', voice: 'child' },
         { say: '好啊，你睡啊。', voice: 'woman' },
@@ -386,6 +396,7 @@ export const LIFE: Partial<Record<AmbienceId, Life>> = {
   // The town's police box, morning and night: walk-in errands, the duty roster, lunch orders.
   police_office: {
     every: [5, 9],
+    whisper: true,
     events: [
       { text: '噠噠、噠', sfx: 'typing', at: SIDES, dist: 'mid' },
       { text: '鈴——', sfx: 'phone_ring', at: ['back-left', 'back-right'], dist: 'far' },
@@ -420,6 +431,7 @@ export const LIFE: Partial<Record<AmbienceId, Life>> = {
   // The town hospital, noon and late afternoon: numbers called, old people waiting, a child who fears needles.
   hospital: {
     every: [5, 9],
+    whisper: true,
     events: [
       { text: '喀啦喀啦', sfx: 'cart_roll', src: '推車', at: SIDES, dist: 'far' },
       { text: '叩、叩', sfx: 'step', at: AROUND, dist: 'mid' },
@@ -459,6 +471,7 @@ export const LIFE: Partial<Record<AmbienceId, Life>> = {
   // The town library after lunch: whispers, students, a grandmother who wants large print.
   library: {
     every: [7, 12],
+    whisper: true,
     events: [
       { text: '沙啦', sfx: 'page_turn', at: AROUND, dist: 'mid' },
       { text: '咳', sfx: 'cough', at: AROUND, dist: 'far' },
@@ -507,6 +520,7 @@ export const LIFE: Partial<Record<AmbienceId, Life>> = {
       { text: '喀啦喀啦', sfx: 'skate_roll', src: '滑板', at: SIDES, dist: 'far' },
       { text: '噠噠噠', sfx: 'step_run', at: SIDES, dist: 'mid' },
       { text: '呼——', sfx: 'wind_gust', at: AROUND, dist: 'far' },
+      { text: '吵吵鬧鬧', sfx: 'crowd_walla', src: '廣場的人', at: AROUND, dist: 'far' },
       { say: '等一下——不要跑那麼快！', voice: 'woman', at: SIDES, dist: 'far', reply: { say: '媽，妳快點啦！', voice: 'child' } },
       { say: '阿公，我要餵鴿子！', voice: 'child', at: BACK, dist: 'mid', reply: [
         { say: '用丟的就好，不要去抓。', voice: 'old_man' },
@@ -681,3 +695,8 @@ export function lifeOf(ambience: readonly AmbienceId[], scene?: readonly LifeEve
 }
 
 export function isVoice(event: LifeEvent): event is LifeVoice { return 'say' in event; }
+
+/** Whether a stranger whispers: the line says so, or else the place she is in is a quiet one. */
+export function isWhispered(event: LifeVoice, ambience: readonly AmbienceId[]): boolean {
+  return event.whisper ?? ambience.some((id) => LIFE[id]?.whisper === true);
+}

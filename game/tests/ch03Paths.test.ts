@@ -13,10 +13,10 @@ function play(pick: (scene: string, options: string[], shownAt: number, t: numbe
   for (let i = 0; i < 200000 && d.view.phase !== 'reset'; i++) {
     const v = d.view;
     if (v.center && said.at(-1) !== v.center.text) said.push(v.center.text);
-    if (d.loopFlags.has('boxun_stays')) stays = true;
+    if (d.loopFlags.has('c3_boxun_stays')) stays = true;
     if (v.choice && v.focus === 'main') {
       const c = pick(v.sceneId!, v.choice.options.map((o) => o.text), v.choice.startedAt, v.t);
-      if (c !== null) d.choose(c);
+      if (c !== null) d.choose(v.choice.options[c]?.index ?? -1);
     }
     if (v.keep) d.skipKeep();
     d.tick(100);

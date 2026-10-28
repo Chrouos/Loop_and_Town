@@ -30,7 +30,7 @@ function play(policy: Policy, maxLoops = 1, station: Direction[] = EAST_WALL, fo
     if (view.choice && view.focus === 'main') {
       const texts = view.choice.options.map((option) => option.text);
       if (view.sceneId === 'f_choice') finalOptions.push(texts);
-      director.choose(policy(texts, view.sceneId ?? ''));
+      director.choose(view.choice.options[policy(texts, view.sceneId ?? '')]?.index ?? -1);
     } else if (view.interact?.type === 'touch') {
       director.touchDone();
     } else if (view.interact?.type === 'punch') {
@@ -72,7 +72,7 @@ describe('final chapter paths', () => {
     const result = play(pick(/再一次/), 1);
     expect(result.endings).toContain('b');
     expect(result.loop).toBe(2);
-    expect(result.knowledge.has('f_again')).toBe(true);
+    expect(result.knowledge.has('k_f_again')).toBe(true);
   });
 
   const PRESSURE_RUOQING: Policy = (options, sceneId) => {

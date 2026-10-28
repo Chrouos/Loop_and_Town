@@ -132,6 +132,7 @@ export function GameApp({ storage = safeStorage() }: { storage?: Storage }) {
       if (event.key === 'Escape') { setMenu((open) => !open); return; }
       if (menu) return;
       const onButton = (event.target as HTMLElement | null)?.tagName === 'BUTTON';
+      if ((event.key === 'm' || event.key === 'M') && view.choice) { director.remember(); return; }
       if (/^[1-9]$/.test(event.key) && view.choice) {
         const option = view.choice.options[Number(event.key) - 1];
         if (option) director.choose(option.index);
