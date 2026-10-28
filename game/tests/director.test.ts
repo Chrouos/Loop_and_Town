@@ -457,7 +457,7 @@ scenes:
     place: 別處
     beats:
       - { me: 不要！, shake: light }
-      - pause: 2
+      - pause: 12
       - end: reset
 ` }]);
     expect(errors).toEqual([]);
@@ -477,8 +477,11 @@ scenes:
     run(1800);
     expect(beats() - before).toBeGreaterThanOrEqual(3);
     for (let i = 0; i < 400 && director.view.center?.text !== '不要！'; i++) run(50);
-    expect(director.view.heart).toBeNull();
     expect(director.view.shakeLevel).toBe('light');
+    // A new time and place: it calms over a few seconds instead of cutting out.
+    expect(director.view.heart?.shown ?? 'off').not.toBe('pound');
+    run(5000);
+    expect(director.view.heart).toBeNull();
     const after = beats();
     run(1500);
     expect(beats()).toBe(after);

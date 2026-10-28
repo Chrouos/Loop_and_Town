@@ -184,7 +184,7 @@ export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown 
     return () => window.clearTimeout(timer);
   }, [view.shake]); // eslint-disable-line react-hooks/exhaustive-deps
   // Two identical animations swapped every beat, so each beat restarts the pulse.
-  const heart = view.heart ? ` heart-${view.heart.level} beat-${view.heart.beat % 2}` : '';
+  const heart = view.heart ? ` heart-${view.heart.shown} beat-${view.heart.beat % 2}` : '';
 
   const shifting = view.shiftingTo !== null || (view.phase === 'scene' && view.focus === null);
   const focusPos = view.focus && view.focus !== 'main' ? view.periph.find((item) => item.kind === 'cue' && item.thread === view.focus)?.pos : undefined;

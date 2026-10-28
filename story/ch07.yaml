@@ -25,10 +25,10 @@ scenes:
       - narr: 車廂在晃。我的手放在膝蓋上，沒有伸進口袋。
       - if: chloop >= 2
         then:
-          - think: 昨天傍晚那幾通電話，有幾句不是在告訴他們，是在叫他們。電話那頭的人，就照著那幾句站錯了地方。
-          - think: 今天再打一次。這一次，每一句都只講我知道的。
+          - think: 昨天傍晚說的那幾句話，有幾句不是在告訴他們，是在叫他們。聽到的人，就照著那幾句站錯了地方。
+          - think: 今天再講一次。這一次，每一句都只講我知道的。
         else:
-          - think: 昨天這個時候，我已經在腦子裡打完三通電話了。今天一通也不打。
+          - think: 昨天這個時候，我已經在腦子裡打完三通電話了。今天不打那種電話。
       - pause: 2
       - { sfx: cough, at: back-left, dist: mid, text: 咳 }
       - narr: 後面有人咳嗽。斜後方有人在剝橘子，皮一撕開，味道就散到整節車廂。
@@ -611,11 +611,12 @@ scenes:
     cast: { tingan: right }
     beats:
       - { sfx: step, at: right, dist: mid, text: 叩、叩 }
-      - if: chloop >= 2
+      # 早上沒上研究所（重來或從章節列表回來時，早上只打了那通電話）
+      - if: "!seen.c7_notes"
         then:
           - tingan: 妳就是早上打電話那個？……說四點半，還真的四點半。
         else:
-          - tingan: 我送妳下山。
+          - tingan: 妳又上來了喔。坡上風很大欸。
       - if: flag.c7_slope_startled
         then:
           - tingan: 欸，妳手怎麼了？指節破皮了。
@@ -631,11 +632,11 @@ scenes:
       - tingan: ……重來。
       - me: 妳不用信。
       - tingan: 我跟她共事過。我比妳以為的還容易信。
-      - me: 我在研究所等過那一分鐘，聽過機器的聲音變高，也聽過山坡下的警笛。
+      - me: 我在研究所等過那一分鐘，聽過機器的聲音變高。
       - me: 可是今天會不會一樣，我不知道。
       - if: know.c7_lead_tingan
         then:
-          - think: 上一次我叫她留下來。她傳來的訊息寫：我照妳說的看著。
+          - think: 有一次我叫她留下來。她照我說的，一直站在機櫃旁邊，跳電那一下手被電到。
       - choice:
           timeout: 15
           default: 2
@@ -688,7 +689,7 @@ scenes:
       - ruoqing: ……欸，妳怎麼知道？
       - if: know.c7_lead_ruoqing
         then:
-          - think: 上一次我叫她不要去。她偏要去，還走進了大廳。
+          - think: 有一次我叫她不要去。她偏要去，還走進了大廳。
       - choice:
           timeout: 14
           default: 2
@@ -789,7 +790,7 @@ scenes:
       - narr: 一台車貼著騎樓開過去。我把手機壓緊耳朵，怕漏掉他那頭的一口氣。
       - if: know.c7_lead_boxun
         then:
-          - think: 上一次我叫他照我說的做。他不收沒根據的話，就自己走進那條通道去查。
+          - think: 有一次我叫他照我說的做。他不收沒根據的話，就自己走進那條通道去查。
       - choice:
           timeout: 12
           default: 2
@@ -842,13 +843,28 @@ scenes:
       - me: 周警官，我是林知夏的妹妹。
       - pause: 2
       - me: 今天十八點三十一分，舊車站。我不知道會發生什麼事。
-      - me: 可能什麼都沒有。也可能停電，大廳的玻璃會碎。
+      # 大廳的玻璃：她進過舊站大廳，或前一輪聽周警官在電話裡講過，才知道
+      - if: know.k_in_station_hall || chloop >= 2
+        then:
+          - me: 可能什麼都沒有。也可能停電，大廳的玻璃會碎。
+        else:
+          - me: 可能什麼都沒有。也可能停電。
       - if: "!flag.c7_r_cafe && !flag.c7_p_ruoqing && !flag.c7_p_boxun"
         then:
-          - me: 六點左右有兩個人會在那附近。他們說之後會離開。
-      - if: flag.c7_p_ruoqing || flag.c7_p_boxun
+          - me: 六點左右有兩個人會在正門附近。一個說拿了東西就走，一個說會在外面等。
+      - if: flag.c7_p_ruoqing && flag.c7_p_boxun
         then:
           - me: 六點左右，若晴和陳醫生可能會在那附近。他們去不去，我不知道。
+      - if: flag.c7_p_ruoqing && !flag.c7_p_boxun
+        then:
+          - me: 六點左右，陳醫生會在正門等人。若晴去不去，我不知道。
+      - if: "!flag.c7_p_ruoqing && flag.c7_p_boxun"
+        then:
+          - if: flag.c7_r_cafe
+            then:
+              - me: 若晴改在咖啡店拿東西。陳醫生會不會跑去那附近，我不知道。
+            else:
+              - me: 六點左右，若晴會去拿東西，她說六點半以前走。陳醫生去不去，我不知道。
       - me: 我聽過一份紀錄。在某一個版本裡，你在那裡受了重傷。
       - pause: 2.5
       - zhiyuan: ……版本。
@@ -856,7 +872,7 @@ scenes:
       - zhiyuan: 妳是要我去？
       - if: know.c7_lead_zhiyuan
         then:
-          - think: 上一次我說「你去」。他就走進大廳，站在玻璃底下。
+          - think: 有一次我說「你去」。他就走進大廳，站在玻璃底下。
       - choice:
           timeout: 12
           default: 2
@@ -1072,13 +1088,13 @@ scenes:
       - me: 十八點三十一分，舊車站會出事。也可能不會。我不知道。
       - if: flag.c7_placed
         then:
-          - me: 若晴、陳醫生、周警官，我都打過了。
+          - me: 若晴、陳醫生、周警官，我都講過了。
           - yuan: 他們怎麼說？
           - pause: 2
           - me: ……有人，我是叫他們照我說的做。
           - yuan: 那他們會照做嗎？
           - me: 我不知道。
-          - narr: 電話那頭，每一個人都停了一下才回答。
+          - narr: 他們每一個，回答以前都停了一下。
         else:
           - me: 若晴、陳醫生、周警官都知道了。他們自己選了。
           - yuan: 他們怎麼選？
@@ -1162,9 +1178,15 @@ scenes:
                   - ruoqing: 陳醫生沒有在正門。我等不到人，就先走了。
                 else:
                   - ruoqing: 東西我拿到了。很輕欸。
-                  - { sfx: phone_ring, at: back-right, dist: near, text: 鈴—— }
-                  - boxun: 我在舊站正門外。裡面有東西倒下來了。
-                  - boxun: 我沒有進去。
+      # 他說過會在正門等。若晴被她逼走了，他也還是站在那裡。
+      - if: "!flag.c7_p_boxun && !flag.c7_r_cafe"
+        then:
+          - { sfx: phone_ring, at: back-right, dist: near, text: 鈴—— }
+          - boxun: 我在舊站正門外。裡面有東西倒下來了。
+          - if: flag.c7_p_ruoqing
+            then:
+              - boxun: 若晴一直沒有到正門來。
+          - boxun: 我沒有進去。
       - if: flag.c7_p_boxun
         then:
           - { sfx: phone_ring, at: back-right, dist: near, text: 鈴—— }
@@ -1218,8 +1240,8 @@ scenes:
           - noise: "off"
           - daze: light
           - narr: 滿屋子上發條的滴答一下子變得好遠，胸口的心跳重得像有人在裡面敲門。
-          - think: 我說過，這一次一個人都不放。電話裡那幾句話，還是把他們放到了某個地方。
-          - think: 我只顧著讓他們照做，連他們為什麼不願意，都沒有聽完。
+          - think: 我說過，這一次一個人都不放。說出口的那幾句話，還是把他們放到了某個地方。
+          - think: 我只顧著讓他們照做，連他們自己想怎麼做，都沒有聽完。
         else:
           - heart: off
           - pause: 2
@@ -1304,7 +1326,7 @@ scenes:
       - think: 我也是。
       - if: flag.c7_placed
         then:
-          - think: 今天那幾通電話，我在腦子裡一通一通重聽。哪一句是告訴，哪一句是叫，我現在分得出來了。
+          - think: 傍晚說的那幾句話，我在腦子裡一句一句重聽。哪一句是告訴，哪一句是叫，我現在分得出來了。
       - if: flag.c7_told_seventh
         then:
           - think: 我跟予安說，第七封我收到了。他沒有問下去，我也沒有替他問。

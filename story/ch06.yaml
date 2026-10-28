@@ -922,6 +922,10 @@ scenes:
     cast: { ruoqing: right, man: front-left }
     beats:
       - { sfx: cane_tap, at: front, dist: near, text: 叩 }
+      # 中午以前就不查了：補上那幾個小時去了哪裡。
+      - if: "!seen.c6_h1400 && !seen.c6_h1530"
+        then:
+          - narr: 後來我沒有再去哪裡，就在鎮上慢慢走。港邊走到老街，老街又走回港邊，鞋底都走熱了。
       - narr: 回家的路經過老街。咖啡的味道從右邊的門縫飄出來。
       - { sfx: car_pass, at: back-left, dist: far, text: 噗噗噗 }
       - narr: 老街很窄，這一段沒有騎樓。一台機車的引擎聲在兩邊的牆之間彈來彈去。
@@ -1133,7 +1137,7 @@ scenes:
       - narr: 我把信攤在掌心，指尖放在第一個凸點上。
       - if: know.k_library_return || know.k_pencil_under_braille
         then:
-          - think: 我已經知道是誰的手打的。我還是把鬧鐘設在那一分鐘。
+          - think: 我大概知道是誰的手打的。我還是把鬧鐘設在那一分鐘。
         else:
           - think: 如果它真的是從哪裡被送過來的，十八點三十一分，它也許會多說一點什麼。
       - narr: 我把鬧鐘設在那一分鐘，手機面朝下放在信旁邊。
@@ -1250,7 +1254,8 @@ scenes:
       - narr: 我把手杖換到另一隻手，指節按在握把的橡膠紋上。
       - yuan: 請、請坐。椅子在妳左手邊。
       - { sfx: chair_scrape, at: front-left, dist: near, text: 嘎 }
-      - narr: 他說在清抽屜。我沿著櫃台摸過去，碰到鐵盒，還有一疊邊角軟得像布的收據。
+      - yuan: 我在清抽屜。有點亂。
+      - narr: 我沿著櫃台摸過去，碰到鐵盒，還有一疊邊角軟得像布的收據。
       - if: know.k_slate_in_shop
         then:
           - narr: 我的手順著櫃台往前，碰到一個鋁框，一排一排的小格子。

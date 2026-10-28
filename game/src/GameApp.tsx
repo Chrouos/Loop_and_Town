@@ -224,7 +224,7 @@ function Title({ save, onStart }: { save: GameSave; onStart: () => void }) {
         {inProgress ? '點一下，繼續聆聽' : '點一下，開始聆聽'}
       </div>
       <div className="lt-title-meta">
-        {inProgress ? `${chapter}　第 ${toChineseNumber(save.loop)} 次的十月三日` : ''}
+        {inProgress ? (save.loop > 1 ? `${chapter}　第 ${toChineseNumber(save.loop)} 次的十月三日` : chapter) : ''}
         {save.endings.length ? `${inProgress ? '　·　' : ''}抵達過的結局 ${save.endings.map((e) => e.toUpperCase()).sort().join(' ')}` : ''}
       </div>
     </div>
@@ -272,8 +272,9 @@ function Calibration({ audio, onDone }: { audio: AudioEngine; onDone: () => void
 
 // ───────────────────────── memory layer ─────────────────────────
 
-function memoryMeta(memory: Memory): string {
-  return [`第${toChineseNumber(memory.loop)}次`, memory.clock, memory.place, memory.label].filter(Boolean).join(' · ');
+// Before the first midnight reset, nothing in the UI may hint that the day repeats.
+function memoryMeta(memory: Memory, looped: boolean): string {
+  return [looped ? `第${toChineseNumber(memory.loop)}次` : '', memory.clock, memory.place, memory.label].filter(Boolean).join(' · ');
 }
 
 function Menu({ director, onClose, onTitle, onSettings, dev }: { director: Director; onClose: () => void; onTitle: () => void; onSettings: () => void; dev: boolean }) {
@@ -298,7 +299,7 @@ function Menu({ director, onClose, onTitle, onSettings, dev }: { director: Direc
             <div className="lt-mem" key={memory.key}>
               <div className="lt-mem-body">
                 <div className="lt-mem-text">{memory.kind === 'me' ? `「${memory.text}」` : memory.text}</div>
-                <div className="lt-mem-meta">{memoryMeta(memory)}</div>
+                <div className="lt-mem-meta">{memoryMeta(memory, save.loop > 1)}</div>
               </div>
               <button type="button" className="lt-mem-drop" onClick={() => director.releaseMemory(memory.key)}>放下</button>
             </div>
@@ -328,17 +329,17 @@ function Menu({ director, onClose, onTitle, onSettings, dev }: { director: Direc
               ))}
             </div>
           </div>
-          <div className="lt-row"><span>自動前進</span>
+          <div className="lt-row"><span>自動閱讀</span>
             <div className="lt-opts">
               <button type="button" className={`lt-opt${settings.autoAdvance ? ' on' : ''}`} onClick={() => set({ autoAdvance: true })}>自動</button>
-              <button type="button" className={`lt-opt${!settings.autoAdvance ? ' on' : ''}`} onClick={() => set({ autoAdvance: false })}>等我點</button>
+              <button type="button" className={`lt-opt${!settings.autoAdvance ? ' on' : ''}`} onClick={() => set({ autoAdvance: false })}>手動</button>
             </div>
           </div>
           <div className="lt-row"><span>回到標題</span><button type="button" className="lt-opt" onClick={onTitle}>回去</button></div>
-          <div className="lt-row"><span>從第一個十月三日重新開始</span>
+          <div className="lt-row"><span>{save.loop > 1 ? '從第一個十月三日重新開始' : '從頭開始'}</span>
             {confirm
               ? <button type="button" className="lt-opt lt-danger" onClick={() => { setConfirm(false); director.newGame(); onClose(); }}>確定，全部忘記</button>
-              : <button type="button" className="lt-opt" onClick={() => setConfirm(true)}>重新開始</button>}
+              : <button type="button" className="lt-opt" onClick={() => setConfirm(true)}>清除進度</button>}
           </div>
         </div>
       )}
@@ -365,7 +366,7 @@ function Chapters({ director, dev, onPicked }: { director: Director; dev: boolea
     <div className="lt-panel">
       {save.replay
         ? <div className="lt-empty">正在{numeral(save.chapter)}。這一天的午夜過後，會回到{numeral(target)}。</div>
-        : <div className="lt-empty">帶著記憶，重新輪迴<br />回到「{numeral(target)}」</div>}
+        : save.loop > 1 && <div className="lt-empty">我想<br />回到「{numeral(target)}」</div>}
       {list.map((chapter, index) => {
         const open = dev || save.reached.includes(chapter.key);
         const now = chapter.key === save.chapter;

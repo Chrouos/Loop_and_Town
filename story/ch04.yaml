@@ -33,7 +33,7 @@ scenes:
           - if: know.c4_let_it_happen
             then:
               - think: 有一次，我沒有動任何人。
-              - think: 若晴的名字，是在餐館的電視裡聽見的。
+              - think: 若晴的事，是在餐館的電視裡聽見的。
               - daze: light
               - narr: 鐵軌一格一格的震動還在腳底，聲音卻退到很遠的地方。
               - pause: 1.5
@@ -158,7 +158,7 @@ scenes:
       - narr: 予安去買早餐了。客廳只剩我和手機。
       - if: chloop >= 2
         then:
-          - narr: 若晴那通、予安那通，我照上一次的話講了一遍。
+          - narr: 若晴那通、予安那通，我講得很快，講完就掛。
           - think: 若晴說我欠她一個解釋。予安在煎台旁邊，什麼都沒問。
         else:
           - phone: 撥號中。老街咖啡店。
@@ -188,7 +188,11 @@ scenes:
           - yuan: ……好的。
           - narr: 他平常會先答應，再問為什麼。這次電話裡只有煎台滋滋響，他什麼都沒問。
           - { sfx: phone_hangup, at: left, dist: mid, text: 嘟 }
-      - think: 陳醫生，中午再當面跟他說。
+      - if: know.k_medical_records
+        then:
+          - think: 陳醫生，中午再打給他。
+        else:
+          - think: 陳醫生，中午再當面跟他說。
       - pause: 1.5
       - { think: 我又一次替所有人安排好今天。, mem: m_c4_arranged }
       - think: 像把桌上的杯子，一個一個推離桌緣。
@@ -583,7 +587,7 @@ scenes:
         then:
           - me: 五點半。舊研究所，備用機房。
           - { sfx: phone_hangup, at: right, dist: near, text: 嘟 }
-          - think: 圖書館和那段坡，我都聽過了。下午我在店裡陪予安，傍晚再上山。
+          - think: 圖書館和那段坡，我都聽過了。下午我在店裡陪予安，傍晚讓他載我上山。
           - goto: c4_saw
       - me: 一點十分。圖書館，地方史室。
       - { sfx: phone_hangup, at: right, dist: near, text: 嘟 }
@@ -618,7 +622,7 @@ scenes:
         then:
           - me: 五點半。舊研究所，備用機房。
           - { sfx: phone_hangup, at: right, dist: near, text: 嘟 }
-          - think: 圖書館和那段坡，我都聽過了。下午我在店裡陪予安，傍晚再上山。
+          - think: 圖書館和那段坡，我都聽過了。下午我在店裡陪予安，傍晚讓他載我上山。
           - goto: c4_saw
       - me: 一點十分。圖書館，地方史室。
       - { sfx: phone_hangup, at: right, dist: near, text: 嘟 }
@@ -930,6 +934,9 @@ scenes:
       - narr: 鍵盤的聲音停了。只剩機器在低低地響。
       - if: know.k_zhixia_saw_my_death
         then:
+          - tingan: 這間機房，我花了半年才找到進來的方法。妳一通電話就約在這裡。
+          - me: 妳說過，不要問。
+          - pause: 2
           - tingan: 妳為什麼要回來？
           - me: 因為她看過我死。在這裡，十八點三十一分。
           - pause: 3
@@ -1214,7 +1221,7 @@ scenes:
           - narr: 他把我的碗，往我這邊推了一點。
         else:
           - { sfx: spoon_stir, at: front, dist: near, text: 叮 }
-          - yuan: 妳今天一整天，派出所、醫院、圖書館，還跑上山。
+          - yuan: 妳今天一整天，派出所、醫院，晚上還從山上下來。
           - yuan: 妳不是只回來賣房子的吧。
           - me: 也是回來賣房子的。
           - pause: 1

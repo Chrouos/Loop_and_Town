@@ -259,6 +259,7 @@ scenes:
     expect(director.view.heart?.level).toBe('fast');
     for (let i = 0; i < 400 && director.view.sceneId !== 's3'; i++) run(50);
     expect(director.view.sceneId).toBe('s3');
+    run(5000);
     expect(director.view.heart).toBeNull();
   });
 
@@ -270,5 +271,61 @@ scenes:
     run(500);
     expect(director.view.sceneId).toBe('s3');
     expect(director.loopFlags.has('saw_yuan')).toBe(true);
+  });
+});
+
+describe('the heart glides between levels', () => {
+  const SRC = (beats: string) => `
+chapter: 1
+title: 測試
+start: s1
+advance:
+  - if: "true"
+    to: 1
+scenes:
+  - id: s1
+    life: "off"
+    beats:
+${beats.trim().split('\n').map((line) => `      ${line}`).join('\n')}
+      - pause: 30
+      - end: reset
+`;
+  function play(beats: string) {
+    const { script, errors } = buildScript([{ name: 'a.yaml', source: SRC(beats) }]);
+    expect(errors).toEqual([]);
+    const heard: { t: number; gain: number }[] = [];
+    const audio = { ...silentAudio(), play: (id: string, _pos: unknown, options?: { gain?: number }) => { if (id === 'heartbeat') heard.push({ t: director.view.t, gain: options?.gain ?? 1 }); } } as never;
+    let save: GameSave = { ...freshSave(), started: true, scene: 's1' };
+    const director: Director = new Director(script, save, { audio, vibrate: () => undefined, persist: (next) => { save = next; }, wallNow: () => 0 });
+    director.start();
+    const run = (ms: number) => { for (let t = 0; t < ms; t += 50) director.tick(50); };
+    for (let i = 0; i < 600 && director.view.sceneId !== 's1'; i++) run(50);
+    return { director, heard, run };
+  }
+
+  it('starting, it comes up from soft to full over a couple of seconds', () => {
+    const { heard, run } = play('- heart: pound');
+    run(4000);
+    expect(heard[0].gain).toBeLessThan(0.3);
+    for (let i = 1; i < heard.length; i++) expect(heard[i].gain).toBeGreaterThanOrEqual(heard[i - 1].gain - 1e-9);
+    expect(heard[heard.length - 1].gain).toBeCloseTo(0.72, 2);
+  });
+
+  it('stopping, each beat is softer and further apart until it is gone', () => {
+    const { director, heard, run } = play('- heart: pound\n- pause: 4\n- heart: "off"');
+    run(4500);
+    const at = heard.length;
+    expect(director.view.heart?.shown).toBe('slow');
+    run(6000);
+    const fading = heard.slice(at);
+    expect(fading.length).toBeGreaterThan(2);
+    for (let i = 1; i < fading.length; i++) {
+      expect(fading[i].gain).toBeLessThan(fading[i - 1].gain);
+      if (i > 1) expect(fading[i].t - fading[i - 1].t).toBeGreaterThanOrEqual(fading[i - 1].t - fading[i - 2].t - 1);
+    }
+    expect(director.view.heart).toBeNull();
+    const done = heard.length;
+    run(3000);
+    expect(heard.length).toBe(done);
   });
 });

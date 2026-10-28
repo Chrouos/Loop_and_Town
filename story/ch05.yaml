@@ -24,7 +24,7 @@ scenes:
           - think: 我讓它們過去。
           - if: "!know.k_yuan_1758 && know.c5_lead_arranged"
             then:
-              - think: 上一次，我先跟他說了實話，又替他排好六點到七點。晚上他有一句話到了嘴邊，又吞回去。
+              - think: 上一次，我跟他說了實話，也替他排好六點到七點。晚上他有一句話到了嘴邊，又吞回去。
           - if: "!know.k_yuan_1758 && know.c5_lead_unsaid && !know.c5_lead_arranged"
             then:
               - think: 上一次吃麵，他的筷子停過一次。他有話沒講，我也是。
@@ -146,7 +146,7 @@ scenes:
         else:
           - { sfx: door_creak, at: front, dist: near, text: 碰——吱呀 }
           - narr: 他用肩膀頂了一下，門鬆開了。
-          - think: 我記下來。晚一點要問他，有沒有備用鑰匙。
+          - think: 每一次，這扇門都要他這樣頂開。
       - narr: 灰塵和舊木頭的味道底下，還有一點很淡的洗髮精。
       - { sfx: phone_buzz, at: front-right, dist: near, text: 嗡、嗡 }
       - yuan: ……房仲。問我今晚八點，方不方便看店。
@@ -204,7 +204,11 @@ scenes:
       - { sfx: drawer, at: front, dist: near, text: 喀 }
       - narr: 指尖先碰到一塊扁平的板子。金屬框，框上一排一排的小方格。
       - narr: 旁邊有一支短短的筆，圓圓的木頭握把，尖端是鈍的。
-      - { narr: 點字板和點字筆。我包包裡那組，就是這一種。, learn: k_slate_in_shop }
+      - if: know.k_slate_in_shop
+        then:
+          - narr: 點字板和點字筆。在另一個今天，它們也在這裡。
+        else:
+          - { narr: 點字板和點字筆。我包包裡那組，就是這一種。, learn: k_slate_in_shop }
       - narr: 我的指尖卡在第一排方格裡，停在那裡，有一點抖。
       - me: 這是點字板。
       - { sfx: tools_clink, at: front, dist: near, text: 叮 }
@@ -289,7 +293,8 @@ scenes:
         then:
           - narr: 冰塊在左前方響。我伸手過去，一次就碰到杯壁。
           - yuan: 妳到底從哪裡知道這些？
-          - narr: 上一次，我花了快半個鐘頭回答這一句。這一次我只說了幾句，他也聽完了。
+          - narr: 這個問題，他每一次都會問。這一次我只說了幾句，他也聽完了。
+          - set: [c5_truth, c5_noon_truth]
           - think: 五點五十八分那通電話，他已經跟我說過了。他不記得而已。
           - yuan: 下午我要去拿零件。妳要喝咖啡的話，我帶妳過去。
           - goto: c5_cafe
@@ -392,8 +397,14 @@ scenes:
                       - set: [c5_truth, c5_noon_truth, c5_recalled]
                   - mem: m_c4_tomorrow
                     then:
-                      - me: 昨天晚上，你說，如果真的還有明天，再跟你講我這五年到底跑去哪裡了。
-                      - me: 今天就是那個明天。只是你沒有昨天晚上。
+                      - if: chloop >= 2
+                        then:
+                          - me: 有一個晚上，在那家麵店，你問我這五年跑去哪裡。
+                          - me: 你說，如果真的還有明天，再跟你講。
+                          - me: 今天就是那個明天。只是你沒有那個晚上。
+                        else:
+                          - me: 昨天晚上，你說，如果真的還有明天，再跟你講我這五年到底跑去哪裡了。
+                          - me: 今天就是那個明天。只是你沒有昨天晚上。
                       - pause: 3
                       - { sfx: cup_set, at: front, dist: near, text: 叩！, shake: light }
                       - narr: 他把咖啡杯放下，放得太重，有幾滴濺到我手背上。
@@ -407,7 +418,7 @@ scenes:
                       - me: 你說對了。
                       - pause: 2
                       - yuan: 我什麼時候說的？
-                      - me: 在老街。一台很安靜的貨車擦過去，你說我今天怪怪的。
+                      - me: 在老街。一台很安靜的貨車擦過去之後。
                       - pause: 1.5
                       - yuan: 那我前面，是不是還說妳怪怪的。
                       - me: 說了。
@@ -478,6 +489,8 @@ scenes:
           - me: 若晴。今天傍晚，不要去舊車站。
           - ruoqing: ……妳怎麼知道我要去？
           - narr: 我給不出理由。她還是答應了。
+          - me: 過了六點半，傳個訊息給我就好。
+          - narr: 我念了號碼給她。她存好，撥過來響一聲，我也存了她的。
           - goto: c5_evening
       - { sfx: chair_scrape, at: front-left, dist: near, text: 嘎 }
       - { sfx: cup_set, at: front, dist: near, text: 叩 }
@@ -542,7 +555,9 @@ scenes:
       - pause: 1.5
       - ruoqing: ……妳怎麼知道我要去？
       - narr: 我給不出理由，跟上次一樣。
-      - narr: 她還是答應了。走開的時候，腳步比平常快。
+      - narr: 她還是答應了。
+      - me: 過了六點半，傳個訊息給我就好。
+      - narr: 我念了號碼給她。她存好，撥過來響一聲，我也存了她的。走開的時候，腳步比平常快。
       - { sfx: step, at: front-right, dist: mid, text: 叩、叩 }
       - think: 這句話我越講越順了。
       - think: 順到我已經不在意她懂不懂。
@@ -565,7 +580,7 @@ scenes:
           - { sfx: step, at: right, dist: mid, text: 叩、叩 }
           - narr: 左腳重一點的那個聲音，一從右邊冒出來，我就認得了。這一次我等它走到面前才開口。
           - me: 予安。
-          - yuan: ……又被妳聽出來。老闆找零件找好久，歹勢。
+          - yuan: ……被妳聽出來了。老闆找零件找好久，歹勢。
         else:
           - narr: 零件行在右手邊。他從那邊回來，左腳會比右腳重一點。
           - narr: 拖鞋、皮鞋、一台用推的腳踏車，全都混在一起。
@@ -582,7 +597,7 @@ scenes:
                 - me: 予安。
                 - { sfx: step, at: right, dist: near, text: 叩 }
                 - narr: 腳步停住了。我背後那片玻璃，好像也沒那麼冰了。
-                - yuan: ……又被妳聽出來。老闆找零件找好久，歹勢。
+                - yuan: ……被妳聽出來了。老闆找零件找好久，歹勢。
               early:
                 - me: 予安！
                 - { sfx: step, at: right, dist: near, text: 啪、啪 }
@@ -703,7 +718,7 @@ scenes:
       - narr: 我把手機貼在耳朵上，按下側鍵。
       - phone: 十八點三十一分。
       - { sfx: clock_chime, at: back-left, dist: mid, text: 噹, shake: light }
-      - narr: 左後方那座修不好的小鐘，自己響了一聲。我的背整個彈離椅子。
+      - narr: 左後方那座小鐘，自己響了一聲。我的背整個彈離椅子。
       - phone: 心率 <心率>，過高，已記錄。十八點三十一分。
       - pause: 3
       - noise: "off"
@@ -738,7 +753,7 @@ scenes:
       - clock: "18:31"
       - pause: 2
       - { sfx: clock_chime, at: back-left, dist: mid, text: 噹, shake: light }
-      - narr: 左後方那座修不好的小鐘，又自己響了一聲。這一次我知道它會響。
+      - narr: 左後方那座小鐘，又自己響了一聲。這一次我知道它會響。
       - pause: 2
       - { sfx: phone_notify, at: right, dist: near, text: 叮 }
       - phone: 許若晴：我在家。
@@ -810,7 +825,11 @@ scenes:
                   then:
                     - set: c5_truth
                     - me: 今天我已經過了很多次。每到午夜，就重來一次。
-                    - me: 昨天晚上，我們就坐在這裡。你說，如果真的還有明天。
+                    - if: chloop >= 2
+                      then:
+                        - me: 昨天晚上，我們也坐在這裡。你也說了，那妳記得就好。
+                      else:
+                        - me: 昨天晚上，我們就坐在這裡。你說，如果真的還有明天。
                     - pause: 3
                     - yuan: 我不信。
                     - yuan: 可是妳講的時候，沒有在騙我。
