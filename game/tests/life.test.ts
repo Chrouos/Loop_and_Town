@@ -178,3 +178,40 @@ scenes:
     expect(buildScript([{ name: 'a.yaml', source: src('megaphone') }]).errors.join('\n')).toContain('via');
   });
 });
+
+describe('strangers the story names nothing for', () => {
+  it('a stranger in a thread is heard as a real voice; behind her on the train, under their breath', async () => {
+    const { buildScript } = await import('../src/script/validate');
+    const { Director } = await import('../src/engine/director');
+    const { freshSave } = await import('../src/engine/save');
+    const { silentAudio } = await import('./harness');
+    const { script, errors } = buildScript([{ name: 'a.yaml', source: `
+chapter: 1
+title: 測試
+start: s1
+scenes:
+  - id: s1
+    ambience: [train_interior]
+    life: "off"
+    beats:
+      - { cue: gossip, at: back-left, text: 窸窸窣窣, sfx: huddle_rustle, whisper: true }
+      - { man: 你家也收到了喔？, at: left }
+      - { yuan: 我在。 }
+      - pause: 20
+      - end: reset
+    threads:
+      gossip:
+        beats:
+          - { woman: 那邊不是出過事。, at: back-left }
+` }]);
+    expect(errors).toEqual([]);
+    const heard: string[] = [];
+    const audio = { ...silentAudio(), voice: (speaker: string, _pos: unknown, _ms: number, kind = 'line') => { heard.push(`${speaker}:${kind}`); } } as never;
+    const director = new Director(script, { ...freshSave(), started: true, scene: 's1' }, { audio, vibrate: () => undefined, persist: () => undefined, wallNow: () => 0 });
+    director.start();
+    for (let i = 0; i < 400; i++) director.tick(50);
+    expect(heard).toContain('woman:whisper');
+    expect(heard).toContain('man:life');
+    expect(heard).toContain('yuan:line');
+  });
+});

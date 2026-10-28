@@ -65,7 +65,7 @@ scenes:
       - pause: 1
       - { think: 這一次，我不安排任何人。, mem: m_f_no_arranging }
       - pause: 2
-      - { cue: gossip, at: back-left, text: 窸窸窣窣, sfx: huddle_rustle }
+      - { cue: gossip, at: back-left, text: 窸窸窣窣, sfx: huddle_rustle, whisper: true }
       - if: "know.k_yuan_sent_letter"
         then:
           - narr: 我隔著外套按了一下內側的口袋。信還在，點字的凸點頂著手指。

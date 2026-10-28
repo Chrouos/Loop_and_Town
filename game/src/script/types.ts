@@ -44,6 +44,8 @@ export type LineBeat = {
   shake?: ShakeLevel;
   /** Heard through a device (a loudspeaker, the radio, a TV, a tape, a phone call), not from someone beside her. */
   via?: Via;
+  /** A stranger lowering their voice (true) or not (false); unset, the thread's cue or the place decides. */
+  whisper?: boolean;
 };
 
 /** Memory Input: she says a remembered line out loud. Only the accepted memories change anything. */
@@ -68,7 +70,8 @@ export type Beat =
   /** What just happened winds her up (+) or lets her breathe (−); see Director TENSION_BANDS. */
   | { k: 'tension'; delta: number }
   | { k: 'clock'; time: string }
-  | { k: 'cue'; thread: string; pos: Pos; text: string; sfx?: SfxId; grab: boolean; src?: string }
+  /** `whisper`: the strangers in this thread talk under their breath (gossip behind her on the train). */
+  | { k: 'cue'; thread: string; pos: Pos; text: string; sfx?: SfxId; grab: boolean; src?: string; whisper?: boolean }
   | { k: 'choice'; timeout?: number; default?: number; options: ChoiceOption[] }
   /** 摸讀: drag a finger left to right across cells; each one surfaces only when touched slowly enough. */
   | { k: 'touch'; cells: string[]; style: 'braille' | 'groove' | 'engrave'; prompt?: string; timeout: number }

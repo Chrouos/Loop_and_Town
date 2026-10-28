@@ -66,7 +66,7 @@ scenes:
           - think: 五年前，到底發生了什麼？
           - { sfx: cough, at: back-left, dist: mid, text: 咳 }
           - narr: 後面有人咳嗽，跟每一次是同一個時候。
-          - { cue: gossip, at: back-left, text: 窸窸窣窣, sfx: huddle_rustle }
+          - { cue: gossip, at: back-left, text: 窸窸窣窣, sfx: huddle_rustle, whisper: true }
       - think: 下車之前，我得先想好今天要不要動別人。
       - choice:
           timeout: 14

@@ -347,7 +347,7 @@ scenes:
       - think: 我記住了。
       - { sfx: step, at: front-right, dist: mid, text: 叩、叩 }
       - narr: 她答應了，可是走開的腳步比走過來的時候快。
-      - { cue: talk, at: back-left, text: 窸窸窣窣, sfx: huddle_rustle }
+      - { cue: talk, at: back-left, text: 窸窸窣窣, sfx: huddle_rustle, whisper: true }
       - think: 我帶過午夜的那些事，在她那邊什麼都不算。
     next: c3_hospital
 

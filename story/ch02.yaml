@@ -259,7 +259,7 @@ scenes:
       - { old_woman: 若晴，三號桌啦！, as: 店長, at: back-left }
       - ruoqing: 來了來了。
       - { sfx: step, at: front-right, dist: mid, text: 叩、叩 }
-      - { cue: manager, at: back-left, text: 窸窸窣窣, sfx: huddle_rustle }
+      - { cue: manager, at: back-left, text: 窸窸窣窣, sfx: huddle_rustle, whisper: true }
       - narr: 隔壁桌那疊紙還攤著，她沒收。
       - pause: 3
       - narr: 杯子裡的咖啡剩一半，已經不燙了。

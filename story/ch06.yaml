@@ -572,7 +572,7 @@ scenes:
     beats:
       - set: c6_d_hospital
       - narr: 消毒水，空調。推車的輪子在走廊另一頭咿咿地響。
-      - { cue: nurses, at: back-right, text: 窸窸窣窣, sfx: huddle_rustle }
+      - { cue: nurses, at: back-right, text: 窸窸窣窣, sfx: huddle_rustle, whisper: true }
       - { sfx: step, at: front, dist: mid, text: 叩、叩 }
       - pause: 1
       - me: 陳醫生。我是林知夏的妹妹。

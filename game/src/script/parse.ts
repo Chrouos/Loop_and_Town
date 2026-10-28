@@ -7,7 +7,7 @@ import { DAZE_LEVELS, HEART_LEVELS, NOISE_LEVELS, SHAKE_LEVELS, TENSION_STEP_MAX
 
 export const CHARACTER_KEYS = ['yuan', 'ruoqing', 'boxun', 'tingan', 'zhiyuan', 'zhixia', 'man', 'woman', 'child', 'old_man', 'old_woman', 'announcer'] as const;
 const LINE_KEYS = new Set<string>(['narr', 'me', 'think', 'phone', ...CHARACTER_KEYS]);
-const LINE_ATTRS = new Set(['at', 'to', 'as', 'learn', 'mem', 'dist', 'shake', 'via']);
+const LINE_ATTRS = new Set(['at', 'to', 'as', 'learn', 'mem', 'dist', 'shake', 'via', 'whisper']);
 const END_KINDS: EndKind[] = ['reset', 'ending_a', 'ending_b', 'ending_c'];
 
 type Errors = string[];
@@ -86,6 +86,7 @@ function parseLine(key: string, raw: Obj, where: string, errors: Errors): LineBe
   if (raw.learn !== undefined) line.learn = String(raw.learn);
   if (raw.mem !== undefined) line.mem = String(raw.mem);
   if (raw.shake !== undefined) line.shake = shake(raw.shake, where, errors);
+  if (raw.whisper !== undefined) line.whisper = raw.whisper === true;
   if (raw.via !== undefined) {
     const via = String(raw.via);
     if (!(VIAS as readonly string[]).includes(via)) errors.push(`${where}：via 只能是 ${VIAS.join('／')}`);
@@ -116,14 +117,14 @@ function parseBeat(raw: unknown, where: string, errors: Errors): Beat | undefine
   };
 
   if ('cue' in raw) {
-    allow('cue', 'at', 'dist', 'text', 'sfx', 'grab', 'src');
+    allow('cue', 'at', 'dist', 'text', 'sfx', 'grab', 'src', 'whisper');
     const pos = parsePos(raw.at, where, errors, (str(raw.dist) as Distance) ?? 'mid');
     const sfx = raw.sfx === undefined ? undefined : String(raw.sfx);
     if (sfx && !isSfx(sfx)) errors.push(`${where}：未知音效「${sfx}」`);
     const text = str(raw.text);
     if (!text) errors.push(`${where}：cue 需要擬聲字 text`);
     if (!pos) return undefined;
-    return { k: 'cue', thread: String(raw.cue), pos, text: text ?? '……', sfx: sfx && isSfx(sfx) ? sfx : undefined, grab: raw.grab === true, src: str(raw.src) };
+    return { k: 'cue', thread: String(raw.cue), pos, text: text ?? '……', sfx: sfx && isSfx(sfx) ? sfx : undefined, grab: raw.grab === true, src: str(raw.src), ...(raw.whisper === true ? { whisper: true } : {}) };
   }
   if ('sfx' in raw) {
     allow('sfx', 'at', 'to', 'dist', 'text', 'vib', 'gain', 'shake', 'src', 'variant');

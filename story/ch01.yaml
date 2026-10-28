@@ -83,7 +83,7 @@ scenes:
       - think: 不小心睡著了。
       - narr: 摸了一下外套口袋裡，信還在。
       - pause: 1
-      - { cue: gossip, at: back-left, text: 窸窸窣窣, sfx: huddle_rustle }
+      - { cue: gossip, at: back-left, text: 窸窸窣窣, sfx: huddle_rustle, whisper: true }
       - think: 後面有人壓低聲音在說話。
       - think: 想聽的話，轉過去就好。
       - pause: 2
@@ -93,7 +93,10 @@ scenes:
       - narr: 走道另一邊有人在剝橘子，酸酸的味道一路飄過來。
       - { sfx: cough, at: back-left, dist: mid, text: 咳 }
       - { sfx: cough, at: back-right, dist: near, text: 咳咳 }
-      - pause: 3.5
+      - pause: 2
+      - { sfx: train_horn, at: front, dist: far, text: 嗚—— }
+      - narr: 前面很遠的地方，火車拉了一聲長笛。車廂跟著慢下來。
+      - pause: 1.5
       - { sfx: station_chime, at: front, text: 叮——咚—— }
       - announcer: 下一站，灰潮鎮。
       - announcer: 要下車的旅客，請準備。
@@ -730,7 +733,7 @@ scenes:
       - { ruoqing: 最近在弄一個作品集。叫《退潮以後》。, mem: m_ruoqing_portfolio }
       - ruoqing: 都拍一些快要沒有的東西啦，像是要關的店，要拆的招牌之類的。
       - ruoqing: 那邊牆上有一張是我拍的，那張是清晨的商店街，還沒有一家店開門。
-      - { cue: gossip, at: back-left, text: 窸窸窣窣, sfx: huddle_rustle }
+      - { cue: gossip, at: back-left, text: 窸窸窣窣, sfx: huddle_rustle, whisper: true }
       - choice:
           timeout: 14
           options:
