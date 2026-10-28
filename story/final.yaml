@@ -31,8 +31,8 @@ scenes:
       - phone: 鬧鐘。十月三日。六點十二分。
       - if: "know.f_again"
         then:
-          - think: 上一次到最後，我說了「再一次」。
-          - think: 所以又是六點十二分。
+          - think: 我在機房說過「再一次」。
+          - think: 那一次醒來，也是六點十二分。
           - if: know.f_lead_tingan
             then:
               - think: 有一次，我拿庭安不知道的事去敲她的門。門從裡面鎖了兩圈。
@@ -686,7 +686,7 @@ scenes:
           - { sfx: step, at: front-right, text: 叩、叩 }
           - narr: 背帶扣的聲音跟著她，一路響到吧檯後面。
           - narr: 我的喉嚨發緊，剛剛那句「會死」好像還卡在裡面，吞不下去。
-          - think: 這句話，第二個今天我就聽過了。
+          - think: 她會怎麼回，我早就猜得到。
           - think: 我還是講了。
           - learn: f_lead_ruoqing
       - goto: f_hub
@@ -961,7 +961,11 @@ scenes:
           - heart: fast
           - { sfx: strap_click, at: front-right, dist: mid, text: 喀、喀 }
           - narr: 一個很小的金屬扣，從我背後一路響到右前方。
-          - think: 第一個十月三日，舊站大廳暗掉以後，這個聲音掛在一台摔壞的相機上，一直晃。
+          - if: know.k_in_station_hall
+            then:
+              - think: 有一次，舊站大廳暗掉以後，我一直在等這個聲音再響。
+            else:
+              - think: 第一個十月三日，背著這個扣子的人，沒有從舊站走出來。
           - narr: 我在桌子底下把手指蜷起來，指甲抵著掌心，抵到會痛。
           - { sfx: chair_scrape, at: front-right, dist: mid, text: 嘎 }
           - choice:
@@ -978,13 +982,14 @@ scenes:
                 - text: 「……是誰？」
                   then:
                     - ruoqing: 是我啦，若晴。欸妳幹嘛講那麼小聲。
-                    - think: 我知道是妳。只是怕一叫出名字，它又變回掛在相機上的那個扣子。
+                    - think: 我知道是妳。只是怕一叫出名字，就沒有人應。
           - heart: off
           - ruoqing: 照片我印出來了，兩張。晚點我再講給妳聽。
         else:
           - narr: 右前方那張椅子，一直沒有人拉開。
       - me: 我把今天知道的，全部講一次。
-      - narr: 我從第一個十月三日講起。若晴死在大廳，陳醫生死在通道。親耳聽到的，和後來別人告訴我的，我分開講。
+      - narr: 我從第一個十月三日講起。若晴死在大廳；另一個今天，陳醫生死在通道。
+      - narr: 親耳聽到的，和後來別人告訴我的，我分開講。
       - narr: 還有那個誰都沒死、午夜照樣重來的晚上。
       - narr: 我也講我不知道的：午夜的鐘是誰在敲，這一次做了到底有沒有用。
       - if: "know.k_yuan_sent_letter"
@@ -1203,7 +1208,7 @@ scenes:
             else:
               - if: know.k_cabinet_warm
                 then:
-                  - narr: 我從那天若晴站的地方往右前方數，一步、兩步、三步。第四步，鞋尖踢到一條電線。
+                  - narr: 我往右走，照那天摸到它的方向找過去。鞋尖踢到一條電線。
                   - narr: 電線比我的手指還粗，外皮滑滑的，一路鑽進牆裡。
                 else:
                   - narr: 我背對正門站好，往右走，手杖一路掃著找柱子。第一根，第二根。
@@ -1221,7 +1226,7 @@ scenes:
             else:
               - if: know.k_cabinet_warm
                 then:
-                  - think: 跟那天一樣燙。她的手壓過的那條線，就從它底下出來。
+                  - think: 跟那天摸到的是同一個。她的手壓過的那條線，就從它底下出來。
                 else:
                   - think: 一排小燈，比人高一點。跟她在咖啡店念給我聽的一樣。
           - if: "flag.ev_tingan"
@@ -1409,7 +1414,11 @@ scenes:
       - if: "flag.ev_zhiyuan"
         then:
           - { sfx: pen_scratch, at: front, dist: near, text: 唰唰 }
-          - zhiyuan: 二十二點整。東牆機櫃。封條編號我念一次。
+          - if: flag.g1
+            then:
+              - zhiyuan: 二十二點整。東牆機櫃。封條編號我念一次。
+            else:
+              - zhiyuan: 二十二點整。不知道是哪一櫃，東牆整面都封。封條編號我念一次。
           - zhiyuan: 零、三、一、八。經手人，周志遠。
       - if: "flag.ev_boxun"
         then:
@@ -1553,7 +1562,7 @@ scenes:
       - phone: 鬧鐘。二十三點四十分。
       - heart: slow
       - think: 我可以重來。
-      - think: 我知道怎麼讓明天的若晴不用站在門口，予安不用去碰那條線。
+      - think: 我知道下一次，怎麼讓每個人都不用靠近那面牆。
       - think: 再來一次，每個人都可以排得更好。
       - if: "know.k_zhixia_voice"
         then:
@@ -1648,7 +1657,11 @@ scenes:
       - { text: 沙, sfx: cloth_rustle, at: [right, back, back-left, back-right], dist: mid }
       - { text: 叩, sfx: step, src: 腳步, at: [back, back-left, back-right], dist: mid }
     beats:
-      - narr: 我們走到外面。水泥台階還留著一點白天的溫度。
+      - if: "flag.ev_yuan || flag.ev_ruoqing || flag.ev_tingan || flag.ev_zhiyuan"
+        then:
+          - narr: 我們走到外面。水泥台階還留著一點白天的溫度。
+        else:
+          - narr: 我一個人走到外面。水泥台階還留著一點白天的溫度。
       - narr: 鎮在坡下面。鐘樓在正前方，很遠。
       - if: "flag.ev_yuan"
         then:
@@ -1658,7 +1671,7 @@ scenes:
         then:
           - { sfx: strap_click, at: left, dist: near, text: 喀 }
           - narr: 若晴在左邊。背帶扣響了一聲，就沒再響。
-      - if: "flag.f_pick_b"
+      - if: "flag.f_pick_b && (flag.ev_yuan || flag.ev_ruoqing || flag.ev_tingan || flag.ev_zhiyuan)"
         then:
           - narr: 沒有人問我為什麼。他們以為明天會來。
       - if: flag.ev_yuan
@@ -1744,13 +1757,18 @@ scenes:
         then:
           - think: 知夏託庭安帶一句話給我，不要變成她。她最後那幾年，大概沒有過這種早上。
       - pause: 2
-      - { sfx: phone_notify, at: right, dist: near, text: 叮咚 }
-      - phone: 許若晴。
-      - phone: 外地那個課我報名了！我媽說她早就叫我去了，講得好像是她的功勞。
-      - phone: 週末我會回來。這是我自己排的喔。
-      - if: "mem.m_c2_can_wait"
+      # 若晴在咖啡店沒有答應幫忙（ev_ruoqing），隔天就沒有理由傳訊息給她
+      - if: flag.ev_ruoqing
         then:
-          - think: 有一個她不記得的今天，她說陳醫生好像什麼事都可以等她。這次她沒有等誰點頭。
+          - { sfx: phone_notify, at: right, dist: near, text: 叮咚 }
+          - phone: 許若晴。
+          - phone: 外地那個課我報名了！我媽說她早就叫我去了，講得好像是她的功勞。
+          - phone: 週末我會回來。這是我自己排的喔。
+          - if: "mem.m_c2_can_wait"
+            then:
+              - think: 有一個她不記得的今天，她說陳醫生好像什麼事都可以等她。這次她沒有等誰點頭。
+        else:
+          - think: 若晴那個課報了沒有，我不知道。要不要去，是她自己的事。
       - { sfx: phone_notify, at: right, dist: near, text: 叮咚 }
       - phone: 葉庭安。
       - phone: 稿子寫好了。署名在最上面，我做過的事也寫在裡面。

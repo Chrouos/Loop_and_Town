@@ -165,13 +165,13 @@ scenes:
           - me: 不用，黑咖啡就好。
       - if: chloop >= 2
         then:
-          - think: 她每一次都問要不要念菜單，我每一次都說不用。
+          - think: 店裡第一句話會是什麼，我已經聽過太多次了。
         else:
           - if: know.k_in_station_hall
             then:
               - think: 上一次最後聽到這個聲音，是在舊車站的大廳裡。
             else:
-              - think: 上一次聽到這個聲音，也是在這家店。那天晚上她就死了。
+              - think: 上一次在這家店聽到這個聲音，那天晚上她就死了。
           - daze: light
           - narr: 磨豆機和蒸汽管退到很遠，耳朵裡只剩她剛剛講的那幾個字，一直繞。
           - narr: 我用拇指去數手杖上那圈防滑紋，數到第七道，蒸汽管的嘶聲才回來。
@@ -209,10 +209,12 @@ scenes:
                 - set: c2_heard_photos
                 - ruoqing: 說給妳聽喔？
                 - ruoqing: 好啊，我試試看。這張是早上的商店街，一家都還沒開。
-                - if: chloop >= 2
+                - if: chloop >= 2 && know.k_c2_photos_heard
                   then:
                     - think: 理髮店的阿伯、藍色帆布，我都聽過了。我等她講到那個名字。
                   else:
+                    - set: c2_photos_full
+                    - learn: k_c2_photos_heard
                     - ruoqing: 鐵捲門全部拉下來，上面還有昨天晚上的雨。
                     - { sfx: paper_rustle, at: front, dist: near, text: 沙 }
                     - ruoqing: 這張是車站在改建，一半是舊磁磚，一半被藍色帆布包起來。
@@ -237,12 +239,16 @@ scenes:
                     - ruoqing: 去年那張，同一個地方什麼都沒有，只有一面剝漆的牆。
                 - ruoqing: 我不是要拍一個快死掉的小鎮喔。
                 - { ruoqing: 我想拍的是，東西不見了以後，人還留下什麼。, mem: m_c2_after_tide }
-                - if: chloop < 2
+                - if: flag.c2_photos_full
                   then:
                     - think: 我還看得見的那些年，從來沒注意過理髮店門口坐著一個阿伯。
                     - me: 妳講得很清楚，我好像就站在那家店門口。
                     - ruoqing: 真的假的？
                     - ruoqing: 欸，我從來沒有念照片給別人聽過耶。
+                    # 第一章咖啡店每一輪都會走到：她在窗邊說過拍到的那張。
+                    - if: know.k_ruoqing_died
+                      then:
+                        - think: 有。第一天在窗邊，她念過一張給我聽，拍的是我。
                 - narr: 我兩手捧著杯子，肩膀不知道什麼時候放下來了。
                 - tension: -8
             - text: 「不吵妳了。」
@@ -364,7 +370,7 @@ scenes:
             - set: c2_truck_grabbed
       - heart: off
       - narr: 柴油味散掉以後，電鑽的聲音又回到前面原來的地方。
-      - think: 若晴這個時間在幹嘛，我不知道。我只知道她傍晚會去哪裡。
+      - think: 若晴這個時間應該還在店裡。傍晚她會去哪裡，我比誰都清楚。
     next: c2_warning
 
   # ─────────────────────────────────────────── 16:45
@@ -377,7 +383,11 @@ scenes:
       - { sfx: door_open, at: front, dist: near, text: 喀 }
       - narr: 後門推開，咖啡的熱氣跟著她一起冒出來。
       - { sfx: strap_click, at: front, dist: near, text: 喀 }
-      - ruoqing: 欸，妳還在喔？
+      - if: seen.c2_afternoon
+        then:
+          - ruoqing: 欸，妳又回來了喔？
+        else:
+          - ruoqing: 欸，妳還在喔？
       - ruoqing: 妳是知夏姊的妹妹齁？鎮上都在講妳回來了。
       - me: 嗯。
       - if: flag.yuan_with_me
@@ -866,6 +876,7 @@ scenes:
       - narr: 若晴在擦杯子，玻璃跟玻璃輕輕碰在一起。
       - if: seen.c2_station
         then:
+          - narr: 從舊車站出來，我沒有回家，直接回到咖啡店。
           - narr: 她已經接到電話了。她一句話也沒講，手上那個杯子一直擦，擦了很久。
       - { sfx: glass_clink, at: front-left, dist: mid, text: 叮 }
       - think: 她活著，就在那邊擦杯子。
