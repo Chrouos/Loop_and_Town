@@ -394,6 +394,11 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 .lt-memory-open { padding: 6px 14px; color: var(--ink-faint); font-style: italic; letter-spacing: 0.24em; font-size: calc(0.82rem * var(--text-scale, 1)); transition: color 300ms; }
 .lt-memory-open:hover, .lt-memory-open:focus-visible { color: var(--ink-soft); }
 .lt-memory-door.teach .lt-memory-open { color: var(--ink-soft); animation: lt-breathe 2.4s ease-in-out infinite; }
+.lt-teach-keep {
+  margin-top: 6px; font-size: calc(0.78rem * var(--text-scale, 1)); letter-spacing: 0.24em; text-indent: 0.24em; color: var(--ink-dim);
+  opacity: 0; animation: lt-fade-in 900ms var(--ease) 1200ms forwards, lt-breathe 2.4s ease-in-out 2100ms infinite;
+}
+.lt-line.teach .lt-text { text-shadow: 0 0 14px rgba(236, 230, 218, 0.18); }
 .lt-memory-teach { font-size: calc(0.74rem * var(--text-scale, 1)); letter-spacing: 0.14em; color: var(--ink-dim); line-height: 1.8; }
 .lt-choices.tight .lt-memory-door { margin-top: 4px; padding-top: 4px; }
 .lt-recall {

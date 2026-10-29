@@ -78,6 +78,8 @@ export function autoplay(options: { seed: number; maxLoops: number; startChapter
       director.hurry();
     }
     if (view.keep) director.skipKeep();
+    // The first-play lesson waits for a long-press; a player who never makes one never gets past it.
+    if (view.teach === 'keep') director.capture();
     if (view.interact && random() < 0.3) {
       if (view.interact.type === 'touch') director.touchDone();
       else if (view.interact.type === 'punch') director.punchDone();

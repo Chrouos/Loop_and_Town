@@ -37,6 +37,7 @@ describe('knowledge carries over when she lives a day again', () => {
       else if (view.interact?.type === 'locate') director.locatePick('front-right');
       else director.hurry();
       if (view.keep) director.skipKeep();
+      if (view.teach === 'keep') director.capture();
       director.tick(200);
     }
     expect(roomPicks[1]).toContain('（摸相框）');

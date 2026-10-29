@@ -41,7 +41,8 @@ scenes:
           cells: [不, 要, 回, 來]
           style: braille
           prompt: 指尖從左邊慢慢滑過去
-      - { think: 不、要、回、來。, learn: k_letter, mem: m_letter }
+      # 教學：第一次玩，這句會停在這裡等玩家長按記住（只教一次）。第一章予安問信上寫什麼，就用得到它。
+      - { think: 不、要、回、來。, learn: k_letter, mem: m_letter, teach: keep }
       - pause: 2.5
       - think: 我兩年前才開始學點字，知夏死的時候，我還沒失明。
       - think: 她不會點字。也不可能知道我現在會需要。
@@ -586,7 +587,12 @@ scenes:
       - yuan: 寫什麼？
       - choice:
           options:
-            - text: 「不要回來。」
+            - text: （伸手去摸那行字）
+              then:
+                - narr: 我伸手過去。他把信紙轉了個方向，放到我的指尖底下。
+                - narr: 我從最左邊那一格開始，一格一格摸過去，摸得比昨天晚上還慢。
+                - me: ……不要回來。
+            # 教學：第一個收記憶的問題，記憶入口會亮著說明一次。
             - recall:
                 accept:
                   - mem: m_letter

@@ -101,12 +101,15 @@ export type View = {
   place?: string;
   card?: Card;
   center: CenterLine | null;
+  /** A lesson waiting on the player: 'keep' = long-press the line in the middle to go on. */
+  teach: 'keep' | null;
   echo: (CenterLine & { until: number }) | null;
   /** The main conversation's current line while she listens elsewhere: it keeps going in the middle, blurred. */
   away: CenterLine | null;
   periph: Peripheral[];
   ripples: { key: number; pos: Pos }[];
-  choice: { key: number; options: { text: string; index: number; disabled?: boolean }[]; startedAt: number; timeout?: number } | null;
+  /** `teach`: the first question that takes a memory; the memory door says what it is for. */
+  choice: { key: number; options: { text: string; index: number; disabled?: boolean }[]; startedAt: number; timeout?: number; teach?: boolean } | null;
   /** Memory Input picker: which remembered lines she could say right now. */
   recall: { key: number; memories: Memory[] } | null;
   /** A hands-or-ears moment the scene is waiting on. */
@@ -191,6 +194,8 @@ export class Director {
   private shownArea: string | undefined;
   private cast: Record<string, Pos> = {};
   private shift: { to: string; until: number } | null = null;
+  /** The line holding the keep lesson, until it is long-pressed. */
+  private teachKey: number | null = null;
   private phaseUntil = 0;
   private afterPhase: (() => void) | null = null;
   private timeline: { at: number; fn: () => void }[] = [];
@@ -388,6 +393,7 @@ export class Director {
     const line = this.focusedLine();
     if (line) {
       if (t < line.revealEnd) { this.advanceTo(line.revealEnd); return; }
+      if (this.teachKey === line.center.key) return;
       if (line.end === Infinity) { line.end = t; this.focusRun()!.busyUntil = t; }
       this.advanceTo(Math.max(t, line.end));
       return;
@@ -627,8 +633,17 @@ export class Director {
   }
 
   /** Long-press: keep the line that is (or just was) heard clearly. */
-  capture(): boolean {
-    const candidate = this.view.center?.perceived ? this.view.center : this.view.echo?.perceived ? this.view.echo : null;
+  /**
+   * Keep a line. `key` is the line under her finger; without one (the keyboard), what she is listening to,
+   * else the echo above it. The line she is hearing right now counts even before it has finished.
+   */
+  capture(key?: number): boolean {
+    const center = this.view.center;
+    const live = this.focusedLine();
+    const hearing = Boolean(center && !this.shift && live && !live.learnChecked);
+    const keepable = (line: CenterLine | null | undefined): line is CenterLine => Boolean(line && (line.perceived || (line === center && hearing)));
+    const held = key !== undefined ? [center, this.view.echo].find((line) => line?.key === key) : keepable(center) ? center : this.view.echo;
+    const candidate = keepable(held) ? held : null;
     if (!candidate || candidate.captured || candidate.kind === 'phone' && candidate.text.length < 4) return false;
     if (this.save.memories.some((memory) => memory.text === candidate.text && memory.loop === this.save.loop)) return false;
     candidate.captured = true;
@@ -647,6 +662,13 @@ export class Director {
     this.out.vibrate('tap');
     if (this.save.memories.length >= MEMORY_CAPACITY) this.view.keep = memory;
     else this.addMemory(memory);
+    // The lesson is learnt: the held line lets go a moment later, once the keep has been felt.
+    if (candidate.key === this.teachKey && live) {
+      this.dropLesson();
+      this.markTaught('keep');
+      live.end = Math.max(live.revealEnd, this.view.t) + 1400;
+      this.focusRun()!.busyUntil = live.end;
+    }
     this.bump();
     return true;
   }
@@ -765,6 +787,7 @@ export class Director {
     this.pendingEnd = null;
     this.view.center = null;
     this.view.away = null;
+    this.dropLesson();
     this.view.echo = lingering;
     // Sounds already in the air finish on their own; only what belonged to the scene's threads goes.
     this.view.periph = live ? this.view.periph.filter((item) => item.kind === 'sfx' || item.kind === 'life') : [];
@@ -1019,7 +1042,10 @@ export class Director {
       mem: beat.mem,
     };
     const revealEnd = t + timing.revealMs;
-    const manualHold = !this.settings.autoAdvance && focused;
+    // The lesson in keeping a line: the first time ever, this one waits until it is long-pressed.
+    const teaching = beat.teach === 'keep' && focused && !this.taught('keep');
+    if (teaching) { this.teachKey = center.key; this.view.teach = 'keep'; }
+    const manualHold = (!this.settings.autoAdvance && focused) || teaching;
     run.line = { beat, center, revealEnd, end: manualHold ? Infinity : revealEnd + timing.holdMs, learnChecked: false };
     run.busyUntil = run.line.end;
     // Her phone reading the time out loud is the time.
@@ -1135,6 +1161,8 @@ export class Director {
     const timeoutMs = beat.timeout !== undefined && fallback >= 0 ? beat.timeout * 1000 : Infinity;
     run.blocked = true;
     run.pendingChoice = { beat, options, deadline: t + timeoutMs + SHIFT_MS, fallback };
+    const teach = options.some((option) => option.recall) && !this.taught('recall');
+    if (teach) this.markTaught('recall');
     // Someone is asking her something: attention comes back.
     if (this.view.focus !== 'main' && this.shift?.to !== 'main') this.beginShift('main');
     this.view.choice = {
@@ -1143,6 +1171,7 @@ export class Director {
       options: options.flatMap((option, index) => option.silent || option.recall ? [] : [{ text: option.text, index, disabled: disabled[index] || undefined }]),
       startedAt: t,
       timeout: beat.timeout,
+      ...(teach ? { teach: true } : {}),
     };
     this.out.audio.play('choice_appear', CENTER, { gain: 0.5 });
     this.bump();
@@ -1268,6 +1297,7 @@ export class Director {
     // A line held for a manual tap must not freeze the conversation we are turning away from.
     const held = from ? this.runs.get(from)?.line : null;
     if (held && held.end === Infinity) { held.end = Math.max(held.revealEnd, this.view.t) + 1200; this.runs.get(from!)!.busyUntil = held.end; }
+    this.dropLesson();
     this.shift = { to, until: this.view.t + SHIFT_MS };
     this.view.focus = null;
     const target = to === 'main' ? null : this.runs.get(to)?.pos ?? null;
@@ -1300,6 +1330,19 @@ export class Director {
   }
 
   private focusRun(): Run | undefined { return this.view.focus ? this.runs.get(this.view.focus) : undefined; }
+  private taught(lesson: string): boolean { return (this.save.taught ?? []).includes(lesson); }
+
+  private markTaught(lesson: string): void {
+    if (this.taught(lesson)) return;
+    this.save.taught = [...(this.save.taught ?? []), lesson];
+    this.persist();
+  }
+
+  private dropLesson(): void {
+    this.teachKey = null;
+    this.view.teach = null;
+  }
+
   private focusedLine(): ActiveLine | null {
     const run = this.focusRun();
     return run?.line && this.view.center?.key === run.line.center.key ? run.line : null;
@@ -1519,7 +1562,7 @@ export class Director {
 
   private emptyView(): View {
     return {
-      phase: 'idle', brief: false, t: 0, center: null, echo: null, away: null, periph: [], ripples: [], choice: null, focus: null, shiftingTo: null,
+      phase: 'idle', brief: false, t: 0, center: null, teach: null, echo: null, away: null, periph: [], ripples: [], choice: null, focus: null, shiftingTo: null,
       waiting: null, clockMark: 0, keep: null, recall: null, interact: null, memoryCount: this.save.memories.length, shake: 0, shakeLevel: 'light', heart: null, daze: null, noise: null, tension: 0, chapterKey: this.save.chapter, loop: this.save.loop,
     };
   }

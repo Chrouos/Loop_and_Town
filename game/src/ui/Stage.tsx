@@ -299,6 +299,7 @@ export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown 
               <div className="lt-center-inner" style={{ transform: focusPos ? leanOf(focusPos) : undefined }}>
                 {middle.map(({ line, role }) => <Line key={line.key} line={line} role={role} director={director} view={view} onCapture={onCapture} />)}
                 {holdSlot && <div className="lt-hold" style={{ height: centerHeight.current }} aria-hidden="true" />}
+                {view.teach === 'keep' && view.center && <div className="lt-teach-keep" role="status">長按這句話，把它記住。</div>}
               </div>
             </div>
 
@@ -444,7 +445,7 @@ function Line({ line, role, side = false, director, view, onCapture }: { line: C
     setHolding(true);
     timer.current = window.setTimeout(() => {
       timer.current = null;
-      if (director.capture()) { setKept(true); onCapture(); }
+      if (director.capture(line.key)) { setKept(true); onCapture(); }
       setHolding(false);
     }, HOLD_MS);
   };
@@ -453,7 +454,7 @@ function Line({ line, role, side = false, director, view, onCapture }: { line: C
     setHolding(false);
   };
 
-  const classes = ['lt-line', `kind-${line.kind}`, echo ? 'lt-echo' : '', role === 'away' ? 'lt-away' : '', role === 'leaving' ? 'leaving' : '', revealed ? 'revealed' : '', holding ? 'holding' : '', kept ? 'kept' : ''].join(' ');
+  const classes = ['lt-line', `kind-${line.kind}`, echo ? 'lt-echo' : '', role === 'away' ? 'lt-away' : '', role === 'center' && view.teach === 'keep' && !kept ? 'teach' : '', role === 'leaving' ? 'leaving' : '', revealed ? 'revealed' : '', holding ? 'holding' : '', kept ? 'kept' : ''].join(' ');
   return (
     <div
       ref={ref}
@@ -526,20 +527,15 @@ function Choices({ director, choice, gone }: { director: Director; choice: NonNu
           <span className="lt-key">{index + 1}</span>{option.text}
         </button>
       ))}
-      <MemoryDoor director={director} gone={gone} delay={choice.options.length * 140} />
+      <MemoryDoor director={director} gone={gone} teach={Boolean(choice.teach)} delay={choice.options.length * 140} />
       {timeoutMs > 0 && <div className="lt-timer" />}
     </div>
   );
 }
 
-const MEMORY_HINT_KEY = 'listening-town-memory-hint';
-
 // The same door under every question, wanted or not, so its being there never gives anything away.
-// The first time she has something to carry through it, it says what it is for, once.
-function MemoryDoor({ director, gone, delay }: { director: Director; gone: boolean; delay: number }) {
-  const carrying = director.save.memories.length > 0;
-  const [teach] = useState(() => { try { return carrying && localStorage.getItem(MEMORY_HINT_KEY) !== 'done'; } catch { return false; } });
-  useEffect(() => { if (teach) try { localStorage.setItem(MEMORY_HINT_KEY, 'done'); } catch { /* ignore */ } }, [teach]);
+// At the first question that takes a memory (the lesson), it says what it is for, once.
+function MemoryDoor({ director, gone, teach, delay }: { director: Director; gone: boolean; teach: boolean; delay: number }) {
   return (
     <div className={`lt-memory-door${teach ? ' teach' : ''}`} style={{ animationDelay: `${delay}ms` }}>
       <button type="button" className="lt-memory-open" disabled={gone} onClick={(event) => { event.stopPropagation(); director.remember(); }} aria-keyshortcuts="M">
