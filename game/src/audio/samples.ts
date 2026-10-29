@@ -377,7 +377,7 @@ export class SampleBank {
   }
 
   /** Load every one-shot in the background, a few at a time. */
-  async preloadSfx(concurrency = 4): Promise<void> {
+  async preloadSfx(concurrency = 8): Promise<void> {
     if (!this.supported) return;
     const files = [...new Set(Object.values(this.sfxManifest).flatMap((e) => (e ? [...e.files] : [])))];
     let next = 0;

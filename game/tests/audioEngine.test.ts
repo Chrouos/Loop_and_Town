@@ -430,13 +430,18 @@ describe('Web Audio engine (fake context)', () => {
     await engine.unlock();
     const dbg = engine as unknown as AudioEngineDebug;
     const at = { dir: 'right', dist: 'near' } as const;
+    // Sounds with a recording wait for it to load (here it never decodes, so synthesis stands in once it fails).
+    const settle = () => vi.advanceTimersByTimeAsync(30);
     engine.voice('yuan', at, 1500); // a new speaker: one rustle
     engine.voice('me', at, 1500); // the protagonist makes no sound and does not end his turn
     engine.voice('yuan', at, 1500); // the same conversation: nothing
+    await settle();
     expect(dbg.stats().shots).toBe(1);
     engine.voice('ruoqing', at, 1500); // someone else starts talking
+    await settle();
     expect(dbg.stats().shots).toBe(2);
     engine.voice('woman', at, 1500, 'life'); // a passer-by: a recording of someone talking, never a synthesized voice
+    await settle();
     expect(dbg.stats().shots).toBe(3);
     expect(dbg.stats().voices).toBe(0);
   });
@@ -487,6 +492,7 @@ describe('Web Audio engine (fake context)', () => {
     for (const id of HUMAN_SFX) {
       const before = dbg.stats().shots;
       engine.play(id, { dir: 'front', dist: 'near' });
+      await vi.advanceTimersByTimeAsync(30); // its recording is tried first, and fails
       expect(dbg.stats().shots, id).toBe(before + 1);
     }
     expect(errors).toEqual([]);
