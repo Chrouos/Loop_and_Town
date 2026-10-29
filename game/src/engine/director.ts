@@ -1210,8 +1210,13 @@ export class Director {
       const hushed = t < this.lifeHushUntil;
       const empty = t - this.lifeBusyAt >= LIFE_EMPTY_MS;
       if (!hushed && (t >= this.lifeNextAt || empty)) {
-        // Thinner while someone is talking to her; busier while she waits.
-        if (!this.focusedLine() || Math.random() < 0.5) { this.lifeBeat(life.events, t); this.lifeBusyAt = t; }
+        // Thinner while someone is talking to her; busier while she waits. Listening in on strangers (a thread),
+        // the place keeps sounding as usual, only without other voices crossing the ones she is following.
+        const aside = this.view.focus !== null && this.view.focus !== 'main';
+        if (aside) {
+          const sounds = life.events.filter((event) => !isVoice(event));
+          if (sounds.length) { this.lifeBeat(sounds, t); this.lifeBusyAt = t; }
+        } else if (!this.focusedLine() || Math.random() < 0.5) { this.lifeBeat(life.events, t); this.lifeBusyAt = t; }
         const [min, max] = life.every;
         this.lifeNextAt = t + (min + Math.random() * (max - min)) * 1000 * (this.view.waiting ? 0.45 : 1) * TENSION_LIFE[this.view.tension].every;
       }

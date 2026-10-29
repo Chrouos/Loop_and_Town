@@ -294,10 +294,15 @@ export class SampleBank {
     const inflight = this.pending.get(path);
     if (inflight) return inflight;
     const p = (async (): Promise<AudioBuffer | null> => {
-      try {
-        const res = await fetch(sampleUrl(path));
+      // A file caught half-written (the dev server while sounds are rebuilt) can stick in the browser cache as
+      // something that is not audio; when it does not decode, fetch it once more past the cache.
+      const fetchDecode = async (cache?: RequestCache): Promise<AudioBuffer> => {
+        const res = await fetch(sampleUrl(path), cache ? { cache } : undefined);
         if (!res.ok) throw new Error(`${res.status}`);
-        const buf = await decode(this.ac, await res.arrayBuffer());
+        return decode(this.ac, await res.arrayBuffer());
+      };
+      try {
+        const buf = await fetchDecode().catch(() => fetchDecode('reload'));
         this.buffers.set(path, buf);
         this.failed.delete(path);
         return buf;
