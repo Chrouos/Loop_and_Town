@@ -272,7 +272,7 @@ scenes:
 | 角色說話 | `- yuan: 比我想的早。` | key 是 cast id；方位取場景 `cast` |
 | 角色說話（覆寫） | `- { yuan: 比我想的早。, at: left, as: 陌生的男聲, learn: k_x, mem: m_x }` | `at` 方位、`as` 標籤、`learn` 聽清楚才得到的知識、`mem` 記憶 id、`teach: keep` 第一次玩時停在這句等玩家長按（要有 `mem`，全遊戲只用在序章那一行） |
 | 從機器傳出來的聲音 | `- { man: 下一站，灰潮鎮。, as: 廣播, via: speaker }` | `via`：`speaker`（擴音器、宣傳車、車站廣播，播出時有喇叭的雜訊）／`radio`（收音機）／`tv`（電視）／`tape`（錄音帶）／`phone`（電話那頭）。不寫的話會當成有人站在旁邊開口，播衣服摩擦聲；`announcer` 不寫也當擴音器 |
-| 沒有名字的路人說話 | `- { man: 你家也收到了喔？, at: back-left }` | `man`／`woman`／`old_man`／`old_woman`／`child` 說話時播真的人聲錄音（聽不出字），角色（予安、若晴……）不播。壓低聲音的寫 `whisper: true`；整條支線都在講悄悄話，就把 `whisper: true` 寫在 cue 上（`{ cue: gossip, …, whisper: true }`）。安靜的地方（圖書館、醫院、派出所、夜裡老屋）不寫也是耳語，寫 `whisper: false` 可以喊出來 |
+| 沒有名字的路人說話 | `- { man: 你家也收到了喔？, at: back-left }` | 字幕出現在畫面上的台詞（不管是角色還是路人）都不播人聲錄音，只在換人說話時有一聲衣服摩擦，字就是他的聲音；錄音配上去會講出別的話，對不上。真的人聲錄音只給背景路人（環境的 life、`noise` 的 `with:`），安靜的地方是耳語。`whisper: true` 寫在台詞或 cue 上目前只是標記，留給以後用 |
 | 移動中的聲音 | `- { man: 說明會今晚七點, at: left, to: back:far }` 或 `- { sfx: car_pass, at: left, to: back }` | 聲音從 `at` 沿近的那一邊繞到 `to`，距離沒寫就沿用 `at` 的。台詞：字的偏向跟著滑過去，漣漪一格一格往終點走；音效：聲音本身移過去，越往後越悶、回音越多。`at` 必填，兩端都不能是 `center` |
 | 手機讀屏 | `- phone: 六點十二分。` | |
 | 固定音效版本 | `- { sfx: laugh_soft, variant: 1, at: center, dist: near }` | `variant` 從 1 起算，對應 `_1` 錄音；省略則照原本方式挑選版本。遊戲使用發佈目錄的 `.m4a`，不直接讀取工具輸出的 `.wav` |

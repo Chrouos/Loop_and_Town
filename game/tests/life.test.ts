@@ -180,7 +180,7 @@ scenes:
 });
 
 describe('strangers the story names nothing for', () => {
-  it('a stranger in a thread is heard as a real voice; behind her on the train, under their breath', async () => {
+  it('a stranger whose words are on screen is placed like the cast, never under a recorded voice', async () => {
     const { buildScript } = await import('../src/script/validate');
     const { Director } = await import('../src/engine/director');
     const { freshSave } = await import('../src/engine/save');
@@ -210,8 +210,9 @@ scenes:
     const director = new Director(script, { ...freshSave(), started: true, scene: 's1' }, { audio, vibrate: () => undefined, persist: () => undefined, wallNow: () => 0 });
     director.start();
     for (let i = 0; i < 400; i++) director.tick(50);
-    expect(heard).toContain('woman:whisper');
-    expect(heard).toContain('man:life');
+    expect(heard).toContain('woman:line');
+    expect(heard).toContain('man:line');
     expect(heard).toContain('yuan:line');
+    expect(heard.some((entry) => entry.endsWith(':life') || entry.endsWith(':whisper'))).toBe(false);
   });
 });

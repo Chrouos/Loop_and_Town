@@ -1,5 +1,5 @@
 import type { AudioEngine } from '../audio/engine';
-import { DIRECTIONS, DIRECTION_ANGLE, DISTANCES, SFX_SOURCE, type AmbienceId, type Direction, type SfxId, type VibrationId, type VoiceId } from '../audio/catalog';
+import { DIRECTIONS, DIRECTION_ANGLE, DISTANCES, SFX_SOURCE, type AmbienceId, type Direction, type SfxId, type VibrationId } from '../audio/catalog';
 import { condRefs, evalCond, type CondContext } from '../script/conditions';
 import { CHAPTER_NUMERALS, SPEAKER_LABELS, TENSION_MAX, type Beat, type Chapter, type Cond, type ChoiceOption, type EndKind, type DazeLevel, type GameScript, type HeartLevel, type LineBeat, type NoiseLevel, type LineKind, type Pos, type Scene, type ShakeLevel } from '../script/types';
 import { driftClock, heardClock, planClock, type ClockPlan } from './clock';
@@ -39,9 +39,6 @@ const NOISE: Record<Exclude<NoiseLevel, 'off'>, { speed: number; loud: number }>
   light: { speed: 2.5, loud: 1.5 },
   heavy: { speed: 5, loud: 2.2 },
 };
-/** People with no name in the story: heard as recorded voices, a little above the background ones (she is listening). */
-const STRANGERS: ReadonlySet<string> = new Set(['man', 'woman', 'old_man', 'old_woman', 'child']);
-const STRANGER_GAIN = 1.3;
 /** At speed 1, one extra background beat every this long; speed divides it. */
 const NOISE_BASE_MS = 2000;
 
@@ -1052,13 +1049,9 @@ export class Director {
     const spoken = beat.kind === 'phone' ? heardClock(text, this.view.clock) : null;
     if (spoken) this.setClock(spoken);
     if (beat.kind === 'char' || beat.kind === 'me' || beat.kind === 'phone') {
-      // A stranger (no name, no device) is heard as a real voice too muffled to make out, or a whisper when they keep
-      // it down; the cast are placed by the rustle of turning to talk, and the text is their voice.
-      const stranger = beat.kind === 'char' && !beat.via && STRANGERS.has(beat.speaker);
-      if (stranger) {
-        const hushed = isWhispered({ say: '', voice: beat.speaker as VoiceId, whisper: beat.whisper ?? run.whisper }, this.ambience);
-        this.out.audio.voice(beat.speaker as VoiceId, pos, timing.revealMs, hushed ? 'whisper' : 'life', STRANGER_GAIN);
-      } else this.out.audio.voice(beat.speaker === 'me' ? 'me' : beat.speaker, beat.kind === 'me' ? CENTER : pos, timing.revealMs, 'line', 1, beat.via);
+      // Anyone whose words are on screen, a stranger too, is placed by the rustle of turning to talk: the text is their
+      // voice, and a recorded voice under it would say something else. Recorded talk is only for the background.
+      this.out.audio.voice(beat.speaker === 'me' ? 'me' : beat.speaker, beat.kind === 'me' ? CENTER : pos, timing.revealMs, 'line', 1, beat.via);
     }
     if (glide) this.trail(pos, glide, t, glideMs);
     else if (beat.kind === 'char') this.ripple(pos);

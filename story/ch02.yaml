@@ -999,7 +999,7 @@ scenes:
       - daze: heavy
       - heart: pound
       - narr: 我想再叫她，吸進來的全是灰，嗆得我彎下腰咳個不停。
-      - { sfx: cough_w, at: center, dist: near, text: 咳、咳咳 }
+      - { sfx: cough, at: center, dist: near, text: 咳、咳咳 }
       - narr: 嘴裡有鐵鏽味，大概是剛剛咬破了舌頭，我一點都不覺得痛。
       - daze: off
       - narr: 咳到最後，耳朵裡的嗡聲先停了，接著是灰塵落回地上的沙沙聲。
