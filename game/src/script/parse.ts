@@ -7,7 +7,7 @@ import { DAZE_LEVELS, HEART_LEVELS, NOISE_LEVELS, SHAKE_LEVELS, TENSION_STEP_MAX
 
 export const CHARACTER_KEYS = ['yuan', 'ruoqing', 'boxun', 'tingan', 'zhiyuan', 'zhixia', 'man', 'woman', 'child', 'old_man', 'old_woman', 'announcer'] as const;
 const LINE_KEYS = new Set<string>(['narr', 'me', 'think', 'phone', ...CHARACTER_KEYS]);
-const LINE_ATTRS = new Set(['at', 'to', 'as', 'learn', 'mem', 'dist', 'shake', 'via', 'whisper']);
+const LINE_ATTRS = new Set(['at', 'to', 'as', 'learn', 'mem', 'dist', 'shake', 'via', 'whisper', 'teach']);
 const END_KINDS: EndKind[] = ['reset', 'ending_a', 'ending_b', 'ending_c'];
 
 type Errors = string[];
@@ -87,6 +87,11 @@ function parseLine(key: string, raw: Obj, where: string, errors: Errors): LineBe
   if (raw.mem !== undefined) line.mem = String(raw.mem);
   if (raw.shake !== undefined) line.shake = shake(raw.shake, where, errors);
   if (raw.whisper !== undefined) line.whisper = raw.whisper === true;
+  if (raw.teach !== undefined) {
+    if (raw.teach !== 'keep') errors.push(`${where}：teach 只能是 keep`);
+    else if (raw.mem === undefined) errors.push(`${where}：teach: keep 的那句要有 mem`);
+    else line.teach = 'keep';
+  }
   if (raw.via !== undefined) {
     const via = String(raw.via);
     if (!(VIAS as readonly string[]).includes(via)) errors.push(`${where}：via 只能是 ${VIAS.join('／')}`);

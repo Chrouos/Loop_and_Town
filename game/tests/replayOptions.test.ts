@@ -23,6 +23,7 @@ function replay(chapter: string, knowledge: string[], prefer: string[]) {
       d.choose(v.choice.options[pick >= 0 ? pick : 0].index);
     }
     if (v.keep) d.skipKeep();
+    if (v.teach === 'keep') d.capture();
     if (v.sceneId?.endsWith('_bell')) break;
     d.tick(100);
   }

@@ -64,11 +64,13 @@ export type GameSave = {
   replay: { chapter: string; chLoop: number } | null;
   /** Hidden tension 0–100: carried from chapter to chapter (it is one long day for her), eased a little each midnight. */
   tension: number;
+  /** Lessons already given ('keep' = long-press a line, 'recall' = say a memory): each is taught once, then never again. */
+  taught?: string[];
 };
 
 export const DEFAULT_SETTINGS: Settings = { audio: true, volume: 0.8, ambience: 0.7, sfx: 0.85, voice: 0.45, vibration: true, motion: true, soundLabels: true, textSpeed: 'normal', fontSize: 'normal', autoAdvance: true };
 
-export function freshSave(previous?: Pick<GameSave, 'settings' | 'endings' | 'calibrated'>): GameSave {
+export function freshSave(previous?: Pick<GameSave, 'settings' | 'endings' | 'calibrated' | 'taught'>): GameSave {
   return {
     version: 1,
     started: false,
@@ -87,6 +89,7 @@ export function freshSave(previous?: Pick<GameSave, 'settings' | 'endings' | 'ca
     reached: [],
     replay: null,
     tension: 0,
+    taught: previous?.taught ?? [],
   };
 }
 

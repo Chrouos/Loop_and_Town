@@ -46,6 +46,8 @@ export type LineBeat = {
   via?: Via;
   /** A stranger lowering their voice (true) or not (false); unset, the thread's cue or the place decides. */
   whisper?: boolean;
+  /** 'keep': the first time ever, the line waits here until the player long-presses it (the lesson in keeping a line). */
+  teach?: 'keep';
 };
 
 /** Memory Input: she says a remembered line out loud. Only the accepted memories change anything. */
