@@ -176,6 +176,24 @@ scenes:
     expect(heard.slice(0, 4)).toEqual(['sfx:light_buzz', 'sfx:hum_rise', 'sfx:light_buzz', 'sfx:hum_rise']);
   });
 
+  it('locate with times: the sound she is after clicks twice before the decoy answers', () => {
+    const twice = SCRIPT.replace('          tries: 2\n', '          tries: 2\n          times: 2\n');
+    const { script, errors } = buildScript([{ name: 'a.yaml', source: twice }]);
+    expect(errors).toEqual([]);
+    const log: string[] = [];
+    let save: GameSave = { ...freshSave(), started: true, scene: 's1' };
+    const director = new Director(script, save, { audio: silentAudio(log), vibrate: () => undefined, persist: (next) => { save = next; }, wallNow: () => 0 });
+    director.start();
+    for (let i = 0; i < 600 && director.view.interact?.type !== 'touch'; i++) director.tick(50);
+    log.length = 0;
+    director.touchDone();
+    for (let i = 0; i < 600 && director.view.interact?.type !== 'locate'; i++) director.tick(50);
+    for (let t = 0; t < 1500; t += 50) director.tick(50);
+    const heard = log.filter((entry) => entry === 'sfx:hum_rise' || entry === 'sfx:light_buzz');
+    expect(heard.slice(0, 3)).toEqual(['sfx:hum_rise', 'sfx:hum_rise', 'sfx:light_buzz']);
+    expect(buildScript([{ name: 'a.yaml', source: SCRIPT.replace('          tries: 2\n', '          tries: 2\n          times: 2\n          lag: 0.2\n') }]).errors.join('\n')).toMatch(/times 不能配 lag/);
+  });
+
   it('validator keeps interactions out of side threads and checks their sounds', () => {
     const bad = SCRIPT.replace('sfx: hum_rise', 'sfx: no_such_sound');
     expect(buildScript([{ name: 'a.yaml', source: bad }]).errors.join('\n')).toMatch(/no_such_sound/);

@@ -49,6 +49,8 @@ const NOISE_BASE_MS = 2000;
 const TENSION_LINES = [30, 55, 80];
 const TENSION_EASE = 6;
 /** What the day does to her on its own; scripts add their own with `tension:`. */
+/** Gap between the clicks of a locate sound that comes more than once (`times`). */
+const LOCATE_REPEAT_MS = 260;
 const TENSION_AUTO = { locateWrong: 4, locateMiss: 12, locateFound: -4, approachMiss: 10, approachHit: -4, froze: 5, recallMiss: 4, newPlace: -2 };
 /** Midnight: she wakes on the train with some of it still in her chest. */
 const TENSION_SLEEP = 0.6;
@@ -105,7 +107,7 @@ export type View = {
   away: CenterLine | null;
   periph: Peripheral[];
   ripples: { key: number; pos: Pos }[];
-  /** `teach`: the first question that takes a memory; the memory door says what it is for. */
+  /** `teach`: the first question that takes a memory; the memory button says what it is for. */
   choice: { key: number; options: { text: string; index: number; disabled?: boolean }[]; startedAt: number; timeout?: number; teach?: boolean } | null;
   /** Memory Input picker: which remembered lines she could say right now. */
   recall: { key: number; memories: Memory[] } | null;
@@ -457,12 +459,16 @@ export class Director {
     this.advanceTo(this.view.t);
   }
 
+  /** Whether a question is open right now, so the memory she carries can be said instead of chosen. */
+  canRemember(): boolean {
+    return Boolean(this.runs.get('main')?.pendingChoice) && this.view.focus === 'main' && !this.view.recall;
+  }
+
   /** The memory she can reach for at any question, whether or not this one takes a memory. */
   remember(): void {
-    const main = this.runs.get('main');
-    const pending = main?.pendingChoice;
-    if (!main || !pending || this.view.focus !== 'main' || this.view.recall) return;
-    this.openRecall(main, pending.options.findIndex((option) => option.recall));
+    if (!this.canRemember()) return;
+    const main = this.runs.get('main')!;
+    this.openRecall(main, main.pendingChoice!.options.findIndex((option) => option.recall));
   }
 
   private openRecall(run: Run, index: number): void {
@@ -605,11 +611,15 @@ export class Director {
       this.schedule(t + 1000, () => this.repeatLocate(key, beat, t + 1000));
       return;
     }
+    // times: a short sound (a clasp) comes as a little run of clicks, so there is something to follow.
+    const times = beat.times ?? 1;
     this.out.audio.play(beat.sfx, { dir: beat.at, dist: 'mid' }, { gain: target });
-    beat.decoys.forEach((decoy, index) => this.schedule(t + 500 + index * 420, () => {
+    for (let n = 1; n < times; n++) this.schedule(t + n * LOCATE_REPEAT_MS, () => { if (this.view.interact?.key === key) this.out.audio.play(beat.sfx, { dir: beat.at, dist: 'mid' }, { gain: target }); });
+    const after = (times - 1) * LOCATE_REPEAT_MS;
+    beat.decoys.forEach((decoy, index) => this.schedule(t + after + 500 + index * 420, () => {
       if (this.view.interact?.key === key) this.out.audio.play(decoy.sfx, { dir: decoy.at, dist: 'mid' }, { gain: ears.decoy });
     }));
-    this.maskWithHeart(key, t + 250);
+    this.maskWithHeart(key, t + after + 250);
     const intervalMs = Math.max(700, (beat.interval ?? 2.6) * 1000);
     this.schedule(t + intervalMs, () => this.repeatLocate(key, beat, t + intervalMs));
   }

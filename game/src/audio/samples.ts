@@ -130,6 +130,7 @@ export const SFX_SAMPLES: Partial<Record<SfxId, SfxSample>> = {
   rain_burst: { files: ['sfx/rain_burst.m4a'], gain: 1 },
   recorder_click: { files: ['sfx/recorder_click_1.m4a', 'sfx/recorder_click_2.m4a', 'sfx/recorder_click_3.m4a'], gain: 1 },
   relay_click: { files: ['sfx/relay_click_1.m4a', 'sfx/relay_click_2.m4a', 'sfx/relay_click_3.m4a'], gain: 1 },
+  scooter_start: { files: ['sfx/scooter_start.m4a'], gain: 1 },
   seagull: { files: ['sfx/seagull_1.m4a', 'sfx/seagull_2.m4a'], gain: 1 },
   shop_bell: { files: ['sfx/shop_bell_1.m4a', 'sfx/shop_bell_2.m4a', 'sfx/shop_bell_3.m4a'], gain: 1 },
   shutter_roll: { files: ['sfx/shutter_roll_1.m4a', 'sfx/shutter_roll_2.m4a', 'sfx/shutter_roll_3.m4a', 'sfx/shutter_roll_4.m4a'], gain: 1 },

@@ -682,6 +682,7 @@ const BASE_SFX_RECIPES: Record<Exclude<SfxId, AmbientEventId | keyof typeof LIFE
   phone_on_glass: alike('cup_set', 0.8),
   cough_w: alike('cough', 1.35),
   bike_squeak: alike('mouse_squeak', 0.55),
+  scooter_start: alike('boat_engine', 1.8),
   gasp_crowd: {
     play(c) {
       const t = c.t;
@@ -2320,6 +2321,7 @@ const ALIKE: Partial<Record<SfxId, [SfxId, number]>> = {
   pour_water: ['water_rush', 1], bamboo_knock: ['house_tick', 1], knuckle_knock: ['house_tick', 1], chair_creak: ['wood_creak', 1],
   cane_scrape: ['chair_scrape', 0.7], gravel_step: ['step_wet', 1], cup_scrape: ['chair_scrape', 0.7], nail_scratch: ['pen_scratch', 1],
   suitcase_roll: ['cart_roll', 1], phone_on_glass: ['cup_set', 1], cough_w: ['cough', 1], bike_squeak: ['mouse_squeak', 0.7],
+  scooter_start: ['boat_engine', 0.8],
 };
 for (const [id, [from, v]] of Object.entries(ALIKE) as Array<[SfxId, [SfxId, number]]>) SFX_RECIPES[id].level = (SFX_RECIPES[from].level ?? 1) * v;
 
