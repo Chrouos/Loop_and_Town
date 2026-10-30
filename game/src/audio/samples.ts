@@ -130,6 +130,7 @@ export const SFX_SAMPLES: Partial<Record<SfxId, SfxSample>> = {
   rain_burst: { files: ['sfx/rain_burst.m4a'], gain: 1 },
   recorder_click: { files: ['sfx/recorder_click_1.m4a', 'sfx/recorder_click_2.m4a', 'sfx/recorder_click_3.m4a'], gain: 1 },
   relay_click: { files: ['sfx/relay_click_1.m4a', 'sfx/relay_click_2.m4a', 'sfx/relay_click_3.m4a'], gain: 1 },
+  scooter_start: { files: ['sfx/scooter_start.m4a'], gain: 1 },
   seagull: { files: ['sfx/seagull_1.m4a', 'sfx/seagull_2.m4a'], gain: 1 },
   shop_bell: { files: ['sfx/shop_bell_1.m4a', 'sfx/shop_bell_2.m4a', 'sfx/shop_bell_3.m4a'], gain: 1 },
   shutter_roll: { files: ['sfx/shutter_roll_1.m4a', 'sfx/shutter_roll_2.m4a', 'sfx/shutter_roll_3.m4a', 'sfx/shutter_roll_4.m4a'], gain: 1 },
@@ -294,10 +295,15 @@ export class SampleBank {
     const inflight = this.pending.get(path);
     if (inflight) return inflight;
     const p = (async (): Promise<AudioBuffer | null> => {
-      try {
-        const res = await fetch(sampleUrl(path));
+      // A file caught half-written (the dev server while sounds are rebuilt) can stick in the browser cache as
+      // something that is not audio; when it does not decode, fetch it once more past the cache.
+      const fetchDecode = async (cache?: RequestCache): Promise<AudioBuffer> => {
+        const res = await fetch(sampleUrl(path), cache ? { cache } : undefined);
         if (!res.ok) throw new Error(`${res.status}`);
-        const buf = await decode(this.ac, await res.arrayBuffer());
+        return decode(this.ac, await res.arrayBuffer());
+      };
+      try {
+        const buf = await fetchDecode().catch(() => fetchDecode('reload'));
         this.buffers.set(path, buf);
         this.failed.delete(path);
         return buf;
@@ -377,7 +383,7 @@ export class SampleBank {
   }
 
   /** Load every one-shot in the background, a few at a time. */
-  async preloadSfx(concurrency = 4): Promise<void> {
+  async preloadSfx(concurrency = 8): Promise<void> {
     if (!this.supported) return;
     const files = [...new Set(Object.values(this.sfxManifest).flatMap((e) => (e ? [...e.files] : [])))];
     let next = 0;

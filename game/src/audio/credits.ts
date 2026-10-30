@@ -21,4 +21,12 @@ export const ATTRIBUTION_CREDITS: readonly AttributionCredit[] = [
     license: 'CC BY 3.0',
     licenseUrl: 'https://creativecommons.org/licenses/by/3.0/',
   },
+  {
+    use: '機車發動',
+    title: 'CPI Scooter Fast Start and acceleration.wav',
+    author: 'loljames',
+    url: 'https://freesound.org/people/loljames/sounds/97159/',
+    license: 'CC BY 3.0',
+    licenseUrl: 'https://creativecommons.org/licenses/by/3.0/',
+  },
 ];

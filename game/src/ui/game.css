@@ -275,6 +275,24 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 .lt-corner-dot { width: 7px; height: 7px; border-radius: 50%; border: 1px solid var(--ink-dim); transition: background 400ms; }
 .lt-corner.has .lt-corner-dot { background: var(--ink-dim); }
 .lt-corner.pulse .lt-corner-dot { animation: lt-pulse 1200ms var(--ease); }
+/* what she carries, left of the menu: brighter while a question is open, any question */
+.lt-mem-btn {
+  position: fixed; right: calc(max(18px, env(safe-area-inset-right)) + 44px); bottom: max(18px, env(safe-area-inset-bottom));
+  width: 44px; height: 44px; display: grid; place-items: center; z-index: 5; opacity: 0.55; transition: opacity 300ms;
+}
+.lt-mem-btn svg { width: 18px; height: 18px; fill: none; stroke: var(--ink-dim); stroke-width: 1.2; stroke-linecap: square; transition: stroke 400ms; }
+.lt-mem-btn.has svg { stroke: var(--ink-soft); }
+.lt-mem-btn:hover, .lt-mem-btn:focus-visible, .lt-mem-btn.ready { opacity: 1; }
+.lt-mem-btn.ready svg { stroke: var(--ink); }
+.lt-mem-btn.pulse svg { animation: lt-mem-pulse 1200ms var(--ease); }
+.lt-mem-btn.teach { animation: lt-breathe 2.4s ease-in-out infinite; }
+@keyframes lt-mem-pulse { 0% { transform: scale(1); } 40% { transform: scale(1.5); stroke: var(--ink); } 100% { transform: scale(1); } }
+.lt-mem-teach {
+  position: fixed; right: max(18px, env(safe-area-inset-right)); bottom: calc(max(18px, env(safe-area-inset-bottom)) + 52px); z-index: 5;
+  max-width: min(78vw, 300px); text-align: right; pointer-events: none;
+  font-size: calc(0.76rem * var(--text-scale, 1)); letter-spacing: 0.14em; line-height: 1.9; color: var(--ink-dim);
+  opacity: 0; animation: lt-fade-in 900ms var(--ease) 600ms forwards;
+}
 
 .lt-overlay {
   position: fixed; inset: 0; z-index: 10; background: rgba(0, 0, 0, 0.94);
@@ -390,17 +408,11 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 .lt-choices.tight .lt-choice { padding: 5px 14px; line-height: 1.4; letter-spacing: 0.06em; font-size: calc(clamp(0.98rem, 1.8vw, 1.12rem) * min(var(--text-scale, 1), 1.15)); }
 
 /* ── memory input: saying a remembered line ── */
-.lt-memory-door { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--ink-ghost); text-align: center; opacity: 0; animation: lt-fade-in 600ms var(--ease) forwards; }
-.lt-memory-open { padding: 6px 14px; color: var(--ink-faint); font-style: italic; letter-spacing: 0.24em; font-size: calc(0.82rem * var(--text-scale, 1)); transition: color 300ms; }
-.lt-memory-open:hover, .lt-memory-open:focus-visible { color: var(--ink-soft); }
-.lt-memory-door.teach .lt-memory-open { color: var(--ink-soft); animation: lt-breathe 2.4s ease-in-out infinite; }
 .lt-teach-keep {
   margin-top: 6px; font-size: calc(0.78rem * var(--text-scale, 1)); letter-spacing: 0.24em; text-indent: 0.24em; color: var(--ink-dim);
   opacity: 0; animation: lt-fade-in 900ms var(--ease) 1200ms forwards, lt-breathe 2.4s ease-in-out 2100ms infinite;
 }
 .lt-line.teach .lt-text { text-shadow: 0 0 14px rgba(236, 230, 218, 0.18); }
-.lt-memory-teach { font-size: calc(0.74rem * var(--text-scale, 1)); letter-spacing: 0.14em; color: var(--ink-dim); line-height: 1.8; }
-.lt-choices.tight .lt-memory-door { margin-top: 4px; padding-top: 4px; }
 .lt-recall {
   position: absolute; left: 50%; top: calc(50% + 70px); transform: translateX(-50%);
   width: min(88vw, 560px); max-height: calc(50vh - 90px); overflow-y: auto; z-index: 4;

@@ -22,7 +22,7 @@ for (const [name, engine] of Object.entries({ chromium, webkit })) {
           Object.assign(d.view, { phase: 'scene', center: null, echo: null, choice: null, periph: [], ripples: [] });
           d.updateSettings({ fontSize: 'extraLarge' });
         });
-        await page.getByRole('button', { name: '記憶與設定' }).tap();
+        await page.getByRole('button', { name: '選單' }).tap();
         await page.getByRole('button', { name: '設定', exact: true }).tap();
         const overlay = page.locator('.lt-overlay');
         assert(await overlay.evaluate(el => el.scrollWidth <= el.clientWidth), 'settings overflow horizontally');

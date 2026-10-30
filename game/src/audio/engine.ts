@@ -52,6 +52,9 @@ export interface AudioEngine {
 
 export type SampleMode = 'auto' | 'synth';
 
+/** A recording still loading may hold its sound back this long; later than that it would land out of place. */
+const LATE_SAMPLE_MS = 2500;
+
 export type VoiceKind = 'line' | 'life' | 'whisper';
 
 /** What each device sounds like under the words: a loudspeaker or a call crackles, a radio or TV hisses, a tape runs. */
@@ -494,8 +497,21 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
       return;
     }
     const sampled = this.sampleFor(id);
-    if (sampled) this.shoot(id, pos, opts, sampled);
-    else this.shoot(id, pos, opts, SFX_RECIPES[id]);
+    if (sampled) { this.shoot(id, pos, opts, sampled); return; }
+    // A sound with a recording waits for it (the synthesized stand-in reads as fake: a cough, a voice). Only a
+    // recording that cannot be decoded at all falls back to synthesis; one that arrives too late is dropped.
+    const bank = this.bank;
+    if (bank && this.sampleMode !== 'synth' && bank.sfxEntry(id)) {
+      const asked = performance.now();
+      void bank.loadSfx(id).then(() => {
+        const late = performance.now() - asked > LATE_SAMPLE_MS;
+        const ready = this.sampleFor(id);
+        if (ready) { if (!late) this.shoot(id, pos, opts, ready); return; }
+        if (!late) this.shoot(id, pos, opts, SFX_RECIPES[id]);
+      });
+      return;
+    }
+    this.shoot(id, pos, opts, SFX_RECIPES[id]);
   }
 
   private shoot(id: SfxId, pos: SpatialPos, opts: SfxOpts | undefined, recipe: SfxRecipe | undefined): void {

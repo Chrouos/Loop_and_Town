@@ -54,6 +54,7 @@ export function GameApp({ storage = safeStorage() }: { storage?: Storage }) {
 
   const [screen, setScreen] = useState<Screen>('title');
   const [menu, setMenu] = useState(false);
+  const [menuTab, setMenuTab] = useState<MenuTab>('settings');
   const [pulse, setPulse] = useState(0);
   const [cueHint, setCueHint] = useState(() => { try { return storage?.getItem(HINT_KEY) !== 'done'; } catch { return true; } });
 
@@ -111,6 +112,13 @@ export function GameApp({ storage = safeStorage() }: { storage?: Storage }) {
     director.start();
   }, [applySettings, audio, director, options]);
 
+  // The memory button: at a question she may say one of them; any other time it just shows what she carries.
+  const openMemory = useCallback(() => {
+    if (director.canRemember()) { director.remember(); return; }
+    setMenuTab('memory');
+    setMenu(true);
+  }, [director]);
+
   const finishCalibration = useCallback(() => {
     director.save.calibrated = true;
     writeSave(storage, director.save);
@@ -129,10 +137,10 @@ export function GameApp({ storage = safeStorage() }: { storage?: Storage }) {
         if (memory) director.recallPick(memory.key);
         return;
       }
-      if (event.key === 'Escape') { setMenu((open) => !open); return; }
+      if (event.key === 'Escape') { setMenuTab('settings'); setMenu((open) => !open); return; }
       if (menu) return;
       const onButton = (event.target as HTMLElement | null)?.tagName === 'BUTTON';
-      if ((event.key === 'm' || event.key === 'M') && view.choice) { director.remember(); return; }
+      if (event.key === 'm' || event.key === 'M') { openMemory(); return; }
       if (/^[1-9]$/.test(event.key) && view.choice) {
         const option = view.choice.options[Number(event.key) - 1];
         if (option) director.choose(option.index);
@@ -150,7 +158,7 @@ export function GameApp({ storage = safeStorage() }: { storage?: Storage }) {
     window.addEventListener('keydown', down);
     window.addEventListener('keyup', up);
     return () => { window.removeEventListener('keydown', down); window.removeEventListener('keyup', up); };
-  }, [director, menu, screen, view.choice, view.recall]);
+  }, [director, menu, openMemory, screen, view.choice, view.recall]);
 
   if (report.errors.length) {
     return (
@@ -164,6 +172,10 @@ export function GameApp({ storage = safeStorage() }: { storage?: Storage }) {
   if (screen === 'title') return <div className="lt-app" style={fontStyle}><Title save={director.save} onStart={begin} /></div>;
   if (screen === 'calibrate') return <div className="lt-app" style={fontStyle}><Calibration audio={audio} onDone={finishCalibration} /></div>;
   if (view.phase === 'ending') return <div className="lt-app" style={fontStyle}><Ending which={view.ending ?? 'c'} onBack={() => { setScreen('title'); }} /></div>;
+
+  // Every question lights the memory button the same way, wanted or not, so its lighting up gives nothing away.
+  const answering = Boolean(view.choice) && view.focus === 'main' && !view.recall;
+  const teachRecall = answering && Boolean(view.choice?.teach);
 
   return (
     <div
@@ -186,9 +198,23 @@ export function GameApp({ storage = safeStorage() }: { storage?: Storage }) {
       <button
         type="button"
         key={pulse}
-        className={`lt-corner${view.memoryCount ? ' has' : ''}${pulse ? ' pulse' : ''}`}
-        aria-label="記憶與設定"
-        onClick={(event) => { event.stopPropagation(); setMenu(true); }}
+        className={`lt-mem-btn${view.memoryCount ? ' has' : ''}${pulse ? ' pulse' : ''}${answering ? ' ready' : ''}${teachRecall ? ' teach' : ''}`}
+        aria-label={answering ? '從記憶裡挑一句說出口' : '記憶'}
+        aria-keyshortcuts="M"
+        onClick={(event) => { event.stopPropagation(); openMemory(); }}
+      >
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7 3.5H4.5v8" /><path d="M13 16.5h2.5v-8" /></svg>
+      </button>
+      {teachRecall && (
+        <div className="lt-mem-teach" role="status">
+          記住的話，都收在這裡。<br />回答的時候，隨時可以挑一句說出口。<br />有時候用得上，有時候用不上。
+        </div>
+      )}
+      <button
+        type="button"
+        className="lt-corner"
+        aria-label="選單"
+        onClick={(event) => { event.stopPropagation(); setMenuTab('settings'); setMenu(true); }}
       >
         <span className="lt-corner-dot" />
       </button>
@@ -197,6 +223,7 @@ export function GameApp({ storage = safeStorage() }: { storage?: Storage }) {
       {menu && (
         <Menu
           director={director}
+          tab={menuTab}
           onClose={() => setMenu(false)}
           onTitle={() => { setMenu(false); setScreen('title'); }}
           onSettings={applySettings}
@@ -278,8 +305,10 @@ function memoryMeta(memory: Memory, looped: boolean): string {
   return [looped ? `第${toChineseNumber(memory.loop)}次` : '', memory.clock, memory.place, memory.label].filter(Boolean).join(' · ');
 }
 
-function Menu({ director, onClose, onTitle, onSettings, dev }: { director: Director; onClose: () => void; onTitle: () => void; onSettings: () => void; dev: boolean }) {
-  const [tab, setTab] = useState<'memory' | 'chapters' | 'settings' | 'refs'>('memory');
+type MenuTab = 'memory' | 'chapters' | 'settings' | 'refs';
+
+function Menu({ director, tab: firstTab, onClose, onTitle, onSettings, dev }: { director: Director; tab: MenuTab; onClose: () => void; onTitle: () => void; onSettings: () => void; dev: boolean }) {
+  const [tab, setTab] = useState<MenuTab>(firstTab);
   const [confirm, setConfirm] = useState(false);
   const save = director.save;
   const settings = director.settings;

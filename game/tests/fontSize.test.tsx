@@ -32,7 +32,7 @@ it('changes font size immediately from settings and retains it after remounting'
     flushSync(() => root.render(<GameApp storage={localStorage} />));
     const game = (window as unknown as { __game: { setScreen: (screen: string) => void } }).__game;
     flushSync(() => game.setScreen('play'));
-    click('記憶與設定');
+    click('選單');
     click('設定');
     expect(container.textContent).toContain('字體大小');
     click('特大');

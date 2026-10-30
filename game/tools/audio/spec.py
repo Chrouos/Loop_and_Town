@@ -578,3 +578,18 @@ sfx('cough_w', [C('151213', 0.05, 1.00), C('343880', 0.05, 0.70), C('343986', 0.
     note="an adult woman's coughs: a cough, a double cough, two short coughs, a longer fit")
 sfx('bike_squeak', [C('187343', 0.03, 0.32), C('71224', 3.55, 3.95), C('71224', 5.98, 6.40)], [187343, 71224], st=-22, hp=300, fout=0.05,
     note='short rubber squeaks: a rubber shoe sole, and two sneaker squeaks')
+
+
+def scooter_start():
+    """A failed start (the starter turns the engine over, it coughs and dies), a pause, then a 125cc
+    four-stroke scooter catching on the second try and idling. The failed try is another single-cylinder
+    engine, set ~8 dB under the scooter so the cranking matches its starter."""
+    fail = fade(highpass(cut('54512', 0.0, 1.45), 90), fin=0.02, fout=0.25) * 0.4
+    catch = fade(cut('97159', 0.0, 1.58), fin=0.03, fout=0.0)
+    return mix(fail, catch, at=1.85)
+
+
+sfx('scooter_start', [scooter_start], [97159, 54512], st=-20, hp=60, fin=0.02, fout=0.45,
+    note='a scooter that fails to start once and catches on the second try: a single-cylinder motorcycle turning over, '
+         'coughing and dying (0–1.45 s, about 8 dB down), 0.4 s of nothing, then a CPI Aragon 125cc four-stroke scooter '
+         'starting and idling (0–1.58 s, cut before it pulls away), faded out')

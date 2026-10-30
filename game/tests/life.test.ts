@@ -180,7 +180,7 @@ scenes:
 });
 
 describe('strangers the story names nothing for', () => {
-  it('a stranger in a thread is heard as a real voice; behind her on the train, under their breath', async () => {
+  it('a stranger whose words are on screen is placed like the cast, never under a recorded voice', async () => {
     const { buildScript } = await import('../src/script/validate');
     const { Director } = await import('../src/engine/director');
     const { freshSave } = await import('../src/engine/save');
@@ -210,8 +210,49 @@ scenes:
     const director = new Director(script, { ...freshSave(), started: true, scene: 's1' }, { audio, vibrate: () => undefined, persist: () => undefined, wallNow: () => 0 });
     director.start();
     for (let i = 0; i < 400; i++) director.tick(50);
-    expect(heard).toContain('woman:whisper');
-    expect(heard).toContain('man:life');
+    expect(heard).toContain('woman:line');
+    expect(heard).toContain('man:line');
     expect(heard).toContain('yuan:line');
+    expect(heard.some((entry) => entry.endsWith(':life') || entry.endsWith(':whisper'))).toBe(false);
+  });
+});
+
+describe('listening in on a thread', () => {
+  it('the place keeps sounding while she listens to strangers, only without other voices crossing them', async () => {
+    const { buildScript } = await import('../src/script/validate');
+    const { Director } = await import('../src/engine/director');
+    const { freshSave } = await import('../src/engine/save');
+    const { silentAudio } = await import('./harness');
+    const lines = Array.from({ length: 12 }, (_, i) => `          - { woman: 鎮公所寄來那張，你家也收到了喔？第${i}句。, at: back-left }`).join('\n');
+    const { script, errors } = buildScript([{ name: 'a.yaml', source: `
+chapter: 1
+title: 測試
+start: s1
+scenes:
+  - id: s1
+    ambience: [train_interior]
+    beats:
+      - { cue: gossip, at: back-left, text: 窸窸窣窣, sfx: huddle_rustle, whisper: true }
+      - pause: 60
+      - end: reset
+    threads:
+      gossip:
+        beats:
+${lines}
+` }]);
+    expect(errors).toEqual([]);
+    const voices: string[] = [];
+    const sounds: string[] = [];
+    const audio = { ...silentAudio(), voice: (speaker: string, _p: unknown, _m: number, kind = 'line') => { voices.push(`${speaker}:${kind}`); }, play: (id: string) => { sounds.push(id); } } as never;
+    const director = new Director(script, { ...freshSave(), started: true, scene: 's1' }, { audio, vibrate: () => undefined, persist: () => undefined, wallNow: () => 0 });
+    director.start();
+    for (let i = 0; i < 200 && director.view.sceneId !== 's1'; i++) director.tick(50);
+    for (let i = 0; i < 20; i++) director.tick(50);
+    director.attend('gossip');
+    for (let i = 0; i < 600; i++) director.tick(50);
+    expect(director.view.focus).toBe('gossip');
+    expect(voices.filter((v) => v.endsWith(':life') || v.endsWith(':whisper'))).toEqual([]);
+    const background = sounds.filter((id) => !['huddle_rustle', 'cloth_rustle', 'focus_shift'].includes(id));
+    expect(background.length).toBeGreaterThanOrEqual(3);
   });
 });

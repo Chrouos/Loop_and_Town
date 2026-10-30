@@ -1016,7 +1016,7 @@ scenes:
         else:
           - { sfx: laugh_soft, at: right, dist: mid, text: 呵呵 }
           - narr: 我沒有進去。若晴在裡面跟店長說笑，笑到一半咳了兩聲。
-          - { sfx: cough_w, at: right, dist: mid, text: 咳、咳 }
+          - { sfx: cough, at: right, dist: mid, text: 咳、咳 }
           - think: 東牆，灰色的櫃子，點字底下的鉛筆字。我把它們都帶回家。
       - narr: 天在變涼。我知道，是因為手杖的握把冷了。
     next: c6_table

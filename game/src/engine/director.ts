@@ -1,5 +1,5 @@
 import type { AudioEngine } from '../audio/engine';
-import { DIRECTIONS, DIRECTION_ANGLE, DISTANCES, SFX_SOURCE, type AmbienceId, type Direction, type SfxId, type VibrationId, type VoiceId } from '../audio/catalog';
+import { DIRECTIONS, DIRECTION_ANGLE, DISTANCES, SFX_SOURCE, type AmbienceId, type Direction, type SfxId, type VibrationId } from '../audio/catalog';
 import { condRefs, evalCond, type CondContext } from '../script/conditions';
 import { CHAPTER_NUMERALS, SPEAKER_LABELS, TENSION_MAX, type Beat, type Chapter, type Cond, type ChoiceOption, type EndKind, type DazeLevel, type GameScript, type HeartLevel, type LineBeat, type NoiseLevel, type LineKind, type Pos, type Scene, type ShakeLevel } from '../script/types';
 import { driftClock, heardClock, planClock, type ClockPlan } from './clock';
@@ -39,9 +39,6 @@ const NOISE: Record<Exclude<NoiseLevel, 'off'>, { speed: number; loud: number }>
   light: { speed: 2.5, loud: 1.5 },
   heavy: { speed: 5, loud: 2.2 },
 };
-/** People with no name in the story: heard as recorded voices, a little above the background ones (she is listening). */
-const STRANGERS: ReadonlySet<string> = new Set(['man', 'woman', 'old_man', 'old_woman', 'child']);
-const STRANGER_GAIN = 1.3;
 /** At speed 1, one extra background beat every this long; speed divides it. */
 const NOISE_BASE_MS = 2000;
 
@@ -52,6 +49,8 @@ const NOISE_BASE_MS = 2000;
 const TENSION_LINES = [30, 55, 80];
 const TENSION_EASE = 6;
 /** What the day does to her on its own; scripts add their own with `tension:`. */
+/** Gap between the clicks of a locate sound that comes more than once (`times`). */
+const LOCATE_REPEAT_MS = 260;
 const TENSION_AUTO = { locateWrong: 4, locateMiss: 12, locateFound: -4, approachMiss: 10, approachHit: -4, froze: 5, recallMiss: 4, newPlace: -2 };
 /** Midnight: she wakes on the train with some of it still in her chest. */
 const TENSION_SLEEP = 0.6;
@@ -108,7 +107,7 @@ export type View = {
   away: CenterLine | null;
   periph: Peripheral[];
   ripples: { key: number; pos: Pos }[];
-  /** `teach`: the first question that takes a memory; the memory door says what it is for. */
+  /** `teach`: the first question that takes a memory; the memory button says what it is for. */
   choice: { key: number; options: { text: string; index: number; disabled?: boolean }[]; startedAt: number; timeout?: number; teach?: boolean } | null;
   /** Memory Input picker: which remembered lines she could say right now. */
   recall: { key: number; memories: Memory[] } | null;
@@ -460,12 +459,16 @@ export class Director {
     this.advanceTo(this.view.t);
   }
 
+  /** Whether a question is open right now, so the memory she carries can be said instead of chosen. */
+  canRemember(): boolean {
+    return Boolean(this.runs.get('main')?.pendingChoice) && this.view.focus === 'main' && !this.view.recall;
+  }
+
   /** The memory she can reach for at any question, whether or not this one takes a memory. */
   remember(): void {
-    const main = this.runs.get('main');
-    const pending = main?.pendingChoice;
-    if (!main || !pending || this.view.focus !== 'main' || this.view.recall) return;
-    this.openRecall(main, pending.options.findIndex((option) => option.recall));
+    if (!this.canRemember()) return;
+    const main = this.runs.get('main')!;
+    this.openRecall(main, main.pendingChoice!.options.findIndex((option) => option.recall));
   }
 
   private openRecall(run: Run, index: number): void {
@@ -608,11 +611,15 @@ export class Director {
       this.schedule(t + 1000, () => this.repeatLocate(key, beat, t + 1000));
       return;
     }
+    // times: a short sound (a clasp) comes as a little run of clicks, so there is something to follow.
+    const times = beat.times ?? 1;
     this.out.audio.play(beat.sfx, { dir: beat.at, dist: 'mid' }, { gain: target });
-    beat.decoys.forEach((decoy, index) => this.schedule(t + 500 + index * 420, () => {
+    for (let n = 1; n < times; n++) this.schedule(t + n * LOCATE_REPEAT_MS, () => { if (this.view.interact?.key === key) this.out.audio.play(beat.sfx, { dir: beat.at, dist: 'mid' }, { gain: target }); });
+    const after = (times - 1) * LOCATE_REPEAT_MS;
+    beat.decoys.forEach((decoy, index) => this.schedule(t + after + 500 + index * 420, () => {
       if (this.view.interact?.key === key) this.out.audio.play(decoy.sfx, { dir: decoy.at, dist: 'mid' }, { gain: ears.decoy });
     }));
-    this.maskWithHeart(key, t + 250);
+    this.maskWithHeart(key, t + after + 250);
     const intervalMs = Math.max(700, (beat.interval ?? 2.6) * 1000);
     this.schedule(t + intervalMs, () => this.repeatLocate(key, beat, t + intervalMs));
   }
@@ -1052,13 +1059,9 @@ export class Director {
     const spoken = beat.kind === 'phone' ? heardClock(text, this.view.clock) : null;
     if (spoken) this.setClock(spoken);
     if (beat.kind === 'char' || beat.kind === 'me' || beat.kind === 'phone') {
-      // A stranger (no name, no device) is heard as a real voice too muffled to make out, or a whisper when they keep
-      // it down; the cast are placed by the rustle of turning to talk, and the text is their voice.
-      const stranger = beat.kind === 'char' && !beat.via && STRANGERS.has(beat.speaker);
-      if (stranger) {
-        const hushed = isWhispered({ say: '', voice: beat.speaker as VoiceId, whisper: beat.whisper ?? run.whisper }, this.ambience);
-        this.out.audio.voice(beat.speaker as VoiceId, pos, timing.revealMs, hushed ? 'whisper' : 'life', STRANGER_GAIN);
-      } else this.out.audio.voice(beat.speaker === 'me' ? 'me' : beat.speaker, beat.kind === 'me' ? CENTER : pos, timing.revealMs, 'line', 1, beat.via);
+      // Anyone whose words are on screen, a stranger too, is placed by the rustle of turning to talk: the text is their
+      // voice, and a recorded voice under it would say something else. Recorded talk is only for the background.
+      this.out.audio.voice(beat.speaker === 'me' ? 'me' : beat.speaker, beat.kind === 'me' ? CENTER : pos, timing.revealMs, 'line', 1, beat.via);
     }
     if (glide) this.trail(pos, glide, t, glideMs);
     else if (beat.kind === 'char') this.ripple(pos);
@@ -1217,8 +1220,13 @@ export class Director {
       const hushed = t < this.lifeHushUntil;
       const empty = t - this.lifeBusyAt >= LIFE_EMPTY_MS;
       if (!hushed && (t >= this.lifeNextAt || empty)) {
-        // Thinner while someone is talking to her; busier while she waits.
-        if (!this.focusedLine() || Math.random() < 0.5) { this.lifeBeat(life.events, t); this.lifeBusyAt = t; }
+        // Thinner while someone is talking to her; busier while she waits. Listening in on strangers (a thread),
+        // the place keeps sounding as usual, only without other voices crossing the ones she is following.
+        const aside = this.view.focus !== null && this.view.focus !== 'main';
+        if (aside) {
+          const sounds = life.events.filter((event) => !isVoice(event));
+          if (sounds.length) { this.lifeBeat(sounds, t); this.lifeBusyAt = t; }
+        } else if (!this.focusedLine() || Math.random() < 0.5) { this.lifeBeat(life.events, t); this.lifeBusyAt = t; }
         const [min, max] = life.every;
         this.lifeNextAt = t + (min + Math.random() * (max - min)) * 1000 * (this.view.waiting ? 0.45 : 1) * TENSION_LIFE[this.view.tension].every;
       }

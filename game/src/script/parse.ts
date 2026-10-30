@@ -243,12 +243,14 @@ function parseBeat(raw: unknown, where: string, errors: Errors): Beat | undefine
     allow('locate');
     const spec = raw.locate;
     if (!isObj(spec)) { errors.push(`${where}：locate 必須是 map`); return undefined; }
-    for (const key of Object.keys(spec)) if (!['sfx', 'at', 'decoys', 'tries', 'exact', 'replay', 'lag', 'timeout', 'interval', 'gain', 'prompt', 'success', 'fail'].includes(key)) errors.push(`${where}：locate 未知欄位「${key}」`);
+    for (const key of Object.keys(spec)) if (!['sfx', 'at', 'decoys', 'tries', 'exact', 'replay', 'times', 'lag', 'timeout', 'interval', 'gain', 'prompt', 'success', 'fail'].includes(key)) errors.push(`${where}：locate 未知欄位「${key}」`);
     const sfx = String(spec.sfx);
     const at = String(spec.at);
     if (!isSfx(sfx)) errors.push(`${where}：未知音效「${sfx}」`);
     if (!isDirection(at)) errors.push(`${where}：locate 的 at 必須是八個方位之一`);
     if (spec.lag !== undefined && !(Number(spec.lag) > 0 && Number(spec.lag) < 0.5)) errors.push(`${where}：locate 的 lag 是 0 到 0.5 秒之間`);
+    if (spec.times !== undefined && !(Number.isInteger(Number(spec.times)) && Number(spec.times) >= 1 && Number(spec.times) <= 4)) errors.push(`${where}：locate 的 times 是 1 到 4 下`);
+    if (spec.times !== undefined && spec.lag !== undefined) errors.push(`${where}：locate 的 times 不能配 lag`);
     if (spec.replay === false && (spec.decoys !== undefined || spec.lag !== undefined || spec.interval !== undefined)) errors.push(`${where}：replay: false 不重播，不用 decoys／lag／interval（干擾聲寫在前面的劇情裡）`);
     const decoys = (Array.isArray(spec.decoys) ? spec.decoys : []).flatMap((decoy, n) => {
       if (!isObj(decoy) || !isSfx(String(decoy.sfx)) || !isDirection(String(decoy.at))) { errors.push(`${where}.decoys[${n}]：需要合法的 sfx 與 at`); return []; }
@@ -260,6 +262,7 @@ function parseBeat(raw: unknown, where: string, errors: Errors): Beat | undefine
       exact: spec.exact === true,
       // replay: false — nothing plays again; she points at where she heard it a moment ago.
       ...(spec.replay === false ? { replay: false } : {}),
+      ...(spec.times !== undefined && Number(spec.times) > 1 ? { times: Number(spec.times) } : {}),
       lag: spec.lag === undefined ? undefined : Number(spec.lag),
       timeout: spec.timeout === undefined ? undefined : Number(spec.timeout),
       interval: spec.interval === undefined ? undefined : Number(spec.interval),

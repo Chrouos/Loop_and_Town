@@ -124,8 +124,7 @@ function placeSounds(root: HTMLElement, periph: Peripheral[], ripples: View['rip
   const halfW = Math.min(0.38 * W, 340);
   const keepOut: Box[] = [{ l: W / 2 - halfW - gap, r: W / 2 + halfW + gap, t: H / 2 - 3.5 * lineH - 30, b: H / 2 + 1.5 * lineH + 26 + gap }];
   root.querySelectorAll('.lt-center .lt-line:not(.leaving) .lt-text, .lt-center .lt-line:not(.leaving) .lt-label, .lt-choice, .lt-wait, .lt-where').forEach((el) => keepOut.push(boxOf(el)));
-  const corner = document.querySelector('.lt-corner');
-  if (corner) keepOut.push(boxOf(corner));
+  document.querySelectorAll('.lt-corner, .lt-mem-btn, .lt-mem-teach').forEach((el) => keepOut.push(boxOf(el)));
 
   // Measured things only (not the room kept for a longer line), unpadded: a label merely brushing the margin stays put.
   const fixed = keepOut.length;
@@ -527,21 +526,7 @@ function Choices({ director, choice, gone }: { director: Director; choice: NonNu
           <span className="lt-key">{index + 1}</span>{option.text}
         </button>
       ))}
-      <MemoryDoor director={director} gone={gone} teach={Boolean(choice.teach)} delay={choice.options.length * 140} />
       {timeoutMs > 0 && <div className="lt-timer" />}
-    </div>
-  );
-}
-
-// The same door under every question, wanted or not, so its being there never gives anything away.
-// At the first question that takes a memory (the lesson), it says what it is for, once.
-function MemoryDoor({ director, gone, teach, delay }: { director: Director; gone: boolean; teach: boolean; delay: number }) {
-  return (
-    <div className={`lt-memory-door${teach ? ' teach' : ''}`} style={{ animationDelay: `${delay}ms` }}>
-      <button type="button" className="lt-memory-open" disabled={gone} onClick={(event) => { event.stopPropagation(); director.remember(); }} aria-keyshortcuts="M">
-        想起一句話……
-      </button>
-      {teach && <div className="lt-memory-teach">帶著的記憶，可以在別人問妳的時候說出口。</div>}
     </div>
   );
 }
