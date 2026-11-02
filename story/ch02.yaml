@@ -422,6 +422,21 @@ scenes:
               - think: 之前就是在這裡。我說的話，一句都沒有留住她。
       - choice:
           options:
+            - text: 「妳那組照片，報名用的整理好了嗎？」
+              if: flag.c2_heard_photos
+              then:
+                - ruoqing: 還沒啦。選照片比拍照片還難。
+                - me: 妳上午講的那幾張，我覺得很好。
+                - ruoqing: 妳又沒看過。
+                - me: 可是我聽過妳怎麼描述它們。
+                - pause: 1
+                - ruoqing: ……這樣講好像也對。
+                - me: 妳不是說過，想讓別人看看《退潮以後》？
+                - ruoqing: 想啊。只是要真的寄出去，又有點怕。
+                - me: 我可以陪妳整理。要不要報名，妳自己決定。
+                - pause: 1.5
+                - ruoqing: 那……妳等我一下。我先跟陳醫生說晚點再約。
+                - set: [c2_reached, c2_photography_talk]
             - text: 「今天傍晚，不要去舊車站。」
               then:
                 - pause: 1.5
@@ -447,7 +462,7 @@ scenes:
           - { ruoqing: 那妳可以不用管。, mem: m_c2_dont_decide }
           - heart: fast
           - { sfx: bike_squeak, at: center, dist: near, text: 吱 }
-          - narr: 我的手指掐著手杖的橡膠握把，掐到它吱了一聲。背帶扣不響了，她在等我開口。
+          - narr: 我的手指掐著手杖的橡膠握把，掐到它吱了一聲。她沒接著說，像在等我開口。
           - choice:
               timeout: 20
               options:
@@ -518,22 +533,28 @@ scenes:
                 - narr: 門在我鼻尖前面關上，風把我的瀏海掀起來又放下。
                 - pause: 2.5
                 - { sfx: strap_click, at: front, dist: near, gain: 0.5, text: 喀 }
-                - narr: 門板後面，背帶扣又喀了一聲。她沒有走開，就站在門的另一邊。
+                - narr: 門板後面沒有腳步聲。
                 - tension: 8
       - if: flag.c2_reached
         then:
-          - ruoqing: 外地一個攝影課啦，下午寄來的。
-          - ruoqing: 說今天晚上以前要回，還要附作品集。
-          - ruoqing: 我本來想說晚點再弄。
-          - ruoqing: 反正什麼事都可以晚點再弄嘛。
-          - if: flag.c2_heard_photos
+          - if: flag.c2_photography_talk
             then:
-              - me: 妳的照片，我還沒聽完。
+              - narr: 她把手機拿出來，按了幾下，又收回口袋。
+              - ruoqing: 好。我先回去挑照片。妳要不要幫我聽聽說明寫得順不順？
+              - me: 好。
             else:
-              - me: 妳的照片，我還想多聽幾張。
-          - { sfx: sigh, at: front, dist: near }
-          - ruoqing: 好啦，陳醫生那邊我再跟他講。
-          - ruoqing: 欸先講好喔，跟妳叫我不要去沒關係。
+              - ruoqing: 外地一個攝影課啦，下午寄來的。
+              - ruoqing: 說今天晚上以前要回，還要附作品集。
+              - ruoqing: 我本來想說晚點再弄。
+              - ruoqing: 反正什麼事都可以晚點再弄嘛。
+              - if: flag.c2_heard_photos
+                then:
+                  - me: 妳的照片，我還沒聽完。
+                else:
+                  - me: 妳的照片，我還想多聽幾張。
+              - { sfx: sigh, at: front, dist: near }
+              - ruoqing: 好啦，陳醫生那邊我再跟他講。
+              - ruoqing: 欸先講好喔，跟妳叫我不要去沒關係。
           - { ruoqing: 是我今天晚上本來就有自己的事。, mem: m_c2_own_thing }
           - set: c2_ruoqing_safe
           - heart: off
