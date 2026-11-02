@@ -194,7 +194,7 @@ scenes:
       - ruoqing: 一些老街的東西啦。快拆掉的招牌、收起來的店面。
       - choice:
           options:
-            - text: 「可以說給我聽嗎？」
+            - text: 「可以挑幾張說給我聽嗎？」
               then:
                 - set: c2_heard_photos
                 - ruoqing: 說給妳聽喔？
