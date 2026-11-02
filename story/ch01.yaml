@@ -836,6 +836,17 @@ scenes:
       - { ruoqing: 最近在弄一個作品集。叫《退潮以後》。, mem: m_ruoqing_portfolio }
       - ruoqing: 都拍一些快要沒有的東西啦，像是要關的店，要拆的招牌之類的。
       - ruoqing: 那邊牆上有一張是我拍的，那張是清晨的商店街，還沒有一家店開門。
+      - me: 所以妳想把這些快消失的東西留下來？
+      - ruoqing: 嗯。等哪天回來，至少還能看看以前長什麼樣子。
+      - me: 妳要離開？
+      - ruoqing: 還不知道啦。外面有個攝影課，我有報名。
+      - me: 那妳希望錄取嗎？
+      - ruoqing: ……當然希望啊。
+      - { sfx: laugh_soft, at: front, dist: near }
+      - { sfx: strap_click, at: front, dist: near, text: 喀 }
+      - ruoqing: 只是如果真的錄取了，我可能又會開始找不去的理由。
+      - me: 為什麼？
+      - ruoqing: 不知道。可能在這裡待太久了吧。
       - { cue: gossip, at: back-left, text: 窸窸窣窣, sfx: huddle_rustle, whisper: true }
       - choice:
           timeout: 14
