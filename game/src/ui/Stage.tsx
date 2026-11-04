@@ -298,7 +298,7 @@ export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown 
               <div className="lt-center-inner" style={{ transform: focusPos ? leanOf(focusPos) : undefined }}>
                 {middle.map(({ line, role }) => <Line key={line.key} line={line} role={role} director={director} view={view} onCapture={onCapture} />)}
                 {holdSlot && <div className="lt-hold" style={{ height: centerHeight.current }} aria-hidden="true" />}
-                {view.teach === 'keep' && view.center && <div className="lt-teach-keep" role="status">長按這句話，把它記住。</div>}
+                {view.teach && view.center && <div className="lt-teach-keep" role="status">{view.teach === 'tap' ? tapLesson(director.settings.autoAdvance) : LESSON_TEXT[view.teach]}</div>}
               </div>
             </div>
 
@@ -309,7 +309,7 @@ export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown 
             )}
 
             {choice && !view.recall && <Choices director={director} choice={choice} gone={choiceGone} />}
-            {waiting && <Waiting gone={waitingGone} />}
+            {waiting && <Waiting gone={waitingGone} first={Boolean(waiting.first)} />}
           </div>
         </div>
       </div>
@@ -343,7 +343,7 @@ export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown 
           key={item.key}
           data-key={item.key}
           type="button"
-          className={`lt-p kind-cue dist-${item.pos.dist}${active ? ' active' : ''}${held ? ' held' : ''}`}
+          className={`lt-p kind-cue dist-${item.pos.dist}${active ? ' active' : ''}${held ? ' held' : ''}${view.teach === 'turn' && !active ? ' teach' : ''}`}
           style={style}
           disabled={held}
           aria-label={active ? `回到自己：${item.text}` : `轉向聲音：${item.text}`}
@@ -352,7 +352,8 @@ export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown 
           {item.text}
           {item.src && labels && <span className="lt-p-src">{item.src}</span>}
           {active && view.focus === item.thread && <span className="lt-hint" key="back">再點一下，回到自己</span>}
-          {!active && firstCue?.key === item.key && <span className="lt-hint">點一下，轉過去聽</span>}
+          {!active && view.teach === 'turn' && <span className="lt-hint stay">點這裡</span>}
+          {!active && view.teach !== 'turn' && firstCue?.key === item.key && <span className="lt-hint">點一下，轉過去聽</span>}
         </button>
       );
     }
@@ -527,21 +528,43 @@ function Choices({ director, choice, gone }: { director: Director; choice: NonNu
         </button>
       ))}
       {timeoutMs > 0 && <div className="lt-timer" />}
+      {choice.first && (
+        <div className="lt-choice-teach" role="status">
+          選擇一個接下來要做的事
+          {timeoutMs > 0 && <><br />沉默也是一種回答</>}
+        </div>
+      )}
     </div>
   );
 }
 
 const RECALL_HINT_KEY = 'listening-town-recall-hint';
 
+/** What each first-play lesson says under the line it holds. */
+/** Tapping hurries, but the story is meant to be left to its own pace; manual reading waits for every tap. */
+function tapLesson(auto: boolean): ReactElement {
+  return auto
+    ? <>點一下畫面；<br />不動就會自動閱讀</>
+    : <>點一下畫面；<br />現在是手動閱讀模式</>;
+}
+
+const LESSON_TEXT: Record<Exclude<NonNullable<View['teach']>, 'tap'>, string> = {
+  turn: '有聲音的地方可以點一下專心聽',
+  keep: '長按這句話，把它記住',
+};
+
 /** Memory Input: the lines she carried past midnight, one of which she may say out loud. */
 export function RecallPicker({ director, recall }: { director: Director; recall: NonNullable<View['recall']> }) {
+  const empty = recall.memories.length === 0;
   const [firstTime] = useState(() => { try { return localStorage.getItem(RECALL_HINT_KEY) !== 'done'; } catch { return false; } });
-  useEffect(() => { try { localStorage.setItem(RECALL_HINT_KEY, 'done'); } catch { /* ignore */ } }, []);
+  // The how-to is spent only once there was something to pick from.
+  useEffect(() => { if (!empty) try { localStorage.setItem(RECALL_HINT_KEY, 'done'); } catch { /* ignore */ } }, [empty]);
   return (
     <div className="lt-recall" key={recall.key} role="dialog" aria-label="想起一句話" onPointerUp={(event) => event.stopPropagation()}>
       <div className="lt-recall-head">想起一句話</div>
-      {firstTime && <div className="lt-recall-hint">挑一句妳記得的話，說出口。對方聽不懂也沒關係，可以再選別的。</div>}
-      {recall.memories.length === 0 && <div className="lt-recall-hint">現在什麼都想不起來。<br />長按一句話，就能記住它。</div>}
+      {empty
+        ? <div className="lt-recall-hint">還沒有記住任何一句話<br />聽到想留下來的話，長按它，下次就能在這裡想起來</div>
+        : firstTime && <div className="lt-recall-hint">選一句之前記下來的話，把它說出口</div>}
       <div className="lt-recall-list">
         {recall.memories.map((memory, index) => (
           <button key={memory.key} type="button" className="lt-recall-item" onClick={() => director.recallPick(memory.key)}>
@@ -578,10 +601,11 @@ function useWaitClock(view: View, speed: number): string | undefined {
   return interpolateClock(waiting.clock ?? view.clock, waiting.until, fraction);
 }
 
-function Waiting({ gone }: { gone: boolean }) {
+function Waiting({ gone, first }: { gone: boolean; first: boolean }) {
   return (
-    <div className={`lt-wait${gone ? ' gone' : ''}`} aria-hidden="true">
+    <div className={`lt-wait${gone ? ' gone' : ''}`} aria-hidden={!first}>
       <div className="lt-wait-breath" />
+      {first && <div className="lt-wait-teach" role="status">這段時間點了也不會變快<br />聽聽四周的聲音就好</div>}
     </div>
   );
 }

@@ -564,3 +564,28 @@ scenes:
     expect(errors.filter((error) => error.includes('未知震動強度'))).toHaveLength(2);
   });
 });
+
+describe('a jolt reaches the phone', () => {
+  it('a shouted line, a shaking sound and a bare shake all vibrate', () => {
+    const source = `
+chapter: 1
+title: 測試
+start: s1
+scenes:
+  - id: s1
+    beats:
+      - { me: 若晴！, shake: hard }
+      - { sfx: thud, at: front, shake: light }
+      - shake: hard
+      - { sfx: thud, at: front, vib: buzz, shake: hard }
+      - end: reset
+`;
+    const { script, errors } = buildScript([{ name: 'a.yaml', source }]);
+    expect(errors).toEqual([]);
+    const felt: string[] = [];
+    const director = new Director(script!, freshSave(), { audio: silentAudio(), vibrate: (id) => felt.push(id), persist: () => undefined, wallNow: () => 0 }, { speed: 1 });
+    director.start();
+    for (let i = 0; i < 400 && director.view.phase !== 'reset'; i++) { director.hurry(); director.tick(100); }
+    expect(felt).toEqual(['crash', 'thud', 'crash', 'buzz']);
+  });
+});

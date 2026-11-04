@@ -64,7 +64,7 @@ export function heardClock(text: string, current: string | undefined): string | 
 /** Beats that take story time; bookkeeping (sounds, flags, ambience) does not move the clock. */
 function steps(beat: Beat): number {
   switch (beat.k) {
-    case 'line': case 'pause': case 'choice': case 'touch': case 'locate': case 'approach': case 'punch': return 1;
+    case 'line': case 'pause': case 'choice': case 'touch': case 'locate': case 'approach': case 'punch': case 'hold': return 1;
     case 'if': return Math.max(stepsOf(beat.then), stepsOf(beat.else)) > 0 ? 1 : 0;
     default: return 0;
   }
@@ -80,7 +80,7 @@ function pinnedIn(beat: Beat, known: string | undefined): number | null {
     else if (b.k === 'line' && b.kind === 'phone') times.push(parseClock(heardClock(b.text, known) ?? undefined));
     else if (b.k === 'if') [...b.then, ...b.else].forEach(visit);
     else if (b.k === 'choice') b.options.forEach((option) => { option.then.forEach(visit); option.recall?.accept.forEach((a) => a.then.forEach(visit)); option.recall?.miss.forEach(visit); });
-    else if (b.k === 'locate') [...b.success, ...b.fail].forEach(visit);
+    else if (b.k === 'locate' || b.k === 'hold') [...b.success, ...b.fail].forEach(visit);
     else if (b.k === 'approach') [...b.hit, ...b.early, ...b.late].forEach(visit);
   };
   visit(beat);
@@ -95,7 +95,7 @@ function exits(scene: Scene): string[] {
     if (b.k === 'goto') out.add(b.scene);
     else if (b.k === 'if') [...b.then, ...b.else].forEach(visit);
     else if (b.k === 'choice') b.options.forEach((option) => { if (option.goto) out.add(option.goto); option.then.forEach(visit); option.recall?.accept.forEach((a) => { if (a.goto) out.add(a.goto); a.then.forEach(visit); }); option.recall?.miss.forEach(visit); });
-    else if (b.k === 'locate') [...b.success, ...b.fail].forEach(visit);
+    else if (b.k === 'locate' || b.k === 'hold') [...b.success, ...b.fail].forEach(visit);
     else if (b.k === 'approach') [...b.hit, ...b.early, ...b.late].forEach(visit);
   };
   scene.beats.forEach(visit);

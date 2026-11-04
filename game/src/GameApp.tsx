@@ -53,8 +53,10 @@ export function GameApp({ storage = safeStorage() }: { storage?: Storage }) {
   const fontStyle = { '--text-scale': FONT_SIZES[director.settings.fontSize].scale } as CSSProperties;
 
   const [screen, setScreen] = useState<Screen>('title');
-  const [menu, setMenu] = useState(false);
-  const [menuTab, setMenuTab] = useState<MenuTab>('settings');
+  // The two corner buttons open two different things: what she carries, and the game's own menu.
+  const [overlay, setOverlay] = useState<'memory' | 'menu' | null>(null);
+  const menu = overlay !== null;
+  const [note, setNote] = useState<CornerNote | null>(null);
   const [pulse, setPulse] = useState(0);
   const [cueHint, setCueHint] = useState(() => { try { return storage?.getItem(HINT_KEY) !== 'done'; } catch { return true; } });
 
@@ -115,9 +117,27 @@ export function GameApp({ storage = safeStorage() }: { storage?: Storage }) {
   // The memory button: at a question she may say one of them; any other time it just shows what she carries.
   const openMemory = useCallback(() => {
     if (director.canRemember()) { director.remember(); return; }
-    setMenuTab('memory');
-    setMenu(true);
+    setOverlay('memory');
   }, [director]);
+
+  // Two corner notes, each shown once ever: where the menu is (right after the first tap), and where a kept line went.
+  const showNote = useCallback((which: CornerNote) => {
+    if (director.taught(which)) return;
+    director.markTaught(which);
+    setNote(which);
+  }, [director]);
+  const tapTaught = director.taught('tap');
+  useEffect(() => {
+    if (screen !== 'play' || !tapTaught || director.taught('menu')) return;
+    const timer = window.setTimeout(() => showNote('menu'), 1800);
+    return () => window.clearTimeout(timer);
+  }, [director, screen, showNote, tapTaught]);
+  useEffect(() => { if (screen === 'play' && view.memoryCount > 0) showNote('stored'); }, [screen, showNote, view.memoryCount]);
+  useEffect(() => {
+    if (!note) return;
+    const timer = window.setTimeout(() => setNote(null), 7500);
+    return () => window.clearTimeout(timer);
+  }, [note]);
 
   const finishCalibration = useCallback(() => {
     director.save.calibrated = true;
@@ -137,10 +157,14 @@ export function GameApp({ storage = safeStorage() }: { storage?: Storage }) {
         if (memory) director.recallPick(memory.key);
         return;
       }
-      if (event.key === 'Escape') { setMenuTab('settings'); setMenu((open) => !open); return; }
+      if (event.key === 'Escape') { setOverlay((open) => (open ? null : 'menu')); return; }
+      if (event.key === 'm' || event.key === 'M') {
+        if (overlay === 'memory') setOverlay(null);
+        else if (!overlay) openMemory();
+        return;
+      }
       if (menu) return;
       const onButton = (event.target as HTMLElement | null)?.tagName === 'BUTTON';
-      if (event.key === 'm' || event.key === 'M') { openMemory(); return; }
       if (/^[1-9]$/.test(event.key) && view.choice) {
         const option = view.choice.options[Number(event.key) - 1];
         if (option) director.choose(option.index);
@@ -158,7 +182,7 @@ export function GameApp({ storage = safeStorage() }: { storage?: Storage }) {
     window.addEventListener('keydown', down);
     window.addEventListener('keyup', up);
     return () => { window.removeEventListener('keydown', down); window.removeEventListener('keyup', up); };
-  }, [director, menu, openMemory, screen, view.choice, view.recall]);
+  }, [director, menu, openMemory, overlay, screen, view.choice, view.recall]);
 
   if (report.errors.length) {
     return (
@@ -198,34 +222,41 @@ export function GameApp({ storage = safeStorage() }: { storage?: Storage }) {
       <button
         type="button"
         key={pulse}
-        className={`lt-mem-btn${view.memoryCount ? ' has' : ''}${pulse ? ' pulse' : ''}${answering ? ' ready' : ''}${teachRecall ? ' teach' : ''}`}
+        className={`lt-mem-btn${view.memoryCount ? ' has' : ''}${pulse ? ' pulse' : ''}${answering ? ' ready' : ''}${teachRecall || note === 'stored' ? ' teach' : ''}`}
         aria-label={answering ? '從記憶裡挑一句說出口' : '記憶'}
         aria-keyshortcuts="M"
         onClick={(event) => { event.stopPropagation(); openMemory(); }}
       >
         <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7 3.5H4.5v8" /><path d="M13 16.5h2.5v-8" /></svg>
       </button>
-      {teachRecall && (
+      {teachRecall ? (
         <div className="lt-mem-teach" role="status">
-          記住的話，都收在這裡。<br />回答的時候，隨時可以挑一句說出口。<br />有時候用得上，有時候用不上。
+          記住的話都在這裡<br />要回答的時候，可以挑一句說出口<br />不一定每次都用得上
+        </div>
+      ) : note && (
+        <div key={note} className={`lt-mem-teach note-${note}`} role="status">
+          {note === 'stored'
+            ? <>剛剛那句記下來了，收在這裡<br />點一下就能翻看</>
+            : <>右下角的小圓點是選單<br />章節、音量、字體大小都在裡面</>}
         </div>
       )}
       <button
         type="button"
-        className="lt-corner"
+        className={`lt-corner${note === 'menu' ? ' teach' : ''}`}
         aria-label="選單"
-        onClick={(event) => { event.stopPropagation(); setMenuTab('settings'); setMenu(true); }}
+        aria-keyshortcuts="Escape"
+        onClick={(event) => { event.stopPropagation(); setOverlay('menu'); }}
       >
         <span className="lt-corner-dot" />
       </button>
       {options.dev && <div className="lt-dev-tension" aria-hidden="true">緊張 {director.tension}</div>}
       {view.keep && <KeepPrompt director={director} memory={view.keep} />}
-      {menu && (
+      {overlay === 'memory' && <MemoryPanel director={director} onClose={() => setOverlay(null)} />}
+      {overlay === 'menu' && (
         <Menu
           director={director}
-          tab={menuTab}
-          onClose={() => setMenu(false)}
-          onTitle={() => { setMenu(false); setScreen('title'); }}
+          onClose={() => setOverlay(null)}
+          onTitle={() => { setOverlay(null); setScreen('title'); }}
           onSettings={applySettings}
           dev={options.dev}
         />
@@ -262,14 +293,14 @@ function Title({ save, onStart }: { save: GameSave; onStart: () => void }) {
 // ───────────────────────── calibration ─────────────────────────
 
 const CALIBRATION: { at: number; text?: string; cue?: { dir: 'left' | 'right' | 'back' | 'front'; text: string } }[] = [
-  { at: 400, text: '先確認聲音的方向。' },
-  { at: 2600, text: '左邊。', cue: { dir: 'left', text: '叩' } },
-  { at: 4800, text: '右邊。', cue: { dir: 'right', text: '叩' } },
-  { at: 7000, text: '後面。', cue: { dir: 'back', text: '叩' } },
-  { at: 9200, text: '分不太出前後，也沒關係。' },
-  { at: 11800, text: '聲音會出現在它真正的方向。' },
-  { at: 14200, text: '點一下聲音，就能轉過去聽。' },
-  { at: 16800, text: '長按一句話，就能記住它。' },
+  { at: 400, text: '先確認一下聲音的方向' },
+  { at: 2600, text: '左邊', cue: { dir: 'left', text: '叩' } },
+  { at: 4800, text: '右邊', cue: { dir: 'right', text: '叩' } },
+  { at: 7000, text: '後面', cue: { dir: 'back', text: '叩' } },
+  { at: 9200, text: '前後分不太出來也沒關係' },
+  { at: 11800, text: '聲音會從它真正的方向傳來' },
+  { at: 14200, text: '有聲音的地方，點一下就能轉過去聽' },
+  { at: 16800, text: '長按一句話，就能把它記下來' },
   { at: 19600 },
 ];
 
@@ -305,37 +336,48 @@ function memoryMeta(memory: Memory, looped: boolean): string {
   return [looped ? `第${toChineseNumber(memory.loop)}次` : '', memory.clock, memory.place, memory.label].filter(Boolean).join(' · ');
 }
 
-type MenuTab = 'memory' | 'chapters' | 'settings' | 'refs';
+type CornerNote = 'stored' | 'menu';
 
-function Menu({ director, tab: firstTab, onClose, onTitle, onSettings, dev }: { director: Director; tab: MenuTab; onClose: () => void; onTitle: () => void; onSettings: () => void; dev: boolean }) {
-  const [tab, setTab] = useState<MenuTab>(firstTab);
+/** What she carries: opened from the 「」 button, on its own, never mixed into the menu. */
+function MemoryPanel({ director, onClose }: { director: Director; onClose: () => void }) {
+  const save = director.save;
+  return (
+    <div className="lt-overlay" role="dialog" aria-label="記憶" onPointerUp={(event) => event.stopPropagation()}>
+      <div className="lt-overlay-head">記憶</div>
+      <div className="lt-panel">
+        <div className="lt-count">{save.memories.length} ／ {MEMORY_CAPACITY}</div>
+        {save.memories.length === 0 && <div className="lt-empty">還沒有記住任何一句<br />長按一句話，就能把它記下來，以後或許用得上</div>}
+        {[...save.memories].reverse().map((memory) => (
+          <div className="lt-mem" key={memory.key}>
+            <div className="lt-mem-body">
+              <div className="lt-mem-text">{memory.kind === 'me' ? `「${memory.text}」` : memory.text}</div>
+              <div className="lt-mem-meta">{memoryMeta(memory, save.loop > 1)}</div>
+            </div>
+            <button type="button" className="lt-mem-drop" onClick={() => director.releaseMemory(memory.key)}>放下</button>
+          </div>
+        ))}
+      </div>
+      <button type="button" className="lt-close" onClick={onClose}>回到故事</button>
+    </div>
+  );
+}
+
+type MenuTab = 'chapters' | 'settings' | 'refs';
+
+/** The game's own menu, from the small dot: chapters, settings, credits. */
+function Menu({ director, onClose, onTitle, onSettings, dev }: { director: Director; onClose: () => void; onTitle: () => void; onSettings: () => void; dev: boolean }) {
+  const [tab, setTab] = useState<MenuTab>('settings');
   const [confirm, setConfirm] = useState(false);
   const save = director.save;
   const settings = director.settings;
   const set = (patch: Partial<typeof settings>) => { director.updateSettings(patch); onSettings(); };
   return (
-    <div className="lt-overlay" onPointerUp={(event) => event.stopPropagation()}>
+    <div className="lt-overlay" role="dialog" aria-label="選單" onPointerUp={(event) => event.stopPropagation()}>
       <div className="lt-tabs">
-        <button type="button" className={`lt-tab${tab === 'memory' ? ' on' : ''}`} onClick={() => setTab('memory')}>記憶</button>
         <button type="button" className={`lt-tab${tab === 'chapters' ? ' on' : ''}`} onClick={() => setTab('chapters')}>章節</button>
         <button type="button" className={`lt-tab${tab === 'settings' ? ' on' : ''}`} onClick={() => setTab('settings')}>設定</button>
         <button type="button" className={`lt-tab${tab === 'refs' ? ' on' : ''}`} onClick={() => setTab('refs')}>參考資料</button>
       </div>
-      {tab === 'memory' && (
-        <div className="lt-panel">
-          <div className="lt-count">{save.memories.length} ／ {MEMORY_CAPACITY}</div>
-          {save.memories.length === 0 && <div className="lt-empty">沒有紀錄<br />長按話語，代表記憶深刻的話語，以後或許有用</div>}
-          {[...save.memories].reverse().map((memory) => (
-            <div className="lt-mem" key={memory.key}>
-              <div className="lt-mem-body">
-                <div className="lt-mem-text">{memory.kind === 'me' ? `「${memory.text}」` : memory.text}</div>
-                <div className="lt-mem-meta">{memoryMeta(memory, save.loop > 1)}</div>
-              </div>
-              <button type="button" className="lt-mem-drop" onClick={() => director.releaseMemory(memory.key)}>放下</button>
-            </div>
-          ))}
-        </div>
-      )}
       {tab === 'settings' && (
         <div className="lt-panel">
           <div className="lt-row"><span>聲音</span><Toggle on={settings.audio} onChange={(audio) => set({ audio })} /></div>
@@ -343,6 +385,7 @@ function Menu({ director, tab: firstTab, onClose, onTitle, onSettings, dev }: { 
           <div className="lt-row"><span>環境音</span><input className="lt-range" type="range" min={0} max={1} step={0.05} value={settings.ambience} onChange={(event) => set({ ambience: Number(event.target.value) })} /></div>
           <div className="lt-row"><span>音效</span><input className="lt-range" type="range" min={0} max={1} step={0.05} value={settings.sfx} onChange={(event) => set({ sfx: Number(event.target.value) })} /></div>
           <div className="lt-row"><span>震動</span><Toggle on={settings.vibration} onChange={(vibration) => set({ vibration })} /></div>
+          <div className="lt-row"><span>手機讀屏念出來</span><Toggle on={settings.reader} onChange={(reader) => set({ reader })} /></div>
           <div className="lt-row"><span>畫面晃動</span><Toggle on={settings.motion} onChange={(motion) => set({ motion })} /></div>
           <div className="lt-row"><span>聲音來源</span><Toggle on={settings.soundLabels} onChange={(soundLabels) => set({ soundLabels })} /></div>
           <div className="lt-row"><span>字體大小</span>
@@ -395,7 +438,7 @@ function Chapters({ director, dev, onPicked }: { director: Director; dev: boolea
   return (
     <div className="lt-panel">
       {save.replay
-        ? <div className="lt-empty">正在{numeral(save.chapter)}。這一天的午夜過後，會回到{numeral(target)}。</div>
+        ? <div className="lt-empty">現在在{numeral(save.chapter)}，這一天過了午夜，會回到{numeral(target)}</div>
         : save.loop > 1 && <div className="lt-empty">我想<br />回到「{numeral(target)}」</div>}
       {list.map((chapter, index) => {
         const open = dev || save.reached.includes(chapter.key);
@@ -477,10 +520,10 @@ function References() {
         ))}
       </div>
       {sources === 'loading' && <div className="lt-credits"><div className="lt-credit">清單讀取中……</div></div>}
-      {sources === 'failed' && <div className="lt-credits"><div className="lt-credit">清單讀不到，可以直接看{link(sampleUrl('CREDITS.md'), '完整清單')}。</div></div>}
+      {sources === 'failed' && <div className="lt-credits"><div className="lt-credit">清單讀不到，可以直接看{link(sampleUrl('CREDITS.md'), '完整清單')}</div></div>}
       {sourceGroup('amb', '環境音')}
       {sourceGroup('sfx', '音效')}
-      {Array.isArray(sources) && <div className="lt-credits"><div className="lt-credit">每段錄音怎麼處理，寫在{link(sampleUrl('CREDITS.md'), '完整清單')}裡。</div></div>}
+      {Array.isArray(sources) && <div className="lt-credits"><div className="lt-credit">每段錄音的來源和處理方式，都寫在{link(sampleUrl('CREDITS.md'), '完整清單')}裡</div></div>}
       <div className="lt-credits">
         <div className="lt-credits-head">字型</div>
         {FONTS.map((font) => (
@@ -512,7 +555,7 @@ function Toggle({ on, onChange }: { on: boolean; onChange: (value: boolean) => v
 function KeepPrompt({ director, memory }: { director: Director; memory: Memory }) {
   return (
     <div className="lt-keep" onPointerUp={(event) => event.stopPropagation()}>
-      <div className="lt-keep-q">已經記不下了。<br />要放下哪一段，換成「{memory.text.slice(0, 14)}{memory.text.length > 14 ? '……' : ''}」？</div>
+      <div className="lt-keep-q">記不下了<br />要放掉哪一句，換成「{memory.text.slice(0, 14)}{memory.text.length > 14 ? '……' : ''}」？</div>
       {director.save.memories.map((existing) => (
         <button key={existing.key} type="button" onClick={() => director.releaseMemory(existing.key)}>{existing.text.slice(0, 22)}{existing.text.length > 22 ? '……' : ''}</button>
       ))}
@@ -525,11 +568,11 @@ function KeepPrompt({ director, memory }: { director: Director; memory: Memory }
 
 const ENDINGS: Record<'a' | 'c', { lines: string[]; mark: string }> = {
   c: {
-    lines: ['十月四日。', '零點以後的世界，沒有人聽過。', '所以每一個聲音，都是第一次。'],
+    lines: ['十月四日', '零點以後的世界，沒有人聽過', '所以每一個聲音，都是第一次'],
     mark: '結局 C　停止改寫',
   },
   a: {
-    lines: ['十月四日。', '這一個今天，被留下來了。', '可是舊車站的牆裡，還有一點點聲音。'],
+    lines: ['十月四日', '這一個今天，被留下來了', '可是舊車站的牆裡，還有一點點聲音'],
     mark: '結局 A　只留下這一個今天',
   },
 };

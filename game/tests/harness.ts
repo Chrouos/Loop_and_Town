@@ -78,12 +78,15 @@ export function autoplay(options: { seed: number; maxLoops: number; startChapter
       director.hurry();
     }
     if (view.keep) director.skipKeep();
-    // The first-play lesson waits for a long-press; a player who never makes one never gets past it.
+    // The first-play lessons wait for a long-press or a tap; a player who never makes one never gets past it.
     if (view.teach === 'keep') director.capture();
+    if (view.teach === 'tap') director.hurry();
     if (view.interact && random() < 0.3) {
       if (view.interact.type === 'touch') director.touchDone();
       else if (view.interact.type === 'punch') director.punchDone();
       else if (view.interact.type === 'approach') director.approachCall();
+      // 屏息: once she starts holding, random play keeps holding until the sound comes through.
+      else if (view.interact.type === 'hold') director.holdStart();
       else director.locatePick(DIRECTIONS[Math.floor(random() * DIRECTIONS.length)]);
     }
     if (view.recall) {

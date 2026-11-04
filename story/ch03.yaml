@@ -14,13 +14,29 @@ scenes:
     beats:
       - { sfx: phone_buzz, at: right, dist: near, text: 嗡, vib: buzz }
       - phone: 鬧鐘。六點十二分。
-      - if: know.k_c3_boxun_died_again
+      - if: know.k_c3_boxun_died_again || know.k_c3_ruoqing_went
         then:
-          - think: 上一次我把所有人都移開了，只漏掉陳醫生。
-          - think: 他還是走進了那條通道。
+          # 這一章她已經失敗過一次：午夜那一段要換一種寫法。
+          - set: c3_failed_before
+          - if: know.k_c3_ruoqing_went
+            then:
+              - think: 之前若晴跟我說好。最後她還是去了。
+          - if: know.k_c3_boxun_died_again
+            then:
+              - think: 我以為那些安排已經夠了。結果陳醫生還是走進那條通道。
           - narr: 我把額頭靠上車窗，玻璃跟著鐵軌震，涼意從眉心往裡滲。
           - pause: 1.5
-          - think: 這次先從醫院後門想起。
+          - if: know.lead_c3_he_checks
+            then:
+              - think: 我在醫院後門說若晴不去，他當著我的面打給她。我講的每一句跟別人有關的話，他都會自己去對。
+          - if: know.lead_c3_proof
+            then:
+              - think: 我只跟他說我怕，他就只肯待到六點。光是我怕，他沒辦法拿去查。
+          - if: know.k_c3_ruoqing_went
+            then:
+              - think: 她說好，不代表她會照做。這次先聽她要的是什麼。
+            else:
+              - think: 這次先從醫院後門想起。
         else:
           - narr: 這一次我沒有站起來。我坐在位子上，把今天從頭到尾在腦子裡走一遍。
           - if: know.k_maintenance_passage
@@ -56,7 +72,7 @@ scenes:
             - text: （先轉向右前方）
               if: know.k_sig_yuan
               then:
-                - narr: 一重一輕，左腳比較重。他還沒開口，我已經轉過去了。
+                - narr: 一重一輕，左腳比較重。我轉過去，剛好對著他停下來的地方。
                 - pause: 0.8
                 - set: c3_turned_first
             - text: （等他開口）
@@ -103,11 +119,15 @@ scenes:
     beats:
       - { sfx: door_creak, at: front, dist: near, text: 碰——吱呀 }
       - narr: 門還是卡住，他還是用肩膀撞開。我讓這段照原樣過去。
+      - { sfx: plastic_crinkle, at: front, dist: near, text: 窸窣 }
+      - yuan: 我先回店裡。十點有個阿伯要來拿錶，他太太的，修了快一個月。
+      - yuan: 他說今天一定要拿到。好像是什麼紀念日，他不肯講。
+      - narr: 他手上的塑膠袋窸窸窣窣，裡面是要給那個阿伯的錶盒。
       - if: chloop >= 2
         then:
           - { sfx: door_close, at: front, dist: mid, text: 碰 }
           - narr: 他回店裡以後，我照上一次的順序撥了兩通電話。
-          - think: 庭安六點在咖啡店等我，周警官六點半在派出所等我。
+          - think: 庭安在公車站，說她下午要上山，六點會趕回咖啡店。周警官要我帶身分證，六點半以前自己去填申請單。
           - think: 兩個人答應的話，跟上一次一個字都沒差。
         else:
           - if: know.k_tingan_card
@@ -132,7 +152,10 @@ scenes:
               - phone: 以下為電話號碼。
           - phone: 撥號中。
           - { sfx: phone_ring, at: right, dist: near, text: 嘟——嘟—— }
-          - { tingan: 喂？請問哪位？, via: phone }
+          - { tingan: 喂？等我一下。, via: phone }
+          - { sfx: bus_hiss, at: right, dist: mid, text: 嘶—— }
+          - narr: 電話那頭有公車停靠的洩氣聲。她摀住話筒，跟司機問了一句上山的車幾點，才回來。
+          - { tingan: 好，請問哪位？, via: phone }
           - me: 葉小姐嗎？我姓林。聽說妳在找人受訪。
           - { tingan: 等一下，妳怎麼會有我的電話？誰給妳的？, via: phone }
           - narr: 我把手機換到左耳，空出來的右手拇指在桌緣上來回磨。
@@ -148,20 +171,30 @@ scenes:
           - { tingan: 所以妳願意受訪？什麼時候可以？在哪裡？, via: phone }
           - think: 她問問題的速度，像雨打在雨衣上。
           - me: 今天傍晚六點，老街那家咖啡店。
-          - { tingan: 六點。好，六點，我記下來了。, via: phone }
+          - { tingan: 六點……我下午要上山一趟，有個地方我等了半年才約到。, via: phone }
+          - { tingan: 好，六點，我趕回來。妳不要放我鴿子喔。, via: phone }
           - { sfx: phone_hangup, at: left, dist: near, text: 嘟 }
           - { think: 我不會去。, mem: m_c3_wont_go }
           - phone: 撥號中。灰潮鎮派出所。
           - { sfx: phone_ring, at: right, dist: near, text: 嘟——嘟—— }
+          - { sfx: lighter_lid, at: right, dist: near, text: 喀、嗒 }
+          - narr: 接起來之前，那頭先有一聲金屬蓋子掀開，又蓋回去。
           - { zhiyuan: 派出所。, via: phone }
           - me: 周警官嗎？我想查一件舊案，不是我姊姊的。
           - { zhiyuan: 哪一件。, via: phone }
           - me: 九年前港口倉庫那場火。
-          - { zhiyuan: 那個要調檔，傍晚才會有。, via: phone }
-          - me: 我六點半過去拿，麻煩你等我。
-          - { zhiyuan: 好，六點半。, via: phone }
+          - { zhiyuan: ……那件死了一個守夜的。妳是家屬？, via: phone }
+          - me: 不是。
+          - { zhiyuan: 不是家屬，查那個做什麼。, via: phone }
+          - me: 我在寫一點東西。
+          - { sfx: lighter_lid, at: right, dist: near, text: 喀、嗒 }
+          - { zhiyuan: 那件是我學長辦的。他家屬到現在，每年都還會打來問。, via: phone }
+          - { zhiyuan: 卷可以調。申請單妳自己來填，帶身分證。我不會先幫妳印。, via: phone }
+          - { zhiyuan: 我等到六點半。過了就明天。, via: phone }
+          - me: 好，六點半。
           - { sfx: phone_hangup, at: right, dist: near, text: 嘟 }
           - think: 隨便挑一件舊案。我只要他六點半坐在派出所裡。
+          - think: 他說家屬每年都打來。我挑它，只是因為它夠舊。
           - think: 一通電話擺好一個人。我在腦子裡把他們一個一個放上去。
     next: c3_street
 
@@ -180,7 +213,7 @@ scenes:
           - { old_man: 請用路人注意改道標示。, as: 收音機, at: left, via: radio }
     beats:
       - yuan: 這邊人多，扶著我。
-      - narr: 中午我請予安陪我去老街。他說送完這段就得回店裡，客人下午要來拿錶。
+      - narr: 中午我請予安陪我去老街。他說送完這段就得回店裡，那個拿錶的阿伯早上沒來，打電話說改下午。
       - { sfx: bicycle_bell, at: front-left, dist: far, text: 叮叮 }
       - narr: 騎樓底下飄出炸雞排的油味，腳底是新換的地磚，遠一點有人按腳踏車鈴。
       - { cue: radio, at: left, text: 沙沙——, sfx: radio_noise }
@@ -255,7 +288,7 @@ scenes:
           - yuan: 球也是。它還沒滾過來，妳就蹲下去了。
       - if: flag.c3_turned_first
         then:
-          - yuan: 早上在月台也是，我還沒開口，妳就先轉過來。
+          - yuan: 早上在月台也是，車門一開，妳就轉到我這邊。
       - { yuan: 妳像是已經來過這裡很多次了。, learn: k_yuan_many_times, mem: m_c3_many_times }
       - pause: 2.5
       - if: chloop >= 2
@@ -291,20 +324,38 @@ scenes:
       - { sfx: step, at: front, dist: near, text: 叩、叩 }
       - narr: 店裡是咖啡豆的焦香，蒸汽管在叫，她的腳步在我前面停住。
       - ruoqing: 歡迎光臨，一位嗎？
-      - if: chloop >= 2
+      - ruoqing: 窗邊那張有扶手，我帶妳過去。
+      - { sfx: chair_scrape, at: front, dist: near, text: 嘎 }
+      - { old_woman: 若晴，三號桌的熱拿鐵好了沒？, as: 店長 }
+      - ruoqing: 來了啦！妳先坐，我馬上回來。
+      - { sfx: cup_set, at: back-left, dist: mid, text: 叩 }
+      - narr: 她跑去櫃台送了一杯咖啡，又跑回來，口袋裡有一張紙被她壓得沙沙響。
+      - if: know.k_c3_ruoqing_went
         then:
-          - think: 上一次我是怎麼開口的？不管怎麼開口，她都會問同一個問題。
+          - think: 之前她答應得很快。答應得那麼快，是想要我快點走。
         else:
-          - think: 這一次沒時間慢慢認識她了。
+          - if: chloop >= 2
+            then:
+              - think: 上一次我是怎麼開口的？不管怎麼開口，她都會問同一個問題。
+            else:
+              - think: 這一次沒時間慢慢認識她了。
       - me: 若晴。
       - ruoqing: 欸？我們認識嗎？
       - { sfx: strap_click, at: front, dist: near, text: 喀、喀 }
-      - me: 妳今天傍晚不要去舊車站。
-      - narr: 背帶扣的聲音停了。
-      - heart: slow
-      - pause: 2
-      - ruoqing: ……妳怎麼知道我要去？
-      - ruoqing: 妳看不見，也從來沒來過店裡。
+      - if: know.k_c3_ruoqing_went
+        then:
+          - me: 陳醫生要給妳的那份東西，今天一定要拿嗎？
+          - narr: 背帶扣的聲音停了。
+          - heart: slow
+          - pause: 2
+          - ruoqing: ……妳怎麼知道我要去拿東西？
+        else:
+          - me: 妳今天傍晚不要去舊車站。
+          - narr: 背帶扣的聲音停了。
+          - heart: slow
+          - pause: 2
+          - ruoqing: ……妳怎麼知道我要去？
+      - ruoqing: 妳又不是鎮上的人，也從來沒來過店裡。
       - { ruoqing: 妳怎麼知道我今天要去哪？, mem: m_c3_how_know }
       - think: 對她來說，我們今天才第一次見面。
       - choice:
@@ -333,7 +384,26 @@ scenes:
                 - pause: 2.5
                 - narr: 我以為她會笑，結果她沒有。
                 - ruoqing: 妳講得好像真的一樣。
+                - ruoqing: ……我不信喔。
+                - { sfx: cane_tap, at: center, dist: near, text: 叩叩叩 }
+                - narr: 我握著手杖的手在抖，杖尖在地磚上敲出一串細細的聲音，停不下來。
                 - set: c3_truth
+            - text: 「陳醫生要給妳的那份東西，對妳很重要吧？」
+              if: know.k_c3_ruoqing_went
+              then:
+                - pause: 2
+                - { sfx: strap_click, at: front, dist: near, text: 喀 }
+                - ruoqing: ……妳到底是誰啊。
+                - ruoqing: 是知夏姊留下來的。放在陳醫生那邊五年了，我一直沒去拿。
+                - ruoqing: 今天再不去，我好像又會拖下去。
+                - me: 我不會叫妳不要去。
+                - me: 我只是怕傍晚那邊出事。上一次有人一個人去，就沒有回來。
+                - pause: 2.5
+                - { sfx: strap_click, at: front, dist: near, text: 喀、喀 }
+                - ruoqing: 陳醫生也不喜歡我一個人跑去那邊。
+                - ruoqing: 好啦。我晚點打給他，看能不能改明天早上，在醫院拿。
+                - ruoqing: 不是因為妳喔。是我自己也不想一個人去那裡拿她的東西。
+                - set: c3_ruoqing_own
           silence:
             - pause: 3
             - ruoqing: 妳不講，我也不知道要怎麼回妳啊。
@@ -342,7 +412,7 @@ scenes:
             - set: c3_pressed
       - if: flag.c3_truth
         then:
-          - ruoqing: 好啦，我今天不去。
+          - ruoqing: 好啦，我今天先不去。
           - ruoqing: 不是因為我相信妳喔。
           - { ruoqing: 是因為妳聽起來很怕。, mem: m_c3_sound_afraid }
           - narr: 我這才發現自己的肩膀一直聳著，聳到脖子發酸，慢慢放下來。
@@ -352,9 +422,13 @@ scenes:
             then:
               - ruoqing: 好，我不去。
               - ruoqing: 可是妳不要再來店裡了。
+              - set: c3_ruoqing_goes
             else:
-              - ruoqing: 陳醫生那邊，我晚一點再跟他說。
-              - ruoqing: 這樣可以了吧？我還在上班欸。
+              - if: "!flag.c3_ruoqing_own"
+                then:
+                  - ruoqing: 陳醫生那邊，我晚一點再跟他說。
+                  - ruoqing: 這樣可以了吧？我還在上班欸。
+                  - set: c3_ruoqing_goes
       - heart: off
       - me: 傍晚我打給妳，確認妳在家。過了六點半，再跟妳報平安。
       - if: flag.c3_lied
@@ -362,12 +436,32 @@ scenes:
           - ruoqing: ……報完平安就不要再打來了。
         else:
           - ruoqing: 喔……好啦。
+      - if: flag.c3_ruoqing_goes
+        then:
+          - { sfx: strap_click, at: front, dist: near, text: 喀、喀、喀 }
+          - narr: 她念號碼之前，背帶扣又被她撥了好幾下。
       - narr: 她很快地念了一串號碼，只念一次。
       - think: 我記住了。
-      - { sfx: step, at: front-right, dist: mid, text: 叩、叩 }
-      - narr: 她答應了，可是走開的腳步比走過來的時候快。
-      - { cue: talk, at: back-left, text: 窸窸窣窣, sfx: huddle_rustle, whisper: true }
-      - think: 我帶過午夜的那些事，在她那邊什麼都不算。
+      - if: flag.c3_ruoqing_goes
+        then:
+          - { sfx: step, at: front-right, dist: mid, text: 叩、叩 }
+          - if: flag.c3_lied
+            then:
+              - narr: 她答應了，可是走開的腳步比走過來的時候快。
+            else:
+              - narr: 她說可以了，可是走開的腳步比走過來的時候快。
+          - { cue: talk, at: back-left, text: 窸窸窣窣, sfx: huddle_rustle, whisper: true }
+          - think: 我帶過午夜的那些事，在她那邊什麼都不算。
+        else:
+          - { sfx: cup_set, at: right, dist: near, text: 叩 }
+          - narr: 她走開以前，在我右手邊放了一杯水。杯子是冰的，外面一圈水珠。
+          - { sfx: cup_scrape, at: right, dist: near, text: 嘶 }
+          - narr: 她又把杯子往桌子裡面推了一點，杯底刮過桌面。
+          - ruoqing: 水。我推進去了，妳手不會掃到。
+          - { sfx: step, at: front-right, dist: mid, text: 叩、叩 }
+          - narr: 她沒等我說謝謝，就回櫃台去了。
+          - { cue: talk, at: back-left, text: 窸窸窣窣, sfx: huddle_rustle, whisper: true }
+          - narr: 我伸手去找那杯水，指尖先碰到桌緣，往裡面再爬了一個手掌，才摸到冰的杯壁。
     next: c3_hospital
 
   # ─────────────────────────────────────────── 17:20
@@ -390,9 +484,19 @@ scenes:
           - daze: off
           - { sfx: cart_roll, at: front-left, dist: far, text: 喀啦喀啦 }
           - narr: 推車的輪子又在走廊那頭滾起來，排風口的聲音跟著回到原來的地方。
-          - think: 我那時候只想著怎麼讓他停下來，一句真話都沒有給他。
+          - if: know.lead_c3_proof
+            then:
+              - think: 我那時候跟他說我怕。那是真話，他也聽進去了，只聽到六點。
+            else:
+              - think: 我那時候只想著怎麼讓他停下來，一句真話都沒有給他。
         else:
           - think: 他傍晚要去舊車站，總要從這扇門出來。幾點出來我不知道，只能早一點來等。
+      - if: know.lead_c3_he_checks
+        then:
+          - think: 我說誰不去，他就會打給誰。所以那句話，要先是真的。
+      - if: know.lead_c3_proof
+        then:
+          - think: 光說我怕不夠。要給他一件他自己查得到的事。
       - { wait: 15, clock: "17:20", until: "17:38" }
       - clock: "17:38"
       - { sfx: door_open, at: front, dist: far, text: 喀 }
@@ -475,7 +579,7 @@ scenes:
           - boxun: 有什麼事嗎？我有點趕。
       - { sfx: paper_rustle, at: front, dist: near, text: 沙 }
       - narr: 紙袋擦過他的外套，沙的一聲。
-      - boxun: 是若晴託我帶的資料。我得先走了，她還在等。
+      - boxun: 是要交給若晴的資料。我得先走了，她還在等。
       - choice:
           timeout: 20
           options:
@@ -510,11 +614,11 @@ scenes:
                       - pause: 2.5
                       - { sfx: paper_rustle, at: front, dist: near, text: 沙——喀喀 }
                       - narr: 紙袋沿著外套沙地滑了一聲，接著被夾緊，牛皮紙皺得喀喀響。
-                      - boxun: ……這是我會用的句子。
-                      - boxun: 連先講哪一句、後講哪一句都一樣。
+                      - boxun: ……先講路況，再講自己走過、判斷過。
+                      - boxun: 我寫紀錄就是這個順序。連用詞都一樣。
                       - me: 因為是你講的。
                       - boxun: 我今天之前，沒有跟妳講過話。
-                      - me: 你講過。在一個你沒有過到的傍晚。你講完，就往那條通道走了。
+                      - me: 你講過。那天傍晚你講完這兩句，就往那條通道走了。
                       - pause: 2
                       - boxun: 這個我沒辦法解釋。我也不會去猜。
                       - boxun: 可是我確實打算從那裡上去。這件事，我還沒有跟任何人說。
@@ -544,7 +648,7 @@ scenes:
             - { sfx: paper_rustle, at: front, dist: near, text: 沙 }
             - narr: 他沒有走。紙袋從右手換到左手。
             - boxun: ……妳的手杖頭，橡膠磨得很平了。
-            - boxun: 一樓復健科可以換。跟櫃台說是陳醫師講的。
+            - { boxun: 一樓復健科可以換。跟櫃台說是陳醫師講的。, learn: k_c3_cane_tip }
             - narr: 他講得很快，像在交代病人。講完才想起來，自己剛剛說在趕。
       - if: flag.c3_b_bag
         then:
@@ -582,9 +686,7 @@ scenes:
                     - narr: 紙袋在他腋下又響了一聲，他把它換到另一隻手。
                     - boxun: 若晴今天要來拿，妳知道。
                     - me: 她今天不會去了，她自己跟我說的。
-                    - boxun: 那我確實也沒有理由去。
-                    - boxun: 這份我放回辦公室。這件事，改天我們再談。
-                    - set: c3_boxun_stays
+                    - set: c3_b_claim
                 - text: （伸手去拿紙袋）
                   then:
                     - { sfx: cloth_rustle, at: front, dist: near, text: 窸 }
@@ -602,14 +704,52 @@ scenes:
         then:
           - boxun: 停電？
           - boxun: 妳怎麼會知道這種事？
-          - me: 我說不出一個你會接受的理由，所以只能拜託你。
-          - me: 若晴今天也不會去，她跟我說了。
-          - { sfx: paper_rustle, at: front, dist: near, text: 沙沙 }
-          - narr: 他把紙袋換到另一隻手，牛皮紙在他指頭底下沙沙響。
-          - boxun: 真的停電的話，我人在醫院確實比較有用。
-          - boxun: 我待到七點。過了六點半，請妳打給我，告訴我發生了什麼事。
-          - boxun: 什麼都沒發生的話，也請妳告訴我。
-          - set: [c3_boxun_stays, c3_bx_honest]
+          - { sfx: hand_rub, at: front, dist: near, text: 噗、沙沙 }
+          - boxun: 妳要我信，總要給我一樣我對得上的東西。
+          - choice:
+              timeout: 14
+              options:
+                - text: 「你打算從舊站旁邊那條停用的維修通道上去。這件事，你還沒跟任何人講。」
+                  if: know.k_maintenance_passage || know.k_c3_boxun_died_again
+                  then:
+                    - pause: 2.5
+                    - narr: 紙袋在他腋下停住，沒有再響。
+                    - boxun: ……正門封了，那條路比較近。
+                    - boxun: 我確實沒有跟任何人說過。連護理站都不知道我要走哪裡。
+                    - boxun: 妳怎麼知道的，我不會去猜。可是這一句，我自己對得上。
+                    - { sfx: paper_rustle, at: front, dist: near, text: 沙沙 }
+                    - narr: 他把紙袋換到另一隻手，牛皮紙在他指頭底下沙沙響。
+                    - boxun: 真的停電的話，我人在醫院確實比較有用。
+                    - boxun: 我待到七點。過了六點半，請妳打給我，告訴我發生了什麼事。
+                    - boxun: 什麼都沒發生的話，也請妳告訴我。
+                    - set: [c3_boxun_stays, c3_bx_honest]
+                - text: 「我沒有證據。我只是很怕。」
+                  then:
+                    - set: c3_b_partial
+                - recall:
+                    accept:
+                      - mem: m_c2_no_one_inside
+                        then:
+                          - narr: 我把那句話照他念紀錄的樣子念出來，日期先，時間後，一個字一個字放平。
+                          - me: 十月三日，十八點三十一分，維修通道塌落。裡面沒有人。
+                          - pause: 2.5
+                          - { sfx: hand_rub, at: front, dist: near, text: 噗 }
+                          - narr: 乾洗手按下去，他的手卻沒有搓開。
+                          - boxun: ……日期、時間、地點，最後寫有沒有人。
+                          - boxun: 我寫紀錄就是這樣寫。可是這一行，我還沒寫過。
+                          - me: 那天你寫了。寫完你說，今天你不走那裡了。
+                          - pause: 2
+                          - boxun: 這個我沒辦法解釋。
+                          - boxun: 我待到七點。過了六點半，打給我，告訴我那一行是不是還要寫。
+                          - set: [c3_boxun_stays, c3_bx_honest, c3_bx_quoted]
+                    miss:
+                      - pause: 1.5
+                      - boxun: ……抱歉，我聽不懂。
+                      - think: 不是這句。這句他沒辦法自己去查。
+              silence:
+                - pause: 2.5
+                - boxun: 妳講不出來，我也沒辦法替妳補。
+                - set: c3_b_partial
       - if: flag.c3_b_tomorrow
         then:
           - boxun: 她不去？她早上還跟我確認過。
@@ -618,9 +758,53 @@ scenes:
           - boxun: 妳怎麼知道那邊不安全？
           - me: 我不知道要怎麼講，你才不會覺得我瘋了。
           - pause: 2
-          - boxun: 這份東西，本來就不應該帶出醫院。
-          - boxun: 好，改明天。我會自己打給她確認。
-          - set: [c3_boxun_stays, c3_bx_tomorrow]
+          - set: c3_b_claim
+      # 她說若晴不去：陳醫生照他的習慣，當場打給若晴對一次。
+      - if: flag.c3_b_claim
+        then:
+          - boxun: 我打給她確認一下。
+          - { sfx: phone_ringback, at: front, dist: near, text: 嘟——嘟—— }
+          - narr: 他的手機音量開得很大，嘟嘟聲連我都聽得到。我的指甲掐進手杖的橡膠握把。
+          - if: flag.c3_ruoqing_goes
+            then:
+              - { ruoqing: 喂？陳醫生，我六點半會到啦，你不用一直確認。, via: phone, at: front, dist: near }
+              - boxun: 有人跟我說，妳今天不來了。
+              - if: flag.c3_lied
+                then:
+                  - { ruoqing: 誰啊？……是不是一個拿手杖的？她下午跑來店裡，還說是你跟她講的欸。, via: phone, at: front, dist: near }
+                else:
+                  - { ruoqing: 誰啊？……喔，下午有一個拿手杖的跑來店裡，叫我不要去。你認識喔？, via: phone, at: front, dist: near }
+              - boxun: 不認識。……好，六點半，我到了打給妳。
+              - { sfx: phone_hangup, at: front, dist: near, text: 嘟 }
+              - pause: 1.5
+              - boxun: 她說她會到。
+              - if: flag.c3_lied
+                then:
+                  - boxun: 她還說，妳跟她講是我說的。
+              - boxun: 我不知道妳為什麼要這樣講。我答應她的事，我照原來的時間去。
+              - heart: fast
+              - narr: 耳朵燙起來，一路燙到脖子。我抓著手杖，好像那樣就站得比較直。
+              - tension: 8
+              - think: 他不收我說的話。他收的是他自己打出去的那通電話。
+              - learn: lead_c3_he_checks
+              - set: c3_b_caught
+            else:
+              - if: flag.c3_ruoqing_own
+                then:
+                  - { ruoqing: 欸，陳醫生，我剛好要打給你。今天我先不過去，明天早上我去醫院拿好不好？, via: phone, at: front, dist: near }
+                else:
+                  - { ruoqing: 喂？……嗯，我今天先不過去了。改天好不好？, via: phone, at: front, dist: near }
+                  - { ruoqing: 欸，是不是有一個拿手杖的人去找你？, via: phone, at: front, dist: near }
+                  - boxun: ……她在我前面。
+              - boxun: 好。明天早上，我在醫院等妳。
+              - { sfx: phone_hangup, at: front, dist: near, text: 嘟 }
+              - boxun: 她說改明天。
+              - if: flag.c3_b_tomorrow
+                then:
+                  - boxun: 這份東西，本來就不應該帶出醫院。我放回辦公室。
+                else:
+                  - boxun: 那我確實也沒有理由去。這份我放回辦公室，這件事改天我們再談。
+              - set: [c3_boxun_stays, c3_bx_tomorrow]
       - if: flag.c3_b_threat
         then:
           - pause: 2
@@ -638,7 +822,7 @@ scenes:
           - boxun: 正門封了，我才想說從旁邊上去比較近。
           - boxun: ……東西我放回辦公室。今天哪裡都不去。
           - set: c3_boxun_stays
-      - if: "!flag.c3_boxun_stays && !flag.c3_b_threat && !flag.c3_b_grab"
+      - if: "!flag.c3_boxun_stays && !flag.c3_b_threat && !flag.c3_b_grab && !flag.c3_b_partial"
         then:
           - pause: 2
           - boxun: ……失陪了。
@@ -653,17 +837,51 @@ scenes:
                     - { sfx: step, at: front-right, dist: mid, text: 叩 }
                     - narr: 腳步停了。
                     - boxun: ……還有什麼事？
-                    - me: 六點半左右，舊車站會停電。我說不出理由，只能拜託你今天不要過去。
-                    - pause: 2
-                    - boxun: 妳剛剛怎麼不說？
-                    - me: 我在想要怎麼說，你才不會走。
-                    - pause: 1.5
-                    - boxun: 結果我還是差點走了。
-                    - boxun: 我回去待到七點。過了六點半，打給我。
-                    - set: [c3_boxun_stays, c3_bx_honest]
+                    - if: flag.c3_b_caught
+                      then:
+                        - boxun: 若晴的事，妳剛剛講的不是真的。
+                    - choice:
+                        timeout: 12
+                        options:
+                          - text: 「你要從舊站旁邊那條停用的維修通道上去。今天不要走。」
+                            if: know.k_maintenance_passage || know.k_c3_boxun_died_again
+                            then:
+                              - pause: 2
+                              - { sfx: paper_rustle, at: front-right, dist: mid, text: 沙 }
+                              - narr: 紙袋在他手上皺了一下。
+                              - boxun: ……我要走哪條路，我沒有跟任何人講過。
+                              - if: flag.c3_b_caught
+                                then:
+                                  - boxun: 妳剛剛為什麼不直接講這個？
+                                  - me: 因為這個聽起來，比騙你還像瘋話。
+                                else:
+                                  - boxun: 妳剛剛怎麼不說？
+                                  - me: 我在想要怎麼說，你才不會走。
+                              - pause: 1.5
+                              - boxun: 結果我還是差點走了。
+                              - boxun: 我回去待到七點。過了六點半，打給我。
+                              - set: [c3_boxun_stays, c3_bx_honest]
+                          - text: 「六點半左右，舊車站會停電。我說不出理由，只能拜託你。」
+                            then:
+                              - set: c3_b_partial
+                        silence:
+                          - pause: 2
+                          - boxun: 我真的得走了。
               silence:
                 - narr: 我的嘴張開了，又閉上。手杖尖抵著地面，一直往下壓。
                 - tension: 8
+      # 沒有他對得上的東西：他只答應到六點。
+      - if: flag.c3_b_partial && !flag.c3_boxun_stays
+        then:
+          - pause: 2
+          - { sfx: hand_rub, at: front, dist: near, text: 噗、沙沙 }
+          - boxun: 我沒辦法拿一件查不到的事，去改掉跟病人家屬約好的時間。
+          - boxun: 可是妳說六點半。那我六點以前不出這扇門。
+          - boxun: 六點以後，我照原來的安排。
+          - think: 六點。從這裡走到舊站，不用二十分鐘。
+          - think: 他要一件他自己能去查的事。我給他的，只有一句我怕。
+          - learn: lead_c3_proof
+          - set: c3_b_until6
       - if: flag.c3_boxun_stays
         then:
           - { sfx: door_close, at: front, dist: far, text: 碰 }
@@ -672,10 +890,17 @@ scenes:
           - tension: -8
           - think: 一個。
         else:
-          - { sfx: step, at: front-right, dist: mid, text: 叩、叩、叩 }
-          - narr: 他的腳步往停車場那邊去了。
-          - { sfx: car_pass, at: right, dist: far, text: 嗡—— }
-          - think: 他要從哪裡上去，我知道。
+          - if: flag.c3_b_until6
+            then:
+              - { sfx: door_close, at: front, dist: far, text: 碰 }
+              - narr: 鐵門在他背後關上。他回去了，只到六點。
+              - heart: slow
+              - think: 半個。
+            else:
+              - { sfx: step, at: front-right, dist: mid, text: 叩、叩、叩 }
+              - narr: 他的腳步往停車場那邊去了。
+              - { sfx: car_pass, at: right, dist: far, text: 嗡—— }
+              - think: 他要從哪裡上去，我知道。
     next: c3_chess
 
   # ─────────────────────────────────────────── 18:00
@@ -685,19 +910,52 @@ scenes:
     ambience: [street_evening]
     cast: { ruoqing: back-right, boxun: back, yuan: left, zhiyuan: right }
     beats:
+      # 她答應，只是為了讓我走。陳醫生打給她的時候，她也照實說她會到。
+      - if: flag.c3_ruoqing_goes
+        then:
+          - set: c3_r_dies
       - narr: 我一邊走一邊打電話，一通接著一通。
       - phone: 撥號中。許若晴。
       - { sfx: phone_ring, at: back-right, dist: far, text: 嘟—— }
-      - if: flag.c3_truth
+      - if: flag.c3_r_dies
         then:
-          - { ruoqing: 喂，我在家，我沒去啦。, via: phone }
-          - { ruoqing: 欸……妳還好嗎？, via: phone }
-        else:
           - if: flag.c3_lied
             then:
               - { ruoqing: 我在家。妳不要再打來了。, via: phone }
             else:
               - { ruoqing: 我在家啦。這樣可以了吧？, via: phone }
+          - { sfx: wind_gust, at: back-right, dist: far, text: 颯—— }
+          - narr: 她說她在家。可是她的聲音後面有很大的風，還有鞋子踩過碎石，沙、沙。
+          - heart: fast
+          - narr: 我把手機從耳朵上拿開一點。街上也在起風，一陣一陣從不同的地方鑽過來。
+          - locate:
+              sfx: wind_gust
+              at: front-right
+              decoys: [{ sfx: car_pass, at: left }, { sfx: leaf_rustle, at: back }]
+              tries: 2
+              timeout: 12
+              prompt: 電話裡吹過去的那陣風，隔一下才吹到這裡。從哪邊來？
+              success:
+                - { sfx: gravel_step, at: front-right, dist: far, text: 沙、沙 }
+                - narr: 右前方。電話裡先吹過一陣，隔一兩秒，同一陣風才從右前方撲到我臉上，帶著海邊的鹹味。
+                - narr: 舊車站在那邊。那片碎石地也在那邊。
+                - think: 她不在家。她離舊站，比離她家近得多。
+                - narr: 我把手機收進口袋，手杖往前探得遠一點，步子跟著放大。
+                - set: c3_heard_her
+              fail:
+                - narr: 風太亂了。我分不出哪一陣是電話裡的，哪一陣是街上的。
+                - think: 也許她只是開著窗。
+          - { sfx: phone_hangup, at: back-right, dist: far, text: 嘟 }
+          - narr: 我再撥一次，她沒有接。
+          - tension: 8
+        else:
+          - if: flag.c3_ruoqing_own
+            then:
+              - { ruoqing: 我在家。陳醫生說明天早上，在醫院給我。, via: phone }
+              - { ruoqing: 他還問我，是不是有人跟我說了什麼。, via: phone }
+            else:
+              - { ruoqing: 喂，我在家，我沒去啦。, via: phone }
+              - { ruoqing: 欸……妳還好嗎？, via: phone }
       - phone: 撥號中。灰潮鎮醫院。
       - { sfx: phone_ring, at: back, dist: far, text: 嘟—— }
       - if: flag.c3_boxun_stays
@@ -705,21 +963,37 @@ scenes:
           - if: flag.c3_bx_honest
             then:
               - { boxun: 我在三號病房。目前還沒有停電。, via: phone }
+              - if: flag.c3_bx_quoted
+                then:
+                  - { boxun: ……妳下午念的那一行，我到現在還在想。, via: phone }
             else:
               - if: flag.c3_bx_quoted
                 then:
                   - { boxun: 我在辦公室。紙袋鎖在抽屜裡，鑰匙在我身上。, via: phone }
                   - { boxun: ……妳下午講的那兩句，我到現在還在想。, via: phone }
                 else:
-                  - { boxun: 三號病房。……我還在。, via: phone }
+                  - if: flag.c3_bx_tomorrow
+                    then:
+                      - { boxun: 我在辦公室。若晴那份，鎖回抽屜了。, via: phone }
+                    else:
+                      - { boxun: 三號病房。……我還在。, via: phone }
         else:
           - { sfx: phone_ring, at: back, dist: far, text: 嘟——嘟——嘟—— }
-          - { woman: 陳醫生喔？他五點多就出去了耶。, as: 護理師, at: back, via: phone }
+          - if: flag.c3_b_until6
+            then:
+              - { woman: 陳醫生喔？他六點一到就出去了。, as: 護理師, at: back, via: phone }
+              - { woman: 他交代說，如果有人打來找他，就跟她說六點了，什麼都沒有發生。, as: 護理師, at: back, via: phone }
+            else:
+              - { woman: 陳醫生喔？他五點多就出去了耶。, as: 護理師, at: back, via: phone }
           - heart: fast
           - { sfx: step, at: back, dist: near, to: right, text: 叩、叩 }
           - narr: 胃往下一沉，我的腳停在人行道中間，後面的人只好側身從我旁邊擠過去。
           - tension: 5
-          - think: 他不在醫院。
+          - if: flag.c3_b_until6
+            then:
+              - think: 他說待到六點，就真的待到六點整，一分鐘都沒有多。
+            else:
+              - think: 他不在醫院。
       - phone: 撥號中。周予安。
       - { sfx: phone_ring, at: left, dist: far, text: 嘟—— }
       - { yuan: 店裡。我坐在櫃台後面。, via: phone }
@@ -755,11 +1029,60 @@ scenes:
         else:
           - think: 我約了她，然後沒去。周警官那邊也一樣，我不會去。
       - { think: 我像在下棋。, mem: m_c3_chess }
-      - if: flag.c3_boxun_stays
+      - if: flag.c3_r_dies
         then:
-          - think: 我把每一顆棋子推到不會死的格子上，只剩我自己往那邊走。
+          - think: 我以為推好的那一顆，自己走回去了。
+      - if: flag.c3_boxun_stays && !flag.c3_r_dies
+        then:
+          - think: 若晴在家，陳醫生在三號病房，予安在櫃台後面。只剩我往舊站走。
         else:
-          - think: 每一顆棋子都推開了，只有他那一顆，我推不動。
+          - if: "!flag.c3_boxun_stays && flag.c3_r_dies"
+            then:
+              - think: 陳醫生那一顆，我也推不動。
+          - if: "!flag.c3_boxun_stays && !flag.c3_r_dies"
+            then:
+              - think: 每一顆棋子都推開了，只有他那一顆，我推不動。
+      # 聽出她不在家，就走得比她慢不了多少：在碎石地上追到她。她照樣進去。
+      - if: flag.c3_heard_her
+        then:
+          - clock: "18:14"
+          - move: { ruoqing: front }
+          - { sfx: gravel_step, at: front, dist: mid, text: 沙、沙 }
+          - narr: 柏油路到了盡頭，鞋底下開始是碎石。前面有另一個人的腳步，走得很急，沙、沙，停一下。
+          - { sfx: strap_click, at: front, dist: mid, text: 喀、喀 }
+          - { me: 若晴！, shake: light }
+          - { sfx: gravel_step, at: front, dist: mid, text: 沙 }
+          - narr: 腳步停了。
+          - ruoqing: ……妳跟過來喔？
+          - ruoqing: 妳又看不到，是怎麼跟的啦。
+          - choice:
+              timeout: 10
+              options:
+                - text: 「妳說妳在家。」
+                  then:
+                    - if: flag.c3_lied
+                      then:
+                        - ruoqing: 對啦，我騙妳。妳也騙我啊，陳醫生才沒有跟妳講。
+                      else:
+                        - ruoqing: 不然我要怎麼講？妳一直叫我不要來。
+                    - ruoqing: 這是我自己的事。
+                - text: 「……那份東西，是誰留給妳的？」
+                  then:
+                    - pause: 2
+                    - { sfx: strap_click, at: front, dist: mid, text: 喀 }
+                    - ruoqing: 知夏姊。放在陳醫生那邊五年了。
+                    - ruoqing: 我今天再不來拿，一定又會找理由拖。
+                    - ruoqing: 所以妳不要擋我。
+              silence:
+                - pause: 2
+                - ruoqing: 妳不講話，我要走了喔。
+          - { sfx: gravel_step, at: front, dist: near, text: 沙 }
+          - ruoqing: 欸，妳往左一點，右邊是水溝。
+          - narr: 她拉了一下我的袖子，把我往左帶了半步，然後就放開了。
+          - { sfx: gravel_step, at: front, dist: far, text: 沙、沙…… }
+          - narr: 她的腳步往大廳那邊去了。我站在碎石地的邊上，沒有跟上去。
+          - think: 我聽得出她在哪裡，連她走哪一條路都聽得出來。她還是要進去。
+          - set: c3_caught_her
       - if: chloop >= 2
         then:
           - goto: c3_vigil_short
@@ -775,7 +1098,26 @@ scenes:
       - narr: 舊車站就在馬路對面。風從破掉的窗子灌進空大廳，繞一圈又鑽出來。
       - { sfx: wind_gust, at: front, dist: far, text: 颯—— }
       - think: 還有十一分鐘。
-      - if: "!flag.c3_boxun_stays"
+      - if: flag.c3_caught_her
+        then:
+          - { sfx: strap_click, at: front, dist: far, text: 喀 }
+          - narr: 我退回馬路這一邊。對面大廳裡，那個金屬扣隔一下就響一下。
+          - { me: 若晴，妳拿了就出來！, shake: light }
+          - narr: 扣子停了一下，又喀了一聲。她沒有回答。
+          - tension: 6
+      - if: flag.c3_r_dies && !flag.c3_caught_her
+        then:
+          - { sfx: strap_click, at: front, dist: far, text: 喀 }
+          - narr: 馬路對面的大廳裡，有一個很小的金屬扣在響。喀，停一下，又喀。
+          - think: 若晴。她還是來了。
+          - { me: 若晴！, shake: light }
+          - pause: 1.5
+          - { ruoqing: ……妳怎麼也在這裡？, at: front, dist: far }
+          - { ruoqing: 我拿了東西就走啦！這是我自己的事，妳不要管我！, at: front, dist: far, mem: m_c3_my_own_business }
+          - { sfx: car_horn, at: left, dist: near, text: 叭——, shake: hard }
+          - narr: 我才往下踩一步，一台車從左邊擦過去，喇叭按得好長。我退回人行道，膝蓋一直在抖。
+          - tension: 8
+      - if: "!flag.c3_boxun_stays && !flag.c3_r_dies"
         then:
           - narr: 我等不住，過了馬路。手杖沿著工地圍欄的鐵板往右掃，想找繞到側邊的路。
           - { sfx: gravel_step, at: front, dist: near, text: 沙、沙 }
@@ -843,21 +1185,33 @@ scenes:
       - { wait: 25, clock: "18:25", until: "18:29" }
       - narr: 我又按了一次。
       - phone: 十八點二十九分。
-      - if: flag.c3_boxun_stays
+      - if: flag.c3_r_dies
         then:
-          - think: 我做到了。
+          - think: 她還在對面的大廳裡。她說拿了就走，可是我一直沒有聽到她走出來。
         else:
-          - think: 陳醫生的腳步，我一次都沒有聽到。他是不是已經在通道裡了？
+          - if: flag.c3_boxun_stays
+            then:
+              - think: 我做到了。
+            else:
+              - think: 陳醫生的腳步，我一次都沒有聽到。他是不是已經在通道裡了？
       - { wait: 15, clock: "18:29", until: "18:30" }
       - phone: 十八點三十分。
       - heart: fast
-      - if: flag.c3_boxun_stays
+      - if: flag.c3_r_dies
         then:
-          - { sfx: laugh_soft, at: front, dist: near, text: 呵 }
-          - narr: 我笑出一點聲音，連自己都嚇了一跳。
+          - { sfx: strap_click, at: front, dist: far, text: 喀 }
+          - narr: 我把耳朵對著大廳。那個金屬扣隔一下就響一下，她還在等。
         else:
-          - narr: 我把耳朵對著舊站側邊那一塊，那邊連風聲都沒有。
+          - if: flag.c3_boxun_stays
+            then:
+              - { sfx: laugh_soft, at: front, dist: near, text: 呵 }
+              - narr: 我笑出一點聲音，連自己都嚇了一跳。
+            else:
+              - narr: 我把耳朵對著舊站側邊那一塊，那邊連風聲都沒有。
       - pause: 3
+      - if: flag.c3_r_dies
+        then:
+          - goto: c3_1831_ruoqing
       - if: flag.c3_boxun_stays
         then:
           - goto: c3_1831
@@ -872,7 +1226,19 @@ scenes:
     beats:
       - { sfx: wind_gust, at: front, dist: far, text: 颯—— }
       - narr: 風從舊車站破掉的窗子灌進去，繞一圈又鑽出來。跟上一次一樣。
-      - if: "!flag.c3_boxun_stays"
+      - if: flag.c3_caught_her
+        then:
+          - { sfx: strap_click, at: front, dist: far, text: 喀 }
+          - narr: 我退回馬路這一邊。對面大廳裡，那個金屬扣隔一下就響一下。她進去以後就沒有出來。
+      - if: flag.c3_r_dies && !flag.c3_caught_her
+        then:
+          - { sfx: strap_click, at: front, dist: far, text: 喀 }
+          - narr: 可是這一次，對面的大廳裡有一個金屬扣在響。
+          - { me: 若晴！, shake: light }
+          - { ruoqing: 我拿了東西就走啦！妳不要管我！, at: front, dist: far }
+          - { sfx: car_horn, at: left, dist: near, text: 叭—— }
+          - narr: 車從我面前擦過去。我退回人行道，手杖抵著地，抵到手腕發痠。
+      - if: "!flag.c3_boxun_stays && !flag.c3_r_dies"
         then:
           - think: 側邊那道坡，上一次我就下不去。指腹被鐵板割到的地方，好像又在痛。
       - heart: slow
@@ -880,6 +1246,9 @@ scenes:
       - phone: 十八點三十分。
       - heart: fast
       - narr: 我把手杖握得太緊，虎口那一圈都麻了。
+      - if: flag.c3_r_dies
+        then:
+          - goto: c3_1831_ruoqing
       - if: flag.c3_boxun_stays
         then:
           - goto: c3_1831
@@ -899,13 +1268,25 @@ scenes:
       - { sfx: light_buzz, at: front, dist: far, text: 滋滋—— }
       - { sfx: car_pass, at: left, dist: mid, to: right, text: 嗚—— }
       - narr: 舊站裡的電流聲沒有斷，也沒有人叫，馬路上的車照常開過去。
-      - pause: 2.5
-      - { sfx: hum_rise, at: front-right, dist: far, text: 嗡—— }
-      - narr: 只有一個很淡的聲音從舊站東側升起來，像有人在很遠的地方把一根弦慢慢拉緊。
-      - { sfx: hum_fall, at: front-right, dist: far, text: ……嗡 }
-      - narr: 然後它又落回去。
-      - learn: k_hum_1831
-      - think: 別人大概聽不到。我也說不上來自己聽到了什麼。
+      - { sfx: breath, at: center, dist: near }
+      - narr: 我喘得太大聲了。憋了十一分鐘的氣一下子全跑出來，耳朵裡都是我自己。
+      - think: 右前方好像有什麼。被我自己的喘氣蓋掉了。
+      - hold:
+          seconds: 4
+          timeout: 18
+          sfx: hum_rise
+          at: front-right
+          prompt: 按住，把氣慢慢吐掉
+          success:
+            - narr: 我的呼吸退下去以後，舊站東側有一個很淡的聲音升起來，像有人在很遠的地方把一根弦慢慢拉緊。
+            - { sfx: hum_fall, at: front-right, dist: far, text: ……嗡 }
+            - narr: 然後它又落回去。
+            - learn: k_hum_1831
+            - think: 別人大概聽不到。我也說不上來自己聽到了什麼。
+          fail:
+            - { sfx: hum_fall, at: front-right, dist: far, text: ……嗡 }
+            - narr: 我一直吸得太急。等胸口終於壓下來，右前方只剩下風。
+            - think: 也許那裡什麼都沒有，是我自己的耳朵在叫。
       - pause: 2
       - { sfx: car_pass, at: left, dist: far, text: 咻—— }
       - clock: "18:32"
@@ -924,7 +1305,7 @@ scenes:
       - { phone: 周予安：所以我現在可以出門了嗎？, mem: m_c3_can_i_go }
       - learn: k_no_known_death
       - { sfx: breath, at: front, dist: near }
-      - narr: 我背靠著路邊的電線桿慢慢蹲下去，憋了半天的那口氣終於吐得出來。
+      - narr: 我背靠著路邊的電線桿慢慢蹲下去，膝蓋到這時候才開始抖。
       - tension: -15
       - { think: 至少，我知道的人都還活著。, mem: m_c3_all_i_know }
       - heart: off
@@ -942,6 +1323,94 @@ scenes:
               goto: c3_cafe_night
             - text: （去鐘錶店）
               goto: c3_shop_night
+
+  - id: c3_1831_ruoqing
+    time: "18:31"
+    place: 舊車站對面
+    ambience: [wind_open]
+    cast: { ruoqing: front, man: front-left, yuan: right }
+    beats:
+      - heart: fast
+      - narr: 我隔不到一分鐘就按一次側鍵。
+      - phone: 十八點三十一分。
+      - { sfx: hum_rise, at: front-right, dist: far, text: 嗡—— }
+      - { sfx: light_buzz, at: front, dist: far, text: 滋滋—— }
+      - { sfx: blackout, at: front, dist: far, text: 啪, vib: thud }
+      - narr: 對面舊站裡，燈管的滋滋聲一下子斷掉。
+      - { sfx: strap_click, at: front, dist: far, text: 喀啦啦 }
+      - narr: 大廳裡那個金屬扣，亂亂地響了一串，然後就沒有了。
+      - heart: pound
+      - { me: 若晴！, shake: hard }
+      - { sfx: car_horn, at: left, dist: near, text: 叭——, vib: crash }
+      - narr: 我衝下人行道，一台機車擦著我的膝蓋過去，喇叭聲在耳朵旁邊炸開。
+      - narr: 我跌坐在路邊，手杖滾到不知道哪裡去。
+      - { sfx: silence_drop }
+      - pause: 3
+      - { sfx: siren_far, at: back, dist: far, text: 喔咿——喔咿—— }
+      - clock: "19:00"
+      - noise: heavy
+        with:
+          - { say: 大廳裡面有人倒在那邊！, voice: man, at: [front, front-right], dist: far }
+          - { say: 電線！不要碰電線！, voice: man, at: [front], dist: mid }
+          - { say: 是咖啡店那個女生嗎？, voice: woman, at: [back, right], dist: far }
+          - { text: 噠噠噠, sfx: step_run, at: [front, right, back], dist: mid }
+          - { text: 吵吵鬧鬧, sfx: crowd_walla, src: 路邊的人, at: [front, front-right, back], dist: far }
+      - narr: 很多雙鞋往對面跑。有人把我的手杖撿回來，塞進我手裡，什麼都沒說就走了。
+      - { man: 是若晴啦……東牆那邊，救護的說已經沒有呼吸了。, as: 陌生的男聲, learn: k_c3_ruoqing_went }
+      - noise: "off"
+      - tension: 20
+      - learn: k_ruoqing_died
+      - daze: heavy
+      - { sfx: tinnitus, at: center }
+      - narr: 耳朵裡嗡的一聲，所有的鞋子和喊聲全被推到一面牆後面。
+      - narr: 我抓著手杖，指甲摳進橡膠握把裡，摳到指尖發麻也不知道痛。
+      - daze: light
+      - if: "!flag.c3_boxun_stays"
+        then:
+          - if: flag.c3_b_until6
+            then:
+              - think: 陳醫生六點整才離開醫院。他把東西交給她，就從側門走了吧。跟第一天一樣。
+            else:
+              - think: 陳醫生五點多就離開醫院了。他把東西交給她，就從側門走了吧。跟第一天一樣。
+      - if: flag.c3_lied
+        then:
+          - think: 她答應過我。
+          - narr: 她說「好，我不去」，連停都沒停。後來念電話號碼之前，背帶扣撥了好幾下。
+        else:
+          - think: 她其實沒有說她不去。
+          - narr: 她說的是「陳醫生那邊，我晚一點再跟他說」，還有「這樣可以了吧」。
+          - narr: 念電話號碼之前，背帶扣撥了好幾下。
+      - { think: 她那樣講，是為了讓我走開。, mem: m_c3_to_make_me_go }
+      - daze: off
+      - clock: "19:01"
+      - { sfx: phone_buzz, at: right, dist: near, text: 嗡, vib: buzz }
+      - phone: 心率 <心率>，過高，已記錄。十九點零一分。
+      - narr: 我坐在路緣上，柏油還留著白天的熱。手杖橫在腿上，我找不到起來的理由。
+      # 有人陪著，不問她怎麼了。
+      - if: seen.c3_vigil
+        then:
+          - { sfx: cart_roll, at: back, dist: mid, text: 喀啦喀啦 }
+          - narr: 喀啦喀啦的輪子從背後回來，停在我旁邊。濕紙板的味道。
+          - { old_man: 小姐，妳坐這邊不行啦，車很多。, as: 推車的阿伯, at: back }
+          - { sfx: cart_roll, at: left, dist: near, text: 喀 }
+          - narr: 他沒有拉我。他把推車橫過來，擋在我跟馬路中間。
+          - { old_man: 我在這邊顧一下。妳慢慢來，不用講話。, as: 推車的阿伯, at: left }
+          - narr: 他在我旁邊的路緣坐下，膝蓋喀了一聲。之後他就沒有再開口，一直坐到救護車開走。
+          - tension: -8
+        else:
+          - { sfx: phone_ring, at: right, dist: near, text: 鈴——, vib: buzz }
+          - phone: 來電。周予安。
+          - { yuan: 七點了。, via: phone }
+          - { yuan: 救護車一直往舊站那邊開。妳在哪裡？, via: phone }
+          - me: ……對面。路邊。
+          - { yuan: 不要動。我過去。, via: phone }
+          - narr: 他沒有掛電話。我聽得到鐵捲門拉下來，鎖頭喀一聲，然後是那個一重一輕的腳步，越走越快。
+          - narr: 一路上他都沒有講話。我把手機貼在耳朵上，聽他喘著氣走過三條街。
+          - { sfx: step_uneven, at: back, dist: mid, text: 咚、叩、咚、叩 }
+          - narr: 腳步從電話裡走出來，停在我背後。一隻手肘伸到我右手邊，跟早上在月台的高度一樣。
+          - set: c3_yuan_came
+          - tension: -10
+    next: c3_note
 
   - id: c3_1831_fail
     time: "18:31"
@@ -995,12 +1464,12 @@ scenes:
       - daze: off
       - clock: "19:01"
       - { sfx: phone_buzz, at: left, dist: near, text: 嗡, vib: buzz }
-      - narr: 手環在左手腕上震了一下。
+      - narr: 手機在口袋裡震了一下。
       - phone: 心率 <心率>，過高，已記錄。十九點零一分。
       - { sfx: siren_far, at: back, dist: far, text: 喔咿——喔咿—— }
       - narr: 警笛還在轉，轉到第三圈，我才分得出它是從背後來的。
-      - think: 我把所有人都移開了，
-      - { think: 只剩我沒留住的那一個。, mem: m_c3_except_one }
+      - think: 若晴在家，予安在店裡。
+      - { think: 只有陳醫生，我沒有留住。, mem: m_c3_except_one }
     next: c3_note
 
   # ─────────────────────────────────────────── 19:10
@@ -1019,22 +1488,28 @@ scenes:
           - narr: 若晴知道我進來了，她沒有過來。
       - { old_woman: 剛剛有個穿雨衣的小姐，坐到快七點才走。, as: 店長 }
       - { old_woman: 一直在滑手機，咖啡也沒喝完。, as: 店長 }
+      - { old_woman: 鞋子上都是紅土，我地板拖了兩次。也不知道從哪裡趕過來的。, as: 店長 }
       - if: flag.c3_hid_from_tingan
         then:
           - think: 是庭安。她在電話裡說七點以前不會走，就真的坐到快七點。
         else:
           - think: 是庭安。
+      - think: 她早上說下午要上山。山上那個等了半年的約，她是提早下來的。
       - { sfx: envelope, at: front-left, dist: mid, text: 沙 }
-      - narr: 一個很薄的信封放到櫃台上。
+      - narr: 一個很薄的信封放到櫃台上。紙角擦過木頭的聲音軟軟的，像在包包裡放了很久。
+      - { old_woman: 這封妳是寫多久了？紙都軟掉了。, as: 店長 }
+      - ruoqing: ……春天就寫好了啦。一直放在包包裡。
       - { old_woman: 妳想好了喔？, as: 店長 }
       - ruoqing: 還沒啦。
+      - { old_woman: 那妳媽回診誰載？, as: 店長 }
+      - ruoqing: 她說她自己搭公車。……她每次都這樣講。
       - { old_woman: 那幹嘛現在辭？, as: 店長 }
       - { sfx: laugh_soft, at: front-left, dist: mid, text: 呵 }
       - { ruoqing: 因為如果等到想好，我可能又會多待一年。, mem: m_c3_another_year }
       - { sfx: strap_click, at: front-left, dist: mid, text: 喀 }
       - { sfx: coffee_grind, at: front-left, dist: mid, text: 嗡嘰嘰嘰 }
       - narr: 店長沒有再說什麼，磨豆機響了一陣。
-      - think: 她活著，所以她可以做這件事。這件事跟我一點關係也沒有，我第一次覺得這樣很好。
+      - think: 她活著，所以她可以做這件事。那封辭呈寫了什麼，我沒有問。
       - narr: 我把手杖靠在桌邊，背往椅背上靠，整個人沉進去。
       - tension: -8
     next: c3_note
@@ -1059,7 +1534,7 @@ scenes:
       - yuan: 這個掛鐘停很久了。
       - yuan: 我爸走了以後，店裡每樣東西都有人跟我說不能動。
       - yuan: 有時候我不知道，我是在顧店，
-      - { yuan: 還是在替所有人保存一個他們比較喜歡的過去。, mem: m_c3_preserve }
+      - { yuan: 還是在幫大家顧著一個他們比較喜歡的以前。, mem: m_c3_preserve }
       - choice:
           timeout: 15
           options:
@@ -1096,7 +1571,20 @@ scenes:
     place: 林家老屋，知夏的房間
     ambience: [house_night]
     beats:
-      - narr: 冰箱在樓下低低地轉，窗外的蟲叫個不停。
+      - if: flag.c3_yuan_came
+        then:
+          - narr: 予安送我到門口。手肘一直在我右手邊，到了門檻才收回去，他什麼都沒有問。
+      - narr: 冰箱在廚房那頭低低地轉，窗外的蟲叫個不停。
+      - { sfx: phone_buzz, at: right, dist: near, text: 嗡, vib: buzz }
+      - if: flag.c3_boxun_stays && !flag.c3_r_dies
+        then:
+          - phone: 未知號碼：倉庫那件，卷我看完了。結案寫電線走火，家屬一直不信。
+          - phone: 未知號碼：明天我去問當年承辦的學長。妳要看，白天來，帶身分證。周。
+          - think: 我隨便挑的那一件。他看完了，還要去問。
+        else:
+          - phone: 未知號碼：舊站那邊的事，我在現場。
+          - phone: 未知號碼：妳說六點半來派出所，沒來。明天上午來一趟，我要做紀錄。周。
+          - think: 六點半我人在哪裡、在做什麼，他明天會一句一句問清楚。
       - narr: 知夏的筆記本攤在桌上，我把手機鏡頭貼近紙面。
       - { sfx: page_turn, at: front, dist: near, text: 啪沙 }
       - phone: 偵測到手寫文字。
@@ -1104,7 +1592,7 @@ scenes:
       - { sfx: page_turn, at: front, dist: near, text: 啪沙 }
       - { phone: 不要把「沒有人死」當成成功。, learn: k_note_not_success, mem: m_c3_not_success }
       - pause: 3
-      - if: flag.c3_boxun_stays
+      - if: flag.c3_boxun_stays && !flag.c3_r_dies
         then:
           - think: 今天沒有人死，我是這樣以為的。
           - think: 知夏，妳也過過這樣的一天嗎？什麼事都沒發生，然後呢？
@@ -1133,6 +1621,7 @@ scenes:
       - { sfx: door_open, at: back, dist: near, text: 吱 }
       - narr: 門口是消毒水的味道。
       - boxun: 這麼晚來打擾，不好意思。
+      - boxun: 剛開完會。下個月起，夜間門診要移到隔壁鎮，今天在排誰留誰走。
       - { sfx: chair_scrape, at: front, dist: near, text: 嘎 }
       - if: flag.c3_bx_honest
         then:
@@ -1154,12 +1643,17 @@ scenes:
         else:
           - boxun: 妳那麼怕今天傍晚。到底是在怕什麼？
       - narr: 我沒有回答。
+      - { sfx: envelope, at: front, dist: near, text: 沙 }
+      - narr: 他從外套內袋拿東西，先帶出一個厚一點的信封，硬硬的，又被他塞了回去。
+      - boxun: 那個不是。外地一家醫院寄的，每年這時候都會來一封。
       - { sfx: paper_rustle, at: front, dist: near, text: 沙 }
       - narr: 一張紙放到桌上，很薄，邊角有點捲。
-      - boxun: 五年前的病歷影本。我念給妳聽。
+      - boxun: 這五年，有一件事我一直私下在對。沒有人要我對，是我自己停不下來。
+      - boxun: 今天有人跟我一樣，怕同一個傍晚。我不想再一個人拿著它。
+      - boxun: 這是我自己整理的事件紀錄，不是病歷。名字跟病歷號，我都塗掉了。我念給妳聽。
       - heart: slow
       - narr: 我的指尖壓在桌面的木紋上，等他念出第一個字。
-      - boxun: 名字我先不念。不是知夏。
+      - boxun: 是誰，我不能說。我只能告訴妳，不是知夏。
       - narr: 憋在胸口的氣漏出去一點，壓著桌面的手指還是沒有抬起來。
       - boxun: 死亡時間，十八點三十一分。
       - { boxun: 日期是知夏走之前十二天。, learn: k_record_12days }
@@ -1170,7 +1664,7 @@ scenes:
       - boxun: 今天真的沒有人死嗎？
       - me: 至少我知道的人都活著。
       - { amb: [night_insects], fade: 0.8 }
-      - narr: 樓下冰箱的馬達停了，屋子一下子安靜下來。
+      - narr: 廚房的冰箱，馬達停了，屋子一下子安靜下來。
       - { boxun: 那不一定是同一回事。, mem: m_c3_not_same }
       - { sfx: step, at: back, dist: mid, text: 叩、叩 }
       - { sfx: door_close, at: back, dist: mid, text: 碰 }
@@ -1193,17 +1687,26 @@ scenes:
           - { man: 好了啦，回家，明天還要上班。, as: 遛狗的人 }
           - { sfx: step, at: right, dist: far, text: 叩、叩 }
     beats:
+      - if: flag.c3_failed_before
+        then:
+          - narr: 這一次我沒有等在屋裡。十一點半我就坐到門口的石階上。
+          - narr: 石頭被夜風吹得冰冰的，涼意隔著褲子一直往上爬。
       - narr: 我叫手機報時。
       - phone: 二十三點五十九分。
       - { sfx: bell_toll, at: front-left, text: 噹——, vib: bell }
       - narr: 鐘聲從左前方來。
       - wait: 2
       - { sfx: bell_toll, at: front-left, text: 噹——, vib: bell }
-      - { sfx: door_slam, at: back, dist: near, text: 碰！, shake: light }
-      - heart: fast
-      - { sfx: step_run, at: front, dist: near, text: 噠噠噠 }
-      - { sfx: cane_tap, at: front, dist: near, text: 叩 }
-      - narr: 我衝出門，手杖撞在門檻上，差點脫手。
+      - if: flag.c3_failed_before
+        then:
+          - heart: slow
+          - narr: 我沒有站起來。手杖橫放在膝蓋上，我用右手的大拇指在它上面記數，一聲按一下。
+        else:
+          - { sfx: door_slam, at: back, dist: near, text: 碰！, shake: light }
+          - heart: fast
+          - { sfx: step_run, at: front, dist: near, text: 噠噠噠 }
+          - { sfx: cane_tap, at: front, dist: near, text: 叩 }
+          - narr: 我衝出門，手杖撞在門檻上，差點脫手。
       - wait: 2
       - { sfx: bell_toll, at: front-left, text: 噹——, vib: bell }
       - { cue: street, at: right, text: 汪、哈哈, sfx: laugh_soft_adult }
@@ -1215,34 +1718,63 @@ scenes:
       - { sfx: bell_toll, at: front-left, text: 噹——, vib: bell }
       - wait: 3
       - { sfx: bell_toll, at: front-left, text: 噹——, vib: bell }
-      - if: flag.c3_boxun_stays
+      - if: flag.c3_boxun_stays && !flag.c3_r_dies
         then:
           - think: 今天沒有人死，鐘還是響了。
         else:
-          - think: 那個牛皮紙袋，現在不知道在通道裡的哪個地方。
-          - think: 五點多我就站在他面前，結果還是讓他走了。
-          - heart: pound
-          - narr: 我握著拳頭往胸口捶，捶到骨頭發疼，裡面那顆東西還是跳得那麼快。
+          - if: flag.c3_r_dies
+            then:
+              - if: flag.c3_lied
+                then:
+                  - think: 我叫她不要去。她說好，然後還是去了。
+                else:
+                  - think: 我叫她不要去。她說「這樣可以了吧」，我就當成她答應了。
+              - think: 她要的那份東西對她有多重要，我連問都沒有問。
+            else:
+              - think: 那個牛皮紙袋，現在不知道在通道裡的哪個地方。
+              - if: flag.c3_b_until6
+                then:
+                  - think: 他說六點以前不出那扇門，他做到了。六點以後的理由，是我給不出來。
+                else:
+                  - think: 五點多我就站在他面前，結果還是讓他走了。
+          - if: flag.c3_failed_before
+            then:
+              - heart: fast
+              - narr: 大拇指按到第六下，我發現自己在等它按錯。按錯了，好像就有理由再數一次。
+              - narr: 我把指甲壓進手杖的橡膠裡，壓到指尖發麻，數字還是一個都沒有少。
+            else:
+              - heart: pound
+              - narr: 我握著拳頭往胸口捶，捶到骨頭發疼，裡面那顆東西還是跳得那麼快。
       - wait: 3
       - { sfx: bell_toll, at: front-left, text: 噹——, vib: bell }
-      - if: "!flag.c3_boxun_stays"
+      - if: "!flag.c3_boxun_stays || flag.c3_r_dies"
         then:
-          - { sfx: cane_tap, at: front, dist: near, text: 喀 }
-          - { sfx: thud, at: front, dist: mid, text: 匡啷——, src: 手杖, vib: crash, shake: hard }
-          - narr: 手杖從手裡滑掉，順著門口的石階一路敲下去，在最底下撞出好大一聲。
-          - think: 遛狗的人還是沒有回頭。我也沒有去撿。
+          - if: flag.c3_failed_before
+            then:
+              - { sfx: cloth_rustle, at: center, dist: near, text: 窸 }
+              - narr: 我把額頭抵在手杖上，彎下去，一直彎到膝蓋頂住胸口。這樣比較不會聽到自己的心跳。
+              - think: 遛狗的人走遠了。這一次，連我自己都沒有站起來。
+            else:
+              - { sfx: cane_tap, at: front, dist: near, text: 喀 }
+              - { sfx: thud, at: front, dist: mid, text: 匡啷——, src: 手杖, vib: crash, shake: hard }
+              - narr: 手杖從手裡滑掉，順著門口的石階一路敲下去，在最底下撞出好大一聲。
+              - think: 遛狗的人還是沒有回頭。我也沒有去撿。
       - wait: 3
       - { sfx: bell_toll, at: front-left, text: 噹——, vib: bell }
       - wait: 3
       - { sfx: bell_toll, at: front-left, text: 噹——, vib: bell }
-      - if: flag.c3_boxun_stays
+      - if: flag.c3_boxun_stays && !flag.c3_r_dies
         then:
           - { think: 如果沒有人死，為什麼還是重來？, mem: m_c3_why_reset }
       - wait: 3
       - { sfx: bell_toll, at: front-left, text: 噹——, vib: bell }
       - wait: 3
       - { sfx: bell_toll, at: front-left, text: 噹——, vib: bell }
-      - narr: 我站在馬路中間，聽完最後一聲。
+      - if: flag.c3_failed_before && (!flag.c3_boxun_stays || flag.c3_r_dies)
+        then:
+          - narr: 我坐在石階上，聽完最後一聲。
+        else:
+          - narr: 我站在馬路中間，聽完最後一聲。
       - wait: 3
       - { sfx: bell_toll, at: front-left, text: 噹——, vib: bell }
       - { sfx: silence_drop }

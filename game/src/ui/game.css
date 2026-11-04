@@ -203,6 +203,10 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
   margin-top: 2px; animation: lt-hint 7s var(--ease) forwards; white-space: nowrap;
 }
 
+/* the turning lesson: the sound and its hint stay lit until she turns */
+.lt-hint.stay { animation: lt-fade-in 900ms var(--ease) 600ms both, lt-breathe 2.4s ease-in-out 1500ms infinite; color: var(--ink-dim); }
+.lt-p.kind-cue.teach { color: var(--ink); text-shadow: 0 0 14px rgba(236, 230, 218, 0.22); }
+
 .lt-ripple {
   position: absolute; width: 90px; height: 90px; margin: -45px 0 0 -45px;
   border-radius: 50%; border: 1px solid rgba(236, 230, 218, 0.22);
@@ -260,6 +264,11 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 
 /* ── waiting ── */
 .lt-wait { position: absolute; left: 50%; bottom: 12vh; transform: translateX(-50%); text-align: center; pointer-events: none; }
+.lt-wait-teach, .lt-choice-teach {
+  font-size: calc(0.76rem * var(--text-scale, 1)); letter-spacing: 0.2em; line-height: 1.9; color: var(--ink-dim); text-align: center;
+  opacity: 0; animation: lt-fade-in 900ms var(--ease) 900ms forwards;
+}
+.lt-choice-teach { margin-top: 14px; flex-shrink: 0; }
 .lt-wait-breath {
   width: 6px; height: 6px; border-radius: 50%; background: var(--ink-faint); margin: 0 auto 16px;
   animation: lt-breath 4.2s ease-in-out infinite;
@@ -274,6 +283,7 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 .lt-corner:hover, .lt-corner:focus-visible { opacity: 1; }
 .lt-corner-dot { width: 7px; height: 7px; border-radius: 50%; border: 1px solid var(--ink-dim); transition: background 400ms; }
 .lt-corner.has .lt-corner-dot { background: var(--ink-dim); }
+.lt-corner.teach { opacity: 1; animation: lt-breathe 2.4s ease-in-out infinite; }
 .lt-corner.pulse .lt-corner-dot { animation: lt-pulse 1200ms var(--ease); }
 /* what she carries, left of the menu: brighter while a question is open, any question */
 .lt-mem-btn {
@@ -299,6 +309,7 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
   display: flex; flex-direction: column; align-items: center; padding: 9vh 20px 6vh;
   animation: lt-fade-in 500ms var(--ease) forwards; overflow-y: auto;
 }
+.lt-overlay-head { font-size: calc(0.86rem * var(--text-scale, 1)); letter-spacing: 0.5em; text-indent: 0.5em; color: var(--ink); padding: 6px 0; margin-bottom: 5vh; }
 .lt-tabs { display: flex; flex-wrap: wrap; justify-content: center; column-gap: 24px; row-gap: 12px; margin-bottom: 5vh; }
 .lt-tab { font-size: calc(0.86rem * var(--text-scale, 1)); letter-spacing: 0.5em; color: var(--ink-faint); padding: 6px 0; }
 .lt-tab.on { color: var(--ink); }
@@ -409,7 +420,7 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 
 /* ── memory input: saying a remembered line ── */
 .lt-teach-keep {
-  margin-top: 6px; font-size: calc(0.78rem * var(--text-scale, 1)); letter-spacing: 0.24em; text-indent: 0.24em; color: var(--ink-dim);
+  margin-top: 6px; line-height: 2; font-size: calc(0.78rem * var(--text-scale, 1)); letter-spacing: 0.24em; text-indent: 0.24em; color: var(--ink-dim);
   opacity: 0; animation: lt-fade-in 900ms var(--ease) 1200ms forwards, lt-breathe 2.4s ease-in-out 2100ms infinite;
 }
 .lt-line.teach .lt-text { text-shadow: 0 0 14px rgba(236, 230, 218, 0.18); }
@@ -471,6 +482,12 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 .lt-locate-note { top: calc(50% + 40px); }
 .lt-approach-pad { position: absolute; inset: 0; background: none; border: 0; cursor: pointer; }
 .lt-approach .lt-locate-prompt { width: min(86vw, 520px); text-align: center; }
+.lt-hold-pad { position: absolute; inset: 0; background: none; border: 0; cursor: pointer; touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+.lt-hold .lt-locate-prompt { width: min(86vw, 520px); text-align: center; }
+.lt-hold-breath { width: 72px; height: 72px; margin: 28px auto 0; border-radius: 50%; border: 1px solid var(--dim, rgba(255,255,255,0.35)); opacity: 0.5; pointer-events: none; }
+.lt-hold.holding .lt-hold-breath { animation-name: lt-hold-breathe; animation-timing-function: linear; animation-fill-mode: forwards; }
+@keyframes lt-hold-breathe { from { transform: scale(1); opacity: 0.7; } to { transform: scale(0.25); opacity: 0.15; } }
+@media (prefers-reduced-motion: reduce) { .lt-hold.holding .lt-hold-breath { animation: none; opacity: 0.2; } }
 
 .lt-punch-row { position: absolute; left: 50%; top: calc(50% + 78px); transform: translateX(-50%); display: flex; gap: 22px; }
 .lt-punch-cell { display: grid; grid-template-columns: repeat(2, 34px); grid-template-rows: repeat(3, 34px); grid-auto-flow: column; gap: 4px; padding: 8px; border: 1px solid var(--ink-ghost); border-radius: 4px; opacity: 0.45; transition: opacity 300ms; }
