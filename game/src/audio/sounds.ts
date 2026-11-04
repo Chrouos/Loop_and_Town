@@ -683,6 +683,56 @@ const BASE_SFX_RECIPES: Record<Exclude<SfxId, AmbientEventId | keyof typeof LIFE
   cough_w: alike('cough', 1.35),
   bike_squeak: alike('mouse_squeak', 0.55),
   scooter_start: alike('boat_engine', 1.8),
+  drain_cover: alike('box_close', 0.45),
+  // each person's own sound (docs/story.md §1.2)
+  step_uneven: {
+    play(c) {
+      // 予安: the left foot lands heavier, then a lighter right one.
+      const t = c.t;
+      const e1 = footstep(c, c.out, t, { weight: 1.3, bright: 0.8, level: 1, toe: false });
+      const e2 = footstep(c, c.out, t + vary(0.52, 0.05), { weight: 0.85, bright: 1.1, level: 0.5 });
+      return endOf(c, e1, e2);
+    },
+  },
+  raincoat_rustle: {
+    play(c) {
+      // 庭安: stiff nylon swishing with each arm swing, brighter and slicker than a sleeve.
+      const t = c.t;
+      let e = t;
+      for (let i = 0; i < 3; i++) {
+        const s = t + i * vary(0.38, 0.1);
+        const len = rand(0.16, 0.26);
+        e = Math.max(e, nshape(c, c.out, s, { kind: 'white', type: 'bandpass', f: rand(4200, 6200), q: 0.9, pts: [[0, 0], [len * 0.4, rand(0.05, 0.08)], [len, 0]] }));
+        e = Math.max(e, crackle(c, c.out, s, { type: 'highpass', f: 3000, rate: 0.6, pts: [[0, 0], [len * 0.4, 0.05], [len, 0]] }));
+      }
+      return endOf(c, e);
+    },
+  },
+  lighter_lid: {
+    play(c) {
+      // 周警官: a metal lid flicked open (a bright ting) and snapped shut, never struck.
+      const t = c.t;
+      const parts: Part[] = [[1, 1, 0.12], [2.4, 0.5, 0.06], [3.9, 0.3, 0.03]];
+      const e1 = click(c, c.out, t, 6000, 0.1, 1, 0.004);
+      const e2 = modal(c, c.out, t, vary(3100, 0.05) * c.p, parts, 0.05);
+      const s = t + vary(0.55, 0.15);
+      const e3 = click(c, c.out, s, 3500, 0.2, 1.2, 0.006);
+      const e4 = thump(c, c.out, s, 900 * c.p, 500 * c.p, 0.02, 0.08);
+      return endOf(c, e1, e2, e3, e4);
+    },
+  },
+  hand_rub: {
+    play(c) {
+      // 陳醫生: one press of a sanitizer pump, then palms rubbed together.
+      const t = c.t;
+      const e1 = nburst(c, c.out, t, { kind: 'pink', type: 'bandpass', f: 700, q: 1.2, att: 0.005, t60: 0.06, level: 0.2 });
+      const e2 = nburst(c, c.out, t + 0.03, { type: 'bandpass', f: 2500, q: 2, t60: 0.05, level: 0.06 });
+      let e = Math.max(e1, e2);
+      for (let s = t + 0.35; s < t + 1.4; s += rand(0.13, 0.18))
+        e = Math.max(e, nshape(c, c.out, s, { kind: 'pink', type: 'bandpass', f: rand(1400, 2400), q: 0.8, pts: [[0, 0], [0.05, rand(0.04, 0.06)], [0.12, 0]] }));
+      return endOf(c, e);
+    },
+  },
   gasp_crowd: {
     play(c) {
       const t = c.t;
@@ -1199,6 +1249,32 @@ const BASE_SFX_RECIPES: Record<Exclude<SfxId, AmbientEventId | keyof typeof LIFE
       }
       const e2 = click(c, c.out, t, 1200, 0.15, 1.5, 0.02);
       return endOf(c, end, e2);
+    },
+  },
+  // What a caller hears while the other phone rings (Taiwan: 440 + 480 Hz, 1 s on, 2 s off), two rings, leaking
+  // faintly from the earpiece of a phone held to someone's ear: band-limited and a little tinny.
+  phone_ringback: {
+    jitter: 0,
+    play(c) {
+      const t = c.t;
+      const end = t + 4.15;
+      const hp = c.g.filter('highpass', 380, 0.7);
+      hp.connect(c.g.filter('lowpass', 2600, 0.7)).connect(c.out);
+      const g = c.g.gain(0);
+      g.connect(hp);
+      c.g.osc('sine', 440, t, end).connect(g);
+      c.g.osc('sine', 480, t, end).connect(g);
+      // the small speaker pressed against an ear adds a little edge (second harmonics)
+      const edge = c.g.gain(0.15);
+      edge.connect(g);
+      c.g.osc('sine', 880, t, end).connect(edge);
+      c.g.osc('sine', 960, t, end).connect(edge);
+      g.gain.setValueAtTime(0, t);
+      for (const s of [0.05, 3.05]) {
+        g.gain.setTargetAtTime(0.035, t + s, 0.004);
+        g.gain.setTargetAtTime(0, t + s + 1, 0.004);
+      }
+      return endOf(c, end);
     },
   },
   recorder_click: {
@@ -2321,7 +2397,7 @@ const ALIKE: Partial<Record<SfxId, [SfxId, number]>> = {
   pour_water: ['water_rush', 1], bamboo_knock: ['house_tick', 1], knuckle_knock: ['house_tick', 1], chair_creak: ['wood_creak', 1],
   cane_scrape: ['chair_scrape', 0.7], gravel_step: ['step_wet', 1], cup_scrape: ['chair_scrape', 0.7], nail_scratch: ['pen_scratch', 1],
   suitcase_roll: ['cart_roll', 1], phone_on_glass: ['cup_set', 1], cough_w: ['cough', 1], bike_squeak: ['mouse_squeak', 0.7],
-  scooter_start: ['boat_engine', 0.8],
+  scooter_start: ['boat_engine', 0.8], drain_cover: ['box_close', 1],
 };
 for (const [id, [from, v]] of Object.entries(ALIKE) as Array<[SfxId, [SfxId, number]]>) SFX_RECIPES[id].level = (SFX_RECIPES[from].level ?? 1) * v;
 

@@ -34,6 +34,11 @@ export interface AudioEngine {
   setAmbience(ids: AmbienceId[], fadeMs?: number): void;
   play(id: SfxId, pos: SpatialPos, opts?: SfxOpts): void;
   /**
+   * Load these recordings ahead of the rest: `now` (the scene about to play) first, then the sounds every scene
+   * uses, then `soon` (its background life, the scenes after it). Beds in `amb` are fetched, not decoded.
+   */
+  prefetch?(sounds: { now: readonly SfxId[]; soon: readonly SfxId[]; amb: readonly AmbienceId[] }): void;
+  /**
    * A line spoken by `speaker`. The cast make no vocal sound, only a small real one (the text is their voice).
    * 'life' = a stranger in the background: a recording of someone talking, too far or muffled to make out;
    * 'whisper' = the same stranger in a quiet place, whispering. `gain` scales it (panic, tension).
@@ -80,6 +85,13 @@ const LIFE_MURMUR: Partial<Record<VoiceId, { id: SfxId; rate?: number }>> = {
  * about 5 dB over a far footstep or cough, so it reads as a person and not as the room.
  */
 /** Distance is already lifted for every sound (distanceLift), so strangers sit at one level wherever they stand. */
+/** Nearly every scene uses these (people talking, devices, her heart, a question): always fetched first. */
+const EVERYWHERE_SFX: readonly SfxId[] = [...new Set<SfxId>([
+  'cloth_rustle', 'whisper', 'huddle_rustle', 'heartbeat', 'choice_appear', 'memory_keep', 'focus_shift',
+  ...Object.values(LIFE_MURMUR).map((m) => m.id),
+  ...Object.values(VIA_SOUND).map((v) => v.id),
+])];
+
 const LIFE_VOICE_GAIN: Record<SpatialPos['dist'], number> = { near: 0.15, mid: 0.145, far: 0.143 };
 
 /**
@@ -104,6 +116,8 @@ export interface AudioEngineDebug {
     layerTimers: number;
     layerShots: number;
     samples: SampleBankStats | null;
+    /** Sounds that never played because their recording arrived too late (id → times). */
+    dropped: Record<string, number>;
   };
   /** 'auto' = recordings when decoded, synthesis otherwise; 'synth' = synthesis only. */
   setSampleMode(mode: SampleMode): void;
@@ -138,6 +152,7 @@ class SilentEngine implements AudioEngine {
   setSfxVolume(): void {}
   setAmbience(): void {}
   play(): void {}
+  prefetch(): void {}
   voice(): void {}
   setAttention(): void {}
   setDaze(): void {}
@@ -218,6 +233,7 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
   private bank: SampleBank | null = null;
   private sampleMode: SampleMode = 'auto';
   private preloading = false;
+  private readonly dropped = new Map<SfxId, number>();
   private readonly resolver: SoundResolver = (id) => (isSfx(id) ? this.sampleFor(id) : undefined);
 
   constructor(private readonly Ctor: AudioContextCtor) {}
@@ -483,6 +499,11 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
     return sampleRecipe(buf, entry);
   }
 
+  prefetch(sounds: { now: readonly SfxId[]; soon: readonly SfxId[]; amb: readonly AmbienceId[] }): void {
+    if (this.sampleMode === 'synth') return;
+    this.bank?.prefetch([...new Set([...sounds.now, ...EVERYWHERE_SFX, ...sounds.soon])], sounds.amb);
+  }
+
   play(id: SfxId, pos: SpatialPos, opts?: SfxOpts): void {
     const ac = this.ac;
     const bus = this.bus;
@@ -505,9 +526,8 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
       const asked = performance.now();
       void bank.loadSfx(id).then(() => {
         const late = performance.now() - asked > LATE_SAMPLE_MS;
-        const ready = this.sampleFor(id);
-        if (ready) { if (!late) this.shoot(id, pos, opts, ready); return; }
-        if (!late) this.shoot(id, pos, opts, SFX_RECIPES[id]);
+        if (late) { this.dropped.set(id, (this.dropped.get(id) ?? 0) + 1); return; }
+        this.shoot(id, pos, opts, this.sampleFor(id) ?? SFX_RECIPES[id]);
       });
       return;
     }
@@ -690,6 +710,7 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
       layerTimers,
       layerShots,
       samples: this.bank?.stats() ?? null,
+      dropped: Object.fromEntries(this.dropped),
     };
   }
 

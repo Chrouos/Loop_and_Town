@@ -456,6 +456,20 @@ export const AMBIENCE_RECIPES: Record<AmbienceId, AmbienceRecipe> = {
       e.every(60, 120, (t) => e.shot('kid_laugh', anyAngle(), 6, { t, gain: 0.5 }), rand(20, 60));
     },
   },
+  // early afternoon: shops half asleep, a scooter now and then, birds further off
+  street_afternoon: {
+    level: 1.3,
+    build(e) {
+      e.wide({ kind: 'pink', filters: [['lowpass', 550]], gain: 0.04 }, 0.8);
+      const far = e.bed({ kind: 'brown', filters: [['lowpass', 200]], gain: 0.06 });
+      e.drift(far.gain.gain, 0.035, 0.08, 3, 8);
+      e.every(3, 8, (t) => e.shot('bird_chirp', anyAngle(), pick([4, 6]), { t, gain: rand(0.4, 0.8) }));
+      e.every(12, 28, (t) => e.shot('car_pass', pick([90, 270]) + rand(-20, 20), 6, { t, gain: 0.6 }));
+      e.every(50, 110, (t) => e.shot('bicycle_bell', anyAngle(), 6, { t, gain: 0.4 }), rand(15, 50));
+      e.every(12, 26, (t) => walk(e, t, { r: rand(3, 6), gain: 0.5 }));
+      e.every(90, 180, (t) => e.shot('dog_bark', anyAngle(), 6, { t, gain: 0.35 }), rand(30, 80));
+    },
+  },
   street_evening: {
     level: 1.4,
     build(e) {
@@ -834,6 +848,11 @@ export const SAMPLE_EXTRAS: Partial<Record<AmbienceId, AmbienceRecipe>> = {
     e.every(45, 100, (t) => e.shot('bicycle_bell', anyAngle(), 6, { t, gain: 0.4 }), rand(15, 50));
     e.every(14, 30, (t) => walk(e, t, { r: rand(3, 6), gain: 0.5 }));
     e.every(80, 160, (t) => e.shot('kid_laugh', anyAngle(), 6, { t, gain: 0.4 }), rand(20, 60));
+  }),
+  street_afternoon: events((e) => {
+    e.every(18, 40, (t) => walk(e, t, { r: rand(3, 6), gain: 0.45 }));
+    e.every(60, 130, (t) => e.shot('bicycle_bell', anyAngle(), 6, { t, gain: 0.35 }), rand(20, 60));
+    e.every(90, 180, (t) => e.shot('dog_bark', anyAngle(), 6, { t, gain: 0.3 }), rand(30, 90));
   }),
   street_evening: events((e) => {
     e.every(12, 26, (t) => e.shot('car_pass', pick([90, 270]) + rand(-25, 25), pick([2.5, 6]), { t, gain: 0.5 }));

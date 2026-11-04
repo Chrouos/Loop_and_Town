@@ -89,6 +89,7 @@ export const SFX = {
   phone_notify: '手機通知音',
   phone_ring: '電話鈴響',
   phone_hangup: '電話掛斷的嘟聲',
+  phone_ringback: '電話撥出去，等對方接的嘟聲',
   recorder_click: '老錄音機按鍵',
   tape_hiss: '磁帶底噪',
   tape_rewind: '磁帶倒轉',
@@ -161,6 +162,12 @@ export const SFX = {
   cup_scrape: '杯底在木桌上拖過', nail_scratch: '指甲刮過桌面', suitcase_roll: '行李箱輪子滾過地磚接縫',
   phone_on_glass: '手機蓋著放到玻璃櫃台上', cough_w: '女人咳嗽（成年）', bike_squeak: '橡膠被捏、摩擦的吱聲',
   scooter_start: '機車發動：第一次沒發起來，第二次才發動',
+  drain_cover: '輪胎壓過鬆掉的水溝蓋',
+  // Each person's own sound (docs/story.md §1.2): she can name them before they speak.
+  step_uneven: '一重一輕的兩步：左腳落地比右腳重（予安）',
+  raincoat_rustle: '雨衣布料隨走動沙沙摩擦（庭安）',
+  lighter_lid: '金屬打火機的蓋子掀開又蓋上，沒有點火（周警官）',
+  hand_rub: '按一下乾洗手，兩隻手搓開（陳醫生）',
 } as const;
 export type SfxId = keyof typeof SFX;
 
@@ -184,7 +191,7 @@ export const SFX_SOURCE: Partial<Record<SfxId, string>> = {
   glass_clink: '玻璃杯', camera_shutter: '快門', strap_click: '背帶扣', watch_tick: '手錶', clock_tick: '座鐘',
   clock_chime: '座鐘', clock_wind: '上發條', tools_clink: '工具', box_open: '盒子', box_close: '盒蓋',
   umbrella: '雨傘', lighter: '打火機', typing: '鍵盤', phone_buzz: '手機', phone_notify: '通知',
-  phone_ring: '電話', phone_hangup: '掛斷', recorder_click: '錄音機', tape_hiss: '錄音帶', tape_rewind: '倒帶',
+  phone_ring: '電話', phone_hangup: '掛斷', phone_ringback: '電話', recorder_click: '錄音機', tape_hiss: '錄音帶', tape_rewind: '倒帶',
   static_burst: '雜訊', radio_noise: '收音機',
   train_brake: '煞車', train_horn: '鳴笛', train_door: '車門', station_chime: '廣播', car_pass: '車子',
   truck_pass_quiet: '貨車', truck_reverse: '倒車', bicycle_bell: '腳踏車', ball_bounce: '皮球',
@@ -208,13 +215,15 @@ export const SFX_SOURCE: Partial<Record<SfxId, string>> = {
   leaf_rustle: '枯葉', fabric_flap: '旗子', wire_whistle: '電線', pebble_roll: '石頭', metal_rattle: '鐵皮',
   pour_water: '倒水', bamboo_knock: '竹竿', knuckle_knock: '敲桌子', chair_creak: '椅子', cane_scrape: '手杖',
   gravel_step: '碎石', cup_scrape: '杯子', nail_scratch: '指甲', suitcase_roll: '行李箱', phone_on_glass: '手機',
-  cough_w: '咳嗽', bike_squeak: '橡膠', scooter_start: '機車',
+  cough_w: '咳嗽', bike_squeak: '橡膠', scooter_start: '機車', drain_cover: '水溝蓋',
+  step_uneven: '腳步', raincoat_rustle: '雨衣', lighter_lid: '打火機', hand_rub: '乾洗手',
 };
 
 export const AMBIENCE = {
   train_interior: '行駛中的列車車廂',
   platform: '小站月台：風、遠處廣播、零星腳步',
   street_morning: '早晨街道：鳥、遠車、店家拉鐵門',
+  street_afternoon: '午後街道：店家午休、機車偶爾經過',
   street_evening: '傍晚街道：歸家的車、遠處電視',
   town_square: '鐘樓廣場：開闊、鴿子、風',
   construction_far: '遠處施工',

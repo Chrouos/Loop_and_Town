@@ -781,6 +781,24 @@ describe('Web Audio engine with recorded samples (fake decoder)', () => {
     expect(bank.stats().failed).toBe(0);
   });
 
+  it('fetches the sounds of the scene about to play ahead of the background preload', async () => {
+    const bank = new SampleBank(new DecodingContext() as unknown as BaseAudioContext);
+    void bank.preloadSfx(1);
+    bank.prefetch(['wind_gust']);
+    for (let k = 0; k < 40; k++) await flush();
+    const at = (id: string) => fetched.findIndex((url) => url.includes(`/${id}`));
+    expect(at('wind_gust')).toBeGreaterThan(-1);
+    expect(at('wind_gust')).toBeLessThan(at('ball_bounce'));
+  });
+
+  it('downloads a bed fetched ahead only once when its scene starts mid-download', async () => {
+    const bank = new SampleBank(new DecodingContext() as unknown as BaseAudioContext);
+    bank.prefetch([], ['rain']);
+    const bed = await bank.loadAmb('rain');
+    expect(bed).not.toBeNull();
+    expect(fetched.filter((url) => url.endsWith(AMBIENCE_SAMPLES.rain!.files[0]!))).toHaveLength(1);
+  });
+
   it('falls back to synthesis forever when loading fails', async () => {
     globalThis.fetch = (async () => ({ ok: false, status: 404 }) as unknown as Response) as typeof fetch;
     const engine = createAudioEngine();

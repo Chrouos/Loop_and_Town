@@ -145,6 +145,8 @@ export function readSave(storage: Storage | undefined): GameSave {
     const prefix = save.chapter === 'final' ? 'f' : `c${save.chapter}`;
     save.flags = (save.flags ?? []).map((id) => (UNPREFIXED_FLAGS.has(id) ? `${prefix}_${id}` : id));
     if (!Object.prototype.hasOwnProperty.call(FONT_SIZES, save.settings.fontSize)) save.settings.fontSize = 'normal';
+    // The 人聲存在感 slider is gone (only the phone's reader still uses this level); one left at 0 would mute it for good.
+    save.settings.voice = DEFAULT_SETTINGS.voice;
     // Saves from before the chapter list: every chapter up to the current one counts as reached.
     if (!parsed.reached) {
       const index = CHAPTER_ORDER.indexOf(save.chapter as never);

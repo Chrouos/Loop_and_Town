@@ -5,6 +5,7 @@ import { CHAPTER_NUMERALS, SPEAKER_LABELS, TENSION_MAX, type Beat, type Chapter,
 import { driftClock, heardClock, planClock, type ClockPlan } from './clock';
 import { lineTiming, type Phrase } from './text';
 import { HUSH_MS, HUSH_SFX, isVoice, isWhispered, lifeOf, type LifeEvent } from './life';
+import { soundsAround } from './prefetch';
 import { MEMORY_CAPACITY, freshSave, type GameSave, type Memory, type Settings } from './save';
 
 // Presentation timings (scene-clock ms). Prototype parameters, core spec §26.
@@ -714,12 +715,19 @@ export class Director {
       : { loopText: `第 ${toChineseNumber(this.save.loop)} 次的十月三日` };
     this.view.chapterKey = chapter.key;
     this.view.loop = this.save.loop;
+    this.prefetchAround(entry);
     this.setPhase('card', firstOfChapter ? CHAPTER_CARD_MS : CARD_MS, () => this.transition(entry), card);
+  }
+
+  /** Fetch what this scene and the ones after it will play, so a slow connection does not swallow a cue. */
+  private prefetchAround(sceneId: string): void {
+    this.out.audio.prefetch?.(soundsAround(this.script, sceneId));
   }
 
   private transition(sceneId: string, resumeWait?: GameSave['wait']): void {
     const scene = this.script.scenes.get(sceneId);
     if (!scene) throw new Error(`找不到場景 ${sceneId}`);
+    this.prefetchAround(sceneId);
     // A scene without its own time/place continues the moment: barely a breath between them, and her heart
     // does not stop for it.
     const continuous = !scene.time && !scene.place;
