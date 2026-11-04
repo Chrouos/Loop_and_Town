@@ -6,12 +6,14 @@
 //   ambience layers → ambIn(ambience volume) → ambTone(lowpass) → ambDuck ─┐
 //   one-shots ─────────────────────────────── sfxBus(sfx volume) ──────────┤
 //   voice presence ─────────────────────────── voiceBus ──┼→ world → attention(lowpass) → daze(lowpass·gain) ─┐
-//   reverb sends (ambience/sfx sends scaled like their buses) → room convolver → reverbOut ┘ │
+//   reverb sends (ambience/sfx sends scaled like their buses) → room convolvers A/B (crossfaded per place) → reverbOut ┘ │
 //   interface sounds (memory_keep, focus_shift, …) ── uiBus ─────────────────────────────┤
 //   her own body (heartbeat, tinnitus) ── bodyBus: stays clear when the world is dazed ──┼→ master
 //   master(volume·enabled) → glue compressor → limiter → soft clip → destination ←───────┘
 
 import { AMBIENCE, isSfx, type AmbienceId, type SfxId, type SpatialPos, type Via, type VoiceId } from './catalog';
+import { createScreenReader, type ScreenReader } from './reader';
+import { roomFor, ROOMS, type RoomId } from './rooms';
 import { startAmbience, type AmbienceLayer, type SampleBed, type SoundResolver } from './ambience';
 import { clamp, expRampTo, glide, hold, impulseResponse, placementOf, softClipCurve, spawnShot, type SfxRecipe, type Shot } from './core';
 import { SampleBank, sampleRecipe, type SampleBankStats } from './samples';
@@ -53,6 +55,10 @@ export interface AudioEngine {
   silence(ms: number): void;
   suspend(): void;
   resume(): void;
+  /** Her phone's screen reader says this out loud (a synthesized voice: the reader is one). */
+  speak?(text: string): void;
+  /** The screen reader stops mid-word: a new line, a new scene. */
+  hush?(): void;
 }
 
 export type SampleMode = 'auto' | 'synth';
@@ -198,6 +204,7 @@ interface Buses {
   voice: GainNode;
   ui: GainNode;
   reverbIn: GainNode;
+  rooms: [{ conv: ConvolverNode; wet: GainNode }, { conv: ConvolverNode; wet: GainNode }];
 }
 
 const sleep = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
@@ -234,6 +241,11 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
   private sampleMode: SampleMode = 'auto';
   private preloading = false;
   private readonly dropped = new Map<SfxId, number>();
+  /** The place her ears are in, and which of the two convolvers holds it. */
+  private room: RoomId = 'home';
+  private roomSlot = 0;
+  private roomShown: RoomId | null = null;
+  private readonly reader: ScreenReader = createScreenReader();
   private readonly resolver: SoundResolver = (id) => (isSfx(id) ? this.sampleFor(id) : undefined);
 
   constructor(private readonly Ctor: AudioContextCtor) {}
@@ -259,6 +271,7 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
         s.start();
         s.onended = () => s.disconnect();
       }
+      this.reader.prime();
       if (!this.preloading && this.bank && ac.state === 'running') {
         // fetch the one-shots in the background; until each arrives its recipe plays instead
         this.preloading = true;
@@ -347,11 +360,16 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
     ambVerb.connect(reverbIn);
     const sfxVerb = gain(sfxGain(this.sfxVolume));
     sfxVerb.connect(reverbIn);
-    const conv = ac.createConvolver();
-    conv.normalize = true;
-    conv.buffer = impulseResponse(ac, 'room', { seconds: 2.4, brightness: 0.5, damping: 1.3, early: 8, preDelay: 0.018 });
-    const reverbOut = gain(0.55);
-    reverbIn.connect(conv).connect(reverbOut).connect(world);
+    const reverbOut = gain(1);
+    reverbOut.connect(world);
+    const slot = () => {
+      const conv = ac.createConvolver();
+      conv.normalize = true;
+      const wet = gain(0);
+      reverbIn.connect(conv).connect(wet).connect(reverbOut);
+      return { conv, wet };
+    };
+    const rooms: Buses['rooms'] = [slot(), slot()];
 
     const L = ac.listener;
     try {
@@ -374,7 +392,8 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
     }
 
     this.ac = ac;
-    this.bus = { master, world, attention, daze, dazeGain, body, ambIn, ambTone, ambDuck, ambLoud, ambVerb, sfx, sfxVerb, voice, ui, reverbIn };
+    this.bus = { master, world, attention, daze, dazeGain, body, ambIn, ambTone, ambDuck, ambLoud, ambVerb, sfx, sfxVerb, voice, ui, reverbIn, rooms };
+    this.applyRoom(0);
     try {
       this.bank = new SampleBank(ac);
     } catch {
@@ -386,15 +405,18 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
   setEnabled(on: boolean): void {
     this.enabled = !!on;
     this.applyMaster(0.06);
+    if (!this.enabled) this.reader.stop();
   }
 
   setVolume(v: number): void {
     this.volume = clamp(Number.isFinite(v) ? v : 0, 0, 1);
     this.applyMaster(0.05);
+    this.reader.setVolume(this.readerVolume());
   }
 
   setVoiceVolume(v: number): void {
     this.voiceVolume = clamp(Number.isFinite(v) ? v : 0, 0, 1);
+    this.reader.setVolume(this.readerVolume());
     if (!this.ac || !this.bus) return;
     glide(this.bus.voice.gain, perceptual(this.voiceVolume) * 1.2, this.ac.currentTime, 0.05);
   }
@@ -425,7 +447,49 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
   setAmbience(ids: AmbienceId[], fadeMs: number = DEFAULT_FADE_MS): void {
     const valid = Array.isArray(ids) ? ids.filter((id) => Object.prototype.hasOwnProperty.call(AMBIENCE, id)) : [];
     this.wanted = [...new Set(valid)];
+    // The beds name the place; a bed that is only weather (night insects) leaves her in the room she was in.
+    const room = roomFor(this.wanted);
+    if (room && room !== this.room) {
+      this.room = room;
+      this.applyRoom(Math.min(2.4, Math.max(0.3, (Number.isFinite(fadeMs) ? fadeMs : DEFAULT_FADE_MS) / 1000)));
+    }
     this.reconcile(fadeMs);
+  }
+
+  /** Load the room's echo into the idle convolver and crossfade to it, so the tail of the last place dies out. */
+  private applyRoom(sec: number): void {
+    const ac = this.ac;
+    const bus = this.bus;
+    if (!ac || !bus || this.roomShown === this.room) return;
+    const spec = ROOMS[this.room];
+    const now = ac.currentTime;
+    const first = this.roomShown === null;
+    const next = first ? 0 : 1 - this.roomSlot;
+    const into = bus.rooms[next];
+    const out = bus.rooms[1 - next];
+    try {
+      into.conv.buffer = impulseResponse(ac, `room:${this.room}`, spec);
+    } catch {
+      return;
+    }
+    glide(into.wet.gain, spec.wet, now, first ? 0.01 : sec / 3);
+    if (!first) glide(out.wet.gain, 0, now, sec / 3);
+    this.roomSlot = next;
+    this.roomShown = this.room;
+  }
+
+  /** The reader follows the master volume and the reader slider (settings.voice). */
+  private readerVolume(): number {
+    return clamp(this.volume * (0.4 + this.voiceVolume), 0, 1);
+  }
+
+  speak(text: string): void {
+    if (!this.enabled || this.volume <= 0) return;
+    this.reader.speak(text, this.readerVolume());
+  }
+
+  hush(): void {
+    this.reader.stop();
   }
 
   private reconcile(fadeMs: number): void {
@@ -686,6 +750,7 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
   }
 
   suspend(): void {
+    this.reader.stop();
     this.ac?.suspend().catch(() => undefined);
   }
 

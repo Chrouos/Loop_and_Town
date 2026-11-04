@@ -30,6 +30,8 @@ export type Cond =
   | { op: 'not'; arg: Cond }
   | { op: 'and' | 'or'; args: Cond[] };
 
+export type Lesson = 'tap' | 'turn' | 'keep';
+
 export type LineBeat = {
   k: 'line';
   kind: LineKind;
@@ -46,8 +48,9 @@ export type LineBeat = {
   via?: Via;
   /** A stranger lowering their voice (true) or not (false); unset, the thread's cue or the place decides. */
   whisper?: boolean;
-  /** 'keep': the first time ever, the line waits here until the player long-presses it (the lesson in keeping a line). */
-  teach?: 'keep';
+  /** A first-play lesson: the line waits here, the first time ever, until the player does it once.
+   *  'tap' = tap the screen to go on, 'turn' = tap a sound to turn toward it, 'keep' = long-press the line to keep it. */
+  teach?: Lesson;
 };
 
 /** Memory Input: she says a remembered line out loud. Only the accepted memories change anything. */

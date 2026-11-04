@@ -108,7 +108,7 @@ function TouchStrip({ director, interact }: { director: Director; interact: Extr
           </div>
         ))}
       </div>
-      <div className="lt-interact-note">{skimmed ? '太快了，指尖滑過去什麼都沒留下。慢一點。' : ' '}</div>
+      <div className="lt-interact-note">{skimmed ? '太快了，沒讀懂' : ' '}</div>
     </div>
   );
 }
@@ -151,7 +151,7 @@ function LocateRing({ director, interact }: { director: Director; interact: Extr
           </button>
         );
       })}
-      {interact.hint && <div className="lt-interact-note lt-locate-note">再聽一次。</div>}
+      {interact.hint && <div className="lt-interact-note lt-locate-note">再聽一次</div>}
     </div>
   );
 }

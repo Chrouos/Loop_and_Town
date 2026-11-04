@@ -24,6 +24,7 @@ function replay(chapter: string, knowledge: string[], prefer: string[]) {
     }
     if (v.keep) d.skipKeep();
     if (v.teach === 'keep') d.capture();
+    if (v.teach === 'tap') d.hurry();
     if (v.sceneId?.endsWith('_bell')) break;
     d.tick(100);
   }

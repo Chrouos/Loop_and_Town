@@ -319,6 +319,8 @@ scenes:
                     - yuan: 可是妳說。我聽。
                     - narr: 這一次我講得比較短，挑他聽得進去的講。他還是一次都沒有打斷。
                     - yuan: ……妳講的時候，沒有在騙我。這個我聽得出來。
+                    - { yuan: 那妳現在跟我講話，是在跟今天的我講，還是在跟妳記得的那個我講？, mem: m_c5_which_me }
+                    - think: 這個問題，我每一次都答不好。
                     - tension: -8
                 - text: 「我姊以前跟我說過很多你的事。」
                   then:
@@ -412,6 +414,26 @@ scenes:
                 - narr: 滴答聲一直沒停。我摸到杯子，冰塊已經全化了。
                 - yuan: ……我還是不信。
                 - yuan: 但是妳講的時候，沒有在騙我。這個我聽得出來。
+                - pause: 2
+                - { yuan: 那妳現在跟我講話，是在跟今天的我講，還是在跟妳記得的那個我講？, mem: m_c5_which_me }
+                - choice:
+                    timeout: 12
+                    options:
+                      - text: 「今天的你。」
+                        then:
+                          - pause: 1.5
+                          - yuan: ……今天的我，什麼都還沒跟妳做過。
+                          - yuan: 妳講的那碗麵，我也還沒點。
+                      - text: 「我分不出來。」
+                        then:
+                          - pause: 2
+                          - yuan: ……嗯。至少妳沒有騙我。
+                          - { sfx: cup_scrape, at: front, dist: near, text: 嘎 }
+                          - narr: 他把我的冰茶往我這邊推了一點。滴答聲一直沒停，我們都沒有再講話。
+                    silence:
+                      - pause: 3
+                      - yuan: 妳不用回答。
+                      - yuan: 我只是不太想當別人。
             - text: 「我姊以前跟我說過很多你的事。」
               then:
                 - set: c5_evaded
@@ -438,7 +460,7 @@ scenes:
                       - narr: 滿屋子的滴答聲裡，他吸了一口氣，一直沒有吐出來。
                       - yuan: ……我沒跟妳講過這句。
                       - pause: 1.5
-                      - yuan: 可是那是我會講的話。連前面那句「不會」都是。
+                      - yuan: ……連前面那句「不會」都是。
                       - me: 那個晚上，你沒有過到。我過到了。
                       - me: 今天，我已經過了很多次了。
                       - set: [c5_truth, c5_noon_truth, c5_recalled]
@@ -568,7 +590,12 @@ scenes:
           - narr: 她講知夏教她拍照，講予安五年前站在月台上，站到車開得好遠。我讓她講完，一句都沒有打斷。
           - me: 若晴。今天傍晚，不要去舊車站。
           - ruoqing: ……妳怎麼知道我要去？
-          - narr: 我給不出理由。她還是答應了。
+          - { sfx: strap_click, at: front, dist: near, text: 喀 }
+          - ruoqing: 欸，每個人都很會叫我不要做什麼。有沒有人問過我，為什麼一定要去？
+          - me: 為什麼？
+          - pause: 1.5
+          - ruoqing: 知夏姊留給我的東西，陳醫生幫我收了五年。
+          - ruoqing: ……好啦。等妳說的那個六點半過了，我再去。這樣總可以吧。
           - me: 過了六點半，傳個訊息給我就好。
           - narr: 我念了號碼給她。她存好，撥過來響一聲，我也存了她的。
           - { sfx: phone_buzz, at: right, dist: near, text: 嗡, vib: buzz }
@@ -646,14 +673,35 @@ scenes:
       - pause: 1.5
       - ruoqing: ……妳怎麼知道我要去？
       - narr: 我給不出理由，跟上次一樣。
-      - narr: 她還是答應了。
+      - { sfx: strap_click, at: front, dist: near, text: 喀、喀 }
+      - { ruoqing: 欸，每個人都很會叫我不要做什麼。可是有沒有人問過我，為什麼一定要去？, mem: m_c5_nobody_asks }
+      - choice:
+          timeout: 12
+          default: 1
+          options:
+            - text: 「為什麼一定要去？」
+              then:
+                - pause: 2
+                - ruoqing: ……知夏姊留給我的東西。陳醫生幫我收了五年。
+                - ruoqing: 我再不去拿，就好像連她，我都想拖。
+                - pause: 1.5
+                - ruoqing: 好啦。等妳說的那個六點半過了，我再去。
+                - narr: 她講完，背帶扣就沒再響。
+                - set: c5_asked_ruoqing
+            - text: 「我說不出理由。拜託妳。」
+              then:
+                - pause: 1.5
+                - ruoqing: ……又是拜託。
+                - ruoqing: 好啦好啦。妳不要用那種聲音講話。
       - me: 過了六點半，傳個訊息給我就好。
       - { sfx: phone_buzz, at: right, dist: near, text: 嗡, vib: buzz }
       - narr: 我念了號碼給她。她存好，撥過來響一聲，我也存了她的。
       - { sfx: strap_click, at: front-right, dist: mid, text: 喀、喀、喀 }
       - narr: 她走得很快，背帶扣一路響回吧台。
-      - think: 這句話我越講越順了。
-      - think: 順到我已經不在意她懂不懂。
+      - if: "!flag.c5_asked_ruoqing"
+        then:
+          - think: 這句話我越講越順了。
+          - think: 順到我已經不在意她懂不懂。
     next: c5_evening
 
   # ─────────────────────────── 17:20 商店街 ───────────────────────────
@@ -721,7 +769,7 @@ scenes:
           - phone: 撥號中。灰潮鎮醫院。
           - { sfx: phone_ring, at: right, dist: near, text: 嘟——嘟—— }
           - narr: 我打給陳醫生。他停在哪裡、停多久，我都知道，所以我只講了兩句。
-          - { boxun: 我有病人，到七點。不是因為妳。, via: phone }
+          - { boxun: 我有病人，到七點。, via: phone }
           - { sfx: phone_hangup, at: right, dist: near, text: 嘟 }
         else:
           - phone: 撥號中。灰潮鎮醫院。
@@ -734,7 +782,7 @@ scenes:
           - pause: 3
           - me: 請你今天留在醫院。過了六點半，再決定。
           - narr: 他每一次停頓我都等。停在哪裡、停多久，我都知道。
-          - { boxun: 我有病人，到七點。不是因為妳。, via: phone }
+          - { boxun: 我有病人，到七點。, via: phone }
           - { sfx: phone_hangup, at: right, dist: near, text: 嘟 }
       - heart: off
       - think: 若晴和陳醫生都說好了。
@@ -776,9 +824,9 @@ scenes:
                 - yuan: 那我照原本的約。八點，在店裡。
                 - yuan: 舊車站那邊，我不靠近。
                 - yuan: 這樣可以嗎？
-                - me: 這是你決定的。
+                - me: 嗯。
                 - pause: 1.5
-                - yuan: 嗯。是我決定的。
+                - yuan: ……是我決定的喔。
                 - narr: 「我決定的」這幾個字，他講得有點卡，像第一次用左手寫字。
                 - heart: off
                 - narr: 我把壓在地磚縫裡的手杖抬起來。手心是濕的，可是不抖了。
@@ -881,7 +929,7 @@ scenes:
         else:
           - narr: 房仲八點準時來，在店裡繞了十分鐘，說櫃子清空了再來拍。
           - yuan: 他走了。先吃飯。
-      - think: 這一頓飯像上一次，又有一點不一樣。
+      - narr: 同一張桌子，桌腳一樣會晃。
       - yuan: 我點兩碗麵。妳的——
       - choice:
           timeout: 6
@@ -895,7 +943,7 @@ scenes:
               then:
                 - yuan: 不加蔥。對吧？
                 - narr: 他記得的，還是五年前的我。
-      - { old_man: ……明天天氣晴，沿海風浪稍大……, as: 電視, at: back-left, via: tv }
+      - { old_man: ……明天，十月四日，清晨起有陣雨，沿海風浪稍大……, as: 電視, at: back-left, via: tv }
       - { sfx: cup_set, at: right, dist: mid, text: 叩, src: 碗 }
       - { old_woman: 兩碗麵。小心燙喔。, as: 老闆娘 }
       - { cue: tv, at: back-left, text: 沙沙——, sfx: static_burst }
@@ -931,6 +979,8 @@ scenes:
                     - pause: 3
                     - yuan: 我不信。
                     - yuan: 可是妳講的時候，沒有在騙我。
+                    - { yuan: 那我現在，是今天的我，還是妳記得的那一個？, mem: m_c5_which_me }
+                    - think: 我答不出來。麵的熱氣一直撲在臉上，我沒有低頭去吃。
                 - text: （把它留在自己這裡）
                   then:
                     - think: 我記得就好。他是這樣說的。
@@ -946,14 +996,19 @@ scenes:
           - pause: 2
           - yuan: 我有待在店裡啊。妳叫我待，我就待。
           - pause: 1.5
+          - { yuan: 知夏姊以前也很喜歡幫我決定事情。, mem: m_c5_decide_for_me }
+          - yuan: 我爸也是。這間店，從我小學就說好是我的。
+          - pause: 1.5
           - { sfx: spoon_stir, at: front, dist: near, text: 叮 }
           - narr: 他用湯匙撥了一下麵湯。吸了一口氣，像要講什麼，最後只把湯匙放回碗裡。
           - { think: 他有一件事要講。我替他排好六點到七點，他就把它吞回去了。, learn: lead_c5_arranged }
       - if: "!flag.c5_truth"
         then:
           - pause: 2
-          - narr: 他吃到一半，筷子在碗邊停了一下，像是有話要講。後來沒有講。
-          - { think: 他沒講的那一句，跟我沒講的這一句，大概一樣重。, learn: lead_c5_unsaid }
+          - narr: 他吃到一半，筷子在碗邊停了一下，像是有話要講。
+          - yuan: 妳不想講，就不要講。我也有一件事，五年了都沒跟人講。
+          - narr: 後來他也沒有講。
+          - { think: 他的筷子停了一下。我的也是。, learn: lead_c5_unsaid }
       - if: flag.c5_truth && !flag.c5_arranged
         then:
           - if: know.k_yuan_1758
@@ -1009,7 +1064,7 @@ scenes:
                     - pause: 3
                     - { sfx: fry_sizzle, at: right, dist: mid, text: 滋啦—— }
                     - narr: 油鍋還在響。電視在講明天的天氣。
-                    - { man: 明天，十月四日，灰潮鎮多雲，午後有短暫陣雨。, as: 電視裡的氣象主播, at: front-left, dist: far, via: tv }
+                    - { man: 明天，十月四日，灰潮鎮清晨起有陣雨。, as: 電視裡的氣象主播, at: front-left, dist: far, via: tv }
                     - think: 十月四日。我一次都還沒有過到那一天。
       - if: know.k_yuan_went_station
         then:
@@ -1029,7 +1084,6 @@ scenes:
                     - yuan: 灰潮鎮唯一還算準時的東西。
                     - pause: 2
                     - think: 這句話我在月台上聽他講過。
-                    - think: 那時候，我以為他只是在開玩笑。
                 - text: （把這句話留著）
                   then:
                     - think: 若晴說，他一直站著，站到車開得好遠。

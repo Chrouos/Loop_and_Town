@@ -88,3 +88,85 @@ describe('the memory door lesson', () => {
     expect(director.view.choice?.teach).toBeUndefined();
   });
 });
+
+const LESSONS = `
+chapter: 1
+title: 教學
+start: s1
+scenes:
+  - id: s1
+    beats:
+      - { narr: 雨打在窗外。, teach: tap }
+      - { cue: gossip, at: back-left, text: 窸窣 }
+      - { think: 想聽的話，轉過去就好。, teach: turn }
+      - narr: 後來。
+      - { wait: 4 }
+      - choice:
+          options:
+            - text: 「好。」
+      - pause: 30
+      - end: reset
+    threads:
+      gossip:
+        beats:
+          - { woman: 你家也收到了喔？, at: back-left }
+          - { man: 收到了。, at: back-left }
+`;
+
+function lessons(taught: string[] = []) {
+  const { script, errors } = buildScript([{ name: 'a.yaml', source: LESSONS }]);
+  expect(errors).toEqual([]);
+  let save: GameSave = { ...freshSave(), started: true, scene: 's1', taught };
+  const director = new Director(script, save, { audio: silentAudio(), vibrate: () => undefined, persist: (next) => { save = next; }, wallNow: () => 0 });
+  director.start();
+  const run = (ms: number) => { for (let t = 0; t < ms; t += 50) director.tick(50); };
+  const until = (done: () => boolean) => { for (let i = 0; i < 4000 && !done(); i++) run(50); };
+  return { director, run, until, save: () => save };
+}
+
+describe('the opening lessons', () => {
+  it('the first line waits for a tap, and a tap is enough', () => {
+    const { director, run, until, save } = lessons();
+    until(() => director.view.teach === 'tap');
+    run(20000);
+    expect(director.view.center?.text).toBe('雨打在窗外。');
+    director.hurry();
+    expect(director.view.teach).toBeNull();
+    expect(save().taught).toContain('tap');
+    run(1500);
+    expect(director.view.center?.text).not.toBe('雨打在窗外。');
+  });
+
+  it('the turning line waits until she turns toward the sound', () => {
+    const { director, run, until, save } = lessons(['tap']);
+    until(() => director.view.teach === 'turn');
+    director.hurry();
+    run(2000);
+    expect(director.view.teach).toBe('turn');
+    director.attend('gossip');
+    expect(director.view.teach).toBeNull();
+    expect(save().taught).toContain('turn');
+  });
+
+  it('a player who never turns is let go once the sound goes quiet, and is taught next time', () => {
+    const { director, until, save } = lessons(['tap']);
+    until(() => director.view.teach === 'turn');
+    until(() => director.view.center?.text === '後來。');
+    expect(director.view.teach).toBeNull();
+    expect(save().taught ?? []).not.toContain('turn');
+  });
+
+  it('the first wait and the first question each say what they are, once', () => {
+    const { director, until, save } = lessons(['tap', 'turn']);
+    until(() => director.view.waiting !== null);
+    expect(director.view.waiting?.first).toBe(true);
+    until(() => director.view.choice !== null);
+    expect(director.view.choice?.first).toBe(true);
+    expect(save().taught).toEqual(expect.arrayContaining(['wait', 'choose']));
+    const again = lessons(save().taught);
+    again.until(() => again.director.view.waiting !== null);
+    expect(again.director.view.waiting?.first).toBeUndefined();
+    again.until(() => again.director.view.choice !== null);
+    expect(again.director.view.choice?.first).toBeUndefined();
+  });
+});

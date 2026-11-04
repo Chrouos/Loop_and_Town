@@ -115,7 +115,7 @@ scenes:
               - { yuan: 一個短頭髮的女生，揹著很大的包包。, learn: k_photo_tingan, mem: m_photo }
               - yuan: 我不認得她。
           - yuan: 怎麼突然要看這些？
-          - me: 上次來沒問完。
+          - me: 昨天晚上想了一下。有些東西，我還是想先弄清楚。
       - think: 今天怎麼過，現在就得決定。
       - choice:
           options:
@@ -125,7 +125,6 @@ scenes:
                 - me: 帶路，幫我念東西，順便跑腿。
                 - yuan: 好的。我是說，好啊。
                 - yuan: 店裡今天也沒什麼客人。
-                - think: 他一緊張，講話就變得很有禮貌。
                 - narr: 我握手杖的手鬆開一點，指節發痠，才知道剛剛握得多緊。
                 - tension: -6
                 - set: c2_yuan_with_me
@@ -476,7 +475,7 @@ scenes:
         then:
           - { sfx: strap_click, at: front, dist: near, text: 喀、喀 }
           - ruoqing: 如果妳是因為知夏姊，才跑來替我決定事情，
-          - { ruoqing: 那妳可以不用管。, mem: m_c2_dont_decide }
+          - { ruoqing: 那妳不用管我啦。, mem: m_c2_dont_decide }
           - heart: fast
           - { sfx: bike_squeak, at: center, dist: near, text: 吱 }
           - narr: 我的手指掐著手杖的橡膠握把，掐到它吱了一聲。背帶扣不響了，她在等我開口。
@@ -522,8 +521,8 @@ scenes:
                             then:
                               - ruoqing: ……欸，妳連名字都記得喔。
                             else:
-                              - ruoqing: ……這個名字我只寫在資料夾封面上欸。
-                              - ruoqing: 妳偷看喔？啊不是，妳又……
+                              - ruoqing: ……這個名字我很少跟人講欸。
+                              - ruoqing: 妳從哪裡聽來的？店長喔？
                               - { sfx: strap_click, at: front, dist: near, text: 喀 }
                               - ruoqing: 算了。妳怎麼知道的，我等一下再問。
                           - set: c2_reached
@@ -564,6 +563,12 @@ scenes:
             else:
               - me: 妳的照片，我還想多聽幾張。
           - { sfx: sigh, at: front, dist: near }
+          - ruoqing: 可是陳醫生已經等我很久了。那是知夏姊留下來的東西耶。
+          - narr: 我把手杖換到左手，沒有接她的話。排風扇一直吹，小腿被吹得一陣熱一陣涼。
+          - pause: 2
+          - { sfx: strap_click, at: front, dist: near, text: 喀 }
+          - ruoqing: ……東西在他那邊放了五年，也沒有跑掉。
+          - ruoqing: 晚一天拿，應該也沒差吧。
           - if: flag.c2_heard_strap
             then:
               - ruoqing: 欸，妳連門後面的扣子都聽得到。我在妳旁邊好像什麼都藏不住。
@@ -686,6 +691,7 @@ scenes:
           - boxun: 這是知夏留下的東西，本來要交給若晴。
       - boxun: 那這份我先帶回去。
       - boxun: 放車上不妥，我得先拿上去研究所那邊鎖起來。
+      - boxun: 知夏交給我的時候只交代一件事，不要讓它離開上鎖的地方太久。我答應過她。
       - { boxun: 正門封了，從旁邊的員工通道上去比較近。, learn: k_maintenance_passage }
       - me: 員工通道？
       - { boxun: 舊站以前的維修通道，停用很多年了。, mem: m_c2_passage }
@@ -693,6 +699,7 @@ scenes:
         then:
           - think: 下午那台車，也是往側邊退進去的。
       - boxun: 我上個月走過一次，應該還過得去。
+      - boxun: 施工公告說通道要封到年底，可是現在還沒有人圍起來。我自己判斷過，風險不大。
       - clock: "18:12"
       - narr: 我按了一下手機側鍵。
       - phone: 十八點十二分。
@@ -761,7 +768,7 @@ scenes:
       - { sfx: silence_drop }
       - me: 陳醫生？
       - pause: 2
-      - { me: 陳醫生！, shake: light }
+      - { me: 陳醫生！, shake: hard }
       - narr: 通道裡沒有人回答，連風都停住了。
       - tension: 15
       - { sfx: tinnitus, at: center }
@@ -921,10 +928,10 @@ scenes:
       - phone: 十八點十二分。
       - { sfx: phone_notify, at: front-left, dist: mid, text: 叮 }
       - ruoqing: 啊，陳醫生傳訊息。
-      - ruoqing: 「資料我先帶回去。妳準備好再找我。」
+      - ruoqing: 「資料我先拿回研究所鎖好。正門封了，我走舊的維修通道，比較近。妳準備好再找我。」
       - ruoqing: 他人真的很好欸。
       - { ruoqing: 好像什麼事都可以等我。, mem: m_c2_can_wait }
-      - think: 他在舊車站，正門封著。他要從哪裡回去？
+      - think: 舊的維修通道。那條路停用很多年了。
       - choice:
           options:
             - text: 「妳可以現在打給他嗎？」
@@ -1014,6 +1021,12 @@ scenes:
       - { sfx: glass_clink, at: front-left, dist: mid, text: 叮 }
       - { sfx: pour_water, at: front-left, dist: mid, text: 嘩—— }
       - narr: 杯子又碰了一下，水龍頭打開了。
+      - { sfx: strap_click, at: front, dist: near, text: 喀 }
+      - ruoqing: 欸，妳從剛剛就一直坐在那邊耶。很累齁？
+      - { sfx: cup_set, at: front, dist: near, text: 叩 }
+      - ruoqing: 溫水啦。妳咖啡都沒喝。
+      - narr: 杯子推到我手邊，杯壁溫溫的。我兩隻手捧住它，手指這才慢慢不抖了。
+      - think: 另一個今天，這個時間，我坐在派出所，聽他們說她沒有救回來。
     next: c2_night
 
   # ─────────────────────────────────────────── 若晴又去了
@@ -1131,7 +1144,7 @@ scenes:
       - learn: k_in_station_hall
       - if: "!know.k_cabinet_warm"
         then:
-          - narr: 我撐著地往右邊爬，爬到牆腳，手背撞上一塊鐵板。燙的，裡面還在低低地嗡。
+          - narr: 我撐著地往右邊爬，爬到牆腳，手背撞上一塊鐵板。燙的，我一下子把手縮回來。裡面還在低低地嗡，一點一點往下掉。
           - { sfx: hum_fall, at: right, dist: near, text: 嗡…… }
           - { think: 東牆上釘著一個鐵櫃，剛才那一聲是從這裡面出來的。, learn: k_cabinet_warm, mem: m_c2_cabinet }
     next: c2_night
@@ -1174,7 +1187,7 @@ scenes:
     ambience: [house_night]
     cast: { yuan: back }
     beats:
-      - narr: 冰箱在樓下低低地運轉，窗外的蟲叫個不停。
+      - narr: 冰箱在廚房那頭低低地運轉，窗外的蟲叫個不停。
       - narr: 我坐在姊姊的床沿，把鞋子踢掉，腳底貼著冰涼的磨石子地。
       - if: flag.c2_ruoqing_safe
         then:
@@ -1211,7 +1224,7 @@ scenes:
               - think: 若晴活著，陳醫生死了。
               - pause: 1.5
               - think: 第一個死的人我救下來了，十八點三十一分還是照樣來。
-              - think: 他走進那條通道，是因為他等的人沒來。他等的人沒來，是因為我。
+              - think: 他在正門打了兩通電話，都沒有人接。那兩通，是打給若晴的。
               - narr: 錶躺在我手心，一點滴答也沒有。
               - if: flag.c2_yuan_with_me
                 then:
@@ -1273,9 +1286,6 @@ scenes:
       - { sfx: bell_toll, at: front-left, text: 噹——, vib: bell }
       - wait: 3
       - { sfx: bell_toll, at: front-left, text: 噹——, vib: bell }
-      - if: flag.c2_ruoqing_safe
-        then:
-          - think: 我本來以為，只要把第一個人移開就好了。
       - wait: 3
       - { sfx: bell_toll, at: front-left, text: 噹——, vib: bell }
       - wait: 3

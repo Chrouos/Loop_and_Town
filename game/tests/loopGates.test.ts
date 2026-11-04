@@ -132,6 +132,19 @@ describe('chapter 7 gates', () => {
     expect(result.chapter).toBe('final');
   });
 
+  it('ordering 庭安 to stay costs only the relationship: nobody is hurt, and the chapter still ends', () => {
+    const result = play('7', prefer(/留下來，幫我看著它/, /妳先聽我說完/, /當成推測/, /去不去，是你的事/), 1);
+    expect(result.knowledge.has('lead_c7_tingan')).toBe(true);
+    expect(result.chapter).toBe('final');
+  });
+
+  it('stopping the letters at the fourth leaves two unheard, and the day repeats', () => {
+    const result = play('7', prefer(/今天先聽到這裡/, /是妳的事/, /妳先聽我說完/, /當成推測/, /去不去，是你的事/), 1);
+    expect(result.knowledge.has('lead_c7_four')).toBe(true);
+    expect(result.knowledge.has('k_six_letters')).toBe(false);
+    expect(result.chapter).toBe('7');
+  });
+
   it('leaving the page folded means she never learns what it says', () => {
     const result = play('7', prefer(/摺回去/, /是妳的事/, /妳先聽我說完/, /當成推測/, /去不去，是你的事/), 1);
     expect(result.knowledge.has('k_my_death_page')).toBe(false);

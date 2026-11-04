@@ -68,6 +68,14 @@ describe('final chapter paths', () => {
     expect(result.scenes).toContain('f_epilogue_a');
   });
 
+  it('sealing only today without finding the backup does not hold: the bell rings on', () => {
+    const result = play(pick(/只封存這一個今天/), 1, ['left', 'front']);
+    expect(result.finalOptions[0]).toContain('「只封存這一個今天。」');
+    expect(result.ending).not.toBe('a');
+    expect(result.endings).toContain('b');
+    expect(result.scenes).toContain('f_end_b');
+  });
+
   it('「……再一次。」 records Ending B and replays the final day', () => {
     const result = play(pick(/再一次/), 1);
     expect(result.endings).toContain('b');

@@ -85,6 +85,7 @@ scenes:
                 - pause: 1.5
                 - think: 十八點三十一分舊車站會發生什麼，我知道。
                 - think: 若晴會去。這次我不打那通電話。
+                - think: 想到若晴，我先想起的是那個金屬扣，然後才是她的名字。
                 - { sfx: nail_scratch, at: center, dist: near, text: 嘶、嘶 }
                 - narr: 我把手機翻過來扣在腿上，指甲沿著塑膠殼的邊一直刮。
                 - tension: 8
@@ -108,7 +109,7 @@ scenes:
       - { sfx: step_uneven, at: front-right, dist: mid, text: 咚、叩 }
       - yuan: 比我想的早。
       - me: 車沒誤點。
-      - if: chloop >= 2
+      - if: chloop >= 2 || know.k_recorder_voice
         then:
           - narr: 我握住他的左手肘，把今天要跑的地方照順序講給他聽。他只問了一句，要不要先吃早餐。
         else:
@@ -629,7 +630,9 @@ scenes:
           - narr: 他又按了一次乾洗手，搓乾了，才去碰抽屜裡的紙。
           - { sfx: paper_rustle, at: front, dist: near, text: 沙沙 }
           - boxun: 這是我自己留的影本。不在系統裡。
-          - boxun: 我念。妳不要問我為什麼願意念。我也還沒想好。
+          - boxun: 我念，不是因為我相信妳。
+          - boxun: 是妳剛剛講的那件事，跟我五年來一直排除不掉的那件，是同一類。我想放在一起看看。
+          - boxun: 我只念她自己講的話。牽涉到別的病人，我不念名字。
           - pause: 1.5
           - boxun: 諮詢紀錄，第一次。
           - { boxun: 「個案堅稱，記得尚未發生的事件。」, mem: m_c4_insists }
@@ -652,7 +655,7 @@ scenes:
           - pause: 1
           - { sfx: page_turn, at: front, dist: near, text: 啪沙 }
           - boxun: 第四次。星期一。
-          - boxun: 個案表示，三號病房的鄭阿姨，星期四會從床上摔下來。
+          - boxun: 個案表示，病房裡一位病人，星期四會從床上摔下來。是哪一位，我不念。
           - boxun: 右手腕。
           - pause: 2
           - boxun: 我交代護理站留意，也加了巡房。星期四晚上，她還是自己翻過床欄，摔下來。右手腕骨折。
@@ -671,11 +674,11 @@ scenes:
           - pause: 2
           - boxun: ……妳連那個也知道。
           - boxun: 我有病人，到七點。
-          - boxun: 我留下來，是因為我有病人。
           - think: 不是因為我。這我知道。
         else:
           - think: 五點四十，他會從後門出去，手裡拿著要給若晴的紙袋。
           - think: 我什麼都沒說。
+          - narr: 我按了一下側鍵。十一點五十二分。若晴這時候在店裡，走過去不用十分鐘。
       - { sfx: door_close, at: back, dist: near, text: 碰 }
       - narr: 走出診間，我撥了一個已經背起來的號碼。
       - { sfx: phone_ring, at: right, dist: near, text: 嘟——嘟—— }
@@ -826,6 +829,7 @@ scenes:
           - tingan: 那妳還來找我幹嘛？
           - me: 我想知道她跟妳，後來怎麼了。
         else:
+          - tingan: 妳早晚會自己挖到。我寧可妳從我這裡聽，不要從別人那裡聽到更難聽的版本。
           - tingan: 我以前是研究助理。在研究所。
           - tingan: 外面的人都以為，那裡在研究時間旅行。
           - tingan: 沒有。
@@ -837,7 +841,6 @@ scenes:
           - tingan: 小地方，資源很少。我們想讓下一次災害，少死一點人。
           - pause: 2
           - think: 少死一點人。
-          - think: 我這幾天在做的，也是這件事。
       - me: 我姊不是工程師。
       - { sfx: page_turn, at: front-left, dist: near, text: 沙啦 }
       - tingan: 她是地方史的資料協力。這間房間，她最熟。
@@ -931,7 +934,7 @@ scenes:
             - narr: 我往右退，手杖往後掃到路肩的草，再退一步，鞋跟陷進鬆軟的土。
             - { sfx: truck_reverse, at: left, dist: near, text: 嗶、嗶 }
             - narr: 車尾從我左手邊擦過去，柴油的熱氣噴在臉上。
-            - { man: 歹勢喔！研究所那條線今天接好了，下去載東西啦！, as: 司機, at: left, dist: mid }
+            - { man: 歹勢喔！研究所那條線今天又要測，下去載東西啦！, as: 司機, at: left, dist: mid }
             - heart: off
             - { sfx: truck_reverse, at: left, to: back:far, dist: mid, text: 嗶、嗶 }
             - narr: 我站在草裡，等嗶聲一路退到坡底，才把手杖放回地上。
@@ -976,6 +979,25 @@ scenes:
       - tingan: 知夏說，她記得那一個版本。
       - tingan: 一開始只是小事。她叫一個人別走某條路，那個人就沒事。
       - tingan: 後來事情變大了。救了一個，別的地方就出事。
+      - pause: 1.5
+      - { sfx: raincoat_rustle, at: left, dist: near, text: 沙 }
+      - tingan: 等一下。換我問。
+      - tingan: 妳一通電話就約到我，第一句就問五年前。妳知道的，比一個回來賣房子的人多太多了。
+      - { tingan: 妳最近是不是也在做一樣的事？, mem: m_c4_same_question }
+      - choice:
+          timeout: 10
+          options:
+            - text: 「是。」
+              then:
+                - pause: 2
+                - tingan: ……那妳應該聽完。
+            - text: 「我跟她不一樣。」
+              then:
+                - tingan: 她當年也是這樣跟我講的。一個字都不差。
+                - tension: 6
+          silence:
+            - pause: 2.5
+            - tingan: 妳不講，我就當妳是。我訪問人都這樣。
       - me: 妳們後來為什麼鬧翻？
       - pause: 2
       - { sfx: wave, at: right, dist: far, text: 嘩—— }
@@ -1012,6 +1034,12 @@ scenes:
       - { sfx: door_creak, at: back, dist: near, text: 嘎——吱 }
       - { sfx: raincoat_rustle, at: front-right, dist: mid, text: 沙、沙 }
       - narr: 她先進去，雨衣的聲音往右前方去了。門後的空氣比外面冷，有東西在低低地轉。
+      - if: "!flag.c4_dispersed"
+        then:
+          - narr: 我按了一下側鍵。
+          - phone: 十六點二十分。
+          - think: 還有兩個多小時。現在打給她，她還來得及不出門。
+          - narr: 手機在外套口袋裡。我的手一直插在口袋裡握著它，沒有拿出來。
       - { sfx: relay_click, at: left, dist: mid, text: 喀、喀 }
       - narr: 左邊一整排機器，風扇的聲音疊在一起。
       - me: 這裡還有電？
@@ -1071,6 +1099,32 @@ scenes:
     beats:
       - { sfx: typing, at: front-right, dist: near, text: 噠、噠 }
       - narr: 鍵盤的聲音停了。只剩機器在低低地響。
+      - if: "!flag.c4_dispersed"
+        then:
+          - narr: 我按了一下側鍵。
+          - phone: 十七點四十分。
+          - think: 再過十幾分鐘，她就會從店裡出發。
+          - choice:
+              timeout: 12
+              default: 1
+              options:
+                - text: （撥給若晴）
+                  then:
+                    - { sfx: phone_ring, at: right, dist: far, text: 嘟—— }
+                    - { ruoqing: 喂？哪位？, via: phone }
+                    - me: 若晴，今天傍晚……
+                    - { ruoqing: 欸妳誰啊？我要出門了啦，等一下再說。, via: phone }
+                    - { sfx: phone_hangup, at: right, dist: near, text: 嘟 }
+                    - think: 她連我是誰都不知道。出門前接到陌生人的電話，換作是我也不會聽。
+                    - think: 早上我還有一整天可以好好跟她講。那一整天，我拿去問五年前了。
+                    - tension: 6
+                    - set: c4_called_late
+                - text: （把手機扣回桌上）
+                  then:
+                    - { sfx: phone_on_glass, at: front, dist: near, text: 叩 }
+                    - narr: 我把手機扣在鐵桌上，螢幕朝下。指尖還壓著它的背，壓到殼子都溫了。
+                    - think: 還有五十一分鐘。我在等它過去。
+                    - tension: 8
       - if: know.k_zhixia_saw_my_death
         then:
           - tingan: 這間機房，我花了半年才找到進來的方法。妳一通電話就約在這裡。
@@ -1138,7 +1192,6 @@ scenes:
       - pause: 2
       - { tingan: 她看過妳死。, learn: k_zhixia_saw_my_death, mem: m_c4_saw_you_die }
       - tingan: 在這裡。十八點三十一分。
-      - tingan: 所以她才那樣對妳。
       - heart: pound
       - tension: 20
       - { sfx: thud, at: front, dist: near, text: 匡！, shake: hard }
@@ -1172,6 +1225,7 @@ scenes:
       - pause: 1.5
       - zhixia: 我只是想要妳走。
       - pause: 1
+      - { sfx: breath, at: front, dist: near, gain: 0.4 }
       - zhixia: 走了，就不要再回來。
       - pause: 3
       - heart: fast
@@ -1190,7 +1244,11 @@ scenes:
       - { sfx: raincoat_rustle, at: front-right, dist: near, text: 沙 }
       - narr: 機器的聲音回來了，還有冷氣，和旁邊雨衣布料的摩擦聲。
       - narr: 我的右手一直抓著她雨衣的袖口，抓到指節發酸都沒放。
-      - think: 那幾句話，她是挑過的，挑我最受不了的那一種。
+      - think: 那天我只聽見她說了什麼。
+      - think: 現在再聽一次，她講「不要再回來」之前，換了一口氣。很短，像被什麼卡了一下。
+      - think: 鑰匙也是。她沒有把我鎖在外面。她把它放在鞋櫃上，讓開，等我自己拿走。
+      - narr: 我隔著外套按住口袋裡那行點字。不、要、回、來。昨天收到它的時候，我以為她死了五年，還在趕我走。
+      - narr: 鼻子先酸了。眼淚是後來才掉的，掉在手背上，還是溫的。
       - pause: 1.5
       - { think: 只要我恨她，我就會活著。, mem: m_c4_hate_her }
     next: c4_1831
@@ -1329,14 +1387,18 @@ scenes:
           - pause: 2
           - daze: off
           - { sfx: fry_sizzle, at: right, dist: mid, text: 滋—— }
-          - { old_man: 明天天氣晴，早晚比較涼，出門記得多帶一件外套。, as: 電視, at: back-left, via: tv }
+          - { old_man: 明天，十月四日，清晨起有陣雨，早晚比較涼，出門記得帶傘。, as: 電視, at: back-left, via: tv }
           - narr: 油鍋又滋滋響起來。電視已經換到下一則，在講明天的天氣。
           - { sfx: phone_buzz, at: right, dist: near, text: 嗡, vib: buzz }
           - phone: 心率 <心率>，過高，已記錄。二十點四十二分。
           - narr: 我摸到口袋裡的手機，按住側鍵，按到它不再震。
           - { sfx: chopsticks, at: front, dist: near, text: 叩 }
           - narr: 他把筷子擱在碗邊，叩一聲，之後就沒有再拿起來。
-          - think: 我知道會這樣。
+          - if: flag.c4_called_late
+            then:
+              - think: 我知道會這樣。打那通電話的時候，已經太晚了。
+            else:
+              - think: 我知道會這樣。手機一直在我口袋裡。
           - { think: 我知道，我還是讓它發生了。, mem: m_c4_let_it }
           - learn: k_c4_let_it_happen
           - narr: 褲子濕掉的那一塊很冰。我把手掌壓在上面，壓到它被捂熱。
@@ -1362,7 +1424,11 @@ scenes:
           - narr: 他把我的碗，往我這邊推了一點。
         else:
           - { sfx: spoon_stir, at: front, dist: near, text: 叮 }
-          - yuan: 妳今天一整天，派出所、醫院，晚上還從山上下來。
+          - if: seen.c4_police && seen.c4_hospital
+            then:
+              - yuan: 妳今天一整天，派出所、醫院，晚上還從山上下來。
+            else:
+              - yuan: 妳今天一整天跑來跑去，晚上還從山上下來。
           - yuan: 妳不是只回來賣房子的吧。
           - me: 也是回來賣房子的。
           - pause: 1

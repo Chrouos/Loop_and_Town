@@ -88,9 +88,9 @@ function parseLine(key: string, raw: Obj, where: string, errors: Errors): LineBe
   if (raw.shake !== undefined) line.shake = shake(raw.shake, where, errors);
   if (raw.whisper !== undefined) line.whisper = raw.whisper === true;
   if (raw.teach !== undefined) {
-    if (raw.teach !== 'keep') errors.push(`${where}：teach 只能是 keep`);
-    else if (raw.mem === undefined) errors.push(`${where}：teach: keep 的那句要有 mem`);
-    else line.teach = 'keep';
+    if (raw.teach !== 'keep' && raw.teach !== 'tap' && raw.teach !== 'turn') errors.push(`${where}：teach 只能是 tap／turn／keep`);
+    else if (raw.teach === 'keep' && raw.mem === undefined) errors.push(`${where}：teach: keep 的那句要有 mem`);
+    else line.teach = raw.teach;
   }
   if (raw.via !== undefined) {
     const via = String(raw.via);

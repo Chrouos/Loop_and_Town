@@ -33,6 +33,8 @@ export type Settings = {
   sfx: number;
   voice: number;
   vibration: boolean;
+  /** Her phone's screen reader says the phone lines out loud (a synthesized voice). */
+  reader: boolean;
   /** Shaking and pulsing of the stage (her body); off keeps the screen still. */
   motion: boolean;
   /** A small caption under each sound saying what it is (紙, 衣服, 風). */
@@ -68,7 +70,7 @@ export type GameSave = {
   taught?: string[];
 };
 
-export const DEFAULT_SETTINGS: Settings = { audio: true, volume: 0.8, ambience: 0.7, sfx: 0.85, voice: 0.45, vibration: true, motion: true, soundLabels: true, textSpeed: 'normal', fontSize: 'normal', autoAdvance: true };
+export const DEFAULT_SETTINGS: Settings = { audio: true, volume: 0.8, ambience: 0.7, sfx: 0.85, voice: 0.45, vibration: true, reader: true, motion: true, soundLabels: true, textSpeed: 'normal', fontSize: 'normal', autoAdvance: true };
 
 export function freshSave(previous?: Pick<GameSave, 'settings' | 'endings' | 'calibrated' | 'taught'>): GameSave {
   return {
