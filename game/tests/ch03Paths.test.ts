@@ -26,7 +26,7 @@ function play(pick: (scene: string, options: string[], shownAt: number, t: numbe
     if (v.keep) d.skipKeep();
     d.tick(100);
   }
-  return { stays, said, learned: d.knows.has('k_no_known_death'), ruoqingWent: d.knows.has('k_c3_ruoqing_went') };
+  return { stays, said, knows: d.knows, learned: d.knows.has('k_no_known_death'), ruoqingWent: d.knows.has('k_c3_ruoqing_went') };
 }
 
 const atCafe = (scene: string, opts: string[], text: string) => {
@@ -34,15 +34,87 @@ const atCafe = (scene: string, opts: string[], text: string) => {
   return scene === 'c3_ruoqing' && i >= 0 ? i : null;
 };
 
-it('silence, then calling after him', () => {
+// At the hospital, pick the first option containing any of these; every other question there is left to run out.
+const atHospital = (scene: string, opts: string[], ...texts: string[]) => {
+  if (scene !== 'c3_hospital') return undefined;
+  for (const text of texts) { const i = opts.findIndex((o) => o.includes(text)); if (i >= 0) return i; }
+  return null;
+};
+
+it('silence, then calling after him and naming the path he told no one', () => {
   const r = play((scene, opts, at, t) => {
-    if (scene === 'c3_hospital') { const i = opts.indexOf('「陳醫生！」'); return i >= 0 ? i : null; }
+    const h = atHospital(scene, opts, '「陳醫生！」', '維修通道');
+    if (h !== undefined) return h;
     const c = atCafe(scene, opts, TRUTH);
     if (c !== null) return c;
     return t - at > 1500 ? 0 : null;
   });
   expect(r.said).toContain('結果我還是差點走了。');
   expect(r.stays && r.learned).toBe(true);
+});
+
+it('calling after him with only a warning buys him until six', () => {
+  let called = false;
+  const r = play((scene, opts, at, t) => {
+    // The first question at the back door runs out; after calling him back, the warning is all she gives.
+    if (scene === 'c3_hospital' && opts.includes('「陳醫生！」')) { called = true; return opts.indexOf('「陳醫生！」'); }
+    if (scene === 'c3_hospital') return called ? atHospital(scene, opts, '會停電')! : null;
+    const c = atCafe(scene, opts, TRUTH);
+    if (c !== null) return c;
+    return t - at > 1500 ? 0 : null;
+  });
+  expect(r.said).toContain('六點以後，我照原來的安排。');
+  expect(r.stays || r.learned).toBe(false);
+  expect(r.knows.has('lead_c3_proof') && r.knows.has('k_c3_boxun_died_again')).toBe(true);
+});
+
+it('a warning with nothing he can check only buys until six', () => {
+  const r = play((scene, opts, at, t) => {
+    const h = atHospital(scene, opts, '會停電', '沒有證據');
+    if (h !== undefined) return h;
+    const c = atCafe(scene, opts, TRUTH);
+    if (c !== null) return c;
+    return t - at > 1500 ? 0 : null;
+  });
+  expect(r.said).toContain('他交代說，如果有人打來找他，就跟她說六點了，什麼都沒有發生。');
+  expect(r.stays || r.learned).toBe(false);
+  expect(r.knows.has('lead_c3_proof')).toBe(true);
+});
+
+it('a warning backed by the path he told no one keeps him', () => {
+  const r = play((scene, opts, at, t) => {
+    const h = atHospital(scene, opts, '會停電', '還沒跟任何人講');
+    if (h !== undefined) return h;
+    const c = atCafe(scene, opts, TRUTH);
+    if (c !== null) return c;
+    return t - at > 1500 ? 0 : null;
+  });
+  expect(r.said).toContain('妳怎麼知道的，我不會去猜。可是這一句，我自己對得上。');
+  expect(r.stays && r.learned).toBe(true);
+  expect(r.knows.has('lead_c3_proof')).toBe(false);
+});
+
+it('saying she will not come, when she only said yes: he calls her and the lie comes apart', () => {
+  const r = play((scene, opts, at, t) => {
+    const h = atHospital(scene, opts, '若晴今天不會去拿了');
+    if (h !== undefined) return h;
+    return t - at > 1500 ? 0 : null;
+  });
+  expect(r.said).toContain('她說她會到。');
+  expect(r.said).toContain('她還說，妳跟她講是我說的。');
+  expect(r.knows.has('lead_c3_he_checks') && r.ruoqingWent && !r.learned).toBe(true);
+});
+
+it('saying she will not come, when she really chose not to: he calls, she agrees, tomorrow', () => {
+  const r = play((scene, opts, at, t) => {
+    const h = atHospital(scene, opts, '若晴今天不會去拿了');
+    if (h !== undefined) return h;
+    const c = atCafe(scene, opts, TRUTH);
+    if (c !== null) return c;
+    return t - at > 1500 ? 0 : null;
+  });
+  expect(r.said).toContain('她說改明天。');
+  expect(r.stays && r.learned && !r.knows.has('lead_c3_he_checks')).toBe(true);
 });
 
 it('silence twice still fails', () => {

@@ -531,8 +531,8 @@ scenes:
               if: know.k_sig_yuan
               then:
                 - pause: 0.8
-                - { yuan: ……妳怎麼知道是我？, at: front }
-                - me: 你左腳比較重。
+                - { yuan: ……門沒鎖，我就自己進來了。, at: front }
+                - me: 我聽到了。你左腳比較重。
                 - { yuan: 有嗎。, at: front }
                 - { sfx: step_uneven, at: front, dist: near, text: 咚、叩 }
                 - narr: 他往前走了兩步，走得很慢，好像在聽自己的腳。
@@ -892,7 +892,7 @@ scenes:
       - { sfx: strap_click, at: front, dist: near, text: 喀 }
       - pause: 0.5
       - { sfx: strap_click, at: front, dist: near, text: 喀 }
-      - ruoqing: ……妳講話跟她好像。
+      - ruoqing: ……欸，妳這樣問很犯規耶。
       - { ruoqing: 啊不講這個啦。我最近在弄一個作品集，叫《退潮以後》。, mem: m_ruoqing_portfolio }
       - ruoqing: 都拍一些快要沒有的東西啦，像是要關的店，要拆的招牌之類的。
       - ruoqing: 那邊牆上有一張是我拍的，那張是清晨的商店街，還沒有一家店開門。
@@ -1650,6 +1650,8 @@ scenes:
       - learn: k_ruoqing_died
       - { sfx: lighter_lid, at: front, dist: near, text: 叮、喀 }
       - narr: 桌子那頭，一個金屬蓋子掀開，又蓋上。他開口時，菸味也跟著靠過來，可是沒有點菸的聲音。
+      - { sfx: plastic_crinkle, at: front, dist: near, text: 啵 }
+      - narr: 接著是鋁箔被指甲摳破的一聲。他丟了一顆什麼進嘴裡嚼，薄荷味很衝，蓋不掉他衣服上的舊菸味。
       - if: seen.c1_station
         then:
           - { zhiyuan: 妳是現場那位小姐。, as: 低沉的男聲 }
@@ -1720,6 +1722,19 @@ scenes:
       - daze: off
       - heart: slow
       - narr: 電扇的風又吹到我臉上。我摸到桌沿，順著它慢慢坐回椅子上。
+      - { sfx: chair_scrape, at: front, dist: near, text: 嘎 }
+      - if: seen.c1_locate_success
+        then:
+          - narr: 他的椅子往後退了一下。電扇轉回我這邊的時候，風停在半路，喀一聲，換成往牆壁吹。
+          - zhiyuan: 妳褲子濕的，吹了會冷。
+          - think: 濕的。他沒有說是什麼濕的。
+        else:
+          - if: seen.c1_locate_fail
+            then:
+              - narr: 他的椅子往後退了一下。一個紙杯從桌面滑過來，滑到碰到我的指尖才停。是溫的。
+              - zhiyuan: 手不要握拳。玻璃才剛挑出來。
+            else:
+              - narr: 他的椅子往後退了一下。電扇轉回我這邊的時候，喀一聲，風小了一格。
       - if: flag.c1_yuan_postoffice
         then:
           - pause: 1

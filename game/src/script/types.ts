@@ -83,6 +83,7 @@ export type Beat =
   /** 聽聲辨位: a sound repeats from one direction (with decoys); she points to it. */
   | { k: 'locate'; sfx: SfxId; at: Direction; decoys: { sfx: SfxId; at: Direction }[]; tries: number; exact?: boolean; replay?: boolean; times?: number; lag?: number; timeout?: number; interval?: number; gain?: number; prompt?: string; success: Beat[]; fail: Beat[] }
   /** 聽距離: a sound walks toward her from `at`, one step at a time; she speaks up when it reaches her. Too early it cannot hear her, too late it has gone past. */
+  | { k: 'hold'; seconds: number; timeout: number; sfx?: SfxId; at?: Direction; prompt?: string; success: Beat[]; fail: Beat[] }
   | { k: 'approach'; sfx: SfxId; at: Direction; past: Direction; steps: number; interval: number; text?: string; prompt?: string; hit: Beat[]; early: Beat[]; late: Beat[] }
   /** 點字板: punch braille cells from the back of the paper (mirrored); cells are dot numbers as they will be read. */
   | { k: 'punch'; cells: number[][]; label?: string; prompt?: string; timeout: number }

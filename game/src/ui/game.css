@@ -482,6 +482,12 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 .lt-locate-note { top: calc(50% + 40px); }
 .lt-approach-pad { position: absolute; inset: 0; background: none; border: 0; cursor: pointer; }
 .lt-approach .lt-locate-prompt { width: min(86vw, 520px); text-align: center; }
+.lt-hold-pad { position: absolute; inset: 0; background: none; border: 0; cursor: pointer; touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+.lt-hold .lt-locate-prompt { width: min(86vw, 520px); text-align: center; }
+.lt-hold-breath { width: 72px; height: 72px; margin: 28px auto 0; border-radius: 50%; border: 1px solid var(--dim, rgba(255,255,255,0.35)); opacity: 0.5; pointer-events: none; }
+.lt-hold.holding .lt-hold-breath { animation-name: lt-hold-breathe; animation-timing-function: linear; animation-fill-mode: forwards; }
+@keyframes lt-hold-breathe { from { transform: scale(1); opacity: 0.7; } to { transform: scale(0.25); opacity: 0.15; } }
+@media (prefers-reduced-motion: reduce) { .lt-hold.holding .lt-hold-breath { animation: none; opacity: 0.2; } }
 
 .lt-punch-row { position: absolute; left: 50%; top: calc(50% + 78px); transform: translateX(-50%); display: flex; gap: 22px; }
 .lt-punch-cell { display: grid; grid-template-columns: repeat(2, 34px); grid-template-rows: repeat(3, 34px); grid-auto-flow: column; gap: 4px; padding: 8px; border: 1px solid var(--ink-ghost); border-radius: 4px; opacity: 0.45; transition: opacity 300ms; }

@@ -11,6 +11,7 @@ export function Interaction({ director, interact }: { director: Director; intera
   if (interact.type === 'touch') return <TouchStrip key={interact.key} director={director} interact={interact} />;
   if (interact.type === 'locate') return <LocateRing key={interact.key} director={director} interact={interact} />;
   if (interact.type === 'approach') return <ApproachCall key={interact.key} director={director} interact={interact} />;
+  if (interact.type === 'hold') return <HoldBreath key={interact.key} director={director} interact={interact} />;
   return <PunchSlate key={interact.key} director={director} interact={interact} />;
 }
 
@@ -179,6 +180,45 @@ function ApproachCall({ director, interact }: { director: Director; interact: Ex
       <button type="button" className="lt-approach-pad" aria-label="開口" onClick={(event) => { event.stopPropagation(); director.approachCall(); }} />
       <div className="lt-locate-prompt">{interact.prompt ?? '等聲音到面前，再開口'}</div>
       <div className="lt-interact-note lt-locate-note">點一下畫面開口</div>
+    </div>
+  );
+}
+
+// ───────────────────────── 屏息 ─────────────────────────
+
+/** Press and hold anywhere (or Space) and keep holding: her breath slows, the room drops away, a small sound comes through. */
+function HoldBreath({ director, interact }: { director: Director; interact: Extract<InteractView, { type: 'hold' }> }) {
+  useEffect(() => {
+    const down = (event: KeyboardEvent) => {
+      if (event.key !== ' ' && event.key !== 'Enter') return;
+      event.preventDefault();
+      event.stopPropagation();
+      if (!event.repeat) director.holdStart();
+    };
+    const up = (event: KeyboardEvent) => {
+      if (event.key !== ' ' && event.key !== 'Enter') return;
+      event.preventDefault();
+      director.holdEnd();
+    };
+    window.addEventListener('keydown', down, true);
+    window.addEventListener('keyup', up, true);
+    return () => { window.removeEventListener('keydown', down, true); window.removeEventListener('keyup', up, true); };
+  }, [director]);
+  const holding = interact.since !== null;
+  return (
+    <div className={`lt-interact lt-hold${holding ? ' holding' : ''}`} onPointerUp={(event) => event.stopPropagation()}>
+      <button
+        type="button"
+        className="lt-hold-pad"
+        aria-label="按住，慢慢吐氣"
+        onPointerDown={(event) => { event.stopPropagation(); event.currentTarget.setPointerCapture?.(event.pointerId); director.holdStart(); }}
+        onPointerUp={(event) => { event.stopPropagation(); director.holdEnd(); }}
+        onPointerCancel={() => director.holdEnd()}
+        onContextMenu={(event) => event.preventDefault()}
+      />
+      <div className="lt-locate-prompt">{interact.prompt ?? '按住，慢慢吐氣'}</div>
+      <div className="lt-hold-breath" key={interact.since ?? 'idle'} style={{ animationDuration: `${interact.seconds}s` }} aria-hidden="true" />
+      <div className="lt-interact-note lt-locate-note">{holding ? '不要放開' : '按住畫面不要放'}</div>
     </div>
   );
 }

@@ -27,6 +27,7 @@ export function soundsAround(script: GameScript, sceneId: string): SceneSounds {
           for (const decoy of beat.decoys) into.sfx.add(decoy.sfx);
           visit(beat.success, into, follow); visit(beat.fail, into, follow);
           break;
+        case 'hold': if (beat.sfx) into.sfx.add(beat.sfx); into.sfx.add('breath'); visit(beat.success, into, follow); visit(beat.fail, into, follow); break;
         case 'approach': into.sfx.add(beat.sfx); visit(beat.hit, into, follow); visit(beat.early, into, follow); visit(beat.late, into, follow); break;
         case 'if': visit(beat.then, into, follow); visit(beat.else, into, follow); break;
         case 'choice':

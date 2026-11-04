@@ -272,6 +272,25 @@ function parseBeat(raw: unknown, where: string, errors: Errors): Beat | undefine
       fail: parseBeats(spec.fail, `${where}.fail`, errors),
     };
   }
+  if ('hold' in raw) {
+    allow('hold');
+    const spec = raw.hold;
+    if (!isObj(spec)) { errors.push(`${where}：hold 必須是 map`); return undefined; }
+    for (const key of Object.keys(spec)) if (!['seconds', 'timeout', 'sfx', 'at', 'prompt', 'success', 'fail'].includes(key)) errors.push(`${where}：hold 未知欄位「${key}」`);
+    const seconds = Number(spec.seconds ?? 4);
+    const timeout = Number(spec.timeout ?? 20);
+    if (!(seconds >= 1.5 && seconds <= 10)) errors.push(`${where}：hold 的 seconds 是 1.5 到 10 秒`);
+    if (!(timeout > seconds)) errors.push(`${where}：hold 的 timeout 要比 seconds 長`);
+    const sfx = spec.sfx === undefined ? undefined : String(spec.sfx);
+    const at = spec.at === undefined ? undefined : String(spec.at);
+    if (sfx !== undefined && !isSfx(sfx)) errors.push(`${where}：未知音效「${sfx}」`);
+    if (at !== undefined && !isDirection(at)) errors.push(`${where}：hold 的 at 必須是八個方位之一`);
+    return {
+      k: 'hold', seconds, timeout, sfx: sfx as never, at: at as never, prompt: str(spec.prompt),
+      success: parseBeats(spec.success, `${where}.success`, errors),
+      fail: parseBeats(spec.fail, `${where}.fail`, errors),
+    };
+  }
   if ('approach' in raw) {
     allow('approach');
     const spec = raw.approach;

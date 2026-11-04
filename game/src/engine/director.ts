@@ -52,7 +52,7 @@ const TENSION_EASE = 6;
 /** What the day does to her on its own; scripts add their own with `tension:`. */
 /** Gap between the clicks of a locate sound that comes more than once (`times`). */
 const LOCATE_REPEAT_MS = 260;
-const TENSION_AUTO = { locateWrong: 4, locateMiss: 12, locateFound: -4, approachMiss: 10, approachHit: -4, froze: 5, recallMiss: 4, newPlace: -2 };
+const TENSION_AUTO = { locateWrong: 4, locateMiss: 12, locateFound: -4, approachMiss: 10, approachHit: -4, holdLost: 4, holdMiss: 8, holdFound: -6, froze: 5, recallMiss: 4, newPlace: -2 };
 /** Midnight: she wakes on the train with some of it still in her chest. */
 const TENSION_SLEEP = 0.6;
 /** Per band: the world's background comes this much more often (interval ×) and louder. */
@@ -144,6 +144,8 @@ export type InteractView =
   | { type: 'touch'; key: number; cells: string[]; style: 'braille' | 'groove' | 'engrave'; prompt?: string }
   | { type: 'locate'; key: number; prompt?: string; triesLeft: number; hint: Direction | null; wrong: Direction[] }
   | { type: 'approach'; key: number; prompt?: string }
+  /** 屏息: hold on and breathe out slowly; `since` is when this hold began (null = not holding). */
+  | { type: 'hold'; key: number; prompt?: string; seconds: number; since: number | null }
   | { type: 'punch'; key: number; cells: number[][]; label?: string; prompt?: string };
 
 export type DirectorOutput = {
@@ -165,14 +167,14 @@ type Run = {
   pos: Pos;
   /** A thread of strangers talking under their breath. */
   whisper?: boolean;
-  pendingInteract?: { beat: InteractBeat; deadline: number; triesLeft: number; start: number };
+  pendingInteract?: { beat: InteractBeat; deadline: number; triesLeft: number; start: number; heldFrom?: number; slips?: number };
   pendingChoice?: { beat: Extract<Beat, { k: 'choice' }>; options: ChoiceOption[]; deadline: number; fallback: number; recallIndex?: number; remaining?: number };
   // recallIndex: the open memory picker answers this option; -1 = this question takes no memory at all.
 };
 
 const CENTER: Pos = { dir: 'center', dist: 'near' };
 
-type InteractBeat = Extract<Beat, { k: 'touch' | 'locate' | 'approach' | 'punch' }>;
+type InteractBeat = Extract<Beat, { k: 'touch' | 'locate' | 'approach' | 'punch' | 'hold' }>;
 /** 聽距離: how far each step lands (audio radius), from the far end of the street to right in front of her. */
 const APPROACH_FAR = 6;
 const APPROACH_NEAR = 0.9;
@@ -540,6 +542,49 @@ export class Director {
     this.bump();
   }
 
+  /**
+   * 屏息: she holds still and lets the breath out slowly. The room falls away while she holds; held long enough, the
+   * small sound she was listening for comes through. Letting go early, her own heart is all she hears; she can try again.
+   */
+  holdStart(): void {
+    const main = this.runs.get('main');
+    const pending = main?.pendingInteract;
+    const view = this.view.interact;
+    if (!main || !pending || pending.beat.k !== 'hold' || view?.type !== 'hold' || view.since !== null) return;
+    const beat = pending.beat;
+    const from = this.view.t;
+    pending.heldFrom = from;
+    this.view.interact = { ...view, since: from };
+    this.out.audio.play('breath', CENTER, { gain: 0.45, rate: 0.7 });
+    this.out.audio.duck(0.6, beat.seconds * 1000);
+    if (beat.sfx) {
+      const sfx = beat.sfx;
+      const at = beat.at ?? 'front';
+      this.schedule(from + beat.seconds * 600, () => { if (main.pendingInteract === pending && pending.heldFrom === from) this.out.audio.play(sfx, { dir: at, dist: 'far' }, { gain: 0.35 }); });
+    }
+    this.schedule(from + beat.seconds * 1000, () => {
+      if (main.pendingInteract !== pending || pending.heldFrom !== from) return;
+      if (beat.sfx) this.out.audio.play(beat.sfx, { dir: beat.at ?? 'front', dist: 'mid' }, { gain: 0.8 });
+      this.resolveInteract(main, true);
+      this.advanceTo(this.view.t);
+    });
+    this.bump();
+  }
+
+  holdEnd(): void {
+    const main = this.runs.get('main');
+    const pending = main?.pendingInteract;
+    const view = this.view.interact;
+    if (!main || !pending || pending.beat.k !== 'hold' || view?.type !== 'hold' || view.since === null) return;
+    pending.heldFrom = undefined;
+    this.view.interact = { ...view, since: null };
+    // Too soon: the breath catches, the heart jumps back into her ears. Only the first few slips wind her up more.
+    pending.slips = (pending.slips ?? 0) + 1;
+    if (pending.slips <= HOLD_SLIPS_FELT) this.addTension(TENSION_AUTO.holdLost);
+    this.out.audio.play('heartbeat', CENTER, { gain: 0.8, rate: 1.2 });
+    this.bump();
+  }
+
   /** 聽距離: she speaks up. Whether it lands depends on how close the steps are right now. */
   approachCall(): void {
     const main = this.runs.get('main');
@@ -566,6 +611,7 @@ export class Director {
     // An approach lasts as long as the walk: every step toward her, then three going away.
     const timeoutMs = beat.k === 'approach' ? (beat.steps + APPROACH_PAST.length) * beat.interval * 1000
       : beat.k === 'locate' ? (beat.timeout !== undefined ? beat.timeout * 1000 : Infinity) : beat.timeout * 1000;
+    // (hold: the whole window to get her breath down)
     run.blocked = true;
     run.pendingInteract = { beat, deadline: t + timeoutMs + SHIFT_MS, triesLeft: beat.k === 'locate' ? beat.tries : 1, start: t + SHIFT_MS };
     if (this.view.focus !== 'main' && this.shift?.to !== 'main') this.beginShift('main');
@@ -576,6 +622,7 @@ export class Director {
       this.view.interact = { type: 'locate', key, prompt: beat.prompt, triesLeft: beat.tries, hint: null, wrong: [] };
       if (beat.replay !== false) this.repeatLocate(key, beat, t);
     }
+    if (beat.k === 'hold') this.view.interact = { type: 'hold', key, prompt: beat.prompt, seconds: beat.seconds, since: null };
     if (beat.k === 'approach') {
       this.view.interact = { type: 'approach', key, prompt: beat.prompt };
       this.walkUp(key, beat, t + SHIFT_MS);
@@ -643,7 +690,8 @@ export class Director {
     this.view.interact = null;
     if (pending.beat.k === 'locate') this.addTension(ok ? TENSION_AUTO.locateFound : TENSION_AUTO.locateMiss);
     if (pending.beat.k === 'approach') this.addTension(ok ? TENSION_AUTO.approachHit : TENSION_AUTO.approachMiss);
-    if (pending.beat.k === 'locate') run.stack.push({ beats: ok ? pending.beat.success : pending.beat.fail, i: 0 });
+    if (pending.beat.k === 'hold') this.addTension(ok ? TENSION_AUTO.holdFound : TENSION_AUTO.holdMiss);
+    if (pending.beat.k === 'locate' || pending.beat.k === 'hold') run.stack.push({ beats: ok ? pending.beat.success : pending.beat.fail, i: 0 });
     // Nobody spoke up in time: the steps went past and she calls after them.
     if (pending.beat.k === 'approach') run.stack.push({ beats: branch ?? pending.beat.late, i: 0 });
     run.busyUntil = this.view.t;
@@ -929,7 +977,7 @@ export class Director {
         this.applyChoice(run, option);
       }
       // Hands and ears take their time, but the day does not stop: she gets there on her own, or misses it.
-      if (run.pendingInteract && run.pendingInteract.deadline <= t) this.resolveInteract(run, run.pendingInteract.beat.k !== 'locate' && run.pendingInteract.beat.k !== 'approach');
+      if (run.pendingInteract && run.pendingInteract.deadline <= t) this.resolveInteract(run, run.pendingInteract.beat.k !== 'locate' && run.pendingInteract.beat.k !== 'approach' && run.pendingInteract.beat.k !== 'hold');
       while (!run.done && !run.blocked && run.busyUntil <= this.view.t && this.view.phase === 'scene') {
         this.finishLine(run);
         this.step(run);
@@ -1030,7 +1078,7 @@ export class Director {
       case 'clock': this.setClock(beat.time); run.busyUntil = t; this.bump(); return;
       case 'cue': this.startThread(beat, t); run.busyUntil = t + 400; return;
       case 'choice': this.offerChoice(run, beat, t); return;
-      case 'touch': case 'locate': case 'approach': case 'punch': this.startInteract(run, beat, t); return;
+      case 'touch': case 'locate': case 'approach': case 'punch': case 'hold': this.startInteract(run, beat, t); return;
       case 'if': run.stack.push({ beats: evalCond(beat.cond, this.condContext()) ? beat.then : beat.else, i: 0 }); run.busyUntil = t; return;
       case 'set': beat.flags.forEach((flag) => this.flags.add(flag)); run.busyUntil = t; return;
       case 'learn': beat.ids.forEach((id) => this.learn(id)); run.busyUntil = t; return;
@@ -1075,7 +1123,12 @@ export class Director {
     // Turning is only taught while there is a sound to turn to.
     const teaching = beat.teach !== undefined && focused && !this.taught(beat.teach)
       && (beat.teach !== 'turn' || this.view.periph.some((item) => item.kind === 'cue' && item.thread !== run.id));
-    if (teaching) { this.teachKey = center.key; this.view.teach = beat.teach!; }
+    if (teaching) {
+      this.teachKey = center.key;
+      this.view.teach = beat.teach!;
+      // Never stuck on a lesson: someone whose long-press the screen reader swallows still gets past it.
+      this.schedule(revealEnd + TEACH_GIVE_UP_MS, () => { if (this.teachKey === center.key) this.releaseLesson(); });
+    }
     const manualHold = (!this.settings.autoAdvance && focused) || teaching;
     run.line = { beat, center, revealEnd, end: manualHold ? Infinity : revealEnd + timing.holdMs, learnChecked: false };
     run.busyUntil = run.line.end;
@@ -1658,7 +1711,7 @@ export function learnIdsOf(chapter: Chapter): string[] {
       if (beat.k === 'learn') ids.push(...beat.ids);
       if (beat.k === 'line' && beat.learn) ids.push(beat.learn);
       if (beat.k === 'if') { if (!replayOnly(beat.cond)) visit(beat.then); visit(beat.else); }
-      if (beat.k === 'locate') { visit(beat.success); visit(beat.fail); }
+      if (beat.k === 'locate' || beat.k === 'hold') { visit(beat.success); visit(beat.fail); }
       if (beat.k === 'approach') { visit(beat.hit); visit(beat.early); visit(beat.late); }
       if (beat.k === 'choice') beat.options.forEach((option) => { if (replayOnly(option.cond)) return; visit(option.then); option.recall?.accept.forEach((entry) => visit(entry.then)); });
     }
@@ -1676,13 +1729,20 @@ export function toChineseNumber(value: number): string {
 }
 
 /** Pointing within 45° counts; so does the front/back mirror, which headphones often blur. */
+/** In one hold, letting go too soon winds her up this many times at most (tapping must not spike her). */
+const HOLD_SLIPS_FELT = 3;
+
+/** A lesson line waits this long for the player to try it, then goes on by itself (untaught, so it comes back once). */
+const TEACH_GIVE_UP_MS = 25000;
+
 const SHAKE_VIBRATION: Record<ShakeLevel, VibrationId> = { light: 'thud', hard: 'crash' };
 
 function directionsClose(picked: Direction, target: Direction): boolean {
   const diff = (x: number, y: number) => { const d = Math.abs(x - y) % 360; return Math.min(d, 360 - d); };
   const a = DIRECTION_ANGLE[picked];
   const b = DIRECTION_ANGLE[target];
-  return diff(a, b) <= 45 || diff(a, (540 - b) % 360) === 0;
+  // The next direction round counts; the front/back mirror does not (pointing behind at a sound in front passed too easily).
+  return diff(a, b) <= 45;
 }
 
 /** The stops on the short way round from one place to another, distance easing along with direction. */

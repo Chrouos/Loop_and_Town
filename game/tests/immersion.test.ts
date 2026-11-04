@@ -62,3 +62,72 @@ describe('immersion', () => {
     expect(readable('「拍。」|十八點')).toBe('拍。十八點');
   });
 });
+
+describe('屏息 (hold)', () => {
+  const HOLD = `
+chapter: 1
+title: 測試
+start: s1
+scenes:
+  - id: s1
+    beats:
+      - hold:
+          seconds: 3
+          timeout: 12
+          sfx: hum_rise
+          at: right
+          prompt: 按住，慢慢吐氣
+          success:
+            - narr: 聽到了。
+          fail:
+            - narr: 只聽到自己的心跳。
+      - end: reset
+`;
+  function play(act: (d: Director, held: number) => void) {
+    const { script, errors } = buildScript([{ name: 'a.yaml', source: HOLD }]);
+    expect(errors).toEqual([]);
+    const said: string[] = [];
+    const d = new Director(script!, freshSave(), { audio: silentAudio(), vibrate: () => undefined, persist: () => undefined, wallNow: () => 0 }, { speed: 1 });
+    d.start();
+    let held = 0;
+    for (let i = 0; i < 400 && d.view.phase !== 'reset'; i++) {
+      if (d.view.center && said.at(-1) !== d.view.center.text) said.push(d.view.center.text);
+      if (d.view.interact?.type === 'hold') { act(d, held); held += 100; }
+      else if (!d.view.interact) d.hurry();
+      d.tick(100);
+    }
+    return said;
+  }
+
+  it('held long enough, the sound comes through', () => {
+    expect(play((d) => d.holdStart())).toContain('聽到了。');
+  });
+
+  it('letting go too soon every time, the window closes on her heartbeat', () => {
+    expect(play((d, held) => (held % 1000 === 0 ? d.holdStart() : d.holdEnd()))).toContain('只聽到自己的心跳。');
+  });
+});
+
+describe('a lesson never holds the game forever', () => {
+  it('a keep lesson nobody performs lets the line go on by itself', () => {
+    const { script } = buildScript([{ name: 'a.yaml', source: `
+chapter: 1
+title: 測試
+start: s1
+scenes:
+  - id: s1
+    beats:
+      - { narr: 長按這一句。, teach: keep }
+      - narr: 下一句。
+      - end: reset
+` }]);
+    const d = new Director(script!, freshSave(), { audio: silentAudio(), vibrate: () => undefined, persist: () => undefined, wallNow: () => 0 }, { speed: 1 });
+    d.start();
+    const said: string[] = [];
+    for (let i = 0; i < 800 && d.view.phase !== 'reset'; i++) {
+      if (d.view.center && said.at(-1) !== d.view.center.text) said.push(d.view.center.text);
+      d.tick(100);
+    }
+    expect(said).toContain('下一句。');
+  });
+});

@@ -85,6 +85,8 @@ export function autoplay(options: { seed: number; maxLoops: number; startChapter
       if (view.interact.type === 'touch') director.touchDone();
       else if (view.interact.type === 'punch') director.punchDone();
       else if (view.interact.type === 'approach') director.approachCall();
+      // 屏息: once she starts holding, random play keeps holding until the sound comes through.
+      else if (view.interact.type === 'hold') director.holdStart();
       else director.locatePick(DIRECTIONS[Math.floor(random() * DIRECTIONS.length)]);
     }
     if (view.recall) {
