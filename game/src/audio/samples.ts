@@ -80,6 +80,7 @@ export const SFX_SAMPLES: Partial<Record<SfxId, SfxSample>> = {
   door_creak: { files: ['sfx/door_creak_1.m4a', 'sfx/door_creak_2.m4a'], gain: 1 },
   door_open: { files: ['sfx/door_open.m4a'], gain: 1 },
   door_slam: { files: ['sfx/door_slam.m4a'], gain: 1 },
+  drain_cover: { files: ['sfx/drain_cover_1.m4a', 'sfx/drain_cover_2.m4a', 'sfx/drain_cover_3.m4a'], gain: 1 },
   drawer: { files: ['sfx/drawer.m4a'], gain: 1 },
   drawer_catch: { files: ['sfx/drawer_catch_1.m4a', 'sfx/drawer_catch_2.m4a'], gain: 1 },
   envelope: { files: ['sfx/envelope.m4a'], gain: 1 },
@@ -92,6 +93,7 @@ export const SFX_SAMPLES: Partial<Record<SfxId, SfxSample>> = {
   glass_clink: { files: ['sfx/glass_clink_1.m4a', 'sfx/glass_clink_2.m4a', 'sfx/glass_clink_3.m4a'], gain: 1 },
   gravel_step: { files: ['sfx/gravel_step_1.m4a', 'sfx/gravel_step_2.m4a', 'sfx/gravel_step_3.m4a', 'sfx/gravel_step_4.m4a'], gain: 1 },
   hammer: { files: ['sfx/hammer_1.m4a', 'sfx/hammer_2.m4a'], gain: 1 },
+  hand_rub: { files: ['sfx/hand_rub_1.m4a', 'sfx/hand_rub_2.m4a', 'sfx/hand_rub_3.m4a'], gain: 1 },
   heartbeat: { files: ['sfx/heartbeat_1.m4a', 'sfx/heartbeat_2.m4a', 'sfx/heartbeat_3.m4a'], gain: 1 },
   house_tick: { files: ['sfx/house_tick_1.m4a', 'sfx/house_tick_2.m4a', 'sfx/house_tick_3.m4a', 'sfx/house_tick_4.m4a'], gain: 1 },
   huddle_rustle: { files: ['sfx/huddle_rustle_1.m4a', 'sfx/huddle_rustle_2.m4a', 'sfx/huddle_rustle_3.m4a'], gain: 1 },
@@ -107,6 +109,7 @@ export const SFX_SAMPLES: Partial<Record<SfxId, SfxSample>> = {
   laugh_soft_m: { files: ['sfx/laugh_soft_m_1.m4a', 'sfx/laugh_soft_m_2.m4a', 'sfx/laugh_soft_m_3.m4a'], gain: 1 },
   light_buzz: { files: ['sfx/light_buzz.m4a'], gain: 1 },
   lighter: { files: ['sfx/lighter.m4a'], gain: 1 },
+  lighter_lid: { files: ['sfx/lighter_lid_1.m4a', 'sfx/lighter_lid_2.m4a', 'sfx/lighter_lid_3.m4a'], gain: 1 },
   lock_turn: { files: ['sfx/lock_turn.m4a'], gain: 1, jitter: 0.01 },
   memory_keep: { files: ['sfx/memory_keep_1.m4a', 'sfx/memory_keep_2.m4a', 'sfx/memory_keep_3.m4a'], gain: 1 },
   metal_crash: { files: ['sfx/metal_crash.m4a'], gain: 1 },
@@ -128,6 +131,7 @@ export const SFX_SAMPLES: Partial<Record<SfxId, SfxSample>> = {
   radio_noise: { files: ['sfx/radio_noise.m4a'], gain: 1 },
   rail_clack: { files: ['sfx/rail_clack_1.m4a', 'sfx/rail_clack_2.m4a', 'sfx/rail_clack_3.m4a', 'sfx/rail_clack_4.m4a'], gain: 1 },
   rain_burst: { files: ['sfx/rain_burst.m4a'], gain: 1 },
+  raincoat_rustle: { files: ['sfx/raincoat_rustle_1.m4a', 'sfx/raincoat_rustle_2.m4a', 'sfx/raincoat_rustle_3.m4a', 'sfx/raincoat_rustle_4.m4a'], gain: 1 },
   recorder_click: { files: ['sfx/recorder_click_1.m4a', 'sfx/recorder_click_2.m4a', 'sfx/recorder_click_3.m4a'], gain: 1 },
   relay_click: { files: ['sfx/relay_click_1.m4a', 'sfx/relay_click_2.m4a', 'sfx/relay_click_3.m4a'], gain: 1 },
   scooter_start: { files: ['sfx/scooter_start.m4a'], gain: 1 },
@@ -145,6 +149,7 @@ export const SFX_SAMPLES: Partial<Record<SfxId, SfxSample>> = {
   step: { files: ['sfx/step_1.m4a', 'sfx/step_2.m4a', 'sfx/step_3.m4a', 'sfx/step_4.m4a'], gain: 1 },
   step_heels: { files: ['sfx/step_heels_1.m4a', 'sfx/step_heels_2.m4a', 'sfx/step_heels_3.m4a'], gain: 1 },
   step_run: { files: ['sfx/step_run_1.m4a', 'sfx/step_run_2.m4a'], gain: 1 },
+  step_uneven: { files: ['sfx/step_uneven_1.m4a', 'sfx/step_uneven_2.m4a', 'sfx/step_uneven_3.m4a', 'sfx/step_uneven_4.m4a'], gain: 1, jitter: 0.02 },
   step_wet: { files: ['sfx/step_wet_1.m4a', 'sfx/step_wet_2.m4a', 'sfx/step_wet_3.m4a'], gain: 1 },
   stove_flame: { files: ['sfx/stove_flame_1.m4a', 'sfx/stove_flame_2.m4a'], gain: 1 },
   strap_click: { files: ['sfx/strap_click_1.m4a', 'sfx/strap_click_2.m4a'], gain: 1 },
@@ -188,6 +193,7 @@ export const AMBIENCE_SAMPLES: Partial<Record<AmbienceId, AmbienceSample>> = {
   restaurant: { files: ['amb/restaurant.m4a'], gain: 1, loop: true, loopStart: 0.25, loopEnd: 55.25, extras: true },
   room_tone: { files: ['amb/room_tone.m4a'], gain: 1, loop: true, loopStart: 0.25, loopEnd: 60.25 },
   sea_far: { files: ['amb/sea_far.m4a'], gain: 1, loop: true, loopStart: 0.25, loopEnd: 60.25, extras: true },
+  street_afternoon: { files: ['amb/street_afternoon.m4a'], gain: 1, loop: true, loopStart: 0.25, loopEnd: 36.25, extras: true },
   street_evening: { files: ['amb/street_evening.m4a'], gain: 1, loop: true, loopStart: 0.25, loopEnd: 30.25, extras: true },
   street_morning: { files: ['amb/street_morning.m4a'], gain: 1, loop: true, loopStart: 0.25, loopEnd: 48.25, extras: true },
   tower_square_night: { files: ['amb/tower_square_night.m4a'], gain: 1, loop: true, loopStart: 0.25, loopEnd: 40.25, extras: true },
@@ -302,8 +308,11 @@ export class SampleBank {
         if (!res.ok) throw new Error(`${res.status}`);
         return decode(this.ac, await res.arrayBuffer());
       };
+      // A bed fetched ahead for the next scene may still be on its way: take it over instead of a second download.
+      const warming = this.warming.get(path);
+      const first = warming ? () => warming.then((bytes) => decode(this.ac, bytes.slice(0))) : () => fetchDecode();
       try {
-        const buf = await fetchDecode().catch(() => fetchDecode('reload'));
+        const buf = await first().catch(() => fetchDecode('reload'));
         this.buffers.set(path, buf);
         this.failed.delete(path);
         return buf;
@@ -382,18 +391,60 @@ export class SampleBank {
     }
   }
 
-  /** Load every one-shot in the background, a few at a time. */
-  async preloadSfx(concurrency = 8): Promise<void> {
+  /** Load every one-shot in the background, a few at a time; `prefetch` can push a scene's sounds ahead of them. */
+  preloadSfx(concurrency = 8): Promise<void> {
+    if (!this.supported) return Promise.resolve();
+    this.concurrency = Math.max(1, concurrency);
+    const files = Object.values(this.sfxManifest).flatMap((e) => (e ? [...e.files] : []));
+    const queued = new Set(this.queue.map((job) => job.path));
+    for (const path of new Set(files)) if (!queued.has(path)) this.queue.push({ path, warm: false });
+    this.pump();
+    return new Promise((resolve) => this.drained.push(resolve));
+  }
+
+  /**
+   * Fetch these next, ahead of everything already queued: the sounds of the scene about to play, so on a slow
+   * connection its first cue does not arrive too late to be heard. One-shots of `sfx` are decoded; beds in
+   * `amb` are only fetched into the browser cache (a decoded bed is large), so loading them later is quick.
+   */
+  prefetch(sfx: readonly SfxId[], amb: readonly AmbienceId[] = []): void {
     if (!this.supported) return;
-    const files = [...new Set(Object.values(this.sfxManifest).flatMap((e) => (e ? [...e.files] : [])))];
-    let next = 0;
-    const worker = async (): Promise<void> => {
-      while (next < files.length) {
-        const f = files[next++]!;
-        await this.load(f);
-      }
-    };
-    await Promise.all(Array.from({ length: Math.max(1, concurrency) }, worker));
+    const jobs = [
+      ...sfx.flatMap((id) => this.sfxManifest[id]?.files ?? []).filter((path) => !this.buffers.has(path)).map((path) => ({ path, warm: false })),
+      ...amb.map((id) => this.ambManifest[id]?.files[0]).filter((path): path is string => !!path && !this.buffers.has(path) && !this.warmed.has(path)).map((path) => ({ path, warm: true })),
+    ];
+    const first = new Set(jobs.map((job) => job.path));
+    this.queue = [...jobs, ...this.queue.filter((job) => !first.has(job.path))];
+    this.pump();
+  }
+
+  private queue: { path: string; warm: boolean }[] = [];
+  private running = 0;
+  private concurrency = 8;
+  private readonly warmed = new Set<string>();
+  private readonly warming = new Map<string, Promise<ArrayBuffer>>();
+  private drained: (() => void)[] = [];
+
+  private pump(): void {
+    while (this.running < this.concurrency && this.queue.length) {
+      const job = this.queue.shift()!;
+      if (this.buffers.has(job.path) || (job.warm && this.warmed.has(job.path))) continue;
+      this.running++;
+      let done: Promise<unknown>;
+      if (job.warm) {
+        const bytes = fetch(sampleUrl(job.path)).then((res) => {
+          if (!res.ok) throw new Error(`${res.status}`);
+          return res.arrayBuffer();
+        });
+        this.warming.set(job.path, bytes);
+        done = bytes.then(() => { this.warmed.add(job.path); }, () => undefined).finally(() => this.warming.delete(job.path));
+      } else done = this.load(job.path);
+      void done.finally(() => {
+        this.running--;
+        this.pump();
+      });
+    }
+    if (!this.running && !this.queue.length) for (const resolve of this.drained.splice(0)) resolve();
   }
 
   stats(): SampleBankStats {

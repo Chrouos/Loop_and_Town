@@ -62,7 +62,7 @@ scenes:
     cast: { yuan: front-right }
     beats:
       - { sfx: train_door, at: left, dist: near, text: 噗嘶 }
-      - { sfx: step, at: front-right, dist: mid, text: 叩、叩 }
+      - { sfx: step_uneven, at: front-right, dist: mid, text: 咚、叩 }
       - yuan: 比我想的早。
       - narr: 後面那幾句我都知道，就讓它們照原樣過去。
       - narr: 他的左手肘停在我右手邊，高度剛好。機油味裡混著一點黃銅。
@@ -97,32 +97,32 @@ scenes:
       - phone: 撥號中。許若晴。
       - { sfx: phone_ring, at: right, dist: near, text: 嘟——嘟—— }
       - narr: 我的拇指在手機殼的邊上來回刮，刮到一道舊裂痕，就停在那裡。
-      - ruoqing: 喂？哪位？
+      - { ruoqing: 喂？哪位？, via: phone }
       - me: 我是林家的。陳醫生要我跟妳說，今天傍晚的事改天。
-      - ruoqing: 改天？欸他怎麼不自己——
+      - { ruoqing: 改天？欸他怎麼不自己——, via: phone }
       - me: 他說會再找妳。
       - { sfx: strap_click, at: right, dist: near, text: 喀 }
       - narr: 背帶扣響了一聲，就沒有再響。
-      - ruoqing: ……喔。好啊。
+      - { ruoqing: ……喔。好啊。, via: phone }
       - { sfx: phone_hangup, at: right, dist: near, text: 嘟 }
       - phone: 撥號中。灰潮鎮醫院。
       - { sfx: phone_ring, at: right, dist: near, text: 嘟——嘟—— }
-      - boxun: 陳柏勳。
+      - { boxun: 陳柏勳。, via: phone }
       - me: 陳醫生，若晴今天傍晚不去舊車站了。她要我轉告你。
       - pause: 1.5
-      - boxun: 她自己說的？
+      - { boxun: 她自己說的？, via: phone }
       - me: 嗯。
-      - boxun: 好。那我今天留在醫院。
+      - { boxun: 好。那我今天留在醫院。, via: phone }
       - { sfx: phone_hangup, at: right, dist: near, text: 嘟 }
       - think: 我讓他們各自以為是對方取消的。若晴不會先打給醫生，醫生也不會去追一個不來的人。
       - think: 我聽過他們太多次了。
       - phone: 撥號中。葉庭安。
       - { sfx: phone_ring, at: right, dist: near, text: 嘟—— }
-      - tingan: 喂？哪位？……妳怎麼會有這支號碼？
+      - { tingan: 喂？哪位？……妳怎麼會有這支號碼？, via: phone }
       - me: 林家的。妳想採訪的那一家。
       - me: 傍晚五點四十來我家，我知道的都告訴妳。
       - pause: 1.5
-      - tingan: 五點四十。林家老屋對吧？好。
+      - { tingan: 五點四十。林家老屋對吧？好。, via: phone }
       - { sfx: phone_hangup, at: right, dist: near, text: 嘟 }
       - think: 三通電話，十一分鐘。第一次的時候，我花了一整天。
       - { think: 我好像越來越會了。, mem: m_c6_good_at_it }
@@ -238,7 +238,7 @@ scenes:
   - id: c6_h1400
     time: "14:00"
     place: 灰潮鎮，街上
-    ambience: [street_morning, sea_far]
+    ambience: [street_afternoon, sea_far]
     beats:
       - { sfx: seagull, at: right, dist: far, text: 嘎——嘎 }
       - narr: 風轉了，從海那邊吹過來，有鹽的味道。
@@ -275,6 +275,7 @@ scenes:
     ambience: [street_evening]
     beats:
       - { sfx: kid_laugh, at: left, dist: mid, text: 哈哈 }
+      - { sfx: step_run, at: left, dist: mid, to: back-left, text: 噠噠噠 }
       - narr: 學校放學了。一群小孩從左邊跑過去，書包裡的鉛筆盒喀啦喀啦響。
       - think: 只夠再去一個地方。山上和派出所都來不及了。
       - choice:
@@ -355,6 +356,7 @@ scenes:
       - pause: 2
       - narr: 胸口憋得發疼，我才發現自己從第一個字開始就沒有換氣。
       - daze: off
+      - { sfx: cough_w, at: center, dist: near, text: 咳、咳 }
       - narr: 我吸進第一口氣，吸得太急，嗆了一下。
       - pause: 1
       - { sfx: envelope, at: center, dist: near, text: 沙 }
@@ -427,6 +429,7 @@ scenes:
       - { old_woman: 他說要幫一個客人弄東西。到現在還沒拿回來，我也不好意思催。, as: 館員 }
       - heart: fast
       - tension: 8
+      - { sfx: breath, at: center, dist: near }
       - narr: 閱覽室太安靜了，我聽得見自己的呼吸，一口比一口粗。
       - if: know.k_slate_in_shop
         then:
@@ -477,18 +480,39 @@ scenes:
     threads:
       radio:
         beats:
-          - { man: ……北區更新工地，下午測試供電，請巡邏留意。, at: back-left, as: 無線電 }
+          - { man: ……北區更新工地，下午測試供電，請巡邏留意。, at: back-left, as: 無線電, via: radio }
           - { sfx: static_burst, at: back-left, dist: mid, text: 嘶 }
-          - { man: 舊站東側，重複，舊站東側。, at: back-left, as: 無線電 }
+          - { man: 舊站東側，重複，舊站東側。, at: back-left, as: 無線電, via: radio }
     beats:
       - set: c6_d_police
       - { sfx: door_open, at: back, dist: near, text: 吱 }
       - narr: 電扇在轉，遠處有電話在響。那股留在衣服上的菸味，又從桌子對面靠過來。
       - { cue: radio, at: back-left, text: 嘶——, sfx: static_burst }
-      - zhiyuan: 小姐，什麼事？
-      - me: 周警官，我姓林。林知夏是我姊。
+      - { sfx: lighter_lid, at: front-right, dist: near, text: 叮、喀 }
+      - narr: 桌子對面，一個金屬蓋子掀開又蓋上。沒有擦火石的聲音，也沒有人吸那一口。
+      - choice:
+          timeout: 7
+          options:
+            - text: 「周警官，我姓林。林知夏是我姊。」
+              if: know.k_sig_zhiyuan
+              then:
+                - pause: 1.5
+                - zhiyuan: ……我都還沒抬頭，妳就知道是我。
+                - me: 你的打火機。
+                - { sfx: lighter_lid, at: front-right, dist: near, text: 叮 }
+                - narr: 蓋子掀到一半就停住，沒有再蓋回去。
+                - zhiyuan: 戒菸啦。手閒不下來。
+                - set: c6_named_zhiyuan
+            - text: （等他先開口）
+              then:
+                - zhiyuan: 小姐，什麼事？
+                - me: 周警官，我姓林。林知夏是我姊。
       - pause: 2
-      - zhiyuan: ……案子結了。
+      - if: flag.c6_named_zhiyuan
+        then:
+          - zhiyuan: ……案子結了。不過妳要講什麼，我聽。
+        else:
+          - zhiyuan: ……案子結了。
       - narr: 我把手杖立在兩腳中間，手指順著往下摸，摸過一節，又摸到下一節的接縫。
       - me: 你辦公桌右邊最裡面那個抽屜，要卡兩次才拉得開。
       - me: 裡面有一台沒有登錄的錄音機。
@@ -513,7 +537,9 @@ scenes:
             - { sfx: knuckle_knock, at: front-right, dist: near, text: 叩, src: 手指 }
             - think: 跟那一次一樣。第二下，總是隔得比較久。
       - { sfx: key_jingle, at: front-right, dist: mid, text: 鏘 }
-      - { sfx: drawer, at: front-right, dist: mid, text: 喀啦——喀啦 }
+      - { sfx: drawer_catch, variant: 1, at: front-right, dist: mid, text: 喀 }
+      - { sfx: drawer_catch, variant: 2, at: front-right, dist: mid, text: 喀 }
+      - { sfx: drawer, at: front-right, dist: mid, text: 喀啦—— }
       - narr: 卡了兩次，跟我記得的一樣。
       - { sfx: recorder_click, at: front, dist: near, text: 喀嚓 }
       - { sfx: tape_hiss, at: front, dist: near, text: 沙———— }
@@ -557,6 +583,8 @@ scenes:
                 - zhiyuan: 不用謝啦。
                 - zhiyuan: 我只是念給妳聽而已。
           silence:
+            - { sfx: drawer_catch, variant: 1, at: front-right, dist: mid, text: 喀 }
+            - { sfx: drawer_catch, variant: 2, at: front-right, dist: mid, text: 喀 }
             - narr: 電扇轉過來又轉過去。他把錄音機收回抽屜，卡了兩次才推進去。
             - zhiyuan: ……這個抽屜，我報修三年了。
     next: c6_walk
@@ -574,9 +602,11 @@ scenes:
           - { woman: 早上接了一通電話，就說不去了。, at: back-right, as: 護理師 }
     beats:
       - set: c6_d_hospital
+      - { sfx: cart_roll, at: back-left, dist: far, text: 咿咿 }
       - narr: 消毒水，空調。推車的輪子在走廊另一頭咿咿地響。
       - { cue: nurses, at: back-right, text: 窸窸窣窣, sfx: huddle_rustle, whisper: true }
-      - { sfx: step, at: front, dist: mid, text: 叩、叩 }
+      - { sfx: hand_rub, at: front, dist: mid, text: 噗、沙沙 }
+      - narr: 辦公桌那邊按了一下乾洗手，兩隻手搓開，搓了很久。
       - pause: 1
       - me: 陳醫生。我是林知夏的妹妹。
       - narr: 他開口之前會先停一下，這一次也是。
@@ -594,6 +624,7 @@ scenes:
               if: know.k_boxun_which_time
               then:
                 - pause: 3
+                - { sfx: paper_rustle, at: front, dist: near, text: 沙 }
                 - narr: 他手上那疊紙，沙的一聲停住了。
                 - boxun: ……我不記得問過妳。
                 - me: 你不記得。我記得。
@@ -616,9 +647,11 @@ scenes:
         then:
           - boxun: 主訴、處置，妳去櫃台申請，醫院會給。其他的，家屬問，我也只能講到這裡。
           - { sfx: drawer, at: front, dist: near, text: 喀 }
+          - { sfx: chair_scrape, at: center, dist: near, text: 嘎 }
           - narr: 紙收回抽屜，抽屜推緊。我扶著椅背站起來，椅腳在地磚上刮了一聲。
           - { boxun: ……她初診的時候，自己填過一張單子。我到現在還不知道要歸在哪裡。, learn: lead_c6_form }
           - heart: slow
+          - { sfx: pen_scratch, at: front, dist: mid, text: 唰唰 }
           - narr: 我的手停在門把上，金屬很冰。他沒有再說下去，筆又開始在紙上走。
           - think: 一張她自己填的單子。他不是要給我，是自己多講了一句。
           - heart: off
@@ -643,6 +676,7 @@ scenes:
       - pause: 2.5
       - narr: 我的拇指壓在那幾道凹痕上，壓到指甲邊發白。走廊那頭的推車還在咿咿地響。
       - think: 同一個人，同一個星期。一張說她記得還沒發生的事，一張說那件事已經發生過了。
+      - { sfx: cough, at: front, dist: near, text: 咳 }
       - narr: 他清了一下喉嚨。
       - boxun: 我那時候以為那是一句症狀。
       - boxun: 後來……我不習慣把推測說成事實。
@@ -684,15 +718,17 @@ scenes:
     beats:
       - set: c6_d_institute
       - narr: 往北的坡很陡。計程車停在半路，司機說上面不好迴車。
+      - { sfx: gravel_step, at: center, dist: near, text: 沙、沙 }
       - { sfx: cane_tap, at: front, dist: near, text: 叩 }
       - narr: 剩下的路我自己走。碎石，接著是柏油，最後手杖敲到一道鐵網。
       - heart: slow
       - narr: 這條岔路我沒走過，之前都是從圖書館那邊跟庭安上來。碎石在鞋底下滾，數的步數早就亂了。
       - { cue: workers, at: back-right, text: 鏗、鏗, sfx: hammer }
+      - { sfx: metal_rattle, at: front, dist: near, text: 嘩啦, src: 鐵網 }
       - narr: 風從坡下灌上來，鐵網被吹得一直晃。網子另一邊有東西在窸窣，聽不出是人還是塑膠袋。
       - think: 庭安穿雨衣。雨衣是那種會黏在一起又撕開的聲音。
       - locate:
-          sfx: cloth_rustle
+          sfx: raincoat_rustle
           at: front-left
           decoys:
             - { sfx: wind_gust, at: right }
@@ -708,8 +744,9 @@ scenes:
             - me: 葉小姐？
             - narr: 風把我的聲音吹回臉上。坡下敲東西的聲音停了，網子另一邊什麼都沒回。
             - { man: 小姐，妳找誰？, at: back-right, as: 坡下的工人 }
+            - { sfx: metal_rattle, at: front, dist: near, text: 嘩嘩, src: 鐵網 }
             - narr: 我抓住鐵網，鐵絲勒進指節，網子被我抓得嘩嘩響。手心全是汗。
-            - { sfx: cloth_rustle, at: front-left, dist: near, text: 窸窣 }
+            - { sfx: raincoat_rustle, at: front-left, dist: near, text: 沙、沙 }
             - tingan: 這邊啦，門在這邊。……林家的？妳一個人上來？
             - tingan: 妳不是約我五點四十？
       - me: 我等不到五點四十。
@@ -784,7 +821,7 @@ scenes:
                 - tingan: ……妳不問為什麼？
                 - me: 妳有妳的理由。
           silence:
-            - { sfx: cloth_rustle, at: front-left, dist: near, text: 沙, src: 雨衣 }
+            - { sfx: raincoat_rustle, at: front-left, dist: near, text: 沙 }
             - narr: 機器的運轉聲一直沒變。她的雨衣沙了一下，就不動了。
     next: c6_walk
 
@@ -854,6 +891,7 @@ scenes:
                 - narr: 相紙很滑，什麼都摸不到。一面牆被收進一張平平的紙裡。
                 - think: 我有她的聲音就夠了。
           silence:
+            - { sfx: paper_rustle, at: front, dist: near, text: 沙 }
             - narr: 她把照片收回去，紙在桌上滑了一下。
             - pause: 2
             - ruoqing: ……好啦，不丟。我放進「不像的」那個資料夾。
@@ -874,6 +912,7 @@ scenes:
       - ruoqing: 等一下，窗邊比較亮。
       - { sfx: chair_scrape, at: front-left, dist: near, text: 嘎 }
       - move: { ruoqing: front-left }
+      - { sfx: car_pass, at: front-left, dist: mid, text: 嗚—— }
       - narr: 她站起來，靠到窗邊。外面的車聲一下子近了。
       - ruoqing: 我舉高一點喔。這樣比較透。
       - { sfx: strap_click, at: front-left, dist: near, text: 喀 }
@@ -884,7 +923,7 @@ scenes:
       - pause: 1.5
       - { ruoqing: 不、要、回、來。……跟上面那個，是同一句嗎？, learn: k_pencil_under_braille, mem: m_c6_pencil }
       - me: 嗯。
-      - { sfx: paper_rustle, at: front-left, dist: near, text: 沙 }
+      - { sfx: envelope, at: front-left, dist: near, text: 沙 }
       - ruoqing: 還有信封。
       - ruoqing: 「林知夏」這三個字是知夏姊寫的。我很確定，她「夏」的最後一筆都拖很長。
       - ruoqing: 角落還有三個小字，也是鉛筆。「給妹妹」。
@@ -902,6 +941,7 @@ scenes:
       - pause: 2
       - daze: off
       - { sfx: paper_rustle, at: front, dist: near, text: 沙, src: 信紙 }
+      - { sfx: cup_set, at: back-left, dist: mid, text: 喀 }
       - narr: 她把信紙放回桌上，紙角刮過木頭。櫃台那邊的杯盤聲才又回來。
       - ruoqing: ……妳早就知道了喔？才叫我看。
       - me: 我剛剛才知道。
@@ -925,7 +965,7 @@ scenes:
             then:
               - narr: 我摸著長椅邊緣，找到上次坐過的位置。木頭底下有一顆凸出來的螺絲。
               - { sfx: bicycle_bell, at: back-right, dist: mid, text: 叮叮 }
-              - narr: 一台腳踏車從身後過去。鏈條很鬆，每踩一圈就喀啦響一下。
+              - narr: 一台腳踏車按了兩下鈴，從身後過去。鏈條很鬆，每踩一圈就喀啦響一下。
             else:
               - narr: 我又坐回長椅上。這次沒有把手杖收起來，杖尖還抵著地面。
               - { sfx: wind_gust, at: front-left, dist: far, text: 嗚—— }
@@ -935,6 +975,7 @@ scenes:
         then:
           - set: c6_square_1
           - { sfx: ball_bounce, at: right, dist: mid, text: 咚、咚 }
+          - { sfx: wing_flutter, at: front-right, dist: mid, text: 啪啪啪 }
           - narr: 有小孩在拍球。鴿子被嚇得飛起來，翅膀拍得很亂，又一隻一隻落回來。
           - think: 一個多小時，我可以拿去查一件事。我拿來坐在這裡。
           - think: 知夏，妳有沒有這樣浪費過一個下午？
@@ -966,6 +1007,8 @@ scenes:
       - narr: 回家的路經過老街。咖啡的味道從右邊的門縫飄出來。
       - { sfx: car_pass, at: back-left, dist: far, text: 噗噗噗 }
       - narr: 老街很窄，這一段沒有騎樓。一台機車的引擎聲在兩邊的牆之間彈來彈去。
+      - { sfx: coffee_grind, at: right, dist: mid, text: 嗡嘰嘰嘰 }
+      - { sfx: dog_bark, at: front, dist: mid, text: 汪、汪 }
       - narr: 我把手杖收到身前，停在路中間。右邊磨豆機在轉，前面有狗在叫。
       - think: 它從哪一頭過來？我要往另一邊讓。
       - locate:
@@ -988,6 +1031,7 @@ scenes:
             - { sfx: car_horn, at: back-left, dist: near, text: 叭——, shake: hard }
             - heart: pound
             - tension: 10
+            - { sfx: cane_tap, at: front-left, dist: mid, text: 喀、喀 }
             - narr: 照後鏡撞上我的左手肘。手杖飛出去，在柏油上彈了兩下。
             - { man: 看路啦！, as: 騎車的人 }
             - { sfx: car_pass, at: front, dist: far, text: 噗噗噗 }
@@ -1015,8 +1059,8 @@ scenes:
           - think: 這是真話。
         else:
           - { sfx: laugh_soft, at: right, dist: mid, text: 呵呵 }
+          - { sfx: cough_w, at: right, dist: mid, text: 咳、咳 }
           - narr: 我沒有進去。若晴在裡面跟店長說笑，笑到一半咳了兩聲。
-          - { sfx: cough, at: right, dist: mid, text: 咳、咳 }
           - think: 東牆，灰色的櫃子，點字底下的鉛筆字。我把它們都帶回家。
       - narr: 天在變涼。我知道，是因為手杖的握把冷了。
     next: c6_table
@@ -1045,7 +1089,7 @@ scenes:
               - narr: 旁邊一張卡：筆記本，擦掉的一行。不要回來，凹的。
       - if: know.k_watch_engraving
         then:
-          - { sfx: glass_clink, at: front, dist: near, text: 叮 }
+          - { sfx: tools_clink, at: front, dist: near, text: 叮, src: 手錶 }
           - if: know.k_watch_1831
             then:
               - narr: 手錶，停在十八點三十一分。背面刻著：不要先救第一個死者。
@@ -1085,18 +1129,41 @@ scenes:
       - pause: 1.5
       - narr: 我的手從左邊滑到右邊，再滑回來，像在讀一行很長的點字。
       - think: 如果它們說的是同一件事……
-      - { sfx: hammer, at: back, dist: mid, text: 叩、叩、叩, shake: light }
+      - { sfx: knuckle_knock, at: back, dist: mid, text: 叩、叩、叩, src: 敲門, shake: light }
       - narr: 我手一抖，最右邊那張卡被掃到桌緣，差一點掉下去。
       - { sfx: door_open, at: back, dist: near, text: 吱 }
-      - { sfx: cloth_rustle, at: front-right, dist: near, text: 窸窣 }
-      - if: seen.c6_institute
-        then:
-          - tingan: 我來了。……妳比我早下山欸。
-        else:
-          - tingan: 林小姐？我葉庭安。妳約我五點四十。
+      - { sfx: raincoat_rustle, at: back, dist: near, text: 沙、沙 }
+      - { sfx: raincoat_rustle, at: front-right, dist: near, text: 沙、沙 }
+      - narr: 門口沒有腳步聲。只有布料一路沙沙響，從我背後繞到桌子右前方，停住了。
+      - choice:
+          timeout: 7
+          options:
+            - text: 「葉小姐，椅子在妳左手邊。」
+              if: know.k_sig_tingan
+              then:
+                - pause: 1
+                - tingan: ……我還一個字都沒講。
+                - me: 妳的雨衣，從門口一路響到這裡。
+                - { sfx: raincoat_rustle, at: front-right, dist: near, text: 沙 }
+                - narr: 她低頭拉了一下衣襬，雨衣又沙了一聲。
+                - tingan: 我走路很輕欸。通常都是我先認出別人。
+                - set: c6_named_tingan
+            - text: （等她先開口）
+              then:
+                - if: seen.c6_institute
+                  then:
+                    - tingan: 我來了。……妳比我早下山欸。
+                  else:
+                    - tingan: 林小姐？我葉庭安。妳約我五點四十。
       - tingan: 這些是什麼？
       - me: 我姊留下來的東西。還有一些不是她留的。
-      - narr: 我一張一張講給她聽。她沒有打斷我，雨衣也一直沒脫。
+      - if: flag.c6_named_tingan
+        then:
+          - { sfx: raincoat_rustle, at: front-right, dist: near, text: 沙啦 }
+          - narr: 她把雨衣脫下來，掛上椅背。脫掉以後，她坐在那裡就幾乎沒有聲音了。
+          - narr: 我一張一張講給她聽，她沒有打斷我。
+        else:
+          - narr: 我一張一張講給她聽。她沒有打斷我，雨衣也一直沒脫。
       - me: 我覺得它們是同一件事。有什麼東西，一直想把同一句話送到我手上。
       - { sfx: drawer, at: front, dist: near, text: 喀啦 }
       - narr: 我從抽屜摸出一捲棉線，想把這些卡一張一張綁在一起。
@@ -1145,6 +1212,7 @@ scenes:
               - tingan: 鉛筆、筆跡、郵票，這些是有人親手弄的。
               - tingan: 親手弄的東西，通常找得到那隻手。
           - pause: 1.5
+          - { sfx: envelope, at: front, dist: near, text: 沙 }
           - narr: 我把信從最左邊拿起來，放到桌子的另一頭。那一列短了一截。
           - think: 它從來就不在這一列裡。
         else:
@@ -1157,8 +1225,15 @@ scenes:
       - tingan: 妳在懷疑我。
       - me: 我懷疑每一個知道的人。
       - tingan: 那妳要懷疑的人會很多喔。
+      - if: flag.c6_named_tingan
+        then:
+          - tingan: 先跟妳講一件，妳自己去查。我不會點字，一格都不會。
+          - tingan: 名單上要不要劃掉我，妳決定。
+          - { sfx: raincoat_rustle, at: front-right, dist: near, text: 沙啦 }
+          - narr: 她從椅背上把雨衣抓起來，一邊穿一邊往門口走。
       - tingan: 我先走了。妳找到證據再打給我。不是圖案，是證據。
       - { sfx: door_close, at: back, dist: near, text: 碰 }
+      - { sfx: raincoat_rustle, at: back, dist: far, text: 沙、沙…… }
       - narr: 雨衣的沙沙聲在巷子裡越走越遠，我的手才從桌上拿起來。
     next: c6_1831
 
@@ -1202,8 +1277,9 @@ scenes:
       - pause: 2.5
       - think: 她沒有在紙的另一面回答我。
       - daze: off
+      - { sfx: dog_bark, at: front-left, dist: far, text: 汪、汪 }
       - narr: 冰箱先回來，接著是巷口不知道誰家的狗，叫了兩聲。
-      - { sfx: paper_rustle, at: center, dist: near, text: 沙 }
+      - { sfx: paper_rustle, at: center, dist: near, text: 嘶 }
       - narr: 信紙被手汗黏在皮膚上，掀起來的時候嘶了一聲。
       - touch:
           cells: [深, 深, 歪, 平]
@@ -1218,10 +1294,10 @@ scenes:
           - think: 底下還有她的鉛筆字。那個人是照著她的字打的。
       - phone: 撥號中。許若晴。
       - { sfx: phone_ring, at: right, dist: near, text: 嘟—— }
-      - ruoqing: 喂？我在店裡啦。……妳還好嗎？
+      - { ruoqing: 喂？我在店裡啦。……妳還好嗎？, via: phone }
       - phone: 撥號中。灰潮鎮醫院。
       - { sfx: phone_ring, at: right, dist: near, text: 嘟—— }
-      - boxun: ……我在醫院。出了什麼事嗎？
+      - { boxun: ……我在醫院。出了什麼事嗎？, via: phone }
       - { sfx: phone_notify, at: front, dist: near, text: 叮 }
       - phone: 周予安：店裡沒事。可以下班了嗎？
       - think: 我又把所有人放回了安全的格子。他們不知道自己被放在哪裡。
@@ -1241,6 +1317,7 @@ scenes:
       - think: 知道我看不見的人，會打點字的人，昨天寄過信的人。
       - think: 我一直在找一個三樣都對得上的名字。
       - { sfx: wind_gust, at: front-left, dist: far, text: 嗚—— }
+      - { sfx: house_tick, at: front-left, dist: mid, text: 喀, src: 窗框 }
       - narr: 牆上那座老掛鐘很多年前就不走了。屋子裡沒有秒針聲，只有窗框被風推了一下。
       - narr: 蟲叫從窗縫擠進來。我把信收回口袋，手一直沒有拿出來。
     next: c6_visit
@@ -1253,17 +1330,33 @@ scenes:
     cast: { yuan: front }
     beats:
       - set: c6_at_home
-      - { sfx: door_open, at: back, dist: near, text: 叩叩——吱, shake: light }
+      - { sfx: knuckle_knock, at: back, dist: near, text: 叩叩, src: 敲門, shake: light }
+      - { sfx: door_open, at: back, dist: near, text: 吱 }
       - tension: 8
-      - yuan: 是我。
-      - narr: 我的背已經貼上椅背。聽出是他，才一點一點離開。
-      - { sfx: step, at: front, dist: mid, text: 叩、叩 }
+      - { sfx: step_uneven, at: back, dist: mid, text: 咚、叩 }
+      - narr: 屋裡沒開燈。門口的腳步踩進來一步，停在那裡。
+      - choice:
+          timeout: 6
+          options:
+            - text: 「予安？」
+              if: know.k_sig_yuan
+              then:
+                - { yuan: ……嗯，是我。, at: back }
+                - narr: 一重一輕，是他。我抓著椅子扶手的手指，一根一根鬆開。
+                - tension: -8
+                - set: c6_named_yuan
+            - text: （不出聲，等他開口）
+              then:
+                - { yuan: 是我。, at: back }
+                - { sfx: chair_creak, at: center, dist: near, text: 吱, src: 椅背 }
+                - narr: 我的背已經貼上椅背。聽出是他，才一點一點離開。
+      - { sfx: step_uneven, at: front, dist: mid, text: 咚、叩 }
       - yuan: 妳早上說晚一點要跟我講。我等到現在。
       - me: 房仲走了？
       - yuan: 走了。他說櫃子要清空才好拍照。
       - narr: 他沒有坐下。我聽見他站在桌子另一邊，外套的拉鍊碰到桌緣。
       - yuan: 我清抽屜的時候……
-      - { sfx: cup_set, at: front, dist: near, text: 叩 }
+      - { sfx: tools_clink, at: front, dist: near, text: 叩, src: 鋁框 }
       - narr: 有東西放到桌上。很輕的一聲，金屬碰到木頭。
       - yuan: 這個，我想說應該要讓妳知道。
       - narr: 我伸手過去。鋁框，比手掌長一點，一排一排的小格子。
@@ -1360,6 +1453,7 @@ scenes:
                 miss:
                   - pause: 1
                   - yuan: ……嗯？
+                  - { sfx: paper_rustle, at: front, dist: near, text: 沙 }
                   - think: 不是這句。他手上的收據又翻了一張。
     next: c6_confess
 
@@ -1370,8 +1464,8 @@ scenes:
       - heart: slow
       - if: flag.c6_at_shop
         then:
-          - narr: 滴答聲裡，我聽得出他在哪裡。他的呼吸放得很慢，像怕吵到什麼。
           - { sfx: breath_m, at: front, dist: near, text: 呼…… }
+          - narr: 滴答聲裡，我聽得出他在哪裡。他的呼吸放得很慢，像怕吵到什麼。
         else:
           - { amb: [night_insects], fade: 0.8 }
           - narr: 冰箱的馬達剛好停了。屋子裡只剩他的呼吸，跟窗外的蟲。
@@ -1404,6 +1498,7 @@ scenes:
       - if: flag.c6_at_shop
         then:
           - { sfx: box_close, at: front, dist: near, text: 喀 }
+          - { sfx: box_open, at: front, dist: near, text: 喀 }
           - narr: 鐵盒的蓋子被他扣上，又打開。
         else:
           - narr: 他的手指在點字板的鋁框上來回摸，摸到邊角就停。
@@ -1486,7 +1581,7 @@ scenes:
                 - { sfx: tools_clink, at: front, dist: near, text: 叮 }
                 - narr: 他把一樣東西推到我手邊。鋁框，一排一排的小格子。
               else:
-                - { sfx: cup_set, at: front, dist: near, text: 叩 }
+                - { sfx: tools_clink, at: front, dist: near, text: 叩, src: 鋁框 }
                 - narr: 他把點字板推到我手邊，鋁框碰到我的指尖。
             - yuan: 明天要拿去還。……妳要的話，先放妳這裡。
             - narr: 我沒有拿，也沒有推回去。
@@ -1514,6 +1609,7 @@ scenes:
           - { sfx: shop_bell, at: back, dist: near, text: 叮鈴 }
         else:
           - yuan: 我回去了。板子……我明天拿去還。
+          - { sfx: step_uneven, at: back, dist: mid, text: 咚、叩 }
           - { sfx: door_close, at: back, dist: near, text: 碰 }
     next: c6_night
 

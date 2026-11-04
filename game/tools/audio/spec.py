@@ -201,6 +201,9 @@ def norm_to(mk, db):
 
 amb('street_morning', bed('241135', 14.5, 48.0, 3.0, hp=150), [241135], rms=-36, extras=True,
     note='48 s of a small quiet street at 10 AM (birds, a few cars and pedestrians), recorded from a parked car; high-passed at 150 Hz')
+amb('street_afternoon', bed('241135', 68.0, 36.0, 3.0, hp=150), [241135], rms=-38, extras=True,
+    note='36 s from 1:08 of the same small street as street_morning, its calmer last part (fewer cars and voices, birds further off), '
+         'set 2 dB under the morning bed; high-passed at 150 Hz')
 amb('street_evening', bed('733843', 0.5, 30.0, 3.0, hp=80), [733843], rms=-39, extras=True,
     note='30 s of a quiet street in Bangkok at night (distant traffic, pedestrians), high-passed at 80 Hz')
 amb('tower_square_night', bed('196768', 2.0, 40.0, 3.0, hp=60), [196768], rms=-41, extras=True,
@@ -593,3 +596,87 @@ sfx('scooter_start', [scooter_start], [97159, 54512], st=-20, hp=60, fin=0.02, f
     note='a scooter that fails to start once and catches on the second try: a single-cylinder motorcycle turning over, '
          'coughing and dying (0–1.45 s, about 8 dB down), 0.4 s of nothing, then a CPI Aragon 125cc four-stroke scooter '
          'starting and idling (0–1.58 s, cut before it pulls away), faded out')
+
+
+# jonsept 449917: traffic on a roundabout hitting a loose drain cover. Each wheel gives a clack and, ~0.15 s
+# later, a softer one as the cover rocks back in its frame; three single-wheel hits, road rumble high-passed away.
+sfx('drain_cover', [C('449917', 26.55, 27.02), C('449917', 0.60, 1.07), C('449917', 3.99, 4.46)], [449917], st=-20, hp=150, fin=0.004, fout=0.12,
+    note='a tyre rolling over a loose drain cover: one clack and the softer knock of the cover rocking back in its frame '
+         '(single-wheel hits at 26.55, 0.60 and 3.99 s), traffic rumble high-passed at 150 Hz')
+
+
+# ---------------------------------------------------------------- each person's own sound (2026-10-31)
+# One signature per character, so the player knows who is there by ear alone. Each one is kept apart
+# from its neighbours: step_uneven from `step` (a pair, heavy then light), raincoat_rustle from
+# cloth_rustle (polyester, brighter and smoother) and plastic_crinkle (no crackle), lighter_lid from
+# lighter (no wheel, no flame) and strap_click (a ringing ting before the snap), hand_rub from all of them.
+def uneven_pair(heavy, light, gap):
+    """予安's gait: the left foot lands hard (slowed to 0.86x: lower and longer, +3 dB under 250 Hz),
+    the right one follows `gap` s later, light (sped to 1.06x, 9 dB down, thinner below 250 Hz).
+    Both are single steps of the `step` walk (205817), cut from 10 ms before the heel lands (times
+    are those starts), before the next step; the heavy ones have the lowest spectral centroids of the walk."""
+    def make():
+        h = proc.highpass(cut('205817', heavy, heavy + 0.25), 60)
+        h = fade(proc.shelf(resample(h, 0.86), 250, 3.0), 0.002, 0.06)
+        l = proc.highpass(cut('205817', light, light + 0.23), 60)
+        l = fade(proc.shelf(resample(l, 1.06), 250, -4.0), 0.002, 0.05)
+        l = proc.norm_st(l, ana_st(h) - 9.0, 0.0)
+        return mix(h, l, at=gap)
+    return make
+
+
+def ana_st(x):
+    import ana
+    return ana.db(ana.short_term_max(x, SR))
+
+
+sfx('step_uneven', [uneven_pair(8.745, 8.133, 0.50), uneven_pair(17.489, 18.177, 0.54), uneven_pair(23.653, 21.831, 0.47), uneven_pair(12.610, 25.517, 0.52)],
+    [205817], st=-20, peak=-6, hp=60, fout=0.04, jitter=0.02,
+    note="one person's uneven gait: two steps of the leather-shoe walk used for `step`, ~0.5 s apart; the first (left) "
+         'is a darker step slowed to 0.86x with +3 dB below 250 Hz, the second a brighter step sped to 1.06x, 9 dB quieter')
+
+
+def raincoat(a, b):
+    return lambda: highpass(cut('188175', a, b), 150)
+
+
+sfx('raincoat_rustle', [raincoat(34.70, 35.62), raincoat(37.98, 39.08), raincoat(36.42, 37.85), raincoat(39.95, 41.55)],
+    [188175], st=-23, hp=150, limit=12, fin=0.01, fout=0.1,
+    note='a polyester raincoat swishing with each swing of the arm, cut from a run of evenly paced gestures '
+         '(two takes of two swishes, two takes of three), high-passed at 150 Hz')
+
+
+def lid(sid, ch, open_ab, close_ab, at):
+    """A lid flicked open (the ting) and, `at` s later, snapped shut: two cuts of one recording, with
+    the silence between them shortened."""
+    def make():
+        o = fade(highpass(channel(seg(src(sid), *open_ab), ch), 150), 0.003, 0.03)
+        c = fade(highpass(channel(seg(src(sid), *close_ab), ch), 150), 0.003, 0.08)
+        return mix(o, c, at=at)
+    return make
+
+
+sfx('lighter_lid', [lid('838151', 'mono', (0.10, 0.55), (1.08, 1.75), 0.52), lid('819310', 'R', (0.30, 0.74), (2.66, 3.20), 0.58),
+                    lambda: highpass(cut('838151', 0.10, 1.75), 150)],
+    [838151, 819310], st=-23, peak=-3, hp=150, fout=0.08,
+    note='a Zippo lid flicked open (a ringing ting at 4.7–5.3 kHz) and snapped shut, never struck: two lighters recorded '
+         'opening and closing without lighting; the pause between open and close shortened to ~0.6 s in two takes, '
+         'left at its natural ~1 s in the third (Uši Pro AB pair: right channel only)')
+
+
+def sanitize(pump_ab, rub_a, rub_len=1.1, at=0.62):
+    """One press of a soap/sanitizer pump (press and spring return), then palms rubbed together:
+    the rub is a steady stretch of a dry hand-rub recording, faded in and out, ~2 dB under the pump."""
+    def make():
+        p = fade(highpass(cut('499324', *pump_ab), 120), 0.003, 0.04)
+        p = proc.norm_st(p, -20.0, 0.0)
+        r = highpass(channel(seg(src('670646'), rub_a, rub_a + rub_len), 'L'), 150)
+        r = fade(proc.norm_st(r, -22.0, 0.0), 0.08, 0.3)
+        return mix(p, r, at=at)
+    return make
+
+
+sfx('hand_rub', [sanitize((2.05, 2.63), 1.0), sanitize((4.60, 5.20), 5.0, at=0.66), sanitize((9.68, 10.28), 9.0, rub_len=1.2, at=0.68)],
+    [499324, 670646], st=-22, peak=-4, hp=120, fout=0.1,
+    note='one press of a liquid-soap pump (press, squirt, spring return), then ~1.1 s of palms rubbed together '
+         '(left channel of a stereo rub), faded in and out and set ~2 dB under the pump')
