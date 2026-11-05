@@ -1476,7 +1476,8 @@ scenes:
       - pause: 2
       - daze: off
       - { sfx: siren_far, at: back, dist: mid, text: 喔咿——喔咿—— }
-      - narr: 警笛一聲一聲變清楚，我這才發現自己還跪在碎玻璃上，褲管黏在腿上。
+      - narr: 警笛一聲一聲變清楚，我這才發現自己還跪在碎玻璃上。
+      - narr: 膝蓋一抽一抽地刺。我伸手去摸，褲管濕了一大片，黏在腿上，指尖滑滑的，有鐵鏽味。
       - if: flag.c1_yuan_with_me
         then:
           - { sfx: step_run, at: back, text: 噠噠噠噠 }
@@ -1648,6 +1649,9 @@ scenes:
           - narr: 員警幫我打給予安。他趕到的時候一直在喘，外套的拉鍊都沒拉。
       - narr: 醫院已經確認，若晴沒有救回來。予安陪我坐在這裡，等警官把電話講完。
       - learn: k_ruoqing_died
+      - if: seen.c1_locate_success
+        then:
+          - narr: 膝蓋上貼了紗布，是救護車上的人幫我貼的。褲管那一大片還沒乾透，電扇一吹過來，就冰冰地貼在腿上。
       - { sfx: lighter_lid, at: front, dist: near, text: 叮、喀 }
       - narr: 桌子那頭，一個金屬蓋子掀開，又蓋上。他開口時，菸味也跟著靠過來，可是沒有點菸的聲音。
       - { sfx: plastic_crinkle, at: front, dist: near, text: 啵 }
@@ -1727,7 +1731,7 @@ scenes:
         then:
           - narr: 他的椅子往後退了一下。電扇轉回我這邊的時候，風停在半路，喀一聲，換成往牆壁吹。
           - zhiyuan: 妳褲子濕的，吹了會冷。
-          - think: 濕的。他沒有說是什麼濕的。
+          - think: 濕的。他沒有說是血。
         else:
           - if: seen.c1_locate_fail
             then:
@@ -1779,11 +1783,11 @@ scenes:
       - narr: 我把手機鏡頭對準錶背，一點一點轉，試了好幾個角度。
       - pause: 2
       - phone: 如果你第二次看見十八點三十一分，
-      - { phone: 不要先救第一個死者。, learn: k_watch_engraving, mem: m_engraving }
+      - { phone: 還會有下一個。, learn: k_watch_engraving, mem: m_engraving }
       - pause: 3
       - think: 第二次看見十八點三十一分？
-      - think: 什麼意思？第一個死者又是什麼意思？
-      - narr: 我把那兩行在嘴裡又念了一次，念到「第一個死者」就念不下去。
+      - think: 下一個……什麼？
+      - narr: 我把那兩行在嘴裡又念了一次，念到「下一個」就念不下去。
       - narr: 我把手錶握在手裡，錶殼還有一點我手心的溫度。
       - narr: 我坐到她的床邊，聽自己的呼吸，一口比一口長。
       - pause: 5

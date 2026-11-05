@@ -294,35 +294,46 @@ ${beats.trim().split('\n').map((line) => `      ${line}`).join('\n')}
     const { script, errors } = buildScript([{ name: 'a.yaml', source: SRC(beats) }]);
     expect(errors).toEqual([]);
     const heard: { t: number; gain: number }[] = [];
-    const audio = { ...silentAudio(), play: (id: string, _pos: unknown, options?: { gain?: number }) => { if (id === 'heartbeat') heard.push({ t: director.view.t, gain: options?.gain ?? 1 }); } } as never;
+    // What the screen showed with each beat (the beat before this one is drawn when this one sounds).
+    const seen: number[] = [];
+    const audio = { ...silentAudio(), play: (id: string, _pos: unknown, options?: { gain?: number }) => { if (id === 'heartbeat') { heard.push({ t: director.view.t, gain: options?.gain ?? 1 }); if (director.view.heart) seen.push(director.view.heart.glow); } } } as never;
     let save: GameSave = { ...freshSave(), started: true, scene: 's1' };
     const director: Director = new Director(script, save, { audio, vibrate: () => undefined, persist: (next) => { save = next; }, wallNow: () => 0 });
     director.start();
     const run = (ms: number) => { for (let t = 0; t < ms; t += 50) director.tick(50); };
     for (let i = 0; i < 600 && director.view.sceneId !== 's1'; i++) run(50);
-    return { director, heard, run };
+    return { director, heard, seen, run };
   }
 
-  it('starting, it comes up from soft to full over a couple of seconds', () => {
-    const { heard, run } = play('- heart: pound');
-    run(4000);
+  it('starting, it comes up from soft to full beat by beat, and the screen climbs with it', () => {
+    const { director, heard, seen, run } = play('- heart: pound');
+    run(6500);
     expect(heard[0].gain).toBeLessThan(0.3);
+    // Not a jump: it takes several beats to get there.
+    expect(heard.filter((beat) => beat.gain < 0.65).length).toBeGreaterThanOrEqual(5);
     for (let i = 1; i < heard.length; i++) expect(heard[i].gain).toBeGreaterThanOrEqual(heard[i - 1].gain - 1e-9);
     expect(heard[heard.length - 1].gain).toBeCloseTo(0.72, 2);
+    for (let i = 1; i < seen.length; i++) expect(seen[i]).toBeGreaterThanOrEqual(seen[i - 1] - 1e-9);
+    expect(seen[0]).toBeLessThan(0.4);
+    expect(director.view.heart?.glow).toBeCloseTo(1, 2);
   });
 
   it('stopping, each beat is softer and further apart until it is gone', () => {
-    const { director, heard, run } = play('- heart: pound\n- pause: 4\n- heart: "off"');
-    run(4500);
+    const { director, heard, seen, run } = play('- heart: pound\n- pause: 6\n- heart: "off"');
+    run(6500);
     const at = heard.length;
-    expect(director.view.heart?.shown).toBe('slow');
-    run(6000);
+    const shownAt = seen.length;
+    run(10000);
     const fading = heard.slice(at);
-    expect(fading.length).toBeGreaterThan(2);
+    expect(fading.length).toBeGreaterThan(4);
     for (let i = 1; i < fading.length; i++) {
       expect(fading[i].gain).toBeLessThan(fading[i - 1].gain);
       if (i > 1) expect(fading[i].t - fading[i - 1].t).toBeGreaterThanOrEqual(fading[i - 1].t - fading[i - 2].t - 1);
     }
+    // The red at the edges and the jolt calm with the sound, not all at once.
+    const calming = seen.slice(shownAt);
+    for (let i = 1; i < calming.length; i++) expect(calming[i]).toBeLessThan(calming[i - 1]);
+    expect(calming[1]).toBeGreaterThan(0.6);
     expect(director.view.heart).toBeNull();
     const done = heard.length;
     run(3000);

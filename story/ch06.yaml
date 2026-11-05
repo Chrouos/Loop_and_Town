@@ -67,7 +67,7 @@ scenes:
       - { sfx: train_door, at: left, dist: near, text: 噗嘶 }
       - { sfx: step_uneven, at: front-right, dist: mid, text: 咚、叩 }
       - yuan: 比我想的早。
-      - narr: 後面那幾句我都知道，就讓它們照原樣過去。
+      - narr: 後面那幾句我都知道。今天我沒有讓它們過去，一句一句聽，聽他在哪裡換氣、在哪裡停。
       - narr: 他的左手肘停在我右手邊，高度剛好。機油味裡混著一點黃銅。
       - think: 第一次在這個月台，他就把手肘放在對的位置。像練過。
       - if: know.lead_c6_he_waited
@@ -1200,9 +1200,9 @@ scenes:
           - { sfx: tools_clink, at: front, dist: near, text: 叮, src: 手錶 }
           - if: know.k_watch_1831
             then:
-              - narr: 手錶，停在十八點三十一分。背面刻著：不要先救第一個死者。
+              - narr: 手錶，停在十八點三十一分。背面刻著：還會有下一個。
             else:
-              - narr: 手錶。背面刻著：不要先救第一個死者。
+              - narr: 手錶。背面刻著：還會有下一個。
       - { sfx: braille_stylus, at: front, dist: near, text: 喀 }
       - if: know.k_postmark_yesterday
         then:

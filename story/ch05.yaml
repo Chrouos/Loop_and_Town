@@ -21,8 +21,7 @@ scenes:
       - if: chloop >= 2
         then:
           - { sfx: cough, at: back-left, dist: mid, text: 咳 }
-          - narr: 後座的咳嗽和橘子皮的味道，又準時來了。
-          - think: 我讓它們過去。
+          - narr: 後座那個人又咳了，咳在同一個地方。他不知道自己咳過幾次，我知道。
           - if: "!know.k_yuan_1758 && know.lead_c5_arranged"
             then:
               - think: 上一次，我跟他說了實話，也替他排好六點到七點。晚上他有一句話到了嘴邊，又吞回去。

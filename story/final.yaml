@@ -134,7 +134,7 @@ scenes:
       - { sfx: step_uneven, at: front-right, text: 咚、叩 }
       - yuan: 比我想的早。
       - me: 車沒誤點。
-      - narr: 這兩句我聽過太多次，就讓它們照原樣過去。
+      - narr: 這兩句我聽過太多次。今天我還是從頭聽到尾，他講到「早」的時候，聲音有一點啞，以前我都沒注意。
       - yuan: 我的左手肘，在妳的右手邊。
       - { sfx: step_uneven, at: right, dist: near, text: 咚、叩 }
       - narr: 機油和黃銅的味道。他走得很慢，配合我的步子，左腳還是落得比較重。

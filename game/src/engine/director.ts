@@ -28,9 +28,9 @@ const HEART: Record<Exclude<HeartLevel, 'off'>, { ms: number; gain: number; rate
   fast: { ms: 580, gain: 0.48, rate: 1.15, vib: true },
   pound: { ms: 430, gain: 0.72, rate: 1.35, vib: true },
 };
-/** A heart never jumps: it climbs to a new level over HEART_RISE_MS, and calms (or stops) over HEART_EASE_MS. */
-const HEART_RISE_MS = 2500;
-const HEART_EASE_MS = 4500;
+/** A heart never jumps: it climbs to a new level over HEART_RISE_MS (quick, but beat by beat), and calms (or stops) over HEART_EASE_MS. */
+const HEART_RISE_MS = 5000;
+const HEART_EASE_MS = 9000;
 /** Where a heart starts from when it was not beating, and what it eases toward when it stops. */
 const HEART_START = { ms: 1000, gain: 0.16, rate: 1 };
 const HEART_REST = { ms: 1200, gain: 0, rate: 0.95 };
@@ -126,8 +126,11 @@ export type View = {
   /** Bumped once per jolt; Stage plays the shake when it changes. */
   shake: number;
   shakeLevel: ShakeLevel;
-  /** Her heart while it is loud enough to feel; `beat` counts up with every beat so Stage can pulse in time. */
-  heart: { level: Exclude<HeartLevel, 'off'>; shown: Exclude<HeartLevel, 'off'>; beat: number } | null;
+  /**
+   * Her heart while it is loud enough to feel; `beat` counts up with every beat so Stage can pulse in time.
+   * `glow` (0–1) is how hard this beat lands on screen and `ms` how long until the next: both follow the sound.
+   */
+  heart: { level: Exclude<HeartLevel, 'off'>; glow: number; ms: number; beat: number } | null;
   /** Pain or shock: the stage blurs and the world goes muffled. */
   daze: Exclude<DazeLevel, 'off'> | null;
   /** Panic: the background floods in around the centre line. */
@@ -1513,7 +1516,8 @@ export class Director {
    * Her heart keeps beating on the scene clock (so it pauses with the game) until changed or the scene ends.
    * Tense or panicking, a scripted `fast` comes as `pound`; and the more wound up she is, the quicker and louder
    * each level beats. Changes are never a jump: each beat moves a little further from how it sounded toward the
-   * new level, quickly when it climbs, slowly when it calms, and stopping is a slow fade.
+   * new level, quickly when it climbs, slowly when it calms, and stopping is a slow fade. The screen (the red at
+   * the edges, the jolt) is drawn from the same beat, so it climbs and calms with the sound.
    */
   private setHeart(level: HeartLevel): void {
     this.heartAsked = level;
@@ -1522,9 +1526,7 @@ export class Director {
     const rising = felt !== 'off' && (this.heartTarget === 'off' || HEART[felt].gain > HEART[this.heartTarget].gain);
     this.heartTarget = felt;
     this.heartGlide = { from: this.heartTone ?? HEART_START, at: this.view.t, ms: rising ? HEART_RISE_MS : HEART_EASE_MS };
-    // Calming down, the screen stops jolting at once; the red at the edges fades with the beat.
-    if (felt !== 'off') this.view.heart = { level: felt, shown: this.view.heart?.shown ?? 'slow', beat: this.view.heart?.beat ?? 0 };
-    else if (this.view.heart) this.view.heart = { ...this.view.heart, shown: 'slow' };
+    if (felt !== 'off') this.view.heart = { level: felt, glow: this.view.heart?.glow ?? 0, ms: this.view.heart?.ms ?? HEART_START.ms, beat: this.view.heart?.beat ?? 0 };
     if (!this.heartTone) this.beatHeart(++this.heartGen);
     this.bump();
   }
@@ -1541,9 +1543,9 @@ export class Director {
     this.heartTone = tone;
     this.out.audio.play('heartbeat', CENTER, { gain: Math.min(1, tone.gain), rate: tone.rate });
     if (this.heartTarget !== 'off' && HEART[this.heartTarget].vib && tone.gain >= 0.4) this.vibrate('heartbeat');
-    // The screen climbs with the sound: a step below the new level until the beat is most of the way there.
-    const shown = this.heartTarget === 'off' ? 'slow' : p >= 0.6 ? this.heartTarget : this.heartTarget === 'pound' ? 'fast' : 'slow';
-    if (this.view.heart) this.view.heart = { ...this.view.heart, shown, beat: this.view.heart.beat + 1 };
+    // The screen beats as hard as this beat sounds, so it never steps up or drops off on its own.
+    const glow = Math.min(1, tone.gain / HEART.pound.gain);
+    if (this.view.heart) this.view.heart = { ...this.view.heart, glow, ms: tone.ms, beat: this.view.heart.beat + 1 };
     this.bump();
     this.schedule(this.view.t + tone.ms, () => this.beatHeart(gen));
   }
@@ -1605,7 +1607,8 @@ export class Director {
     this.save.tension = Math.max(0, Math.min(TENSION_MAX, before + delta));
     if (this.save.tension === before) return;
     const rose = this.syncTension();
-    if (rose && !quiet && this.view.phase === 'scene') {
+    // A heart already beating carries it (it climbs toward the new band); one more beat on top would stumble.
+    if (rose && !quiet && this.view.phase === 'scene' && this.heartTarget === 'off') {
       this.out.audio.play('heartbeat', CENTER, { gain: 0.5 + this.view.tension * 0.15, rate: 1.1 });
       this.vibrate('heartbeat');
     }

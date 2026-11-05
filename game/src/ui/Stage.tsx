@@ -1,4 +1,4 @@
-import { Fragment, cloneElement, useEffect, useLayoutEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactElement } from 'react';
+import { Fragment, cloneElement, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent, type ReactElement } from 'react';
 import { ECHO_MS, type Card, type CenterLine, type Director, type Peripheral, type View } from '../engine/director';
 import { interpolateClock, leanOf, placeLabel, type Box } from './geometry';
 import { Interaction } from './Interactions';
@@ -10,6 +10,8 @@ const HOLD_MS = 560;
 const MOVE_MS = 700;
 const LEAVE_MS = 420;
 const GONE_MS = 480;
+/** How long the screen takes to clear after a daze (matches .lt-daze.clearing in game.css). */
+const DAZE_CLEAR_MS = 4100;
 // Lifts off from standstill and settles slowly: no kick on the first frame, and a slide stacked on one still
 // under way adds to its speed instead of jolting it.
 const EASE = 'cubic-bezier(0.4, 0, 0.2, 1)';
@@ -33,14 +35,14 @@ function useLeaving(echo: CenterLine | null, centerKey: number | undefined): Cen
 }
 
 // Whatever the director drops from the view stays mounted a moment, marked .gone, so it can fade from where it was.
-function useLinger<T>(value: T | null): [T | null, boolean] {
+function useLinger<T>(value: T | null, ms = GONE_MS + 80): [T | null, boolean] {
   const [last, setLast] = useState(value);
   if (value !== null && value !== last) setLast(value);
   useEffect(() => {
     if (value !== null || last === null) return;
-    const timer = window.setTimeout(() => setLast(null), GONE_MS + 80);
+    const timer = window.setTimeout(() => setLast(null), ms);
     return () => window.clearTimeout(timer);
-  }, [value, last]);
+  }, [value, last, ms]);
   return value !== null ? [value, false] : [last, last !== null];
 }
 
@@ -191,6 +193,19 @@ function placeSide(root: HTMLElement, box: HTMLElement, cue: HTMLElement | null)
   box.style.bottom = below ? '' : `${Math.max(margin, H - (y - cue.offsetHeight / 2 - 10))}px`;
 }
 
+/**
+ * One beat on screen, from how hard it sounds (0–1): the red at the edges peaks and settles higher the harder it
+ * beats, and from about a racing heart up the stage jolts by whole pixels (1px at a time as it climbs or calms).
+ */
+function heartPulse(glow: number, ms: number): { glow: CSSProperties; jolt: CSSProperties | null } {
+  const beat = `${Math.round(Math.min(ms, 1000))}ms`;
+  const jolt = Math.max(0, Math.round((glow - 0.45) * 7.3));
+  return {
+    glow: { ['--hi' as string]: Math.pow(glow, 1.5).toFixed(3), ['--lo' as string]: (Math.max(0, glow - 0.45) * 0.76).toFixed(3), ['--beat' as string]: beat },
+    jolt: jolt > 0 ? { ['--jolt' as string]: `${-jolt}px`, ['--dub' as string]: `${Math.round(jolt / 2)}px`, ['--beat' as string]: beat } : null,
+  };
+}
+
 type Props = { director: Director; view: View; onCapture: () => void; firstCueHint: boolean; onCueHintShown: () => void };
 
 export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown }: Props) {
@@ -203,8 +218,9 @@ export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown 
     const timer = window.setTimeout(() => setShaking(null), view.shakeLevel === 'hard' ? 760 : 380);
     return () => window.clearTimeout(timer);
   }, [view.shake]); // eslint-disable-line react-hooks/exhaustive-deps
-  // Two identical animations swapped every beat, so each beat restarts the pulse.
-  const heart = view.heart ? ` heart-${view.heart.shown} beat-${view.heart.beat % 2}` : '';
+  // Two identical animations swapped every beat, so each beat restarts the pulse; how hard it lands follows the sound.
+  const pulse = view.heart ? heartPulse(view.heart.glow, view.heart.ms) : null;
+  const beat = view.heart ? ` beating beat-${view.heart.beat % 2}` : '';
 
   const shifting = view.shiftingTo !== null || (view.phase === 'scene' && view.focus === null);
   const focusPos = view.focus && view.focus !== 'main' ? view.periph.find((item) => item.kind === 'cue' && item.thread === view.focus)?.pos : undefined;
@@ -234,6 +250,8 @@ export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown 
   const [turn, turnGone] = useLinger(view.shiftingTo);
   const [choice, choiceGone] = useLinger(view.choice && view.focus === 'main' ? view.choice : null);
   const [waiting, waitingGone] = useLinger(view.waiting);
+  // Coming out of a daze, the blur and the sway are kept on (shrinking) until the screen is clear again.
+  const [daze, dazeClearing] = useLinger(view.daze, DAZE_CLEAR_MS);
   // During a real wait the corner clock walks from the wait's start time to its end, minute by minute.
   const clockShown = useWaitClock(view, director.speed) ?? view.clock;
   const carded = view.phase === 'card' || view.phase === 'reset';
@@ -276,10 +294,10 @@ export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown 
 
   return (
     <div className={className} ref={root} style={{ ['--wound' as string]: (director.tension / 100).toFixed(2) }}>
-      <div className={`lt-heart${heart}`} aria-hidden="true" />
+      <div className={`lt-heart${beat}`} style={pulse?.glow} aria-hidden="true" />
       <div className="lt-world">
-        <div className={`lt-daze${view.daze ? ` daze-${view.daze}` : ''}`}>
-          <div className={`lt-body${heart}${view.noise ? ` noise-${view.noise.level}` : ''}`}>
+        <div className={`lt-daze${daze ? ` daze-${daze}` : ''}${dazeClearing ? ' clearing' : ''}`}>
+          <div className={`lt-body${pulse?.jolt ? `${beat} jolting` : ''}${view.noise ? ` noise-${view.noise.level}` : ''}`} style={pulse?.jolt ?? undefined}>
             {view.ripples.map((ripple) => <div key={ripple.key} data-key={ripple.key} className={`lt-ripple dist-${ripple.pos.dist}`} />)}
             {turn && <div className={`lt-turn${turnGone ? ' gone' : ''}`} />}
 

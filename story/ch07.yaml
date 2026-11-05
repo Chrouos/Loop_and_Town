@@ -73,7 +73,7 @@ scenes:
       - { sfx: train_door, at: left, dist: near, text: 噗嘶 }
       - { sfx: step_uneven, at: front-right, dist: mid, text: 咚、叩 }
       - yuan: 比我想的早。
-      - narr: 我讓它照原樣過去。機油、黃銅，左手肘在我右手邊。
+      - narr: 我等他自己講完，沒有搶在他前面接下一句。機油、黃銅，左手肘在我右手邊。
       - think: 前天傍晚，他把那封信丟進郵局門口的郵筒。今天七點多，他還是到了。
       - think: 這一個他，不知道我知道。
       - yuan: 今天要先去哪裡？我可以帶妳——

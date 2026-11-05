@@ -501,9 +501,9 @@ scenes:
     expect(beats() - before).toBeGreaterThanOrEqual(3);
     for (let i = 0; i < 400 && director.view.center?.text !== '不要！'; i++) run(50);
     expect(director.view.shakeLevel).toBe('light');
-    // A new time and place: it calms over a few seconds instead of cutting out.
-    expect(director.view.heart?.shown ?? 'off').not.toBe('pound');
-    run(5000);
+    // A new time and place: it calms over several seconds instead of cutting out.
+    expect(director.view.heart).not.toBeNull();
+    run(10000);
     expect(director.view.heart).toBeNull();
     const after = beats();
     run(1500);
