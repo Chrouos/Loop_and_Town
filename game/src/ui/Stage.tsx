@@ -7,6 +7,8 @@ import { FONT_SIZES } from '../engine/save';
 import type { Phrase } from '../engine/text';
 
 const HOLD_MS = 560;
+/** Narrower than this, turning toward a sound folds the main conversation out of its way. */
+const NARROW_PX = 600;
 const MOVE_MS = 700;
 const LEAVE_MS = 420;
 const GONE_MS = 480;
@@ -125,7 +127,7 @@ function placeSounds(root: HTMLElement, periph: Peripheral[], ripples: View['rip
   const lineH = Math.min(Math.max(18.4, 0.023 * W), 25.6) * 1.85 * textScale;
   const halfW = Math.min(0.38 * W, 340);
   const keepOut: Box[] = [{ l: W / 2 - halfW - gap, r: W / 2 + halfW + gap, t: H / 2 - 3.5 * lineH - 30, b: H / 2 + 1.5 * lineH + 26 + gap }];
-  root.querySelectorAll('.lt-center .lt-line:not(.leaving) .lt-text, .lt-center .lt-line:not(.leaving) .lt-label, .lt-choice, .lt-wait, .lt-where').forEach((el) => keepOut.push(boxOf(el)));
+  root.querySelectorAll('.lt-center .lt-line:not(.leaving) .lt-text, .lt-center .lt-line:not(.leaving) .lt-label, .lt-teach-keep, .lt-choice, .lt-choice-teach, .lt-wait, .lt-where').forEach((el) => keepOut.push(boxOf(el)));
   document.querySelectorAll('.lt-corner, .lt-mem-btn, .lt-mem-teach').forEach((el) => keepOut.push(boxOf(el)));
 
   // Measured things only (not the room kept for a longer line), unpadded: a label merely brushing the margin stays put.
@@ -155,7 +157,12 @@ function placeSounds(root: HTMLElement, periph: Peripheral[], ripples: View['rip
     const y = parseFloat(el.style.top);
     centres.set(item.pos, { x, y });
     // One already fading out is about to be gone; it does not hold its spot.
-    if (!el.classList.contains('gone')) keepOut.push({ l: x - el.offsetWidth / 2 - 6, r: x + el.offsetWidth / 2 + 6, t: y - el.offsetHeight / 2 - 6, b: y + el.offsetHeight / 2 + 6 });
+    if (!el.classList.contains('gone')) {
+      keepOut.push({ l: x - el.offsetWidth / 2 - 6, r: x + el.offsetWidth / 2 + 6, t: y - el.offsetHeight / 2 - 6, b: y + el.offsetHeight / 2 + 6 });
+      // The hint hanging under a cue is outside its box; strangers' talk must not land on it either.
+      const hint = el.querySelector<HTMLElement>('.lt-hint');
+      if (hint) keepOut.push({ l: x - hint.offsetWidth / 2 - 6, r: x + hint.offsetWidth / 2 + 6, t: y + el.offsetHeight / 2 - 6, b: y + el.offsetHeight / 2 + hint.offsetHeight + 10 });
+    }
   });
 
   // A ripple rises where its sound's word is; a voice without a word gets a spot of its own.
@@ -168,6 +175,15 @@ function placeSounds(root: HTMLElement, periph: Peripheral[], ripples: View['rip
     el.style.left = `${at.x}px`;
     el.style.top = `${at.y}px`;
     el.dataset.placed = '';
+  });
+  // A cue's hint ("tap here", "tap again") is wider than the word it hangs under: keep it on screen.
+  root.querySelectorAll<HTMLElement>('.lt-p.kind-cue[data-placed]').forEach((el) => {
+    const x = parseFloat(el.style.left);
+    el.querySelectorAll<HTMLElement>('.lt-hint').forEach((hint) => {
+      const half = hint.offsetWidth / 2;
+      const shift = Math.max(0, 12 - (x - half)) - Math.max(0, x + half - (W - 12));
+      hint.style.marginLeft = shift ? `${shift}px` : '';
+    });
   });
   const glow = root.querySelector<HTMLElement>('.lt-turn');
   const at = turn ? centres.get(turn) : undefined;
@@ -197,6 +213,19 @@ function placeSide(root: HTMLElement, box: HTMLElement, cue: HTMLElement | null)
  * One beat on screen, from how hard it sounds (0–1): the red at the edges peaks and settles higher the harder it
  * beats, and from about a racing heart up the stage jolts by whole pixels (1px at a time as it climbs or calms).
  */
+/**
+ * The screen never draws a full stop (docs/style.md): one at the end of a line, or just before its closing
+ * bracket, is dropped; one inside becomes a breath (a full-width space). The centre lines get this from
+ * engine/text.ts; strangers' talk, choices and remembered lines get it here.
+ */
+export function unstop(text: string): string {
+  return text
+    .replace(/。+(?=[」』）]*$)/u, '')
+    .replace(/。+(?=[」』）])/gu, '')
+    .replace(/。+/gu, '\u3000')
+    .trim();
+}
+
 function heartPulse(glow: number, ms: number): { glow: CSSProperties; jolt: CSSProperties | null } {
   const beat = `${Math.round(Math.min(ms, 1000))}ms`;
   const jolt = Math.max(0, Math.round((glow - 0.45) * 7.3));
@@ -225,7 +254,9 @@ export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown 
   const shifting = view.shiftingTo !== null || (view.phase === 'scene' && view.focus === null);
   const focusPos = view.focus && view.focus !== 'main' ? view.periph.find((item) => item.kind === 'cue' && item.thread === view.focus)?.pos : undefined;
   const turnedAway = (view.focus !== null && view.focus !== 'main') || view.shiftingTo !== null;
-  const className = ['lt-stage', `phase-${view.phase}`, view.phase === 'out' && view.brief ? 'brief' : '', shifting ? 'shifting' : '', turnedAway ? 'away' : '', shaking ? `shake shake-${shaking}` : '', view.tension ? `tension-${view.tension}` : '', director.settings.motion ? '' : 'still'].join(' ');
+  // A phone-width screen has no room beside the line for what she turned toward (see .narrow in game.css).
+  const narrow = typeof window !== 'undefined' && window.innerWidth < NARROW_PX;
+  const className = ['lt-stage', narrow ? 'narrow' : '', `phase-${view.phase}`, view.phase === 'out' && view.brief ? 'brief' : '', shifting ? 'shifting' : '', turnedAway ? 'away' : '', shaking ? `shake shake-${shaking}` : '', view.tension ? `tension-${view.tension}` : '', director.settings.motion ? '' : 'still'].join(' ');
   const firstCue = firstCueHint ? view.periph.find((item) => item.kind === 'cue' && item.thread !== view.focus) : undefined;
 
   useEffect(() => { if (firstCue) onCueHintShown(); }, [firstCue?.key]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -265,6 +296,7 @@ export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown 
   // Between two lines the centre stays as tall as the last one, so the echo rises once, not once now and again
   // when the next line pushes it.
   const centerHeight = useRef(0);
+  const awayFor = useRef<string | null>(null);
   const holdSlot = !middleSaying && middle.length > 0 && centerHeight.current > 0;
 
   const root = useRef<HTMLDivElement>(null);
@@ -282,6 +314,16 @@ export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown 
     const said = root.current.querySelector<HTMLElement>('.lt-center .lt-line:not(.lt-echo)');
     if (middleSaying && said) centerHeight.current = said.offsetHeight;
     else if (!middle.length) centerHeight.current = 0;
+    // Turned away on a phone: the main conversation steps to the half of the screen the sound is not in. Decided
+    // once per turn (from where that sound sits), so it never hops while she listens.
+    const turnedTo = root.current.querySelector<HTMLElement>('.lt-p.kind-cue.active[data-placed]');
+    if (narrow && turnedAway && turnedTo) {
+      const key = turnedTo.dataset.key!;
+      if (awayFor.current !== key) {
+        awayFor.current = key;
+        root.current.style.setProperty('--away-top', parseFloat(turnedTo.style.top) > root.current.clientHeight / 2 ? '24%' : '76%');
+      }
+    } else if (!turnedAway) awayFor.current = null;
     const sideBox = root.current.querySelector<HTMLElement>('.lt-side');
     if (sideBox) placeSide(root.current, sideBox, sideCue !== undefined ? root.current.querySelector<HTMLElement>(`.lt-p[data-key="${sideCue}"]`) : null);
     placeSounds(root.current, periph.map((entry) => entry.item), view.ripples, turn, placedFor.current !== screen || placedScale.current !== textScale, textScale);
@@ -326,7 +368,7 @@ export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown 
               </div>
             )}
 
-            {choice && !view.recall && <Choices director={director} choice={choice} gone={choiceGone} />}
+            {choice && !view.recall && !view.keep && <Choices director={director} choice={choice} gone={choiceGone} />}
             {waiting && <Waiting gone={waitingGone} first={Boolean(waiting.first)} />}
           </div>
         </div>
@@ -377,7 +419,7 @@ export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown 
     }
     return (
       <span key={item.key} data-key={item.key} className={`lt-p kind-${item.kind} dist-${item.pos.dist}`} style={style} aria-hidden="true">
-        {item.text}
+        {item.kind === 'sfx' ? item.text : unstop(item.text)}
         {item.src && labels && <span className="lt-p-src">{item.src}</span>}
       </span>
     );
@@ -472,7 +514,7 @@ function Line({ line, role, side = false, director, view, onCapture }: { line: C
     setHolding(false);
   };
 
-  const classes = ['lt-line', `kind-${line.kind}`, echo ? 'lt-echo' : '', role === 'away' ? 'lt-away' : '', role === 'center' && view.teach === 'keep' && !kept ? 'teach' : '', role === 'leaving' ? 'leaving' : '', revealed ? 'revealed' : '', holding ? 'holding' : '', kept ? 'kept' : ''].join(' ');
+  const classes = ['lt-line', `kind-${line.kind}`, line.past ? 'voice-past' : '', echo ? 'lt-echo' : '', role === 'away' ? 'lt-away' : '', role === 'center' && view.teach === 'keep' && !kept ? 'teach' : '', role === 'leaving' ? 'leaving' : '', revealed ? 'revealed' : '', holding ? 'holding' : '', kept ? 'kept' : ''].join(' ');
   return (
     <div
       ref={ref}
@@ -542,7 +584,7 @@ function Choices({ director, choice, gone }: { director: Director; choice: NonNu
           style={{ animationDelay: `${index * 140}ms, ${index * 140}ms` }}
           onClick={(event) => { event.stopPropagation(); director.choose(option.index); }}
         >
-          <span className="lt-key">{index + 1}</span>{option.text}
+          <span className="lt-key">{index + 1}</span>{unstop(option.text)}
         </button>
       ))}
       {timeoutMs > 0 && <div className="lt-timer" />}
@@ -562,8 +604,8 @@ const RECALL_HINT_KEY = 'listening-town-recall-hint';
 /** Tapping hurries, but the story is meant to be left to its own pace; manual reading waits for every tap. */
 function tapLesson(auto: boolean): ReactElement {
   return auto
-    ? <>點一下畫面；<br />不動就會自動閱讀</>
-    : <>點一下畫面；<br />現在是手動閱讀模式</>;
+    ? <>點一下畫面，<br />不動就會自動閱讀</>
+    : <>點一下畫面，<br />現在是手動閱讀模式</>;
 }
 
 const LESSON_TEXT: Record<Exclude<NonNullable<View['teach']>, 'tap'>, string> = {
@@ -587,7 +629,7 @@ export function RecallPicker({ director, recall }: { director: Director; recall:
         {recall.memories.map((memory, index) => (
           <button key={memory.key} type="button" className="lt-recall-item" onClick={() => director.recallPick(memory.key)}>
             <span className="lt-key">{index + 1}</span>
-            <span className="lt-recall-text">{memory.kind === 'me' ? `「${memory.text}」` : memory.text}</span>
+            <span className="lt-recall-text">{unstop(memory.kind === 'me' ? `「${memory.text}」` : memory.text)}</span>
             <span className="lt-recall-meta">{[memory.label, memory.clock, memory.place].filter(Boolean).join(' · ')}</span>
           </button>
         ))}

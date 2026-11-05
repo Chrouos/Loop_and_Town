@@ -8,7 +8,7 @@ import { Director, toChineseNumber } from './engine/director';
 import { FONT_SIZES, MEMORY_CAPACITY, readSave, writeSave, type FontSize, type GameSave, type Memory } from './engine/save';
 import { loadGameScript } from './script/load';
 import { CHAPTER_NUMERALS } from './script/types';
-import { Stage } from './ui/Stage';
+import { Stage, unstop } from './ui/Stage';
 import { placeOf } from './ui/geometry';
 import './ui/game.css';
 
@@ -346,11 +346,11 @@ function MemoryPanel({ director, onClose }: { director: Director; onClose: () =>
       <div className="lt-overlay-head">記憶</div>
       <div className="lt-panel">
         <div className="lt-count">{save.memories.length} ／ {MEMORY_CAPACITY}</div>
-        {save.memories.length === 0 && <div className="lt-empty">還沒有記住任何一句<br />長按一句話，就能把它記下來，以後或許用得上</div>}
+        {save.memories.length === 0 && <div className="lt-empty">還沒有記住任何一句<br />長按一句話，就能把它記下來<br />以後或許用得上</div>}
         {[...save.memories].reverse().map((memory) => (
           <div className="lt-mem" key={memory.key}>
             <div className="lt-mem-body">
-              <div className="lt-mem-text">{memory.kind === 'me' ? `「${memory.text}」` : memory.text}</div>
+              <div className="lt-mem-text">{unstop(memory.kind === 'me' ? `「${memory.text}」` : memory.text)}</div>
               <div className="lt-mem-meta">{memoryMeta(memory, save.loop > 1)}</div>
             </div>
             <button type="button" className="lt-mem-drop" onClick={() => director.releaseMemory(memory.key)}>放下</button>
@@ -461,7 +461,8 @@ function Chapters({ director, dev, onPicked }: { director: Director; dev: boolea
 const FONTS = [
   { name: '霞鶩文楷 TC', author: 'LXGW WenKai Project Authors', url: 'https://github.com/lxgw/LxgwWenkaiTC' },
   { name: 'Noto Serif TC', author: 'Google', url: 'https://fonts.google.com/noto/specimen/Noto+Serif+TC' },
-  { name: 'IBM Plex Mono', author: 'IBM', url: 'https://github.com/IBM/plex' },
+  { name: '更紗黑體 Sarasa Fixed TC', author: 'Belleve Invis', url: 'https://github.com/be5invis/Sarasa-Gothic' },
+  { name: '芫荽 Iansui', author: 'The Iansui Project Authors', url: 'https://github.com/ButTaiwan/iansui' },
 ];
 
 const WRITING = [
@@ -552,14 +553,21 @@ function Toggle({ on, onChange }: { on: boolean; onChange: (value: boolean) => v
   );
 }
 
+/** Memory full: which line to let go. It floats under the line she is hearing, laid out like the recall list. */
 function KeepPrompt({ director, memory }: { director: Director; memory: Memory }) {
+  const short = (text: string, n: number) => { const shown = unstop(text); return shown.length > n ? `${shown.slice(0, n)}……` : shown; };
   return (
-    <div className="lt-keep" onPointerUp={(event) => event.stopPropagation()}>
-      <div className="lt-keep-q">記不下了<br />要放掉哪一句，換成「{memory.text.slice(0, 14)}{memory.text.length > 14 ? '……' : ''}」？</div>
-      {director.save.memories.map((existing) => (
-        <button key={existing.key} type="button" onClick={() => director.releaseMemory(existing.key)}>{existing.text.slice(0, 22)}{existing.text.length > 22 ? '……' : ''}</button>
-      ))}
-      <button type="button" onClick={() => director.skipKeep()} style={{ color: 'var(--ink-faint)', marginTop: 6 }}>這次不記了</button>
+    <div className="lt-recall lt-keep" role="dialog" aria-label="記不下了" onPointerUp={(event) => event.stopPropagation()}>
+      <div className="lt-recall-head">記不下了</div>
+      <div className="lt-recall-hint">要放掉哪一句，換成「{short(memory.text, 14)}」？</div>
+      <button type="button" className="lt-recall-cancel" onClick={() => director.skipKeep()}>這次不記了</button>
+      <div className="lt-recall-list">
+        {director.save.memories.map((existing) => (
+          <button key={existing.key} type="button" className="lt-recall-item" onClick={() => director.releaseMemory(existing.key)}>
+            <span className="lt-recall-text">{short(existing.text, 22)}</span>
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

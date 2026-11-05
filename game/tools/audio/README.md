@@ -1,6 +1,6 @@
 # 音效素材處理腳本
 
-`public/audio/` 裡的錄音都是用這些腳本做出來的。來源全部是 Freesound 的 CC0 音檔，清單與授權在 `public/audio/CREDITS.md`。
+`public/audio/` 裡的錄音都是用這些腳本做出來的。來源是 Freesound 的 CC0 音檔，另有兩個 CC BY（522113、97159，列在 `src/audio/credits.ts`，遊戲內會顯示）。清單與授權在 `public/audio/CREDITS.md`。
 
 需要 python3 + numpy，以及 macOS 內建的 `afconvert`。
 

@@ -1,7 +1,21 @@
-/* Every character the game shows, in one file (tools/subset-font.py), so text never swaps face mid-scene. */
+/* Every voice has its own hand (docs/design.md §3.1), each face cut to the characters it shows and self-hosted
+   (tools/subset-font.py), all loaded before the first frame (main.tsx), so text never swaps face mid-scene.
+   Her words, people beside her and the whole UI: every character the game shows. */
 @font-face {
   font-family: 'LXGW WenKai TC';
   src: url('../assets/fonts/wenkai-tc-subset.woff2') format('woff2');
+  font-display: block;
+}
+/* The machine: her phone's screen reader and the clock. */
+@font-face {
+  font-family: 'Sarasa Fixed TC';
+  src: url('../assets/fonts/sarasa-fixed-tc-subset.woff2') format('woff2');
+  font-display: block;
+}
+/* A voice from before: a tape, and Zhixia, who is only heard in recordings and memories. */
+@font-face {
+  font-family: 'Iansui';
+  src: url('../assets/fonts/iansui-subset.woff2') format('woff2');
   font-display: block;
 }
 
@@ -14,7 +28,9 @@
   --ink-ghost: rgba(236, 230, 218, 0.12);
   --phone: #9db0c4;
   --serif: 'LXGW WenKai TC', 'Noto Serif TC', 'Songti TC', 'PMingLiU', serif;
-  --mono: 'IBM Plex Mono', 'SFMono-Regular', ui-monospace, monospace;
+  /* the narrower faces fall back to WenKai, never to a system font */
+  --mono: 'Sarasa Fixed TC', 'LXGW WenKai TC', ui-monospace, monospace;
+  --past: 'Iansui', 'LXGW WenKai TC', serif;
   --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
   color-scheme: dark;
 }
@@ -70,6 +86,11 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
   transition: opacity 1600ms var(--ease); will-change: opacity;
 }
 .lt-heart.beat-0 { animation: lt-glow-a var(--beat) ease-out forwards; }
+/* A tall screen's short top and bottom edges are nearly all corner, where the red piled up: there the ellipse reaches
+   further up and down and peaks lower. Only the shape and the peak change; every beat still glides as above. */
+@media (max-aspect-ratio: 4/5) {
+  .lt-heart { background: radial-gradient(ellipse 84% 88% at 50% 50%, transparent 50%, rgba(128, 22, 16, 0.5) 100%); }
+}
 .lt-heart.beat-1 { animation: lt-glow-b var(--beat) ease-out forwards; }
 /* ── hidden tension: the more wound up she is, the less the words hold still. The live line only softens;
    what she already heard (the echo) goes first. Panic keeps a faint red at the edges even with no heart scripted. ── */
@@ -96,7 +117,17 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
   text-align: center;
   pointer-events: none;
 }
-.lt-center-inner { transition: transform 700ms var(--ease), filter 700ms var(--ease), opacity 700ms var(--ease); }
+.lt-center-inner {
+  clip-path: inset(-100vh -100vw -100vh -100vw);
+  transition: transform 700ms var(--ease), filter 700ms var(--ease), opacity 700ms var(--ease), clip-path 700ms var(--ease);
+}
+.lt-center { transition: top 700ms var(--ease); }
+/* A phone has no room beside the line: turned away, the main conversation folds into one blurred row (its last)
+   and steps to the half of the screen the sound she turned to is not in (--away-top, set by Stage). What she
+   hears there keeps no echo of its own: the line before fades straight out. The desktop is unchanged. */
+.lt-stage.narrow.away .lt-center { top: var(--away-top, 26%); }
+.lt-stage.narrow.away .lt-center-inner { clip-path: inset(calc(100% - 3.4rem * var(--text-scale, 1)) -100vw -40px -100vw); }
+.lt-stage.narrow .lt-side .lt-echo { animation: lt-fade-out 520ms var(--ease) forwards; }
 .lt-stage.shifting .lt-center-inner { filter: blur(5px); opacity: 0.25; }
 
 /* the outer box only ever slides; the inner one holds its resting shape (inline, set and eased by Stage) */
@@ -121,6 +152,8 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 .lt-line.kind-narr .lt-text { font-size: calc(clamp(0.98rem, 1.8vw, 1.22rem) * var(--text-scale, 1)); color: rgba(236, 230, 218, 0.8); letter-spacing: 0.1em; font-weight: 300; }
 .lt-line.kind-phone .lt-text { font-family: var(--mono); color: var(--phone); font-size: calc(clamp(0.92rem, 1.7vw, 1.12rem) * var(--text-scale, 1)); letter-spacing: 0.22em; }
 .lt-line.kind-phone .lt-label { color: rgba(157, 176, 196, 0.6); }
+/* a voice from before: a softer, handwritten hand, a little warmer, as if worn by being played again */
+.lt-line.voice-past .lt-text { font-family: var(--past); letter-spacing: 0.08em; color: #e6dccb; }
 .lt-line.holding .lt-text { text-shadow: 0 0 18px rgba(236, 230, 218, 0.35); }
 .lt-line.kept { animation: lt-kept 1100ms var(--ease) forwards; }
 
@@ -137,7 +170,7 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 .lt-echo.leaving { pointer-events: none; }
 
 /* ── turned away: the main conversation keeps going in the middle, out of focus ── */
-.lt-stage.away .lt-center-inner { filter: blur(3px); opacity: 0.55; }
+.lt-stage.away .lt-center-inner { filter: blur(3.5px); opacity: 0.4; }
 .lt-line.lt-away { pointer-events: none; }
 
 /* ── beside a sound: what she turned toward is written where it comes from ── */
@@ -170,7 +203,7 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 /* other people, half-heard: readable, but plainly not hers to answer */
 .lt-p.kind-life {
   color: var(--ink-dim); font-size: calc(0.82rem * var(--text-scale, 1)); font-style: italic; letter-spacing: 0.14em; filter: blur(0.4px);
-  white-space: normal; width: max-content; max-width: min(40vw, 320px); text-align: center; line-height: 1.6;
+  white-space: normal; width: max-content; max-width: min(40vw, 320px); text-align: center; line-height: 1.6; text-wrap: balance;
   animation: lt-sfx var(--life, 3000ms) var(--ease) forwards;
 }
 .lt-p.kind-life.crowded { visibility: hidden; }
@@ -311,9 +344,15 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 
 .lt-overlay {
   position: fixed; inset: 0; z-index: 10; background: rgba(0, 0, 0, 0.94);
-  display: flex; flex-direction: column; align-items: center; padding: 9vh 20px 6vh;
-  animation: lt-fade-in 500ms var(--ease) forwards; overflow-y: auto;
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  display: flex; flex-direction: column; align-items: center;
+  padding: max(9vh, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(6vh, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+  animation: lt-fade-in 500ms var(--ease) forwards; overflow-y: auto; overscroll-behavior: contain;
+  scrollbar-width: thin; scrollbar-color: var(--ink-ghost) transparent;
 }
+.lt-overlay::-webkit-scrollbar { width: 4px; }
+.lt-overlay::-webkit-scrollbar-thumb { background: var(--ink-ghost); border-radius: 2px; }
+.lt-overlay::-webkit-scrollbar-track { background: transparent; }
 .lt-overlay-head { font-size: calc(0.86rem * var(--text-scale, 1)); letter-spacing: 0.5em; text-indent: 0.5em; color: var(--ink); padding: 6px 0; margin-bottom: 5vh; }
 .lt-tabs { display: flex; flex-wrap: wrap; justify-content: center; column-gap: 24px; row-gap: 12px; margin-bottom: 5vh; }
 .lt-tab { font-size: calc(0.86rem * var(--text-scale, 1)); letter-spacing: 0.5em; color: var(--ink-faint); padding: 6px 0; }
@@ -322,16 +361,23 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 .lt-mem { padding: 16px 0; border-bottom: 1px solid var(--ink-ghost); display: flex; gap: 16px; align-items: baseline; }
 .lt-mem-body { flex: 1; }
 .lt-mem-text { font-size: calc(1rem * var(--text-scale, 1)); line-height: 1.7; letter-spacing: 0.06em; }
-.lt-mem-meta { font-family: var(--mono); font-size: calc(0.66rem * var(--text-scale, 1)); letter-spacing: 0.2em; color: var(--ink-faint); margin-top: 6px; }
+.lt-mem-meta { font-size: calc(0.66rem * var(--text-scale, 1)); letter-spacing: 0.2em; color: var(--ink-faint); margin-top: 6px; }
 .lt-mem-drop { font-size: calc(0.72rem * var(--text-scale, 1)); letter-spacing: 0.3em; color: var(--ink-faint); white-space: nowrap; }
 .lt-mem-drop:hover { color: var(--ink-soft); }
-.lt-empty { color: var(--ink-faint); letter-spacing: 0.2em; text-align: center; font-size: calc(0.9rem * var(--text-scale, 1)); line-height: 2; }
+.lt-empty { color: var(--ink-faint); letter-spacing: 0.2em; text-align: center; font-size: calc(0.9rem * var(--text-scale, 1)); line-height: 2; text-wrap: balance; }
 .lt-count { font-family: var(--mono); font-size: calc(0.7rem * var(--text-scale, 1)); letter-spacing: 0.3em; color: var(--ink-faint); text-align: center; margin-bottom: 18px; }
 .lt-row { display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center; padding: 16px 0; border-bottom: 1px solid var(--ink-ghost); letter-spacing: 0.2em; font-size: calc(0.92rem * var(--text-scale, 1)); }
 .lt-row .lt-opts { display: flex; flex-wrap: wrap; gap: 12px 18px; }
 .lt-opt { color: var(--ink-faint); font-size: calc(0.86rem * var(--text-scale, 1)); letter-spacing: 0.2em; }
 .lt-opt.on { color: var(--ink); }
-.lt-range { width: 140px; accent-color: #9a958c; }
+.lt-range { width: 140px; height: 24px; margin: 0; background: transparent; cursor: pointer; -webkit-appearance: none; appearance: none; }
+.lt-range:focus { outline: none; }
+.lt-range::-webkit-slider-runnable-track { height: 1px; background: var(--ink-faint); }
+.lt-range::-moz-range-track { height: 1px; background: var(--ink-faint); }
+.lt-range::-moz-range-progress { height: 1px; background: var(--ink-soft); }
+.lt-range::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 11px; height: 11px; margin-top: -5px; border-radius: 50%; border: 0; background: var(--ink-soft); transition: transform 200ms var(--ease); }
+.lt-range::-moz-range-thumb { width: 11px; height: 11px; border-radius: 50%; border: 0; background: var(--ink-soft); }
+.lt-range:active::-webkit-slider-thumb, .lt-range:focus-visible::-webkit-slider-thumb { transform: scale(1.3); background: var(--ink); }
 .lt-credits { padding: 22px 0 6px; font-size: calc(0.72rem * var(--text-scale, 1)); line-height: 1.9; letter-spacing: 0.08em; color: var(--ink-faint); overflow-wrap: anywhere; }
 .lt-credits-head { letter-spacing: 0.3em; color: var(--ink-dim); margin-bottom: 8px; }
 .lt-credit + .lt-credit { margin-top: 6px; }
@@ -341,21 +387,20 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 .lt-close { margin-top: 6vh; font-size: calc(0.8rem * var(--text-scale, 1)); letter-spacing: 0.5em; color: var(--ink-dim); padding: 10px; }
 .lt-danger { color: rgba(220, 170, 160, 0.7); }
 
-.lt-keep {
-  position: fixed; right: 18px; bottom: 72px; z-index: 8; width: min(86vw, 360px);
-  background: rgba(10, 10, 10, 0.96); border: 1px solid var(--ink-ghost); padding: 18px 20px;
-  animation: lt-fade-in 400ms forwards;
-}
-.lt-keep-q { font-size: calc(0.82rem * var(--text-scale, 1)); letter-spacing: 0.2em; color: var(--ink-soft); margin-bottom: 12px; line-height: 1.7; }
-.lt-keep button { display: block; width: 100%; text-align: left; padding: 8px 0; font-size: calc(0.86rem * var(--text-scale, 1)); color: var(--ink-dim); line-height: 1.5; }
-.lt-keep button:hover { color: var(--ink); }
+/* Memory full: which line to let go. No box: it floats under the line, laid out like the recall list (.lt-recall). */
+.lt-recall.lt-keep { position: fixed; z-index: 8; overscroll-behavior: contain; scrollbar-width: none; }
+.lt-recall.lt-keep::-webkit-scrollbar { display: none; }
+.lt-keep .lt-recall-item { grid-template-columns: 1fr; }
+/* the way out comes first, so a full list never hides it below the fold */
+.lt-keep .lt-recall-cancel { margin: 0 0 6px; }
 
 /* ── title ── */
-.lt-title { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; cursor: pointer; }
+.lt-title { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; cursor: pointer; outline: none; }
+.lt-title:focus-visible .lt-title-hint { color: var(--ink-dim); }
 .lt-title-name { font-size: calc(clamp(2.2rem, 6vw, 3.6rem) * var(--text-scale, 1)); letter-spacing: 0.8em; text-indent: 0.8em; font-weight: 300; opacity: 0; animation: lt-title 3.2s var(--ease) 400ms forwards; }
 .lt-title-sub { margin-top: 22px; font-size: calc(0.9rem * var(--text-scale, 1)); letter-spacing: 0.9em; text-indent: 0.9em; color: var(--ink-dim); opacity: 0; animation: lt-title 2.6s var(--ease) 1.6s forwards; }
 .lt-title-hint { position: absolute; bottom: 18vh; font-size: calc(0.78rem * var(--text-scale, 1)); letter-spacing: 0.5em; text-indent: 0.5em; color: var(--ink-faint); opacity: 0; animation: lt-title 2s var(--ease) 3s forwards, lt-breathe 4s ease-in-out 5s infinite; line-height: 2.4; }
-.lt-title-meta { position: absolute; bottom: 9vh; font-family: var(--mono); font-size: calc(0.64rem * var(--text-scale, 1)); letter-spacing: 0.4em; color: var(--ink-ghost); opacity: 0; animation: lt-title 2s var(--ease) 3.4s forwards; }
+.lt-title-meta { position: absolute; bottom: 9vh; font-size: calc(0.64rem * var(--text-scale, 1)); letter-spacing: 0.4em; color: var(--ink-ghost); opacity: 0; animation: lt-title 2s var(--ease) 3.4s forwards; }
 
 .lt-ending { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 26px; text-align: center; padding: 0 24px; }
 .lt-ending > * { opacity: 0; animation: lt-title 3s var(--ease) forwards; }
@@ -434,12 +479,13 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 .lt-line.teach .lt-text { text-shadow: 0 0 14px rgba(236, 230, 218, 0.18); }
 .lt-recall {
   position: absolute; left: 50%; top: calc(50% + 70px); transform: translateX(-50%);
-  width: min(88vw, 560px); max-height: calc(50vh - 90px); overflow-y: auto; z-index: 4;
+  /* ends above the corner buttons, so a long list never runs under them */
+  width: min(88vw, 560px); max-height: calc(50vh - 70px - 78px - env(safe-area-inset-bottom)); overflow-y: auto; z-index: 4;
   display: flex; flex-direction: column; align-items: stretch; gap: 2px;
   animation: lt-fade-in 500ms var(--ease) forwards;
 }
 .lt-recall-head { text-align: center; font-size: calc(0.74rem * var(--text-scale, 1)); letter-spacing: 0.5em; text-indent: 0.5em; color: var(--ink-dim); margin-bottom: 8px; }
-.lt-recall-hint { text-align: center; font-size: calc(0.78rem * var(--text-scale, 1)); letter-spacing: 0.12em; color: var(--ink-faint); line-height: 1.8; margin-bottom: 10px; }
+.lt-recall-hint { text-wrap: balance; text-align: center; font-size: calc(0.78rem * var(--text-scale, 1)); letter-spacing: 0.12em; color: var(--ink-faint); line-height: 1.8; margin-bottom: 10px; }
 .lt-recall-item {
   display: grid; grid-template-columns: auto 1fr; column-gap: 12px; text-align: left;
   padding: 10px 14px; border-left: 1px solid var(--ink-ghost); color: var(--ink-dim);
@@ -447,7 +493,7 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 }
 .lt-recall-item:hover, .lt-recall-item:focus-visible { color: var(--ink); border-left-color: var(--ink-dim); }
 .lt-recall-text { font-size: calc(clamp(0.95rem, 1.7vw, 1.05rem) * var(--text-scale, 1)); line-height: 1.7; letter-spacing: 0.06em; }
-.lt-recall-meta { grid-column: 2; font-family: var(--mono); font-size: calc(0.62rem * var(--text-scale, 1)); letter-spacing: 0.2em; color: var(--ink-faint); margin-top: 2px; }
+.lt-recall-meta { grid-column: 2; font-size: calc(0.62rem * var(--text-scale, 1)); letter-spacing: 0.2em; color: var(--ink-faint); margin-top: 2px; }
 .lt-recall-cancel { align-self: center; margin-top: 10px; padding: 8px 14px; font-size: calc(0.78rem * var(--text-scale, 1)); letter-spacing: 0.4em; color: var(--ink-faint); }
 .lt-recall-cancel:hover { color: var(--ink-soft); }
 
@@ -481,7 +527,7 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 .lt-touch-char { min-height: 1.6em; font-size: calc(clamp(1.1rem, 2.2vw, 1.4rem) * var(--text-scale, 1)); letter-spacing: 0.1em; color: var(--ink); animation: lt-fade-in 500ms var(--ease) forwards; }
 @keyframes lt-skim { 0%, 100% { transform: translateX(0); } 30% { transform: translateX(3px); } 60% { transform: translateX(-2px); } }
 
-.lt-locate-prompt { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-size: calc(clamp(1rem, 2vw, 1.2rem) * var(--text-scale, 1)); letter-spacing: 0.3em; color: var(--ink-soft); pointer-events: none; }
+.lt-locate-prompt { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: max-content; max-width: max(160px, calc(1.8 * min(40vw, 560px) - 84px)); text-align: center; text-wrap: balance; line-height: 1.7; font-size: calc(clamp(1rem, 2vw, 1.2rem) * var(--text-scale, 1)); letter-spacing: 0.3em; text-indent: 0.3em; color: var(--ink-soft); pointer-events: none; }
 .lt-locate-spot { position: absolute; transform: translate(-50%, -50%); width: 64px; height: 64px; display: grid; place-items: center; border-radius: 50%; }
 .lt-locate-dot { width: 10px; height: 10px; border-radius: 50%; border: 1px solid var(--ink-faint); transition: transform 250ms, background 250ms; }
 .lt-locate-spot:hover .lt-locate-dot, .lt-locate-spot:focus-visible .lt-locate-dot { transform: scale(1.6); background: var(--ink-faint); }
@@ -492,7 +538,8 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 .lt-approach .lt-locate-prompt { width: min(86vw, 520px); text-align: center; }
 .lt-hold-pad { position: absolute; inset: 0; background: none; border: 0; cursor: pointer; touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 .lt-hold .lt-locate-prompt { width: min(86vw, 520px); text-align: center; }
-.lt-hold-breath { width: 72px; height: 72px; margin: 28px auto 0; border-radius: 50%; border: 1px solid var(--dim, rgba(255,255,255,0.35)); opacity: 0.5; pointer-events: none; }
+/* the breath ring sits under the prompt and its note (it used to fall to the top edge of the screen) */
+.lt-hold-breath { position: absolute; left: 50%; top: calc(50% + 84px); width: 72px; height: 72px; margin-left: -36px; border-radius: 50%; border: 1px solid var(--ink-dim); opacity: 0.5; pointer-events: none; }
 .lt-hold.holding .lt-hold-breath { animation-name: lt-hold-breathe; animation-timing-function: linear; animation-fill-mode: forwards; }
 @keyframes lt-hold-breathe { from { transform: scale(1); opacity: 0.7; } to { transform: scale(0.25); opacity: 0.15; } }
 @media (prefers-reduced-motion: reduce) { .lt-hold.holding .lt-hold-breath { animation: none; opacity: 0.2; } }
@@ -536,4 +583,11 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 .lt-punch-dot { width: 44px; height: 44px; }
 @media (max-height: 450px) {
   .lt-stage:has(.lt-touch) .lt-center, .lt-stage:has(.lt-punch) .lt-center { top: 22%; }
+}
+
+/* Phones and tablets: no keyboard, so no key numbers beside choices or under the locate spots. */
+@media (hover: none) and (pointer: coarse) {
+  .lt-choice .lt-key, .lt-recall-item .lt-key, .lt-locate-key { display: none; }
+  .lt-recall-item { grid-template-columns: 1fr; }
+  .lt-recall-meta { grid-column: 1; }
 }

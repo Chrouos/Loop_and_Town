@@ -2,10 +2,12 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { GameApp } from './GameApp';
 
-// Wait for the text face before the first frame so nothing is drawn in a fallback and then swapped.
-// A slow network still gets the game after a few seconds, in whatever font is there.
+// Wait for every voice's face before the first frame so nothing is drawn in a fallback and then swapped
+// (her words, the phone's machine voice, a voice from before: game.css). A slow network still gets the game
+// after a few seconds, in whatever fonts are there.
+const FACES = ['LXGW WenKai TC', 'Sarasa Fixed TC', 'Iansui'];
 const fontReady = Promise.race([
-  document.fonts?.load('1em "LXGW WenKai TC"').catch(() => undefined),
+  Promise.all(FACES.map((face) => document.fonts?.load(`1em "${face}"`).catch(() => undefined))),
   new Promise((resolve) => setTimeout(resolve, 4000)),
 ]);
 

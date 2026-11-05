@@ -84,6 +84,9 @@ export type CenterLine = {
   perceived: boolean;
   captured: boolean;
   mem?: string;
+  /** A voice from before: anything played off a tape, and Zhixia, who is only ever heard in recordings and memories.
+   *  It is written in a hand of its own (docs/design.md §3.1). */
+  past?: true;
 };
 
 /** `src`: what she hears it as (紙, 衣服, 風), shown small under the onomatopoeia. */
@@ -1120,6 +1123,7 @@ export class Director {
       perceived: false,
       captured: false,
       mem: beat.mem,
+      ...(beat.via === 'tape' || beat.speaker === 'zhixia' ? { past: true as const } : {}),
     };
     const revealEnd = t + timing.revealMs;
     // A first-play lesson: the first time ever, this line waits until the player has done it once.

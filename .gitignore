@@ -1,3 +1,4 @@
 node_modules/
 game/dist/
 .DS_Store
+game/tools/fonts-src/
