@@ -11,6 +11,7 @@ advance:
 scenes:
   # ─────────────────────────── 序章 ───────────────────────────
   - id: c1_prologue
+    # 格局：城市，租屋處／床邊（docs/scene-layouts.md）
     time: "10月2日 22:40"
     place: 城市，租屋處
     ambience: [room_tone, rain_on_window]
@@ -20,12 +21,12 @@ scenes:
       - { narr: 雨打在窗外冷氣機的鐵殼上，一陣密，一陣疏。, teach: tap }
       - { sfx: cloth_rustle, at: front, dist: near, text: 窸窣 }
       - narr: 行李箱攤在床上。我把摺好的衣服一疊一疊放進去，每放一疊，就用手掌壓平，好多塞一點。
-      - { sfx: phone_buzz, at: front-right, dist: near, text: 嗡 }
+      - { sfx: phone_buzz, at: right, dist: near, text: 嗡 }
       - pause: 1
       - { sfx: envelope, at: front, dist: near, text: 沙—— }
       - narr: 信封是下午從管理員那邊收到的。
       - narr: 拿上來的時候還說，現在很少看到手寫的信了。
-      - { sfx: phone_buzz, at: front-right, dist: near, text: 嗡、嗡, vib: buzz }
+      - { sfx: phone_buzz, at: right, dist: near, text: 嗡、嗡, vib: buzz }
       - narr: 我把手機鏡頭對著信封。
       - phone: 收件人，林——。
       - phone: 寄件人，林知夏。
@@ -162,6 +163,7 @@ scenes:
           options:
             - text: （握住他的手肘）
               then:
+                - move: { yuan: right }
                 - narr: 他的外套袖子有機油和黃銅的味道。
                 - narr: 他走得很慢，慢到我知道他在算我的步伐。
                 - set: c1_took_elbow
@@ -186,6 +188,7 @@ scenes:
 
   # ─────────────────────────── 07:55 鎮上 ───────────────────────────
   - id: c1_walk
+    # 格局：灰潮鎮／往老家的路（docs/scene-layouts.md）
     time: "07:55"
     place: 灰潮鎮，往老家的路
     ambience: [street_morning, construction_far]
@@ -262,6 +265,7 @@ scenes:
 
   # ─────────────────────────── 08:05 老家 ───────────────────────────
   - id: c1_house
+    # 格局：林家老屋／客廳／剛進門（docs/scene-layouts.md）
     time: "08:05"
     place: 林家老屋
     ambience: [old_house]
@@ -303,7 +307,7 @@ scenes:
             - text: 「先去她的房間。」
               then:
                 - yuan: ……好。
-                - { sfx: step_uneven, at: front, dist: mid, text: 咚、叩 }
+                - { sfx: step_uneven, at: right, dist: mid, text: 咚、叩 }
                 - narr: 他的腳步聲停在走廊盡頭那扇門前，沒有進去。
             - text: 「幫我念一下估價單。」
               then:
@@ -323,6 +327,7 @@ scenes:
 
   # ─────────────────────────── 08:25 知夏的房間 ───────────────────────────
   - id: c1_room
+    # 格局：林家老屋／知夏的房間（docs/scene-layouts.md）
     time: "08:25"
     place: 林家老屋，知夏的房間
     ambience: [room_tone]
@@ -337,6 +342,7 @@ scenes:
     next: c1_room_touch
 
   - id: c1_room_touch
+    # 格局：林家老屋／知夏的房間（docs/scene-layouts.md）
     cast: { yuan: back }
     beats:
       - choice:
@@ -415,7 +421,7 @@ scenes:
                   then:
                     - set: c1_room_listen_1
                     - pause: 2
-                    - { sfx: fabric_flap, at: left, dist: mid, text: 啪 }
+                    - { sfx: fabric_flap, at: front-left, dist: mid, text: 啪 }
                     - pause: 1
                     - narr: 窗簾被風吹得很輕地碰了一下窗框。
                     - if: flag.c1_watch || flag.c1_notebook || know.k_watch_1831 || know.k_notebook_1831
@@ -434,7 +440,7 @@ scenes:
                       else:
                         - set: c1_room_listen_done
                         - pause: 2
-                        - { sfx: fabric_flap, at: left, dist: mid, text: 啪 }
+                        - { sfx: fabric_flap, at: front-left, dist: mid, text: 啪 }
                         - pause: 1
                         - narr: 我又等了一會兒。只有窗簾偶爾碰著窗框。
                         - think: ……先到這裡吧。
@@ -442,10 +448,11 @@ scenes:
 
   # ─────────────────────────── 白天 ───────────────────────────
   - id: c1_day
+    # 格局：林家老屋／客廳（docs/scene-layouts.md）
     time: "11:20"
     place: 林家老屋
     ambience: [old_house]
-    cast: { yuan: front }
+    cast: { yuan: front-right }
     beats:
       - narr: 從她房間出來的時候，客廳的窗都開著，灰塵味淡了很多。
       - { sfx: pour_water, at: front-right, dist: mid, text: 嘩—— }
@@ -455,6 +462,7 @@ scenes:
       - yuan: 嗯。再一下就清了。
       - { sfx: phone_notify, at: front-right, dist: mid, text: 叮咚 }
       - narr: 他的手機響了一聲。他沒有馬上回，過了一下才走到我前面。
+      - move: { yuan: front }
       - yuan: 我得回店裡一趟。下午有客人要來拿錶。
       - yuan: 妳呢？
       - choice:
@@ -467,6 +475,7 @@ scenes:
               goto: c1_day_street
 
   - id: c1_day_house
+    # 格局：林家老屋／客廳／沙發（docs/scene-layouts.md）
     time: "12:40"
     place: 林家老屋
     ambience: [old_house]
@@ -521,8 +530,8 @@ scenes:
       - narr: 我在沙發上坐下來，就沒有再起來。
       - narr: 窗口的太陽原本曬在我手背上，後來移到膝蓋，再後來，只剩地板那邊還有一點溫溫的。
       - { wait: 12 }
-      - { sfx: door_open, at: front, text: 喀、吱 }
-      - { sfx: step_uneven, at: front, dist: mid, text: 咚、叩 }
+      - { sfx: door_open, at: front-right, text: 喀、吱 }
+      - { sfx: step_uneven, at: front-right, dist: mid, text: 咚、叩 }
       - narr: 門口的腳步聲。一重一輕，踩得很輕，好像怕吵醒誰。
       - choice:
           timeout: 6
@@ -551,12 +560,13 @@ scenes:
     next: c1_letter
 
   - id: c1_day_shop
+    # 格局：周家鐘錶店／後面那張椅子（docs/scene-layouts.md）
     time: "12:10"
     place: 周家鐘錶店
     ambience: [clock_shop]
     cast: { yuan: front }
     beats:
-      - { sfx: shop_bell, at: front, dist: near, text: 叮鈴 }
+      - { sfx: shop_bell, at: back, dist: near, text: 叮鈴 }
       - narr: 一推開門，滿屋子的滴答聲就把我包住了。
       - narr: 沒有一個是同步的。像一群人同時在小聲數數。
       - yuan: 後面有椅子。
@@ -578,10 +588,14 @@ scenes:
       - pause: 2
       - narr: 之後我們都沒有再說話。冰箱拿出來的茶，在我手裡慢慢退冰。
       - { sfx: shop_bell, at: back, dist: near, text: 叮鈴 }
-      - { man: 少年仔，我的錶好了沒？, as: 來拿錶的阿伯, at: back }
+      - { man: 少年仔，我的錶好了沒？, as: 來拿錶的阿伯, at: back, dist: near }
+      - { sfx: step, at: back, dist: near, to: front-right:near, text: 叩、叩 }
+      - move: { man: front-right:near }
       - { yuan: 好了。走得很準，您回去戴看看。, at: front }
-      - { man: 這支是我太太買的啦，走不準她會唸。, as: 來拿錶的阿伯, at: back }
+      - { man: 這支是我太太買的啦，走不準她會唸。, as: 來拿錶的阿伯 }
       - narr: 阿伯在櫃台前試了很久，說了好幾次謝謝才走。
+      - { sfx: step, at: front-right, dist: near, to: back:near, text: 叩、叩 }
+      - { sfx: shop_bell, at: back, dist: near, text: 叮鈴 }
       - { sfx: tools_clink, at: front, dist: near, text: 喀 }
       - narr: 予安把工具盒蓋上。
       - { yuan: 久等了，我送妳回去。, at: front }
@@ -655,13 +669,14 @@ scenes:
       - narr: 背上被那台貨車擦過的地方，到現在還是麻的。
       - narr: 我退到店家的屋簷底下，背貼著鐵捲門，打給予安，請他來接我。
       - narr: 掛掉電話，我把手杖收短，抱在胸前。
-      - { sfx: car_pass, at: back, dist: mid, text: 嗚—— }
+      - { sfx: car_pass, at: front, dist: mid, text: 嗚—— }
       - narr: 每有一台車經過，我的肩膀就自己縮一下。
       - think: 好累。
     next: c1_letter
 
   # ─────────────────────────── 15:30 信 ───────────────────────────
   - id: c1_letter
+    # 格局：林家老屋／客廳（docs/scene-layouts.md）
     time: "15:30"
     place: 林家老屋
     ambience: [old_house]
@@ -741,7 +756,7 @@ scenes:
                 - set: c1_yuan_postoffice
                 - narr: 我把信收回外套口袋。
                 - yuan: 我去問，晚一點跟妳說。
-                - { sfx: door_close, at: front, text: 碰 }
+                - { sfx: door_close, at: back, dist: mid, text: 碰 }
             - text: 「不用了。今天……你陪我一下就好。」
               then:
                 - set: c1_yuan_with_me
@@ -749,12 +764,13 @@ scenes:
                 - yuan: ……好。
                 - { sfx: chair_scrape, at: right, dist: near, text: 嘎 }
                 - narr: 他把椅子拉過來，坐在我旁邊。沒有問為什麼。
+                - move: { yuan: right }
                 - narr: 他的袖子貼著我的手臂，有一點機油味。我聳著的肩膀這才慢慢放下來。
                 - tension: -10
             - text: （什麼都不說，把信收回口袋）
               then:
                 - yuan: ……那我先回店裡。有事打給我。
-                - { sfx: door_close, at: front, text: 碰 }
+                - { sfx: door_close, at: back, dist: mid, text: 碰 }
                 - narr: 門關上以後，我的手還按在口袋外面，按到信封的角都壓進掌心。
       - pause: 1
       - narr: 手伸進外套口袋，又碰到信封的邊。我沒有把它拿出來。
@@ -905,7 +921,7 @@ scenes:
                 - { sfx: strap_click, at: front, dist: near, text: 喀 }
                 - ruoqing: ……就是見過而已。
                 - ruoqing: 我還要顧店，妳慢慢喝喔。
-                - { sfx: step, at: front-right, text: 叩、叩 }
+                - { sfx: step, at: front-right, dist: near, to: front-right:far, text: 叩、叩 }
                 - narr: 她走開了，金屬扣的聲音也跟著走遠。
                 - narr: 我的手指扣著杯耳，扣到指節發痠，咖啡一口都沒有再喝。
                 - tension: 8
@@ -1077,6 +1093,7 @@ scenes:
 
   # ─────────────────────────── 17:52 訊息 ───────────────────────────
   - id: c1_1752
+    # 格局：林家老屋／客廳（docs/scene-layouts.md）
     time: "17:52"
     place: 林家老屋
     ambience: [old_house]
@@ -1552,6 +1569,7 @@ scenes:
     next: c1_police
 
   - id: c1_1831_home
+    # 格局：林家老屋／客廳（docs/scene-layouts.md）
     time: "18:20"
     place: 林家老屋
     ambience: [house_night]
@@ -1574,7 +1592,7 @@ scenes:
       - { sfx: dog_bark, at: right, dist: far, text: 汪、汪 }
       - pause: 2
       - { sfx: power_up, at: back, text: 嗡 }
-      - { sfx: relay_click, at: left, dist: mid, text: 喀 }
+      - { sfx: relay_click, at: front-right, dist: mid, text: 喀 }
       - { amb: [house_night], fade: 0.8 }
       - narr: 冰箱的壓縮機喀了一聲，又嗡嗡地轉起來。
       - think: 像整座鎮停了一拍。
@@ -1600,13 +1618,25 @@ scenes:
           - { sfx: phone_ring, at: right, dist: near, text: 鈴——, vib: buzz }
           - narr: 我接起手機。
           - { yuan: 是我。, at: right, dist: near, via: phone }
-      - { yuan: 舊車站那邊出事了。停電，有人……, at: right, dist: near, via: phone }
+      - if: flag.c1_yuan_with_me
+        then:
+          - { yuan: 舊車站那邊出事了。停電，有人…… }
+        else:
+          - { yuan: 舊車站那邊出事了。停電，有人……, at: right, dist: near, via: phone }
       - pause: 1.5
-      - { yuan: 是若晴。咖啡店那個女生。, at: right, dist: near, learn: k_ruoqing_died, mem: m_1831_heard, via: phone }
+      - if: flag.c1_yuan_with_me
+        then:
+          - { yuan: 是若晴。咖啡店那個女生。, learn: k_ruoqing_died, mem: m_1831_heard }
+        else:
+          - { yuan: 是若晴。咖啡店那個女生。, at: right, dist: near, learn: k_ruoqing_died, mem: m_1831_heard, via: phone }
       - heart: pound
       - tension: 20
       - narr: 我想問他是不是聽錯了，喉嚨卻緊到只擠得出一口氣。
-      - { yuan: 六點半左右。他們說，大概六點三十一分。, at: right, dist: near, via: phone }
+      - if: flag.c1_yuan_with_me
+        then:
+          - { yuan: 六點半左右。他們說，大概六點三十一分。 }
+        else:
+          - { yuan: 六點半左右。他們說，大概六點三十一分。, at: right, dist: near, via: phone }
       - daze: heavy
       - { sfx: tinnitus, at: center }
       - if: flag.c1_yuan_with_me
@@ -1637,6 +1667,7 @@ scenes:
 
   # ─────────────────────────── 20:30 周警官 ───────────────────────────
   - id: c1_police
+    # 格局：灰潮鎮派出所／桌前（docs/scene-layouts.md）
     time: "20:30"
     place: 灰潮鎮派出所
     ambience: [police_office]
@@ -1762,6 +1793,7 @@ scenes:
 
   # ─────────────────────────── 22:40 手錶 ───────────────────────────
   - id: c1_watch
+    # 格局：林家老屋／知夏的房間（docs/scene-layouts.md）
     time: "22:40"
     place: 林家老屋，知夏的房間
     ambience: [house_night]
@@ -1795,13 +1827,14 @@ scenes:
 
   # ─────────────────────────── 23:20 ───────────────────────────
   - id: c1_night_yuan
+    # 格局：林家老屋／客廳（docs/scene-layouts.md）
     time: "23:20"
     place: 林家老屋
     ambience: [house_night, night_insects]
     cast: { yuan: right }
     beats:
       - { sfx: door_open, at: back, text: 叩叩——吱 }
-      - yuan: 是我。
+      - { yuan: 是我。, at: back }
       - yuan: 巷口那家鹹粥。妳以前每次都要加油條。
       - me: 還開著？
       - yuan: 老闆換成他兒子了。味道差不多。
@@ -1870,6 +1903,7 @@ scenes:
 
   # ─────────────────────────── 23:59 鐘聲 ───────────────────────────
   - id: c1_bell
+    # 格局：林家老屋門口（docs/scene-layouts.md）
     time: "23:59"
     place: 林家老屋門口
     ambience: [tower_square_night]
@@ -1885,7 +1919,7 @@ scenes:
       - heart: slow
       - { sfx: bell_toll_far, at: front-left, dist: far, text: 噹—— }
       - pause: 2
-      - { sfx: door_open, at: back, text: 吱 }
+      - { sfx: door_open, at: front, dist: near, text: 吱 }
       - narr: 我推開門。
       - { sfx: bell_toll, at: front-left, text: 噹——— }
       - wait: 3

@@ -137,6 +137,7 @@ scenes:
       - narr: 這兩句我聽過太多次。今天我還是從頭聽到尾，他講到「早」的時候，聲音有一點啞，以前我都沒注意。
       - yuan: 我的左手肘，在妳的右手邊。
       - { sfx: step_uneven, at: right, dist: near, text: 咚、叩 }
+      - move: { yuan: right }
       - narr: 機油和黃銅的味道。他走得很慢，配合我的步子，左腳還是落得比較重。
       - if: "know.k_yuan_sent_letter"
         then:
@@ -284,6 +285,7 @@ scenes:
 
   # ─────────────────────────── 庭安 ───────────────────────────
   - id: f_tingan
+    # 格局：港邊的民宿，二樓／門口 → 港邊的民宿，二樓／屋內（docs/scene-layouts.md）
     place: 港邊的民宿，二樓
     ambience: [room_tone, sea_far]
     cast: { tingan: front }
@@ -483,6 +485,7 @@ scenes:
 
   # ─────────────────────────── 予安 ───────────────────────────
   - id: f_yuan
+    # 格局：周家鐘錶店／後面那張椅子（docs/scene-layouts.md）
     place: 周家鐘錶店
     ambience: [clock_shop]
     cast: { yuan: front }
@@ -860,7 +863,8 @@ scenes:
               - ruoqing: 東牆是有拍到一個新的東西啦。
               - ruoqing: 可是照片在我家，而且那是我的東西。我不想交給一個講不出來為什麼知道的人。
               - ruoqing: 妳不要生氣喔。我拍的東西很少給人，給出去就收不回來了。
-              - { sfx: typing, at: front-right, dist: near, text: 噠噠 }
+              - move: { ruoqing: front-right }
+              - { sfx: typing, at: front-right, dist: mid, text: 噠噠 }
               - narr: 她站起來回吧檯，筆電又開始響，打一個字，刪一個字。
               - ruoqing: 傍晚我不會去舊站啦。我晚上要寄報名，這個比較急。
               - think: 她要先知道，我是真的聽過她的照片，不是在背她的事。
@@ -884,6 +888,7 @@ scenes:
 
   # ─────────────────────────── 柏勳 ───────────────────────────
   - id: f_boxun
+    # 格局：灰潮鎮醫院，病歷室外的走廊／牆邊（docs/scene-layouts.md）
     place: 灰潮鎮醫院，病歷室外的走廊
     ambience: [hospital]
     cast: { boxun: front }
@@ -1024,7 +1029,7 @@ scenes:
               - narr: 他念她的語氣，跟念上一筆一模一樣。鍵盤聲一下子退得好遠。
               - narr: 我把手杖立在兩腳中間，額頭差一點就要靠上去。
               - daze: off
-              - { sfx: cart_roll, src: 推車, at: front-left, dist: far, text: 喀隆 }
+              - { sfx: cart_roll, src: 推車, at: front-left, dist: far, to: front-left:mid, text: 喀隆 }
               - narr: 推車又從走廊底推過來，喀隆一聲壓過接縫。他的聲音跟著回到我面前。
               - boxun: 今年四月，一名工人。十八點三十二分，手臂灼傷，舊站東側。
               - boxun: 我能查到的紀錄裡，這五年沒有其他在那個時間送來的舊站傷患。
@@ -1051,7 +1056,7 @@ scenes:
               - learn: lead_f_boxun_record
         else:
           - pause: 3
-          - { sfx: cart_roll, at: front-left, dist: mid, to: back-left:far, text: 喀啦喀啦 }
+          - { sfx: cart_roll, at: front-left, dist: mid, to: left:far, text: 喀啦喀啦 }
           - narr: 推車過去了。走廊只剩空調在吹。
           - boxun: 妳是在威脅我嗎？
           - narr: 我的背貼上走廊的牆，磁磚的涼隔著外套一點一點滲進來。
@@ -1067,6 +1072,7 @@ scenes:
 
   # ─────────────────────────── 志遠 ───────────────────────────
   - id: f_zhiyuan
+    # 格局：灰潮鎮派出所／桌前（docs/scene-layouts.md）
     place: 灰潮鎮派出所
     ambience: [police_office]
     cast: { zhiyuan: front }
@@ -1152,8 +1158,8 @@ scenes:
                         - zhiyuan: 那它就繼續在。
           - if: "flag.f_z_proof"
             then:
-              - { sfx: drawer, at: front, dist: near, text: 喀啦 }
-              - { sfx: tape_hiss, at: front, dist: near, text: 沙———— }
+              - { sfx: drawer, at: front-right, dist: mid, text: 喀啦 }
+              - { sfx: tape_hiss, at: front-right, dist: mid, text: 沙———— }
               - narr: 抽屜拉到最底。磁帶的底噪很輕，一直沙沙地響。
               - zhiyuan: 證物要有保全鏈。誰拿過、幾點、封在哪裡。
               - zhiyuan: 從現在開始，每樣東西經過誰的手，我一筆一筆記。
@@ -1188,6 +1194,7 @@ scenes:
 
   # ─────────────────────────── 17:42 會議室 ───────────────────────────
   - id: f_meeting
+    # 格局：舊研究所，備用會議室／靠門那頭（docs/scene-layouts.md）
     time: "17:42"
     place: 舊研究所，備用會議室
     ambience: [research_facility]
@@ -1238,7 +1245,7 @@ scenes:
           - narr: 背後的無線電沙了兩聲，馬上被人轉小。那個人走到正前方坐下，一句話也沒講。
           - { sfx: lighter_lid, at: front, dist: mid, text: 叮、喀 }
           - think: 周警官。打火機的蓋子開了又關，連轉小聲的那一下，都像在回報。
-          - { sfx: pen_scratch, at: front, dist: near, text: 唰唰 }
+          - { sfx: pen_scratch, at: front, dist: mid, text: 唰唰 }
           - zhiyuan: 十七點四十二分。在場的人，我一個一個記。
         else:
           - if: flag.ev_zhiyuan_partial
@@ -1251,6 +1258,8 @@ scenes:
           - { sfx: step_uneven, at: back, dist: far, text: 咚、叩 }
           - narr: 走廊上的腳步一重一輕，到門口就不動了，好像還在想要不要敲門。
           - me: 予安，門沒鎖。
+          - { sfx: door_open, at: back, dist: mid, text: 吱 }
+          - { sfx: step_uneven, at: back, dist: mid, to: right:near, text: 咚、叩 }
           - { sfx: tools_clink, at: right, dist: near, text: 叮 }
           - yuan: ……我爸剩下的工具，我帶來了。
         else:
@@ -1381,6 +1390,7 @@ scenes:
 
   # ─────────────────────────── 18:03 比對紀錄 ───────────────────────────
   - id: f_1803
+    # 格局：舊研究所，備用會議室／靠門那頭（docs/scene-layouts.md）
     time: "18:03"
     place: 舊研究所，備用會議室
     ambience: [research_facility]
@@ -1746,6 +1756,7 @@ scenes:
 
   # ─────────────────────────── G3 Epoch Fencing ───────────────────────────
   - id: f_gate3
+    # 格局：舊研究所，機房／主控台後 或 舊研究所，機房／門外（docs/scene-layouts.md）
     time: "20:40"
     place: 舊研究所，機房
     ambience: [research_facility]
@@ -1806,6 +1817,7 @@ scenes:
       - if: "flag.ev_zhiyuan"
         then:
           - narr: 周警官收起筆，退到我身後。接下來換我確認聲音。
+          - move: { zhiyuan: back }
         else:
           - narr: 東牆前面只有我一個人。能拿來確認的，只剩我的耳朵。
       - if: flag.ev_boxun
@@ -1892,7 +1904,7 @@ scenes:
                               - me: 我在東牆。我喘不過來，聽不到裡面。
                               - { yuan: ……我手上有一只錶。我把它貼在電話上。, via: phone }
                               - { yuan: 妳跟著它，四下吸，四下吐。, via: phone }
-                              - { sfx: watch_tick, at: right, dist: near, text: 滴答、滴答 }
+                              - { sfx: watch_tick, at: center, dist: near, text: 滴答、滴答 }
                               - narr: 我把手機塞進領口，讓那個滴答貼著鎖骨走。一下，一下，比我的心跳慢。
                               - hold:
                                   seconds: 4
@@ -1959,7 +1971,7 @@ scenes:
                               - me: 我在東牆。我喘不過來，聽不到裡面。
                               - { yuan: ……我手上有一只錶。我把它貼在電話上。, via: phone }
                               - { yuan: 妳跟著它，四下吸，四下吐。, via: phone }
-                              - { sfx: watch_tick, at: right, dist: near, text: 滴答、滴答 }
+                              - { sfx: watch_tick, at: center, dist: near, text: 滴答、滴答 }
                               - narr: 我把手機塞進領口，讓那個滴答貼著鎖骨走。一下，一下，比我的心跳慢。
                               - hold:
                                   seconds: 4
@@ -2046,6 +2058,7 @@ scenes:
 
   # ─────────────────────────── G5 Forward Seal ───────────────────────────
   - id: f_gate5
+    # 格局：舊研究所，機房／主控台後 或 舊研究所，機房／門外（docs/scene-layouts.md）
     time: "23:30"
     place: 舊研究所，機房
     ambience: [research_facility]
@@ -2120,6 +2133,7 @@ scenes:
 
   # ─────────────────────────── 23:40 ───────────────────────────
   - id: f_choice
+    # 格局：舊研究所，機房／主控台後 或 舊研究所，機房／門外（docs/scene-layouts.md）
     time: "23:40"
     place: 舊研究所，機房
     ambience: [research_facility]
@@ -2232,6 +2246,7 @@ scenes:
 
   # ─────────────────────────── 等待午夜 ───────────────────────────
   - id: f_midnight
+    # 格局：舊研究所外／台階（docs/scene-layouts.md）
     time: "23:50"
     place: 舊研究所外的台階
     ambience: [wind_open, night_insects]
@@ -2296,6 +2311,7 @@ scenes:
 
   # ─────────────────────────── Ending C ───────────────────────────
   - id: f_end_c
+    # 格局：舊研究所外／台階（docs/scene-layouts.md）
     cast: { yuan: right, ruoqing: left, tingan: back }
     beats:
       - { sfx: phone_buzz, at: right, dist: near, text: 嗡 }

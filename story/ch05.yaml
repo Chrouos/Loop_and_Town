@@ -61,7 +61,7 @@ scenes:
     ambience: [platform]
     cast: { yuan: front-right }
     beats:
-      - { sfx: train_door, at: right, dist: near, text: 嘶——喀 }
+      - { sfx: train_door, at: left, dist: near, text: 嘶——喀 }
       - narr: 月台的風從背後推過來。
       - { sfx: step_uneven, at: front-right, dist: mid, text: 咚、叩 }
       - if: know.k_sig_yuan
@@ -74,6 +74,7 @@ scenes:
           - yuan: 比我想的早。
           - pause: 1.5
           - yuan: ……好久不見。
+          - move: { yuan: right }
           - narr: 我握住他的手肘。機油和黃銅，跟昨晚一樣。
         else:
           - choice:
@@ -100,8 +101,9 @@ scenes:
           - think: 好久不見。
           - think: 他說得很自然。五年沒見的人，本來就該這樣說。
           - { think: 昨天晚上他送我走到門口。那段路，他自己沒走過。, mem: m_c5_only_me }
-          - { sfx: rail_clack, at: back-right, dist: mid, to: back-left:far, text: 轟隆…… }
+          - { sfx: rail_clack, at: left, dist: mid, to: front-left:far, text: 轟隆…… }
           - narr: 列車開走的轟隆聲變得好悶，像有人把我的頭按進一缸溫水裡。
+          - move: { yuan: right }
           - yuan: 請扶著我的左手肘。前面有階梯。
           - narr: 我握住他的手肘，握得太緊，他的袖子在我指縫裡皺成一團。
           - narr: 機油和黃銅，跟昨晚一模一樣。
@@ -162,6 +164,7 @@ scenes:
 
   # ─────────────────────────── 09:20 鐘錶店 ───────────────────────────
   - id: c5_shop
+    # 格局：周家鐘錶店／後面那張椅子 → 櫃台邊（docs/scene-layouts.md）
     time: "09:20"
     place: 周家鐘錶店
     ambience: [clock_shop]
@@ -290,6 +293,7 @@ scenes:
 
   # ─────────────────────────── 12:30 後面的小房間 ───────────────────────────
   - id: c5_noon
+    # 格局：周家鐘錶店，後面的小房間／桌邊（docs/scene-layouts.md）
     time: "12:30"
     place: 周家鐘錶店，後面的小房間
     ambience: [clock_shop]
@@ -524,15 +528,15 @@ scenes:
     time: "15:40"
     place: 老街咖啡店
     ambience: [cafe]
-    cast: { ruoqing: front, yuan: back, old_woman: back-left }
+    cast: { ruoqing: front, yuan: back, old_woman: front-right }
     threads:
       manager:
         beats:
-          - { old_woman: 若晴，那個外地的通知，妳回了沒？, as: 店長, at: back-left }
-          - { ruoqing: 還沒。, at: front-right }
-          - { old_woman: 還沒還沒，每次都還沒。, as: 店長, at: back-left }
-          - { sfx: steam_hiss, at: back-left, dist: mid, text: 嘶—— }
-          - { old_woman: 我是說，妳想去就去啦。, as: 店長, at: back-left }
+          - { old_woman: 若晴，那個外地的通知，妳回了沒？, as: 店長, at: front-right }
+          - { ruoqing: 還沒。, at: front }
+          - { old_woman: 還沒還沒，每次都還沒。, as: 店長, at: front-right }
+          - { sfx: steam_hiss, at: front-right, dist: mid, text: 嘶—— }
+          - { old_woman: 我是說，妳想去就去啦。, as: 店長, at: front-right }
     beats:
       - { sfx: shop_bell, at: back, dist: near, text: 叮鈴 }
       - { sfx: steam_hiss, at: front-right, dist: mid, text: 嘶嘶—— }
@@ -597,7 +601,7 @@ scenes:
           - ruoqing: 欸，那妳聽聽看，店長現在在幹嘛？
           - me: 打奶泡。聲音變尖了，奶快燙過頭了。
           - ruoqing: ……欸店長！奶！
-          - { old_woman: 好啦好啦，我有在看。, as: 店長, at: back-left }
+          - { old_woman: 好啦好啦，我有在看。, as: 店長, at: front-right }
           - ruoqing: 妳耳朵也太好了吧。
       - if: know.k_yuan_went_station
         then:
@@ -680,7 +684,7 @@ scenes:
       - ruoqing: 他喔，什麼都不會講的啦。
       - ruoqing: 啊，我是不是不該講。
       - daze: off
-      - { cue: manager, at: back-left, text: 嘶——, sfx: steam_hiss }
+      - { cue: manager, at: front-right, text: 嘶——, sfx: steam_hiss }
       - { sfx: coffee_grind, at: front-right, dist: mid, text: 嘎啦嘎啦 }
       - { sfx: cup_set, at: front-right, dist: mid, text: 叩 }
       - narr: 蒸汽噴完，磨豆機和杯盤碰撞的聲音才一個接一個落回耳朵裡，舌尖燙到的地方開始發麻。
@@ -716,7 +720,7 @@ scenes:
       - me: 過了六點半，傳個訊息給我就好。
       - { sfx: phone_buzz, at: right, dist: near, text: 嗡, vib: buzz }
       - narr: 我念了號碼給她。她存好，撥過來響一聲，我也存了她的。
-      - { sfx: strap_click, at: front-right, dist: mid, text: 喀、喀、喀 }
+      - { sfx: strap_click, at: front, dist: near, to: front-right:mid, text: 喀、喀、喀 }
       - narr: 她走得很快，背帶扣一路響回吧台。
       - if: "!flag.c5_asked_ruoqing"
         then:
@@ -779,7 +783,7 @@ scenes:
                 - me: 予安！
                 - { sfx: step_uneven, at: left, dist: mid, text: 咚叩、咚叩 }
                 - narr: 跑回來的腳步，左腳還是比較重。
-                - yuan: 我在這、我在這。我以為妳還在裡面。
+                - { yuan: 我在這、我在這。我以為妳還在裡面。, at: left }
                 - { sfx: breath, at: center, dist: near, text: 呼、呼 }
                 - narr: 他的手扶住我的手肘。我這才聽見自己在喘，喘得像剛爬完五樓。
                 - set: c5_lost_him
@@ -891,6 +895,7 @@ scenes:
 
   # ─────────────────────────── 18:20 鐘錶店 ───────────────────────────
   - id: c5_1831
+    # 格局：周家鐘錶店／後面那張椅子（docs/scene-layouts.md）
     time: "18:20"
     place: 周家鐘錶店
     ambience: [clock_shop]
@@ -945,6 +950,7 @@ scenes:
 
   # 第二輪起：18:20 到 18:31 只等一小段。
   - id: c5_1831_again
+    # 格局：周家鐘錶店／後面那張椅子（docs/scene-layouts.md）
     time: "18:20"
     place: 周家鐘錶店
     ambience: [clock_shop]
@@ -1015,7 +1021,7 @@ scenes:
                   else:
                     - think: 上一次他說「妳的不加蔥」，像在交代別人的事。這一次他多問了一句「對吧」。
       - { old_man: ……明天，十月四日，清晨起有陣雨，沿海風浪稍大……, as: 電視, at: back-left, via: tv }
-      - { sfx: cup_set, at: right, dist: mid, text: 叩, src: 碗 }
+      - { sfx: cup_set, at: right, dist: near, text: 叩, src: 碗 }
       - { old_woman: 兩碗麵。小心燙喔。, as: 老闆娘 }
       - { cue: tv, at: back-left, text: 沙沙——, sfx: static_burst }
       - narr: 麵的熱氣撲到臉上。
@@ -1135,7 +1141,7 @@ scenes:
                     - pause: 3
                     - { sfx: fry_sizzle, at: right, dist: mid, text: 滋啦—— }
                     - narr: 油鍋還在響。電視在講明天的天氣。
-                    - { man: 明天，十月四日，灰潮鎮清晨起有陣雨。, as: 電視裡的氣象主播, at: front-left, dist: far, via: tv }
+                    - { man: 明天，十月四日，灰潮鎮清晨起有陣雨。, as: 電視裡的氣象主播, at: back-left, dist: mid, via: tv }
                     - think: 十月四日。我一次都還沒有過到那一天。
       - if: know.k_yuan_went_station
         then:
@@ -1186,7 +1192,7 @@ scenes:
       - yuan: 那，明天見。
       - pause: 1.5
       - think: 明天見。
-      - { sfx: step_uneven, at: back-right, dist: far, text: 咚……叩…… }
+      - { sfx: step_uneven, at: back-right, dist: near, to: back-right:far, text: 咚……叩…… }
       - narr: 他的腳步往巷口走。我坐在門口的台階上，石頭還有一點白天的溫度。
       - pause: 2.5
       - { sfx: step_uneven, at: back-right, dist: mid, text: 咚、叩 }
@@ -1204,13 +1210,13 @@ scenes:
                 - { yuan: 沒事啦。只是想講，明天早上風大，外套穿厚一點。, at: back-right, dist: mid }
                 - me: 好。
                 - narr: 我把外套的拉鍊拉到最上面，拉鍊頭碰到下巴，冰的。拉鍊的聲音停了，他的腳步才又往巷口去。
-                - { sfx: step_uneven, at: back-right, dist: far, text: 咚……叩…… }
+                - { sfx: step_uneven, at: back-right, dist: mid, to: back-right:far, text: 咚……叩…… }
                 - set: c5_bell_called
             - text: （握住手杖，不出聲）
               then:
                 - narr: 我把手杖拉到膝蓋前面，握住中間那一節，指節壓在接縫上。
                 - pause: 2
-                - { sfx: step_uneven, at: back-right, dist: far, text: 咚……叩…… }
+                - { sfx: step_uneven, at: back-right, dist: mid, to: back-right:far, text: 咚……叩…… }
                 - narr: 腳步又轉回去，往巷口走，越來越輕。
       - clock: "23:59"
       - narr: 我叫手機報時。
