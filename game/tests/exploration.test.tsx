@@ -130,8 +130,8 @@ describe('story exploration exhaustion', () => {
 
   it('town exhausts without using a visit slot, persists across returns, and leaves visits available', () => {
     const { director, pick } = setup(report.script, 'f_hub_pick', 'final', ['f_slot1', 'f_tingan_address']);
-    expect(pick(town)).toContain('鐵捲門');
-    expect(pick(town)).toContain('腳步聲');
+    expect(pick(town)).toContain('白帶魚');
+    expect(pick(town)).toContain('手杖往自己這邊收');
     expect(pick(town)).toContain('該走了');
     expect(director.loopFlags.has('f_slot2')).toBe(false);
     expect(director.view.choice!.options.find((o) => o.text === town)?.disabled).toBe(true);
@@ -147,15 +147,15 @@ describe('story exploration exhaustion', () => {
 
   it('square visits reveal three passages, advance the original time slots, and persist exhaustion', () => {
     const { director, pick } = setup(report.script, 'c6_h0930', '6');
-    expect(pick(square)).toContain('有小孩在拍球');
+    expect(pick(square)).toContain('浪費過一個下午');
     expect(director.view.sceneId).toBe('c6_h1100');
     const second = pick(square);
     expect(second).toContain('長椅邊緣');
-    expect(second).not.toContain('有小孩在拍球');
+    expect(second).not.toContain('浪費過一個下午');
     expect(director.view.sceneId).toBe('c6_h1230');
     const third = pick(square);
     expect(third).toContain('該起來了');
-    expect(third).not.toContain('有小孩在拍球');
+    expect(third).not.toContain('浪費過一個下午');
     expect(director.view.sceneId).toBe('c6_h1400');
     const choice = director.view.choice!;
     expect(choice.options.find((o) => o.text === square)?.disabled).toBe(true);
@@ -169,7 +169,7 @@ describe('story exploration exhaustion', () => {
   });
 
   it.each([
-    { flags: ['c6_r1100'], learnedFlag: 'c6_square_1', text: '有小孩在拍球', next: 'c6_h1100' },
+    { flags: ['c6_r1100'], learnedFlag: 'c6_square_1', text: '浪費過一個下午', next: 'c6_h1100' },
     { flags: ['c6_r1230', 'c6_square_1'], learnedFlag: 'c6_square_2', text: '小小的凹痕', next: 'c6_h1230' },
     { flags: ['c6_r1400', 'c6_square_1', 'c6_square_2'], learnedFlag: 'c6_square_done', text: '該起來了', next: 'c6_h1400' },
   ])('reloading during the square wait retains the matching passage and progress ($learnedFlag)', ({ flags, learnedFlag, text, next }) => {

@@ -131,3 +131,32 @@ scenes:
     expect(said).toContain('下一句。');
   });
 });
+
+describe('voices from before', () => {
+  it('a tape and Zhixia are written in their own hand; a call or someone beside her is not', () => {
+    const { script, errors } = buildScript([{ name: 'a.yaml', source: `
+chapter: 1
+title: 測試
+start: s1
+scenes:
+  - id: s1
+    cast: { zhixia: front, tingan: right }
+    beats:
+      - { tingan: 錄音, via: tape }
+      - zhixia: 走了
+      - { tingan: 電話, via: phone }
+      - tingan: 旁邊
+      - end: reset
+` }]);
+    expect(errors).toEqual([]);
+    const director = new Director(script!, freshSave(), { audio: silentAudio([]), vibrate: () => undefined, persist: () => undefined, wallNow: () => 0 }, { speed: 1 });
+    director.start();
+    const past = new Map<string, boolean>();
+    for (let i = 0; i < 400 && director.view.phase !== 'reset'; i++) {
+      director.tick(100);
+      const line = director.view.center;
+      if (line) past.set(line.text, Boolean(line.past));
+    }
+    expect(Object.fromEntries(past)).toEqual({ 錄音: true, 走了: true, 電話: false, 旁邊: false });
+  });
+});

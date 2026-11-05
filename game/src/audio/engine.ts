@@ -697,9 +697,9 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
     if (!ac || !bus) return;
     const l = clamp(Number.isFinite(level) ? level : 0, 0, 1);
     const now = ac.currentTime;
-    // sinking in is quick, coming back takes a while
-    expRampTo(bus.daze.frequency, OPEN * Math.pow(DAZED / OPEN, l), now, l > 0 ? 0.5 : 1.6);
-    glide(bus.dazeGain.gain, 1 - 0.5 * l, now, l > 0 ? 0.4 : 1.2);
+    // sinking in takes a breath or two, coming back takes a while (the screen clears on the same clock)
+    expRampTo(bus.daze.frequency, OPEN * Math.pow(DAZED / OPEN, l), now, l > 0 ? 1.4 : 4);
+    glide(bus.dazeGain.gain, 1 - 0.5 * l, now, l > 0 ? 0.5 : 1.3);
   }
 
   setNoise(loud: number): void {
