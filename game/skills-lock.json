@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "skills": {
+    "audio-design": {
+      "source": "gamedev-skills/awesome-gamedev-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/disciplines/audio-design/SKILL.md",
+      "computedHash": "dd4b1f676486c3bdc3c9a6ab77c0e37135263fbe6ed6c0fd1c456d8dc20f9a00"
+    },
+    "dialogue-systems": {
+      "source": "gamedev-skills/awesome-gamedev-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/disciplines/dialogue-systems/SKILL.md",
+      "computedHash": "80457ad5f7bae449b7604e1298bfa10654048a384c40809c26f085f65c245497"
+    },
+    "game-ui-ux": {
+      "source": "gamedev-skills/awesome-gamedev-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/disciplines/game-ui-ux/SKILL.md",
+      "computedHash": "8a2d29f6b8abdb8dff0eb628bdd010badc46054d6cbb8d3adc14dfe719dd4127"
+    },
+    "prototype-fast": {
+      "source": "gamedev-skills/awesome-gamedev-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/workflows/prototype-fast/SKILL.md",
+      "computedHash": "164ddd65f1af2cd47e4c5ffd2bceaef4e429878654c869a5bbb66d8eaf09aa8f"
+    },
+    "save-systems": {
+      "source": "gamedev-skills/awesome-gamedev-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/disciplines/save-systems/SKILL.md",
+      "computedHash": "f893265ad69b54d1123dd53d89548031fd411b664a4c9a5b1d45a23f54636fd8"
+    },
+    "visual-novel": {
+      "source": "gamedev-skills/awesome-gamedev-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/genres/visual-novel/SKILL.md",
+      "computedHash": "aa9e5b179dd85341dd88b9fe65b0f8a2bab645a5065cea5b0389ebbdd702710a"
+    }
+  }
+}
