@@ -5,7 +5,7 @@
 import type { AmbienceId } from './catalog';
 import type { ImpulseOpts } from './core';
 
-export type RoomId = 'open' | 'train' | 'home' | 'shop' | 'office' | 'library' | 'tunnel' | 'hall';
+export type RoomId = 'open' | 'train' | 'car' | 'home' | 'shop' | 'office' | 'library' | 'tunnel' | 'hall';
 
 /** `wet`: how much of the room comes back (the convolver is normalized, so this is its level). */
 export type Room = ImpulseOpts & { wet: number };
@@ -15,6 +15,8 @@ export const ROOMS: Record<RoomId, Room> = {
   open: { seconds: 0.9, brightness: 0.35, damping: 2.2, early: 2, earlySpread: 0.12, preDelay: 0.03, wet: 0.22 },
   // A carriage: seats and windows close on every side.
   train: { seconds: 0.45, brightness: 0.4, damping: 2.6, early: 6, earlySpread: 0.012, preDelay: 0.004, wet: 0.26 },
+  // A parked car: glass and upholstery a hand's width away, almost no tail at all.
+  car: { seconds: 0.25, brightness: 0.4, damping: 3, early: 6, earlySpread: 0.006, preDelay: 0.002, wet: 0.2 },
   // The old house: small rooms, wooden floors, a hallway.
   home: { seconds: 0.75, brightness: 0.45, damping: 2, early: 8, earlySpread: 0.02, preDelay: 0.006, wet: 0.34 },
   // Cafe, clock shop, the noodle place: small and full of soft things.
@@ -52,12 +54,12 @@ const AMBIENCE_ROOM: Partial<Record<AmbienceId, RoomId>> = {
   police_office: 'office',
   research_facility: 'office',
   library: 'library',
-  maintenance_tunnel: 'tunnel',
+  rain_in_car: 'car',
   old_station_hall: 'hall',
 };
 
 /** Walls beat weather: an indoor bed decides the room over the wind outside it. */
-const ENCLOSED: Record<RoomId, number> = { open: 0, train: 1, home: 1, shop: 1, office: 1, library: 1, tunnel: 2, hall: 2 };
+const ENCLOSED: Record<RoomId, number> = { open: 0, train: 1, car: 1, home: 1, shop: 1, office: 1, library: 1, tunnel: 2, hall: 2 };
 
 /** The room these beds put her in, or null when none of them names a place (keep the last one). */
 export function roomFor(beds: readonly AmbienceId[]): RoomId | null {

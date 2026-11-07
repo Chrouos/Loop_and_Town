@@ -23,6 +23,8 @@ function play(chapter: string, policy: Policy, maxLoops: number, ears: 'right' |
   const startLoop = director.save.loop;
   const scenesByLoop: string[][] = [[]];
   const optionsSeen: string[][] = [];
+  const locatesByLoop: number[] = [];
+  let lastInteract: unknown = null;
   for (let steps = 0; steps < 400_000; steps++) {
     const view = director.view;
     if (director.save.chapter !== chapter || director.save.loop - startLoop >= maxLoops) break;
@@ -37,6 +39,8 @@ function play(chapter: string, policy: Policy, maxLoops: number, ears: 'right' |
     } else if (view.recall) {
       director.recallPick(null);
     } else if (view.interact?.type === 'locate') {
+      if (view.interact !== lastInteract) locatesByLoop[loopIndex] = (locatesByLoop[loopIndex] ?? 0) + 1;
+      lastInteract = view.interact;
       director.locatePick(locateAnswer(director, typeof ears === 'function' ? ears(director.save.chLoop) : ears));
     } else if (view.interact?.type === 'touch') {
       director.touchDone();
@@ -51,7 +55,7 @@ function play(chapter: string, policy: Policy, maxLoops: number, ears: 'right' |
     wall += 200;
     director.tick(200);
   }
-  return { chapter: director.save.chapter, knowledge: new Set(director.save.knowledge), scenesByLoop, optionsSeen };
+  return { chapter: director.save.chapter, knowledge: new Set(director.save.knowledge), scenesByLoop, optionsSeen, locatesByLoop };
 }
 
 /** Picks the first option matching one of the patterns, in order; otherwise the first non-recall option. */
@@ -69,7 +73,8 @@ describe('chapter 4 gates', () => {
     const result = play('4', (options, sceneId, chLoop) => {
       // Saying nothing is not an option on screen: pick nothing and let the time run out.
       if (sceneId === 'c4_police' && chLoop === 1) return -1;
-      return prefer(/卡兩次/, /沙沙響/, /我已經聽過好幾次/, /她跟你說過/, /妳恨她嗎/, /妳答應過她什麼/)(options);
+      // At the library she brings the photo: the evidence options no longer sit first, so name it.
+      return prefer(/卡兩次/, /沙沙響/, /我已經聽過好幾次/, /她跟你說過/, /短頭髮/, /颱風封路/, /妳恨她嗎/, /妳答應過她什麼/)(options);
     }, 2);
     expect(result.knowledge.has('lead_c4_drawer')).toBe(true);
     expect(result.knowledge.has('k_recorder_voice')).toBe(true);
@@ -161,6 +166,22 @@ describe('chapter 5 gates', () => {
     const good = play('5', prefer(/斷掉的錶帶/, /今天我已經過了很多次呢/, /我把我知道的告訴你/), 1);
     expect(good.chapter).toBe('6');
   });
+
+  it('a lead learned this morning is no shortcut yet: the first noon still asks where the ice is', () => {
+    const result = play('5', prefer(/什麼樣的工具箱/, /今天我已經過了很多次呢/, /我把我知道的告訴你/), 1);
+    expect(result.knowledge.has('lead_c5_kit')).toBe(true);
+    expect(result.scenesByLoop[0]).toContain('c5_noon');
+    expect(result.locatesByLoop[0] ?? 0).toBeGreaterThan(0);
+  });
+
+  it('throwing last loop at him ("you lied") is a push: the toolbox stays shut', () => {
+    const result = play('5', (options, _sceneId, chLoop) => chLoop === 1
+      ? prefer(/什麼樣的工具箱/, /今天我已經過了很多次呢/, /我把我知道的告訴你/)(options)
+      : prefer(/你為什麼要騙我/, /今天我已經過了很多次呢/, /我把我知道的告訴你/)(options), 2);
+    expect(result.optionsSeen.some((texts) => texts.some((text) => /你為什麼要騙我/.test(text)))).toBe(true);
+    expect(result.knowledge.has('k_tower_kit')).toBe(false);
+    expect(result.chapter).toBe('5');
+  });
 });
 
 describe('chapter 6 gates', () => {
@@ -193,6 +214,13 @@ describe('chapter 6 gates', () => {
     expect(honest.scenesByLoop[0]).toContain('c6_visit');
     const lie = play('6', prefer(/照排好的說法/, /本來要做什麼/, /去醫院/, /結束調查/), 1);
     expect(lie.knowledge.has('k_c6_they_check')).toBe(true);
+  });
+
+  it('using his unanswered letter as leverage closes the hospital gate and leaves the form lead', () => {
+    const result = play('6', prefer(/本來要做什麼/, /去醫院/, /外縣市那封信/, /結束調查/), 1);
+    expect(result.optionsSeen.some((texts) => texts.some((text) => /外縣市那封信/.test(text)))).toBe(true);
+    expect(result.knowledge.has('lead_c6_form')).toBe(true);
+    expect(result.knowledge.has('k_c6_two_records')).toBe(false);
   });
 
   it('evidence sends her to the shop, arranged or not', () => {
@@ -237,6 +265,24 @@ describe('chapter 7 gates', () => {
 
   it('telling everyone without deciding for them reaches the final chapter in one loop', () => {
     const result = play('7', prefer(/是妳的事/, /妳先聽我說完/, /當成推測/, /去不去，是你的事/), 1);
+    expect(result.chapter).toBe('final');
+  });
+
+  it('calls she already got right go by in one breath; only the one that went wrong is asked again', () => {
+    const asked: string[][] = [];
+    const result = play('7', (options, _sceneId, chLoop) => {
+      (asked[chLoop] ??= []).push(...options);
+      if (chLoop === 1) return prefer(/對。你去/, /是妳的事/, /妳先聽我說完/, /當成推測/)(options);
+      return prefer(/是妳的事/, /妳先聽我說完/, /當成推測/, /去不去，是你的事/)(options);
+    }, 2);
+    expect(result.knowledge.has('k_c7_told_tingan')).toBe(true);
+    expect(result.knowledge.has('k_c7_told_ruoqing')).toBe(true);
+    expect(result.knowledge.has('k_c7_told_boxun')).toBe(true);
+    // Loop 2: 庭安, 若晴 and 陳醫生 are told without a choice; 周警官's call still asks.
+    expect(asked[2]).not.toContain('「留下來，幫我看著它。」');
+    expect(asked[2]).not.toContain('「今天不要去。」');
+    expect(asked[2]).not.toContain('「你手上的東西，今天不能交出去。」');
+    expect(asked[2]).toContain('「對。你去。」');
     expect(result.chapter).toBe('final');
   });
 });

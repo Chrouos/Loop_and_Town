@@ -1,12 +1,14 @@
-import { Fragment, cloneElement, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent, type ReactElement } from 'react';
-import { ECHO_MS, type Card, type CenterLine, type Director, type Peripheral, type View } from '../engine/director';
+import { Fragment, cloneElement, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent, type ReactElement, type RefObject } from 'react';
+import { ECHO_MS, type Card, type CenterLine, type Director, type InteractView, type Peripheral, type View } from '../engine/director';
 import { interpolateClock, leanOf, placeLabel, type Box } from './geometry';
-import { Interaction } from './Interactions';
+import { DEFAULT_PROMPT, INTERACT_LESSON, Interaction, lastInput } from './Interactions';
 import type { Pos } from '../script/types';
 import { FONT_SIZES } from '../engine/save';
-import type { Phrase } from '../engine/text';
+import { gluePunctuation, type Phrase } from '../engine/text';
 
 const HOLD_MS = 560;
+/** The largest text scale a phone-sized stage takes (the same cap as --ts in game.css). */
+const SMALL_SCREEN_SCALE = 1.4;
 /** Narrower than this, turning toward a sound folds the main conversation out of its way. */
 const NARROW_PX = 600;
 const MOVE_MS = 700;
@@ -19,6 +21,136 @@ const DAZE_CLEAR_MS = 4100;
 const EASE = 'cubic-bezier(0.4, 0, 0.2, 1)';
 
 type Role = 'center' | 'away' | 'echo' | 'leaving';
+
+// ───────────────────────── keyboard and screen readers ─────────────────────────
+
+const FOCUSABLE = 'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+/** What a key press may land on and should act on by itself (Space / Enter activate it natively). */
+export const CONTROL = 'button, a[href], input, select, textarea, [role="button"], [role="tab"], [role="switch"]';
+
+/** `inert` as a plain attribute: React 18 does not know it, and a boolean would be dropped. */
+export function inertProps(on: boolean): Record<string, string> {
+  return on ? { inert: '' } : {};
+}
+
+/** Open dialogs, oldest first: only the top one keeps Tab inside itself. */
+const openDialogs: HTMLElement[] = [];
+
+function focusablesIn(box: HTMLElement): HTMLElement[] {
+  // A roving list (the menu's tabs) leaves only its current item in the Tab order.
+  return [...box.querySelectorAll<HTMLElement>(FOCUSABLE)].filter((el) => el.getAttribute('tabindex') !== '-1' && !el.closest('[inert], [aria-hidden="true"]'));
+}
+
+/**
+ * A modal dialog: focus moves in when it opens (to `initial`, else its first control, else the dialog itself),
+ * Tab and Shift+Tab go round inside it, and focus goes back to where it was once it closes.
+ */
+export function useModal(ref: RefObject<HTMLElement>, initial?: string): void {
+  useEffect(() => {
+    const box = ref.current;
+    if (!box) return;
+    const before = document.activeElement instanceof HTMLElement && document.activeElement !== document.body ? document.activeElement : null;
+    openDialogs.push(box);
+    const first = (initial ? box.querySelector<HTMLElement>(initial) : null) ?? focusablesIn(box)[0] ?? box;
+    first.focus({ preventScroll: true });
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== 'Tab' || openDialogs[openDialogs.length - 1] !== box) return;
+      event.preventDefault();
+      const list = focusablesIn(box);
+      if (!list.length) { box.focus({ preventScroll: true }); return; }
+      const at = list.indexOf(document.activeElement as HTMLElement);
+      const next = event.shiftKey ? (at <= 0 ? list.length - 1 : at - 1) : (at === -1 || at === list.length - 1 ? 0 : at + 1);
+      list[next].focus({ preventScroll: true });
+    };
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      openDialogs.splice(openDialogs.indexOf(box), 1);
+      // After the commit, once whatever was behind the dialog is no longer inert; never pulls focus from a new home.
+      window.setTimeout(() => {
+        const now = document.activeElement;
+        const lost = !now || now === document.body || !now.isConnected;
+        if (lost && before?.isConnected && !before.closest('[inert]')) before.focus({ preventScroll: true });
+      }, 0);
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+}
+
+/**
+ * Focus moved onto a list the moment it appeared: a key still held (or pressed again at once) from what came
+ * before must not pick its first item. Pointer clicks are never held back.
+ */
+function useFreshGuard(key: unknown, ms = 600): (event: { detail: number }) => boolean {
+  const shownAt = useRef(0);
+  useEffect(() => { shownAt.current = performance.now(); }, [key]);
+  return (event) => event.detail === 0 && performance.now() - shownAt.current < ms;
+}
+
+/** Up and down arrows move between the buttons of a list, wrapping round. */
+export function arrowsBetween(event: ReactKeyboardEvent<HTMLElement>, selector: string) {
+  if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+  const items = [...event.currentTarget.querySelectorAll<HTMLElement>(selector)].filter((el) => !(el as HTMLButtonElement).disabled);
+  if (!items.length) return;
+  event.preventDefault();
+  const at = items.indexOf(document.activeElement as HTMLElement);
+  const down = event.key === 'ArrowDown';
+  // From the list itself (nothing in it focused yet): down is the first item, up the last.
+  const next = at === -1 ? (down ? 0 : items.length - 1) : (at + (down ? 1 : -1) + items.length) % items.length;
+  items[next].focus();
+}
+
+const INTERACT_HELP: Record<InteractView['type'], string> = {
+  touch: '用鍵盤的話，按右方向鍵或空白鍵，一格一格摸過去',
+  locate: '聽完之後，選聲音傳來的方向。鍵盤可以用方向鍵，兩個一起按是斜的；也可以用數字鍵，或 Q W E、A D、Z X C',
+  approach: '聲音到面前時，按空白鍵或點畫面開口',
+  hold: '按住空白鍵或畫面不放',
+  punch: '用數字鍵 1 到 6 打點',
+};
+
+/** What a choice says to a screen reader: every option, in order, with the ones she cannot take marked. */
+function choiceAnnouncement(choice: NonNullable<View['choice']>): string {
+  const options = choice.options.map((option, index) => `${index + 1}，${unstop(option.text)}${option.disabled ? '（已經做過了）' : ''}`).join('。');
+  return `要回答了${choice.timeout ? '，時間有限' : ''}：${options}`;
+}
+
+function cardAnnouncement(card: Card, phase: View['phase']): string {
+  const parts = phase === 'reset' ? [card.mark, card.loopText] : [card.chapter, card.title, card.time, card.place, card.loopText, card.recap?.place && `上次停在${card.recap.place}`, card.recap?.memory];
+  return parts.filter(Boolean).join('，');
+}
+
+/**
+ * One polite voice for what happens around the lines (a question, a new place, a new day, a task for her hands),
+ * so each is said once. The lines themselves have their own region.
+ */
+function useAnnouncer(view: View): string {
+  const [said, setSaid] = useState('');
+  const cardSaid = useRef<string | undefined>(undefined);
+  const lastPlace = useRef<string | undefined>(view.place);
+  const choiceKey = view.choice && view.focus === 'main' ? view.choice.key : null;
+  const carded = (view.phase === 'card' || view.phase === 'reset') && view.card ? view.card : null;
+  useEffect(() => {
+    if (choiceKey === null || !view.choice) return;
+    setSaid(choiceAnnouncement(view.choice));
+  }, [choiceKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (!carded) return;
+    cardSaid.current = carded.place ?? cardSaid.current;
+    lastPlace.current = view.place;
+    setSaid(cardAnnouncement(carded, view.phase));
+  }, [carded]); // eslint-disable-line react-hooks/exhaustive-deps
+  // A place reached without a card (a continuous scene) is said on its own; one the card just said is not.
+  useEffect(() => {
+    if (!view.place || view.place === lastPlace.current) return;
+    lastPlace.current = view.place;
+    if (view.place !== cardSaid.current) setSaid([view.clock, view.place].filter(Boolean).join('，'));
+  }, [view.place]); // eslint-disable-line react-hooks/exhaustive-deps
+  const interactKey = view.interact?.key;
+  useEffect(() => {
+    if (!view.interact) return;
+    setSaid(`${view.interact.prompt ?? DEFAULT_PROMPT[view.interact.type]}。${INTERACT_HELP[view.interact.type]}`);
+  }, [interactKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  return said;
+}
 
 // An echo pushed out by the next one stays mounted briefly so it can fade from wherever it was.
 function useLeaving(echo: CenterLine | null, centerKey: number | undefined): CenterLine[] {
@@ -192,17 +324,31 @@ function placeSounds(root: HTMLElement, periph: Peripheral[], ripples: View['rip
 
 // Beside the sound it comes from: above it in the lower half of the screen, below it in the upper half, flush with
 // its outer edge, and never off screen. Once that sound has gone, the box stays where it was while it fades.
-function placeSide(root: HTMLElement, box: HTMLElement, cue: HTMLElement | null) {
+/** Narrower than this beside the centre column, a side thread folds the main line away instead (as on a phone). */
+const SIDE_MIN_PX = 240;
+const SIDE_MARGIN = 16;
+/** Half the centre column the main line keeps (blurred while she listens elsewhere): no side box reaches into it. */
+function centreHalf(W: number): number { return Math.min(0.38 * W, 340); }
+/** How wide a side box may be beside the centre column (both halves are the same). */
+export function sideRoom(W: number): number { return W / 2 - centreHalf(W) - 2 * SIDE_MARGIN; }
+
+function placeSide(root: HTMLElement, box: HTMLElement, cue: HTMLElement | null, folded: boolean) {
   if (!cue || cue.dataset.placed === undefined) return;
   const W = root.clientWidth;
   const H = root.clientHeight;
-  const margin = 16;
+  const margin = SIDE_MARGIN;
   const x = parseFloat(cue.style.left);
   const y = parseFloat(cue.style.top);
-  const w = box.offsetWidth;
   const align = x < W * 0.4 ? 'left' : x > W * 0.6 ? 'right' : 'middle';
+  // Beside the line, not over it: kept to its own side of the centre column. When the main line has folded away
+  // (a phone, or too little room beside it) the whole width is free again.
+  const room = folded || align === 'middle' || W === 0 ? 0 : sideRoom(W);
+  box.style.maxWidth = room > 0 ? `${room}px` : '';
+  const w = box.offsetWidth;
   const left = align === 'left' ? x - cue.offsetWidth / 2 : align === 'right' ? x + cue.offsetWidth / 2 - w : x - w / 2;
-  box.style.left = `${Math.min(Math.max(left, margin), W - w - margin)}px`;
+  const lo = room > 0 && align === 'right' ? W / 2 + centreHalf(W) + margin : margin;
+  const hi = room > 0 && align === 'left' ? W / 2 - centreHalf(W) - margin - w : W - w - margin;
+  box.style.left = `${Math.min(Math.max(left, lo), Math.max(lo, hi))}px`;
   box.dataset.align = align;
   const below = y < H / 2;
   box.style.top = below ? `${y + cue.offsetHeight / 2 + 10}px` : '';
@@ -235,9 +381,17 @@ function heartPulse(glow: number, ms: number): { glow: CSSProperties; jolt: CSSP
   };
 }
 
-type Props = { director: Director; view: View; onCapture: () => void; firstCueHint: boolean; onCueHintShown: () => void };
+type Props = {
+  director: Director; view: View; onCapture: () => void; firstCueHint: boolean; onCueHintShown: () => void;
+  /** A dialog (the menu, her memories) is open over the stage: nothing here can be reached. */
+  blocked?: boolean;
+  /** Keep what she is hearing, without a long press (the 記住這句 button); defaults to a plain capture. */
+  onKeep?: () => void;
+  /** Fast-forward past what she has heard before (the 快轉聽過的話 button); defaults to the director's own. */
+  onFastForward?: () => void;
+};
 
-export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown }: Props) {
+export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown, blocked = false, onKeep, onFastForward }: Props) {
   const [shaking, setShaking] = useState<View['shakeLevel'] | null>(null);
   const lastShake = useRef(view.shake);
   useEffect(() => {
@@ -255,7 +409,11 @@ export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown 
   const focusPos = view.focus && view.focus !== 'main' ? view.periph.find((item) => item.kind === 'cue' && item.thread === view.focus)?.pos : undefined;
   const turnedAway = (view.focus !== null && view.focus !== 'main') || view.shiftingTo !== null;
   // A phone-width screen has no room beside the line for what she turned toward (see .narrow in game.css).
-  const narrow = typeof window !== 'undefined' && window.innerWidth < NARROW_PX;
+  const phone = typeof window !== 'undefined' && window.innerWidth < NARROW_PX;
+  // On a wider screen with too little room beside the centre column for a side box (or a sound straight ahead),
+  // the main line folds away just the same: decided per turn in the layout effect below.
+  const [cramped, setCramped] = useState<string | null>(null);
+  const narrow = phone || (turnedAway && cramped !== null);
   const className = ['lt-stage', narrow ? 'narrow' : '', `phase-${view.phase}`, view.phase === 'out' && view.brief ? 'brief' : '', shifting ? 'shifting' : '', turnedAway ? 'away' : '', shaking ? `shake shake-${shaking}` : '', view.tension ? `tension-${view.tension}` : '', director.settings.motion ? '' : 'still'].join(' ');
   const firstCue = firstCueHint ? view.periph.find((item) => item.kind === 'cue' && item.thread !== view.focus) : undefined;
 
@@ -302,7 +460,9 @@ export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown 
   const root = useRef<HTMLDivElement>(null);
   const [screen, setScreen] = useState(0);
   const placedFor = useRef(screen);
-  const textScale = FONT_SIZES[director.settings.fontSize].scale;
+  // A phone-sized stage caps the text size where the layout still holds (matches --ts in game.css).
+  const small = typeof window !== 'undefined' && (window.innerWidth <= 560 || window.innerHeight <= 500);
+  const textScale = Math.min(FONT_SIZES[director.settings.fontSize].scale, small ? SMALL_SCREEN_SCALE : Infinity);
   const placedScale = useRef(textScale);
   useEffect(() => {
     const onResize = () => setScreen((value) => value + 1);
@@ -317,6 +477,13 @@ export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown 
     // Turned away on a phone: the main conversation steps to the half of the screen the sound is not in. Decided
     // once per turn (from where that sound sits), so it never hops while she listens.
     const turnedTo = root.current.querySelector<HTMLElement>('.lt-p.kind-cue.active[data-placed]');
+    if (!phone && turnedAway && turnedTo) {
+      const W = root.current.clientWidth;
+      const x = parseFloat(turnedTo.style.left);
+      const middle = x >= W * 0.4 && x <= W * 0.6;
+      const next = W > 0 && (middle || sideRoom(W) < SIDE_MIN_PX) ? turnedTo.dataset.key! : null;
+      if (next !== cramped) setCramped(next);
+    } else if (!turnedAway && cramped !== null) setCramped(null);
     if (narrow && turnedAway && turnedTo) {
       const key = turnedTo.dataset.key!;
       if (awayFor.current !== key) {
@@ -325,7 +492,7 @@ export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown 
       }
     } else if (!turnedAway) awayFor.current = null;
     const sideBox = root.current.querySelector<HTMLElement>('.lt-side');
-    if (sideBox) placeSide(root.current, sideBox, sideCue !== undefined ? root.current.querySelector<HTMLElement>(`.lt-p[data-key="${sideCue}"]`) : null);
+    if (sideBox) placeSide(root.current, sideBox, sideCue !== undefined ? root.current.querySelector<HTMLElement>(`.lt-p[data-key="${sideCue}"]`) : null, narrow);
     placeSounds(root.current, periph.map((entry) => entry.item), view.ripples, turn, placedFor.current !== screen || placedScale.current !== textScale, textScale);
     placedFor.current = screen;
     placedScale.current = textScale;
@@ -334,10 +501,13 @@ export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown 
     for (const key of lastLook.current.keys()) if (!mounted.has(key)) lastLook.current.delete(key);
   });
 
+  const announced = useAnnouncer(view);
+  const keep = onKeep ?? (() => { if (director.capture()) onCapture(); });
+
   return (
-    <div className={className} ref={root} style={{ ['--wound' as string]: (director.tension / 100).toFixed(2) }}>
+    <div className={className} ref={root} style={{ ['--wound' as string]: (director.tension / 100).toFixed(2) }} {...inertProps(blocked)}>
       <div className={`lt-heart${beat}`} style={pulse?.glow} aria-hidden="true" />
-      <div className="lt-world">
+      <div className="lt-world" {...inertProps(Boolean(view.recall || view.keep))}>
         <div className={`lt-daze${daze ? ` daze-${daze}` : ''}${dazeClearing ? ' clearing' : ''}`}>
           <div className={`lt-body${pulse?.jolt ? `${beat} jolting` : ''}${view.noise ? ` noise-${view.noise.level}` : ''}`} style={pulse?.jolt ?? undefined}>
             {view.ripples.map((ripple) => <div key={ripple.key} data-key={ripple.key} className={`lt-ripple dist-${ripple.pos.dist}`} />)}
@@ -358,7 +528,12 @@ export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown 
               <div className="lt-center-inner" style={{ transform: focusPos ? leanOf(focusPos) : undefined }}>
                 {middle.map(({ line, role }) => <Line key={line.key} line={line} role={role} director={director} view={view} onCapture={onCapture} />)}
                 {holdSlot && <div className="lt-hold" style={{ height: centerHeight.current }} aria-hidden="true" />}
-                {view.teach && view.center && <div className="lt-teach-keep" role="status">{view.teach === 'tap' ? tapLesson(director.settings.autoAdvance) : LESSON_TEXT[view.teach]}</div>}
+                {view.teach && view.center && (
+                  <div className="lt-teach-keep" role="status">
+                    {view.teach === 'tap' ? tapLesson(director.settings.autoAdvance) : LESSON_TEXT[view.teach]}
+                    <span className="lt-sr">{LESSON_KEYS[view.teach]}</span>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -379,12 +554,24 @@ export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown 
       {view.interact && <Interaction director={director} interact={view.interact} />}
       {card && <CardView card={card} phase={cardPhase.current} gone={cardGone} />}
       {(view.clock || view.place) && view.phase !== 'idle' && (
-        <div className="lt-where" aria-hidden="true">
+        <div className="lt-where">
           {clockShown && <span key={view.clockMark} className="lt-where-time">{clockShown}</span>}
           {view.place && <span key={view.place} className="lt-where-place">{view.place}</span>}
         </div>
       )}
       <div className="lt-sr" aria-live="polite">{view.center ? `${view.center.label ? `${view.center.label}：` : ''}${view.center.text.replace(/\|/g, '')}` : ''}</div>
+      <div className="lt-sr" aria-live="polite">{announced}</div>
+      {/* For a screen reader or the keyboard: what a long press and a tap do. Unseen until focused; kept mounted so
+          focus is not lost between lines. */}
+      {view.phase !== 'idle' && (
+        <div className="lt-quiet-keys" onPointerUp={(event) => event.stopPropagation()} {...inertProps(Boolean(view.recall || view.keep))}>
+          <button type="button" className="lt-quiet-key" aria-keyshortcuts="K" onClick={keep}>記住這句</button>
+          <button type="button" className="lt-quiet-key" onClick={() => director.hurry()}>下一句</button>
+          <button type="button" className="lt-quiet-key" aria-keyshortcuts="F" onClick={() => (onFastForward ? onFastForward() : director.fastForward())}>快轉聽過的話</button>
+        </div>
+      )}
+      {/* Fast-forwarding is said (and shown, small) while it lasts; the first line it stops at is read as usual. */}
+      {view.phase !== 'idle' && <div className={`lt-skip${view.skipping ? ' on' : ''}`} role="status">{view.skipping ? '快轉中' : ''}</div>}
     </div>
   );
 
@@ -514,7 +701,7 @@ function Line({ line, role, side = false, director, view, onCapture }: { line: C
     setHolding(false);
   };
 
-  const classes = ['lt-line', `kind-${line.kind}`, line.past ? 'voice-past' : '', echo ? 'lt-echo' : '', role === 'away' ? 'lt-away' : '', role === 'center' && view.teach === 'keep' && !kept ? 'teach' : '', role === 'leaving' ? 'leaving' : '', revealed ? 'revealed' : '', holding ? 'holding' : '', kept ? 'kept' : ''].join(' ');
+  const classes = ['lt-line', `kind-${line.kind}`, line.past ? 'voice-past' : '', line.heard ? 'heard' : '', echo ? 'lt-echo' : '', role === 'away' ? 'lt-away' : '', role === 'center' && view.teach === 'keep' && !kept ? 'teach' : '', role === 'leaving' ? 'leaving' : '', revealed ? 'revealed' : '', holding ? 'holding' : '', kept ? 'kept' : ''].join(' ');
   return (
     <div
       ref={ref}
@@ -534,7 +721,7 @@ function Line({ line, role, side = false, director, view, onCapture }: { line: C
               <span className="lt-sent">
                 {sentence.phrases.map((phrase, n) => {
                   const delay = Math.max(0, (phrase.at / director.speed) - Math.max(0, mountedAt.current));
-                  return <span key={n} className="lt-phrase" style={{ animationDelay: `${delay}ms` }}>{phrase.text}</span>;
+                  return <span key={n} className="lt-phrase" style={{ animationDelay: `${delay}ms` }}>{gluePunctuation(phrase.text).map((piece, k) => (piece.glue ? <span key={k} className="lt-glue">{piece.text}</span> : <Fragment key={k}>{piece.text}</Fragment>))}</span>;
                 })}
               </span>
             );
@@ -571,27 +758,58 @@ function restingTransform(line: CenterLine, role: Role, side: boolean): string {
   return `${lower} ${shrink}`.trim();
 }
 
+/** What a running-out choice will do, for a screen reader (the shrinking line under the options says it to the eye). */
+function fallbackOf(choice: NonNullable<View['choice']>): string {
+  if (!choice.timeout || !choice.fallback) return '';
+  if (choice.fallback === 'silence') return '時間到了還沒選，就當作沉默';
+  return `時間到了還沒選，就會選「${unstop(choice.fallback.trim().replace(/^「(.*)」$/u, '$1'))}」`;
+}
+
 function Choices({ director, choice, gone }: { director: Director; choice: NonNullable<View['choice']>; gone: boolean }) {
   const timeoutMs = choice.timeout ? (choice.timeout * 1000) / director.speed : 0;
+  const fallback = fallbackOf(choice);
+  const box = useRef<HTMLDivElement>(null);
+  const tooSoon = useFreshGuard(choice.key);
+  // She is being asked: focus goes to the question itself (a screen reader says 要回答了), unless a dialog holds
+  // it. Not onto the first answer: a Space or Enter meant to hurry the line before would pick it. An arrow key or
+  // Tab steps in; digits answer straight away. Only for someone on a keyboard: after a tap or a click, focus stays
+  // where it was (no ring jumping onto the screen), and the live region still says the question either way.
+  useEffect(() => {
+    if (gone || lastInput() !== 'key' || document.querySelector('[role="dialog"]')) return;
+    box.current?.focus({ preventScroll: true });
+  }, [choice.key, gone]);
   return (
-    <div className={`lt-choices${timeoutMs ? ' timed' : ''}${gone ? ' gone' : ''}`} style={{ ['--timeout' as string]: `${timeoutMs}ms` }} key={choice.key}>
+    <div
+      ref={box}
+      className={`lt-choices${timeoutMs ? ' timed' : ''}${gone ? ' gone' : ''}`}
+      style={{ ['--timeout' as string]: `${timeoutMs}ms` }}
+      key={choice.key}
+      role="group"
+      aria-label="要回答了"
+      aria-describedby={fallback ? `lt-choice-fallback-${choice.key}` : undefined}
+      tabIndex={-1}
+      onKeyDown={(event) => arrowsBetween(event, '.lt-choice')}
+    >
       {choice.options.map((option, index) => (
         <button
           key={index}
           type="button"
-          className="lt-choice"
+          className={`lt-choice${option.disabled ? ' done' : ''}`}
           disabled={gone || option.disabled}
           style={{ animationDelay: `${index * 140}ms, ${index * 140}ms` }}
-          onClick={(event) => { event.stopPropagation(); director.choose(option.index); }}
+          aria-keyshortcuts={String(index + 1)}
+          onClick={(event) => { event.stopPropagation(); if (!tooSoon(event)) director.choose(option.index); }}
         >
-          <span className="lt-key">{index + 1}</span>{unstop(option.text)}
+          <span className="lt-key" aria-hidden="true">{index + 1}</span>{unstop(option.text)}
+          {option.disabled && <span className="lt-sr">（已經做過了）</span>}
         </button>
       ))}
-      {timeoutMs > 0 && <div className="lt-timer" />}
+      {timeoutMs > 0 && <div className="lt-timer" aria-hidden="true" />}
+      {fallback && <span className="lt-sr" id={`lt-choice-fallback-${choice.key}`}>{fallback}</span>}
       {choice.first && (
         <div className="lt-choice-teach" role="status">
-          選擇一個接下來要做的事
-          {timeoutMs > 0 && <><br />沉默也是一種回答</>}
+          點一個，就是妳接下來說的話、做的事。
+          {timeoutMs > 0 && <><br />不選，也是一種回答。</>}
         </div>
       )}
     </div>
@@ -604,13 +822,24 @@ const RECALL_HINT_KEY = 'listening-town-recall-hint';
 /** Tapping hurries, but the story is meant to be left to its own pace; manual reading waits for every tap. */
 function tapLesson(auto: boolean): ReactElement {
   return auto
-    ? <>點一下畫面，<br />不動就會自動閱讀</>
-    : <>點一下畫面，<br />現在是手動閱讀模式</>;
+    ? <>點一下，先聽下一句。<br />不點，也會自己說下去。</>
+    : <>每一句都等妳點一下。</>;
 }
 
+/** The same lessons for a keyboard or a screen reader, said after the visible text and never shown. */
+const LESSON_KEYS: Record<NonNullable<View['teach']>, string> = {
+  tap: '。用鍵盤的話按 Enter，或找「下一句」按鈕',
+  turn: '。用 Tab 選到那個聲音，再按 Enter',
+  keep: '。用鍵盤的話按 K，或找「記住這句」按鈕',
+  locate: '。看完按 Enter 往下',
+  approach: '。看完按 Enter 往下',
+  hold: '。看完按 Enter 往下',
+};
+
 const LESSON_TEXT: Record<Exclude<NonNullable<View['teach']>, 'tap'>, string> = {
-  turn: '有聲音的地方可以點一下專心聽',
-  keep: '長按這句話，把它記住',
+  turn: '點有聲音的地方，轉過去聽。',
+  keep: '長按這句話，把它留在身上',
+  ...INTERACT_LESSON,
 };
 
 /** Memory Input: the lines she carried past midnight, one of which she may say out loud. */
@@ -619,16 +848,30 @@ export function RecallPicker({ director, recall }: { director: Director; recall:
   const [firstTime] = useState(() => { try { return localStorage.getItem(RECALL_HINT_KEY) !== 'done'; } catch { return false; } });
   // The how-to is spent only once there was something to pick from.
   useEffect(() => { if (!empty) try { localStorage.setItem(RECALL_HINT_KEY, 'done'); } catch { /* ignore */ } }, [empty]);
+  const box = useRef<HTMLDivElement>(null);
+  useModal(box);
+  const tooSoon = useFreshGuard(recall.key, 400);
   return (
-    <div className="lt-recall" key={recall.key} role="dialog" aria-label="想起一句話" onPointerUp={(event) => event.stopPropagation()}>
-      <div className="lt-recall-head">想起一句話</div>
+    <div
+      ref={box}
+      className="lt-recall"
+      key={recall.key}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="lt-recall-head"
+      aria-describedby={empty || firstTime ? 'lt-recall-hint' : undefined}
+      tabIndex={-1}
+      onPointerUp={(event) => event.stopPropagation()}
+      onKeyDown={(event) => arrowsBetween(event, '.lt-recall-item')}
+    >
+      <div className="lt-recall-head" id="lt-recall-head">想起一句話</div>
       {empty
-        ? <div className="lt-recall-hint">還沒有記住任何一句話<br />聽到想留下來的話，長按它，下次就能在這裡想起來</div>
-        : firstTime && <div className="lt-recall-hint">選一句之前記下來的話，把它說出口</div>}
+        ? <div className="lt-recall-hint" id="lt-recall-hint">還沒有記住任何一句話<br />聽到想留下來的話，長按它，下次就能在這裡想起來</div>
+        : firstTime && <div className="lt-recall-hint" id="lt-recall-hint">選一句之前記下來的話，把它說出口</div>}
       <div className="lt-recall-list">
         {recall.memories.map((memory, index) => (
-          <button key={memory.key} type="button" className="lt-recall-item" onClick={() => director.recallPick(memory.key)}>
-            <span className="lt-key">{index + 1}</span>
+          <button key={memory.key} type="button" className="lt-recall-item" aria-keyshortcuts={index < 9 ? String(index + 1) : undefined} onClick={(event) => { if (!tooSoon(event)) director.recallPick(memory.key); }}>
+            <span className="lt-key" aria-hidden="true">{index + 1}</span>
             <span className="lt-recall-text">{unstop(memory.kind === 'me' ? `「${memory.text}」` : memory.text)}</span>
             <span className="lt-recall-meta">{[memory.label, memory.clock, memory.place].filter(Boolean).join(' · ')}</span>
           </button>
@@ -673,13 +916,17 @@ function Waiting({ gone, first }: { gone: boolean; first: boolean }) {
 function CardView({ card, phase, gone }: { card: Card; phase: View['phase']; gone: boolean }) {
   const ms = phase === 'reset' ? 6500 : card.chapter ? 4200 : 2600;
   return (
-    <div className={`lt-card${gone ? ' gone' : ''}`} style={{ ['--card-ms' as string]: `${ms}ms` }} key={`${phase}-${card.time}-${card.place}-${card.title}-${card.loopText}`}>
+    // Said once by the stage's announcer, so a screen reader does not read it twice.
+    <div className={`lt-card${gone ? ' gone' : ''}`} style={{ ['--card-ms' as string]: `${ms}ms` }} key={`${phase}-${card.time}-${card.place}-${card.title}-${card.loopText}`} aria-hidden="true">
       {card.chapter && <div className="lt-card-chapter">{card.chapter}</div>}
       {card.title && <div className="lt-card-title">{card.title}</div>}
       {card.time && <div className="lt-card-time">{card.time}</div>}
       {card.place && <div className="lt-card-place">{card.place}</div>}
+      {card.mark && phase === 'reset' && <div className="lt-card-mark" style={{ animationDelay: '600ms', animationDuration: `${card.markMs ?? 2000}ms` }}>{card.mark}</div>}
       {card.loopText && phase === 'reset' && <div className="lt-card-loop" style={{ animationDelay: '3000ms', animationDuration: '3400ms' }}>{card.loopText}</div>}
       {card.loopText && phase !== 'reset' && <div className="lt-card-loop">{card.loopText}</div>}
+      {card.recap?.place && <div className="lt-card-recap">上次停在{card.recap.place}</div>}
+      {card.recap?.memory && <div className="lt-card-recap lt-card-echo">{card.recap.memory}</div>}
     </div>
   );
 }

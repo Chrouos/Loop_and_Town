@@ -1,5 +1,5 @@
 import { Director } from '../src/engine/director';
-import { LIFE, isVoice, type LifeSound } from '../src/engine/life';
+import { LIFE, daypartOf, isVoice, lifeOf, type LifeSound } from '../src/engine/life';
 import { freshSave } from '../src/engine/save';
 import { buildScript } from '../src/script/validate';
 import { loadScriptFromDisk, silentAudio } from './harness';
@@ -254,5 +254,65 @@ ${lines}
     expect(voices.filter((v) => v.endsWith(':life') || v.endsWith(':whisper'))).toEqual([]);
     const background = sounds.filter((id) => !['huddle_rustle', 'cloth_rustle', 'focus_shift'].includes(id));
     expect(background.length).toBeGreaterThanOrEqual(3);
+  });
+});
+
+describe('background life fits the hour, the weather and the scene', () => {
+  const says = (life: ReturnType<typeof lifeOf>) => (life?.events ?? []).map((event) => (isVoice(event) ? event.say : event.sfx));
+
+  it('reads the hour from the clock', () => {
+    expect(daypartOf('08:05')).toBe('morning');
+    expect(daypartOf('12:40')).toBe('day');
+    expect(daypartOf('17:52')).toBe('evening');
+    expect(daypartOf('20:30')).toBe('night');
+    expect(daypartOf('23:59')).toBe('late');
+    expect(daypartOf('10月4日 07:10')).toBe('morning');
+    expect(daypartOf('五年前')).toBeUndefined();
+  });
+
+  it('the old house has morning chatter in the morning and dinner on the stove at dusk', () => {
+    const morning = says(lifeOf(['old_house'], undefined, { clock: '08:05' }));
+    const noon = says(lifeOf(['old_house'], undefined, { clock: '12:40' }));
+    const dusk = says(lifeOf(['old_house'], undefined, { clock: '17:52' }));
+    expect(morning).toContain('弟弟，早餐帶著，路上吃。');
+    for (const later of [noon, dusk]) {
+      expect(later).not.toContain('弟弟，早餐帶著，路上吃。');
+      expect(later).not.toContain('阿美——今天要曬棉被喔，出大日頭！');
+    }
+    expect(noon).toContain('小聲一點，阿公在睡午覺。');
+    expect(dusk).toContain('衣服收一收，要吃飯了。');
+    expect(dusk).not.toContain('小聲一點，阿公在睡午覺。');
+  });
+
+  it('nobody hangs out laundry or plays outside in the rain, and rain gets its own lines', () => {
+    const rainy = says(lifeOf(['old_house', 'rain_on_window'], undefined, { clock: '07:10' }));
+    expect(rainy).not.toContain('阿美——今天要曬棉被喔，出大日頭！');
+    expect(rainy).not.toContain('阿公，我們今天要去海邊嗎？');
+    expect(rainy).toContain('這麼大的雨，市場還要去嗎？');
+    expect(says(lifeOf(['old_house'], undefined, { clock: '07:10' }))).not.toContain('這麼大的雨，市場還要去嗎？');
+  });
+
+  it("a scene's own life plays as written, whatever the hour or weather", () => {
+    const own = [{ say: '阿美——今天要曬棉被喔，出大日頭！', voice: 'old_woman' as const, when: ['morning' as const], weather: 'dry' as const }];
+    expect(says(lifeOf(['rain_on_window'], own, { clock: '22:00' }))).toContain(own[0]!.say);
+  });
+
+  it('a stranger never makes a sound the scene uses as a cue (the train cough tells her the time)', () => {
+    const { script } = buildScript([{ name: 't.yaml', source: `
+chapter: 1
+title: 測試
+start: s
+scenes:
+  - id: s
+    time: "06:12"
+    ambience: [cafe]
+    beats:
+      - { sfx: cup_set, at: back-left, dist: mid, text: 叩 }
+      - end: reset
+` }]);
+    const scene = script.scenes.get('s')!;
+    expect(says(lifeOf(['cafe'], undefined, { clock: '15:00' }))).toContain('cup_set');
+    expect(says(lifeOf(['cafe'], undefined, { clock: '15:00', scene }))).not.toContain('cup_set');
+    expect(says(lifeOf(['train_interior']))).not.toContain('cough');
   });
 });

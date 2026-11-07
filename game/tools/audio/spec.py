@@ -72,10 +72,10 @@ sfx('bell_toll_far', [lambda: lowpass(cut('611469', 50.40, 65.3), 1400, order=2)
 
 # ================================================================ weather beds
 amb('rain', bed('522113', 1000.0, 60.0, 3.0, hp=150), [522113], rms=-34, bitrate=128000, extras=True,
-    note='60 s from 16:40 of steady rain over a small Taiwanese city at night, heard from a 9th-floor window (the steadiest minute of the 22-minute recording), high-passed at 150 Hz to drop traffic rumble and thunder; made from the original file')
+    note='60 s from 16:40 of steady rain over a small Taiwanese city at night, heard from a 9th-floor window (the steadiest minute of the 22-minute recording), high-passed at 150 Hz to drop traffic rumble and thunder; made from the original file; downmixed to mono (little stereo image: L/R correlation ≥ 0.8)', ch='mono')
 amb('rain_on_window', bed('569313', 60.0, 50.0, 3.0, hp=60), [569313], rms=-36, bitrate=128000, extras=True,
     note='50 s from 1:00 of rain pattering on a metal roof and dripping onto tin window sills, windows slightly open '
-         '(from the original 96 kHz FLAC; the thunder at 0:42 is left out, extras add their own), high-passed at 60 Hz')
+         '(from the original 96 kHz FLAC; the thunder at 0:42 is left out, extras add their own), high-passed at 60 Hz; downmixed to mono (little stereo image: L/R correlation ≥ 0.8)', ch='mono')
 
 # ================================================================ train
 amb('train_interior', bed('197124', 5.0, 60.0, 3.0, hp=30), [197124], rms=-34, extras=False,
@@ -207,11 +207,11 @@ amb('street_afternoon', bed('241135', 68.0, 36.0, 3.0, hp=150), [241135], rms=-3
 amb('street_evening', bed('733843', 0.5, 30.0, 3.0, hp=80), [733843], rms=-39, extras=True,
     note='30 s of a quiet street in Bangkok at night (distant traffic, pedestrians), high-passed at 80 Hz')
 amb('tower_square_night', bed('196768', 2.0, 40.0, 3.0, hp=60), [196768], rms=-41, extras=True,
-    note='40 s of a Taipei alley at night with little traffic, high-passed at 60 Hz')
+    note='40 s of a Taipei alley at night with little traffic, high-passed at 60 Hz; downmixed to mono (little stereo image: L/R correlation ≥ 0.8)', ch='mono')
 amb('town_square', bed('119934', 1.0, 52.0, 3.0, hp=60), [119934], rms=-37, extras=True,
-    note='52 s of a town square, high-passed at 60 Hz')
+    note='52 s of a town square, high-passed at 60 Hz; downmixed to mono (little stereo image: L/R correlation ≥ 0.8)', ch='mono')
 amb('construction_far', bed('650696', 30.0, 60.0, 3.0, hp=80, lp=1800), [650696], rms=-40, crest=18, extras=True,
-    note='60 s of hammering and banging on a construction site, low-passed at 1.8 kHz to push it far away')
+    note='60 s of hammering and banging on a construction site, low-passed at 1.8 kHz to push it far away; downmixed to mono (little stereo image: L/R correlation ≥ 0.8)', ch='mono')
 amb('platform', bed('620099', 20.0, 60.0, 3.0, hp=100), [620099], rms=-40, extras=True,
     note='60 s of wind over an open field (dry grass), high-passed at 100 Hz; station life comes from the procedural events')
 amb('old_house', bed('129443', 20.0, 60.0, 3.0, hp=60), [129443], rms=-42, extras=True,
@@ -219,19 +219,17 @@ amb('old_house', bed('129443', 20.0, 60.0, 3.0, hp=60), [129443], rms=-42, extra
 amb('house_night', layered((norm_to(bed('237399', 1.0, 44.0, 3.0, hp=40), -40), 0),
                            (norm_to(bed('175020', 5.0, 44.0, 3.0, hp=300, lp=2500), -40), -11)),
     [237399, 175020], rms=-41, extras=True,
-    note='44 s: a fridge humming in the room, plus crickets outside low-passed at 2.5 kHz as if through a window, 11 dB down')
+    note='44 s: a fridge humming in the room, plus crickets outside low-passed at 2.5 kHz as if through a window, 11 dB down; downmixed to mono (little stereo image: L/R correlation ≥ 0.8)', ch='mono')
 amb('hospital', layered((norm_to(bed('383486', 3.5, 35.0, 3.0, hp=60), -40), 0),
                         (norm_to(wide_mono('557013', 10.0, 35.0, 3.0, hp=100, lp=500), -40), -15)),
     [383486, 557013], rms=-39, extras=True,
     note='35 s: fluorescent lamps humming in an empty hospital corridor, plus a Hong Kong hospital waiting room low-passed at 500 Hz, 15 dB down (unintelligible murmur through walls)')
 amb('police_office', bed('797668', 1.0, 45.0, 3.0, hp=120), [797668], rms=-39, extras=True,
-    note='45 s of a rotating office fan, high-passed at 120 Hz')
+    note='45 s of a rotating office fan, high-passed at 120 Hz; downmixed to mono (little stereo image: L/R correlation ≥ 0.8)', ch='mono')
 amb('library', bed('620683', 110.0, 60.0, 3.0, hp=60), [620683], rms=-42, extras=False,
-    note='60 s of a quiet university library (pages, pens, chairs, ventilation; no voices)')
-amb('maintenance_tunnel', bed('144559', 30.0, 60.0, 3.0, hp=60), [144559], rms=-37, extras=True,
-    note='60 s of an electrical power transformer humming near train lines')
+    note='60 s of a quiet university library (pages, pens, chairs, ventilation; no voices); downmixed to mono (little stereo image: L/R correlation ≥ 0.8)', ch='mono')
 amb('room_tone', bed('489443', 20.0, 60.0, 3.0, hp=40), [489443], rms=-48, extras=False,
-    note='60 s of plain room tone, high-passed at 40 Hz')
+    note='60 s of plain room tone, high-passed at 40 Hz; downmixed to mono (little stereo image: L/R correlation ≥ 0.8)', ch='mono')
 amb('cafe', wide_mono('370973', 20.0, 60.0, 3.0, hp=80), [370973], rms=-37, extras=True,
     note='60 s of a Czech cafeteria (diffuse walla, no single voice on top; mono, spread to stereo by offsetting the loop between channels), high-passed at 80 Hz')
 amb('restaurant', bed('347016', 2.0, 55.0, 3.0, hp=80, lp=7000), [347016], rms=-37, extras=True,
@@ -332,7 +330,7 @@ sfx('train_door', [C('209969', 13.40, 15.40)], [209969], st=-20, fout=0.25, note
 
 # ================================================================ weather & electrical & anomaly
 amb('research_facility', bed('474832', 200.0, 60.0, 3.0, hp=50), [474832], rms=-38, extras=True,
-    note='60 s of an air-conditioned engineering lab full of servers (fans, hum), high-passed at 50 Hz')
+    note='60 s of an air-conditioned engineering lab full of servers (fans, hum), high-passed at 50 Hz; downmixed to mono (little stereo image: L/R correlation ≥ 0.8)', ch='mono')
 amb('wind_open', bed('165526', 15.0, 50.0, 3.0, hp=60), [165526], rms=-36, extras=True,
     note='50 s of wind blowing and howling on a mountain top at night (Schoeps MS), high-passed at 60 Hz')
 
@@ -424,8 +422,6 @@ sfx('focus_shift', [C('495390', 1.38, 2.10), C('495390', 2.76, 3.42), C('495390'
     note='light whooshes of a jacket moved close to the mic, high-passed at 200 Hz (three takes)')
 sfx('choice_appear', [C('418396', 0.72, 1.16), C('810068', 0.22, 0.62), lambda: highpass(cut('489763', 0.215, 0.40), 300)], [418396, 810068, 489763], st=-26, hp=150, limit=14, fin=0.03, fout=0.1,
     note='a small in-breath through the mouth (woman); a soft mouth inhale; lips parting')
-sfx('title_tone', [C('616335', 0.0, 8.0)], [616335], st=-20, fin=1.2, fout=3.0, rate=0.71, jitter=0,
-    note='a large singing bowl struck with a soft stick, its hum faded in and left to decay; played at rate 0.71 (~110 Hz)')
 sfx('laugh_soft', [lambda: lowpass(cut('241539', 0.0, 0.82), 3200),
                    lambda: lowpass(cut('234950', 0.0, 0.52), 3200),
                    lambda: lowpass(cut('241526', 0.0, 0.57), 3200)],
@@ -680,3 +676,33 @@ sfx('hand_rub', [sanitize((2.05, 2.63), 1.0), sanitize((4.60, 5.20), 5.0, at=0.6
     [499324, 670646], st=-22, peak=-4, hp=120, fout=0.1,
     note='one press of a liquid-soap pump (press, squirt, spring return), then ~1.1 s of palms rubbed together '
          '(left channel of a stereo rub), faded in and out and set ~2 dB under the pump')
+
+
+# ================================================================ her body, things dropped and hit (2026-11-07)
+# Plain ids are women's (the narrator), as with breath / sigh.
+sfx('pant', [C('435468', 0.25, 2.60), C('435468', 6.25, 8.20), C('435468', 10.15, 12.55)], [435468], st=-23, hp=100, fin=0.05, fout=0.25,
+    note='a woman out of breath after running: three stretches of quick in-and-out breaths from one take')
+sfx('gasp', [C('346213', 0.30, 1.20), C('346213', 2.25, 3.10), C('346213', 7.95, 8.80)], [346213], st=-22, hp=120, fin=0.005, fout=0.2,
+    note='a woman catching her breath in surprise: three single sharp intakes')
+sfx('cane_drop', [C('186909', 0.15, 1.00), C('186909', 5.45, 6.40), C('186909', 6.55, 7.40), C('414026', 0.0, 1.10)], [186909, 414026],
+    st=-20, hp=120, fout=0.1,
+    note='a thin stick dropped on concrete, with its bounces: three drops from one take and one from another')
+sfx('metal_hit', [C('364686', 0.0, 0.55), C('364686', 1.25, 1.95), C('364686', 2.55, 3.25), C('406491', 0.0, 0.70)], [364686, 406491],
+    st=-20, hp=80, fout=0.15,
+    note='a hand or body knocking into metal: three blows of a hand on a metal railing, and a metal lawn chair hit with a rod')
+sfx('bag_drop', [C('494615', 0.70, 1.50), C('494615', 3.20, 3.95), C('494615', 5.95, 6.65)], [494615], st=-20, hp=50, fout=0.1,
+    note='a backpack dropped on the ground: three drops from one take')
+sfx('lighter_open', [lambda: highpass(cut('838151', 0.10, 0.55), 150), lambda: highpass(channel(seg(src('819310'), 0.30, 0.74), 'R'), 150)],
+    [838151, 819310], st=-23, peak=-3, hp=150, fout=0.08,
+    note='only the lid of a Zippo flicked open (its ringing ting), no close and no wheel: the opening halves of the two lighter_lid takes')
+sfx('zipper', [C('519477', 1.00, 1.55), C('519477', 2.00, 2.75), C('519477', 3.20, 3.85)], [519477], st=-22, hp=150, fout=0.05,
+    note='a backpack zipper pulled open: three pulls from one take')
+sfx('car_door', [C('556690', 4.55, 5.30), C('86232', 5.25, 5.95)], [556690, 86232], st=-20, peak=-4, hp=50, fout=0.12,
+    note='a car door shut: the closing thump of two open-and-close takes')
+
+# ================================================================ a TV on the wall, rain on a car (2026-11-07)
+amb('tv_murmur', bed('875353', 0.5, 30.0, 3.0, hp=150, lp=1800), [875353], rms=-44, crest=12, extras=False, ch='mono',
+    note='30 s of a sports programme heard muffled from the next room (commentary and a crowd, no word comes through), '
+         'band-limited to 150 Hz–1.8 kHz, cheers tamed to 12 dB over the RMS; mono: the game places it at the TV')
+amb('rain_in_car', bed('149244', 15.0, 60.0, 3.0, hp=60), [149244], rms=-36, extras=False, ch='mono',
+    note='60 s of rain on the roof of a parked car, recorded from inside, high-passed at 60 Hz (mono source)')

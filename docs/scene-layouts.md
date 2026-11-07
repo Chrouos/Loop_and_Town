@@ -266,6 +266,8 @@ A 正門外｜B 對面騎樓｜C 大廳（從缺口進來）｜D 東牆機櫃前
 
 c1_locate_success：她跟著背帶扣走到東牆，跪在若晴旁邊，面向東牆。機櫃就在她正前方的牆上，正門在背後偏右。
 
+被喊來的版本：她面向 back-right，機櫃的嗡聲在 left。
+
 用在：c1_locate_success
 
 ```text
@@ -431,6 +433,8 @@ c3_chess：她從老街往北走，一路打電話。舊站和那片碎石地在
 
 用在：c1_day、c1_letter、c1_1752、c1_1831_home、c1_night_yuan、c3_calls_morning、c3_visit、c4_calls、c6_calls、c6_table、c6_1831、c6_wait、c6_alone、c6_visit（c6_confess、c6_answer 的在家路線也照這張）
 
+c6_table 的環境聲是 `room_tone`，生活聲只放屋裡的（木頭聲、隔壁的煮飯和碗筷）。
+
 她坐在客廳中間那張桌子前，背對大門，面向屋裡（北）。c3_calls_morning、c4_calls、c6_calls 開頭幾拍是「剛進門」（門在前面），予安把門頂開、她進屋坐下以後就換成這張。
 
 ```text
@@ -519,7 +523,7 @@ c3_chess：她從老街往北走，一路打電話。舊站和那片碎石地在
 
 ## 林家老屋／知夏的房間
 
-用在：c1_room、c1_room_touch、c1_watch、c3_note、c6_note、c6_night、c7_night、c7_bell（地點寫「窗邊」：書桌本來就靠窗）
+用在：c1_room、c1_room_touch、c1_watch、c3_note、c6_note、c6_night、c7_night、c7_bell（地點寫「窗邊」：書桌本來就靠窗；環境聲是 `house_night` 加 `night_insects`）
 
 她坐在知夏的書桌前，面向南。房門在背後，窗在左前方，窗外是巷子，鐘樓在更遠的左前方。c1_room、c6_note、c7_night 開頭那聲 door_creak 在 front near，是她站在走廊、面向房門推開門的那一下，進門以後就是這張圖。
 
@@ -585,7 +589,7 @@ c3_chess：她從老街往北走，一路打電話。舊站和那片碎石地在
 
 用在：c1_bell、c2_bell、c2_bell_short、c3_bell、c5_bell、c6_h0930、c6_bell
 
-她站在門口或坐在門口的台階上，背對大門，面向巷子（南）。c1_bell 一開始她還在門內、面向大門（door_open 在 front near），推開門以後就是這張。c3_bell 的地點寫「門外的街上」，位置也是這裡：坐石階，或從屋裡衝出來（door_slam 在 back）。c5_bell 前幾拍她面向大門（見下一個變體），坐上台階以後換成這張。
+她站在門口或坐在門口的台階上，背對大門，面向巷子（南）。c1_bell 一開始她還在屋裡（環境聲 `house_night`）、面向大門（door_open 在 front near），推開門走到外面才換成這張。c3_bell 同樣先在屋裡（`house_night`），地點寫「門外的街上」，走出去以後位置在這裡：坐石階，或從屋裡衝出來（door_slam 在 back）。c5_bell 前幾拍她面向大門（見下一個變體），坐上台階以後換成這張。
 
 ```text
   鐘樓（左前，很遠）
@@ -631,7 +635,7 @@ c3_chess：她從老街往北走，一路打電話。舊站和那片碎石地在
 | 聲源 | at | dist | 備註 |
 |---|---|---|---|
 | 大門、鑰匙、門鎖 | front | near | |
-| 門口第三個花盆（備用鑰匙） | right | near | c5_house |
+| 門口第三個花盆（備用鑰匙） | right | near | c5_house、c6、f_hub 都在右邊 |
 | 予安（陪她走到門口） | back-right | near | 往巷口走時 to back-right:far |
 | 鐘樓的鐘聲 | back-right | far | 第十二聲 near |
 | 予安的手機 | front-right | near | 他站在她右前方開門 |
@@ -695,6 +699,8 @@ c3_chess：她從老街往北走，一路打電話。舊站和那片碎石地在
 ## 老街咖啡店
 
 用在：c1_cafe、c2_cafe、c2_evening、c2_cafe_route、c2_after、c2_goes_stay、c3_ruoqing、c3_cafe_night、c5_cafe、c6_cafe、c7_tell_ruoqing、f_ruoqing
+
+c2_after 是打烊時間：環境聲 `room_tone`，加上收杯子、拉椅子的輕微生活聲。
 
 老街和商店街交界的小咖啡店。正門開在南面，門上掛鈴，出門就是商店街的騎樓。一進門左手邊是收銀櫃台，店長平常坐在那裡排班、接市話，若晴不想被打擾的時候也躲到這裡打報名表；櫃台旁邊是甜點冷藏櫃。店的右半邊是吧台：磨豆機、咖啡機（蒸汽管）、水槽都在吧台上，出杯、洗杯都在這裡。吧台後面有條窄走道，通到後門，後門外面就是咖啡店後巷。店的左前方是一排窗，窗邊那張桌子的椅子有扶手，若晴每次都帶她去坐那張；那張桌子左邊還有一張靠窗的小桌。
 
@@ -1630,7 +1636,7 @@ c3_chess：她從老街往北走，一路打電話。舊站和那片碎石地在
 
 ## 舊研究所，機房
 
-用在：f_gate3、f_gate5、f_choice
+用在：f_gate3、f_gate4_lab、f_gate5、f_choice
 
 主路徑所在的機房。門在後面；一排一排機櫃從前面延伸到很裡面；主控台在最前面，庭安坐在那裡。
 
@@ -1647,7 +1653,7 @@ c3_chess：她從老街往北走，一路打電話。舊站和那片碎石地在
 
 ### 變體：主控台後
 
-站（坐）在庭安背後，面向主控台和機櫃。用在：f_gate3、f_gate5、f_choice（庭安有來的那條路）。
+站（坐）在庭安背後，面向主控台和機櫃。用在：f_gate3、f_gate4_lab、f_gate5、f_choice（庭安有來的那條路）。
 
 | 聲源 | at | dist | 備註 |
 |---|---|---|---|

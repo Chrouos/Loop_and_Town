@@ -1,0 +1,10 @@
+# Her phone's screen-reader voice: tools/render-reader.py --tts melo.
+# Only needed on the machine that renders the clips (the clips themselves are committed). On Linux install a
+# CPU-only torch first; MeloTTS leaves torch unpinned. Then `python -m unidic download`.
+# MeloTTS is MIT (code and the Chinese model), so the clips it renders may be published.
+git+https://github.com/myshell-ai/MeloTTS.git@209145371cff8fc3bd60d7be902ea69cbdb7965a
+# librosa 0.9 in MeloTTS breaks on numpy 2.
+numpy==1.26.4
+# MeloTTS still imports pkg_resources, which setuptools 81 removed (uv's environments start without setuptools).
+setuptools<81
+opencc-python-reimplemented==0.1.7

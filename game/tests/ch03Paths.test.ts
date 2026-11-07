@@ -142,7 +142,9 @@ it('a lie at the cafe gets a yes, and she goes anyway', () => {
     return t - at > 1500 ? 0 : null;
   });
   expect(r.stays).toBe(true);
-  expect(r.said).toContain('我拿了東西就走啦！這是我自己的事，妳不要管我！');
+  // 陳醫生 stayed, so there is nothing to pick up: she goes in anyway, for her own reasons.
+  expect(r.said).toContain('陳醫生說他走不開！我進去看一下就走，妳不要管我！');
+  expect(r.said).toContain('若晴那邊，我會打給她改時間。');
   expect(r.ruoqingWent && !r.learned).toBe(true);
 });
 
@@ -154,6 +156,6 @@ it('after she went anyway, asking what the papers mean to her lets her move it h
     if (c !== null) return c;
     return t - at > 1500 ? 0 : null;
   }, ['k_c3_ruoqing_went', 'k_maintenance_passage']);
-  expect(r.said).toContain('不是因為妳喔。是我自己也不想一個人去那裡拿她的東西。');
+  expect(r.said).toContain('先講好喔，是我自己也不想一個人去那裡拿她的東西。');
   expect(r.stays && r.learned).toBe(true);
 });

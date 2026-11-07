@@ -1,5 +1,5 @@
 import type { LifeEvent } from '../engine/life';
-import type { AmbienceId, Direction, Distance, SfxId, VibrationId, VoiceId, Via } from '../audio/catalog';
+import type { AmbienceList, Direction, Distance, SfxId, VibrationId, VoiceId, Via } from '../audio/catalog';
 
 export type Pos = { dir: Direction | 'center'; dist: Distance };
 
@@ -30,13 +30,18 @@ export type Cond =
   | { op: 'not'; arg: Cond }
   | { op: 'and' | 'or'; args: Cond[] };
 
-export type Lesson = 'tap' | 'turn' | 'keep';
+/** A hands-and-ears moment taught once: the first time it comes (or on a line that says `teach: locate` before it). */
+export type InteractLesson = 'locate' | 'approach' | 'hold';
+export type Lesson = 'tap' | 'turn' | 'keep' | InteractLesson;
 
 export type LineBeat = {
   k: 'line';
   kind: LineKind;
   speaker: VoiceId | 'me';
   text: string;
+  /** Stable across edits elsewhere in the script: scene id + a hash of who says what (parse.ts lineId). Set at parse
+   *  time; a line made up at play time (a spoken option) gets one the same way. */
+  id?: string;
   at?: Pos;
   /** The voice moves while it speaks, from `at` to here. */
   to?: Pos;
@@ -49,7 +54,8 @@ export type LineBeat = {
   /** A stranger lowering their voice (true) or not (false); unset, the thread's cue or the place decides. */
   whisper?: boolean;
   /** A first-play lesson: the line waits here, the first time ever, until the player does it once.
-   *  'tap' = tap the screen to go on, 'turn' = tap a sound to turn toward it, 'keep' = long-press the line to keep it. */
+   *  'tap' = tap the screen to go on, 'turn' = tap a sound to turn toward it, 'keep' = long-press the line to keep it.
+   *  'locate' / 'approach' / 'hold': says how the moment coming up works, waits for a tap, and that lesson is then given. */
   teach?: Lesson;
 };
 
@@ -62,7 +68,7 @@ export type ChoiceOption = { text: string; cond?: Cond; disabledCond?: Cond; the
 export type Beat =
   | LineBeat
   | { k: 'sfx'; id: SfxId; pos: Pos; to?: Pos; variant?: number; text?: string; vib?: VibrationId; gain?: number; shake?: ShakeLevel; src?: string }
-  | { k: 'amb'; ids: AmbienceId[]; fade?: number }
+  | { k: 'amb'; ids: AmbienceList; fade?: number }
   | { k: 'move'; moves: Record<string, Pos> }
   | { k: 'pause'; seconds: number }
   | { k: 'wait'; seconds: number; clock?: string; until?: string }
@@ -81,7 +87,7 @@ export type Beat =
   /** 摸讀: drag a finger left to right across cells; each one surfaces only when touched slowly enough. */
   | { k: 'touch'; cells: string[]; style: 'braille' | 'groove' | 'engrave'; prompt?: string; timeout: number }
   /** 聽聲辨位: a sound repeats from one direction (with decoys); she points to it. */
-  | { k: 'locate'; sfx: SfxId; at: Direction; decoys: { sfx: SfxId; at: Direction }[]; tries: number; exact?: boolean; replay?: boolean; times?: number; lag?: number; timeout?: number; interval?: number; gain?: number; prompt?: string; success: Beat[]; fail: Beat[] }
+  | { k: 'locate'; sfx: SfxId; at: Direction; decoys: { sfx: SfxId; at: Direction; gain?: number }[]; tries: number; exact?: boolean; replay?: boolean; times?: number; lag?: number; timeout?: number; interval?: number; gain?: number; prompt?: string; success: Beat[]; fail: Beat[] }
   /** 聽距離: a sound walks toward her from `at`, one step at a time; she speaks up when it reaches her. Too early it cannot hear her, too late it has gone past. */
   | { k: 'hold'; seconds: number; timeout: number; sfx?: SfxId; at?: Direction; prompt?: string; success: Beat[]; fail: Beat[] }
   | { k: 'approach'; sfx: SfxId; at: Direction; past: Direction; steps: number; interval: number; text?: string; prompt?: string; hit: Beat[]; early: Beat[]; late: Beat[] }
@@ -98,7 +104,8 @@ export type Scene = {
   chapter: string;
   time?: string;
   place?: string;
-  ambience?: AmbienceId[];
+  /** `landmarks`: where this scene puts a place's fixed sources (`ambience: [{ id, at: { tower: front-left } }]`). */
+  ambience?: AmbienceList;
   cast: Record<string, Pos>;
   beats: Beat[];
   threads: Record<string, Beat[]>;

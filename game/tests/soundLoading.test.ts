@@ -56,9 +56,11 @@ describe('loading sounds before they are needed', () => {
 });
 
 describe('settings from older saves', () => {
-  it('does not keep a voice level the settings page can no longer change', () => {
-    const save = { ...freshSave(), settings: { ...DEFAULT_SETTINGS, voice: 0 } };
-    const storage = { getItem: () => JSON.stringify(save) } as unknown as Storage;
-    expect(readSave(storage).settings.voice).toBe(DEFAULT_SETTINGS.voice);
+  it('keeps the 讀屏 level the settings page sets, clamped to 0–1', () => {
+    const read = (voice: unknown) => readSave({ getItem: () => JSON.stringify({ ...freshSave(), settings: { ...DEFAULT_SETTINGS, voice } }) } as unknown as Storage).settings.voice;
+    expect(read(0.2)).toBe(0.2);
+    expect(read(0)).toBe(0);
+    expect(read(3)).toBe(1);
+    expect(read('loud')).toBe(DEFAULT_SETTINGS.voice);
   });
 });

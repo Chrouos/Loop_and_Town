@@ -137,7 +137,6 @@ export const SFX = {
   memory_keep: '記住一句話時的輕聲',
   focus_shift: '轉向時的空氣聲',
   choice_appear: '準備開口的細微聲',
-  title_tone: '標題的低音',
   // Caption-synchronized environmental effects (also used by ambience layers).
   rail_clack: '列車輪軌接縫', cabin_rattle: '車廂行李架晃動',
   wood_creak: '木頭吱響', house_tick: '木頭輕響', bird_chirp: '麻雀鳴叫',
@@ -163,6 +162,15 @@ export const SFX = {
   phone_on_glass: '手機蓋著放到玻璃櫃台上', cough_w: '女人咳嗽（成年）', bike_squeak: '橡膠被捏、摩擦的吱聲',
   scooter_start: '機車發動：第一次沒發起來，第二次才發動',
   drain_cover: '輪胎壓過鬆掉的水溝蓋',
+  // her own body and things she drops or hits (plain ids are women's, as above)
+  pant: '跑完之後喘不過氣（女聲）',
+  gasp: '倒抽一口氣，短而急（女聲）',
+  cane_drop: '手杖掉在石頭地上，彈了幾下',
+  metal_hit: '撞到或敲到金屬：鐵椅、鐵桌、欄杆、販賣機',
+  bag_drop: '包包掉在地上',
+  lighter_open: '金屬打火機的蓋子掀開，只有掀開',
+  zipper: '拉鍊拉開',
+  car_door: '車門關上',
   // Each person's own sound (docs/story.md §1.2): she can name them before they speak.
   step_uneven: '一重一輕的兩步：左腳落地比右腳重（予安）',
   raincoat_rustle: '雨衣布料隨走動沙沙摩擦（庭安）',
@@ -216,6 +224,8 @@ export const SFX_SOURCE: Partial<Record<SfxId, string>> = {
   pour_water: '倒水', bamboo_knock: '竹竿', knuckle_knock: '敲桌子', chair_creak: '椅子', cane_scrape: '手杖',
   gravel_step: '碎石', cup_scrape: '杯子', nail_scratch: '指甲', suitcase_roll: '行李箱', phone_on_glass: '手機',
   cough_w: '咳嗽', bike_squeak: '橡膠', scooter_start: '機車', drain_cover: '水溝蓋',
+  pant: '喘氣', gasp: '倒抽一口氣', cane_drop: '手杖', metal_hit: '金屬', bag_drop: '包包', lighter_open: '打火機',
+  zipper: '拉鍊', car_door: '車門',
   step_uneven: '腳步', raincoat_rustle: '雨衣', lighter_lid: '打火機', hand_rub: '乾洗手',
 };
 
@@ -235,7 +245,6 @@ export const AMBIENCE = {
   police_office: '派出所：電扇、遠處電話、打字',
   library: '圖書館：安靜、翻頁、空調',
   old_station_hall: '廢棄舊車站大廳：空曠回聲、風、滴水',
-  maintenance_tunnel: '維修通道：狹窄、低頻嗡鳴、滴水',
   research_facility: '舊研究所：伺服器低鳴、空調',
   rain: '戶外雨聲',
   rain_on_window: '雨打在窗上（室內）',
@@ -243,10 +252,19 @@ export const AMBIENCE = {
   night_insects: '夜晚蟲鳴',
   wind_open: '開闊處的風',
   restaurant: '小餐館：油鍋、碗筷、電視',
+  tv_murmur: '牆上的電視：聽不清內容的人聲與節目聲（疊在店裡的環境聲上）',
+  rain_in_car: '坐在熄火的車裡，雨打在車頂與擋風玻璃上',
   room_tone: '幾乎無聲的房間',
   tower_square_night: '夜晚鐘樓廣場：風、遠車、安靜',
 } as const;
 export type AmbienceId = keyof typeof AMBIENCE;
+/** Where a scene puts a place's fixed sources: ambience id → landmark name → direction (see AMBIENCE_LANDMARKS). */
+export type AmbienceAt = Partial<Record<AmbienceId, Readonly<Record<string, Direction>>>>;
+/**
+ * The beds a scene (or an `amb` beat) asks for. `landmarks` travels with the ids, so whatever starts the beds
+ * also knows where the scene put the tower, the counter, the fridge.
+ */
+export type AmbienceList = AmbienceId[] & { landmarks?: AmbienceAt };
 
 // Per-speaker "voice presence": a faint sound at the speaker's position while they talk.
 /** What a voice comes through when it is not a person beside her: the sound is the device's, never a voice. */

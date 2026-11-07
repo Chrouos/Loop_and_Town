@@ -711,24 +711,22 @@ describe('Web Audio engine with recorded samples (fake decoder)', () => {
     }
   });
 
-  it('plays synthesis until a sample is decoded, then the sample; beds crossfade from synth to recording', async () => {
+  it('plays synthesis until a sample is decoded, then the sample; a bed waits a moment for its recording instead', async () => {
     const engine = createAudioEngine();
     const dbg = engine as unknown as AudioEngineDebug;
     const sampledAmb = Object.keys(AMBIENCE_SAMPLES)[0] as AmbienceId;
     engine.setAmbience([sampledAmb]);
     await engine.unlock();
-    // the bed starts synthesized and its recording is requested
-    expect(dbg.stats().layers).toEqual([sampledAmb]);
-    expect(dbg.stats().sampledLayers).toEqual([]);
-    await flush();
-    tick(0.2);
+    // the bed is held back while its recording is requested, then starts as the recording: never synth first
     await flush();
     expect(fetched.some((u) => u.endsWith(AMBIENCE_SAMPLES[sampledAmb]!.files[0]!))).toBe(true);
+    expect(dbg.stats().layers).toEqual([sampledAmb]);
     expect(dbg.stats().sampledLayers).toEqual([sampledAmb]);
-    // all one-shots were preloaded after unlock
+    // all one-shots were fetched after unlock (kept compressed; decoded when a scene or a play asks)
     for (let i = 0; i < 40; i++) await flush();
     const s = dbg.stats().samples!;
-    expect(s.sfxReady).toBe(s.sfxTotal);
+    expect(s.sfxFetched).toBe(s.sfxTotal);
+    expect(s.decodedBytes).toBeLessThanOrEqual(s.decodedBudget);
     expect(s.failed).toBe(0);
 
     let i = 0;
@@ -737,6 +735,8 @@ describe('Web Audio engine with recorded samples (fake decoder)', () => {
       tick(0.1);
     }
     expect(dbg.stats().shots).toBeGreaterThan(0);
+    // every one-shot was just asked to decode at once, past the decoded budget: the sound still plays as recorded
+    expect(dbg.stats().samples!.decodedBytes).toBeLessThanOrEqual(dbg.stats().samples!.decodedBudget);
     expect(await dbg.playSource('step', { dir: 'left', dist: 'near' }, 'sample')).toBe(true);
     expect(await dbg.playSource('step', { dir: 'left', dist: 'near' }, 'synth')).toBe(true);
     expect(dbg.hasSample('step')).toBe(!!SFX_SAMPLES.step);
@@ -819,8 +819,9 @@ describe('Web Audio engine with recorded samples (fake decoder)', () => {
     const engine = createAudioEngine();
     const dbg = engine as unknown as AudioEngineDebug;
     await engine.unlock();
+    engine.prefetch!({ now: ['sigh_m'], soon: [], amb: [] });
     for (let k = 0; k < 40; k++) await flush();
-    expect(dbg.stats().samples!.sfxReady).toBe(dbg.stats().samples!.sfxTotal);
+    expect(dbg.stats().samples!.sfxFetched).toBe(dbg.stats().samples!.sfxTotal);
     const fc = FakeContext.instances[0]!;
     const pos: SpatialPos = { dir: 'front', dist: 'near' };
     const before = fc.sources.length;

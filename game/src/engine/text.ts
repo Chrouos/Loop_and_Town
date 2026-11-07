@@ -1,12 +1,16 @@
 import type { LineKind } from '../script/types';
 
-export type TextSpeed = 'slow' | 'normal' | 'fast';
+/** 'instant': the whole line is on screen at once; it still stays up as long as reading it at 'fast' takes. */
+export type TextSpeed = 'slow' | 'normal' | 'fast' | 'instant';
+export const TEXT_SPEEDS: TextSpeed[] = ['slow', 'normal', 'fast', 'instant'];
 /** `br`: start a new row after this phrase (a sentence ended inside narration or thought). */
 export type Phrase = { text: string; at: number; br?: boolean };
 export type LineTiming = { phrases: Phrase[]; revealMs: number; holdMs: number };
 
-const CHAR_MS: Record<TextSpeed, number> = { slow: 105, normal: 72, fast: 42 };
-const HOLD_SCALE: Record<TextSpeed, number> = { slow: 1.35, normal: 1, fast: 0.7 };
+const CHAR_MS: Record<Exclude<TextSpeed, 'instant'>, number> = { slow: 105, normal: 72, fast: 42 };
+const HOLD_SCALE: Record<Exclude<TextSpeed, 'instant'>, number> = { slow: 1.35, normal: 1, fast: 0.7 };
+/** Reading a choice's options takes longer than hearing a line: about twice the reveal pace, per character. */
+const READ_MS: Record<TextSpeed, number> = { slow: 210, normal: 144, fast: 84, instant: 84 };
 const FULL_SPACE = '　';
 
 function pauseAfter(mark: string): number {
@@ -58,7 +62,41 @@ export function splitPhrases(text: string, kind: LineKind = 'char'): { text: str
   return merged.map(({ text: shown, pause, br }) => (br ? { text: shown, pause, br } : { text: shown, pause }));
 }
 
+/** Marks that may never begin a row (a line that wraps before a 「，」 leaves it dangling at the left edge). */
+const NO_ROW_START = /[，。、；：！？…—」』）》〉】]/u;
+
+/**
+ * A phrase cut into pieces for the screen: each run of closing marks is glued to the character before it
+ * (`glue`, drawn in a white-space:nowrap span), so the row breaks before that character, never between it
+ * and its 「，」. Joined back together the pieces are the phrase unchanged.
+ */
+export function gluePunctuation(text: string): { text: string; glue?: true }[] {
+  const chars = [...text];
+  const out: { text: string; glue?: true }[] = [];
+  let plain = '';
+  let i = 0;
+  while (i < chars.length) {
+    if (i + 1 < chars.length && NO_ROW_START.test(chars[i + 1]) && !/\s/u.test(chars[i])) {
+      let end = i + 1;
+      while (end < chars.length && NO_ROW_START.test(chars[end])) end += 1;
+      if (plain) { out.push({ text: plain }); plain = ''; }
+      out.push({ text: chars.slice(i, end).join(''), glue: true });
+      i = end;
+    } else {
+      plain += chars[i];
+      i += 1;
+    }
+  }
+  if (plain) out.push({ text: plain });
+  return out;
+}
+
 export function lineTiming(text: string, kind: LineKind, speed: TextSpeed): LineTiming {
+  if (speed === 'instant') {
+    // Shown whole; the time it would have taken to come in at 'fast' is added to how long it stays.
+    const fast = lineTiming(text, kind, 'fast');
+    return { phrases: fast.phrases.map((phrase) => ({ ...phrase, at: 0 })), revealMs: 0, holdMs: fast.revealMs + fast.holdMs };
+  }
   const charMs = CHAR_MS[speed] * (kind === 'think' ? 1.1 : kind === 'phone' ? 0.9 : 1);
   const phrases: Phrase[] = [];
   let at = 0;
@@ -70,4 +108,16 @@ export function lineTiming(text: string, kind: LineKind, speed: TextSpeed): Line
   const revealMs = Math.max(380, at - (phrases.length ? 0 : 0));
   const holdMs = (1000 + chars * 38 + (kind === 'think' ? 300 : 0)) * HOLD_SCALE[speed];
   return { phrases, revealMs, holdMs };
+}
+
+/** How long reading every option of a choice takes at this text speed (a timed choice never runs out sooner). */
+export function readingMs(texts: string[], speed: TextSpeed): number {
+  const chars = texts.reduce((sum, text) => sum + [...text.replace(/[|「」（）]/g, '')].length, 0);
+  return chars * READ_MS[speed] + texts.length * 400 + 1500;
+}
+
+/** A line heard on an earlier loop, with 聽過的話自動放快 on: it comes and goes at this fraction of its time. */
+export const HEARD_SCALE = 0.35;
+export function scaleTiming(timing: LineTiming, scale: number): LineTiming {
+  return { phrases: timing.phrases.map((phrase) => ({ ...phrase, at: phrase.at * scale })), revealMs: timing.revealMs * scale, holdMs: timing.holdMs * scale };
 }

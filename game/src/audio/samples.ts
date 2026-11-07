@@ -34,11 +34,14 @@ export interface AmbienceSample {
   readonly loopEnd: number;
   /** Also run the layer's sparse procedural events (SAMPLE_EXTRAS in ambience.ts). */
   readonly extras?: boolean;
+  /** One channel: a place with no stereo image worth its memory (half the decoded size). */
+  readonly mono?: boolean;
 }
 
 // <generated manifest>
 export const SFX_SAMPLES: Partial<Record<SfxId, SfxSample>> = {
   air_flow: { files: ['sfx/air_flow_1.m4a', 'sfx/air_flow_2.m4a'], gain: 1 },
+  bag_drop: { files: ['sfx/bag_drop_1.m4a', 'sfx/bag_drop_2.m4a', 'sfx/bag_drop_3.m4a'], gain: 1 },
   ball_bounce: { files: ['sfx/ball_bounce_1.m4a', 'sfx/ball_bounce_2.m4a', 'sfx/ball_bounce_3.m4a'], gain: 1 },
   bamboo_knock: { files: ['sfx/bamboo_knock_1.m4a', 'sfx/bamboo_knock_2.m4a', 'sfx/bamboo_knock_3.m4a'], gain: 1 },
   bell_toll: { files: ['sfx/bell_toll.m4a'], gain: 1, rate: 0.84, jitter: 0.004 },
@@ -53,8 +56,10 @@ export const SFX_SAMPLES: Partial<Record<SfxId, SfxSample>> = {
   breath_m: { files: ['sfx/breath_m_1.m4a', 'sfx/breath_m_2.m4a', 'sfx/breath_m_3.m4a'], gain: 1 },
   bus_hiss: { files: ['sfx/bus_hiss.m4a'], gain: 1 },
   camera_shutter: { files: ['sfx/camera_shutter_1.m4a', 'sfx/camera_shutter_2.m4a'], gain: 1 },
+  cane_drop: { files: ['sfx/cane_drop_1.m4a', 'sfx/cane_drop_2.m4a', 'sfx/cane_drop_3.m4a', 'sfx/cane_drop_4.m4a'], gain: 1 },
   cane_scrape: { files: ['sfx/cane_scrape_1.m4a', 'sfx/cane_scrape_2.m4a', 'sfx/cane_scrape_3.m4a', 'sfx/cane_scrape_4.m4a'], gain: 1 },
   cane_tap: { files: ['sfx/cane_tap_1.m4a', 'sfx/cane_tap_2.m4a', 'sfx/cane_tap_3.m4a', 'sfx/cane_tap_4.m4a'], gain: 1 },
+  car_door: { files: ['sfx/car_door_1.m4a', 'sfx/car_door_2.m4a'], gain: 1 },
   car_horn: { files: ['sfx/car_horn_1.m4a', 'sfx/car_horn_2.m4a', 'sfx/car_horn_3.m4a'], gain: 1 },
   car_pass: { files: ['sfx/car_pass_1.m4a', 'sfx/car_pass_2.m4a'], gain: 1, move: [-70, 70, 2.2] },
   cart_roll: { files: ['sfx/cart_roll_1.m4a', 'sfx/cart_roll_2.m4a', 'sfx/cart_roll_3.m4a'], gain: 1 },
@@ -88,6 +93,7 @@ export const SFX_SAMPLES: Partial<Record<SfxId, SfxSample>> = {
   fan_hum: { files: ['sfx/fan_hum_1.m4a', 'sfx/fan_hum_2.m4a', 'sfx/fan_hum_3.m4a'], gain: 1 },
   focus_shift: { files: ['sfx/focus_shift_1.m4a', 'sfx/focus_shift_2.m4a', 'sfx/focus_shift_3.m4a'], gain: 1 },
   fry_sizzle: { files: ['sfx/fry_sizzle_1.m4a', 'sfx/fry_sizzle_2.m4a', 'sfx/fry_sizzle_3.m4a'], gain: 1 },
+  gasp: { files: ['sfx/gasp_1.m4a', 'sfx/gasp_2.m4a', 'sfx/gasp_3.m4a'], gain: 1 },
   gasp_crowd: { files: ['sfx/gasp_crowd.m4a'], gain: 1 },
   glass_break: { files: ['sfx/glass_break.m4a'], gain: 1 },
   glass_clink: { files: ['sfx/glass_clink_1.m4a', 'sfx/glass_clink_2.m4a', 'sfx/glass_clink_3.m4a'], gain: 1 },
@@ -110,15 +116,18 @@ export const SFX_SAMPLES: Partial<Record<SfxId, SfxSample>> = {
   light_buzz: { files: ['sfx/light_buzz.m4a'], gain: 1 },
   lighter: { files: ['sfx/lighter.m4a'], gain: 1 },
   lighter_lid: { files: ['sfx/lighter_lid_1.m4a', 'sfx/lighter_lid_2.m4a', 'sfx/lighter_lid_3.m4a'], gain: 1 },
+  lighter_open: { files: ['sfx/lighter_open_1.m4a', 'sfx/lighter_open_2.m4a'], gain: 1 },
   lock_turn: { files: ['sfx/lock_turn.m4a'], gain: 1, jitter: 0.01 },
   memory_keep: { files: ['sfx/memory_keep_1.m4a', 'sfx/memory_keep_2.m4a', 'sfx/memory_keep_3.m4a'], gain: 1 },
   metal_crash: { files: ['sfx/metal_crash.m4a'], gain: 1 },
+  metal_hit: { files: ['sfx/metal_hit_1.m4a', 'sfx/metal_hit_2.m4a', 'sfx/metal_hit_3.m4a', 'sfx/metal_hit_4.m4a'], gain: 1 },
   murmur_child: { files: ['sfx/murmur_child_1.m4a', 'sfx/murmur_child_2.m4a', 'sfx/murmur_child_3.m4a', 'sfx/murmur_child_4.m4a', 'sfx/murmur_child_5.m4a'], gain: 1 },
   murmur_m: { files: ['sfx/murmur_m_1.m4a', 'sfx/murmur_m_2.m4a', 'sfx/murmur_m_3.m4a', 'sfx/murmur_m_4.m4a'], gain: 1 },
   murmur_old: { files: ['sfx/murmur_old_1.m4a', 'sfx/murmur_old_2.m4a', 'sfx/murmur_old_3.m4a', 'sfx/murmur_old_4.m4a', 'sfx/murmur_old_5.m4a'], gain: 1 },
   murmur_w: { files: ['sfx/murmur_w_1.m4a', 'sfx/murmur_w_2.m4a', 'sfx/murmur_w_3.m4a', 'sfx/murmur_w_4.m4a', 'sfx/murmur_w_5.m4a'], gain: 1 },
   nail_scratch: { files: ['sfx/nail_scratch_1.m4a', 'sfx/nail_scratch_2.m4a', 'sfx/nail_scratch_3.m4a'], gain: 1 },
   page_turn: { files: ['sfx/page_turn_1.m4a', 'sfx/page_turn_2.m4a', 'sfx/page_turn_3.m4a'], gain: 1 },
+  pant: { files: ['sfx/pant_1.m4a', 'sfx/pant_2.m4a', 'sfx/pant_3.m4a'], gain: 1 },
   paper_rustle: { files: ['sfx/paper_rustle_1.m4a', 'sfx/paper_rustle_2.m4a'], gain: 1 },
   pen_scratch: { files: ['sfx/pen_scratch_1.m4a', 'sfx/pen_scratch_2.m4a', 'sfx/pen_scratch_3.m4a'], gain: 1 },
   phone_buzz: { files: ['sfx/phone_buzz.m4a'], gain: 1 },
@@ -158,7 +167,6 @@ export const SFX_SAMPLES: Partial<Record<SfxId, SfxSample>> = {
   tape_rewind: { files: ['sfx/tape_rewind.m4a'], gain: 1 },
   thud: { files: ['sfx/thud.m4a'], gain: 1 },
   thunder_far: { files: ['sfx/thunder_far.m4a'], gain: 1, jitter: 0.05 },
-  title_tone: { files: ['sfx/title_tone.m4a'], gain: 1, rate: 0.71, jitter: 0 },
   tools_clink: { files: ['sfx/tools_clink_1.m4a', 'sfx/tools_clink_2.m4a', 'sfx/tools_clink_3.m4a'], gain: 1 },
   train_brake: { files: ['sfx/train_brake.m4a'], gain: 1, jitter: 0.02 },
   train_door: { files: ['sfx/train_door.m4a'], gain: 1 },
@@ -172,33 +180,35 @@ export const SFX_SAMPLES: Partial<Record<SfxId, SfxSample>> = {
   whisper: { files: ['sfx/whisper_1.m4a', 'sfx/whisper_2.m4a', 'sfx/whisper_3.m4a', 'sfx/whisper_4.m4a'], gain: 1 },
   wind_gust: { files: ['sfx/wind_gust_1.m4a', 'sfx/wind_gust_2.m4a'], gain: 1 },
   wood_creak: { files: ['sfx/wood_creak_1.m4a', 'sfx/wood_creak_2.m4a', 'sfx/wood_creak_3.m4a', 'sfx/wood_creak_4.m4a'], gain: 1 },
+  zipper: { files: ['sfx/zipper_1.m4a', 'sfx/zipper_2.m4a', 'sfx/zipper_3.m4a'], gain: 1 },
 };
 
 export const AMBIENCE_SAMPLES: Partial<Record<AmbienceId, AmbienceSample>> = {
   cafe: { files: ['amb/cafe.m4a'], gain: 1, loop: true, loopStart: 0.25, loopEnd: 60.25, extras: true },
   clock_shop: { files: ['amb/clock_shop.m4a'], gain: 1, loop: true, loopStart: 0.25, loopEnd: 60.25, extras: true },
-  construction_far: { files: ['amb/construction_far.m4a'], gain: 1, loop: true, loopStart: 0.25, loopEnd: 60.25, extras: true },
+  construction_far: { files: ['amb/construction_far.m4a'], gain: 1, loop: true, loopStart: 0.25, loopEnd: 60.25, extras: true, mono: true },
   hospital: { files: ['amb/hospital.m4a'], gain: 1, loop: true, loopStart: 0.25, loopEnd: 35.25, extras: true },
-  house_night: { files: ['amb/house_night.m4a'], gain: 1, loop: true, loopStart: 0.25, loopEnd: 44.25, extras: true },
-  library: { files: ['amb/library.m4a'], gain: 1, loop: true, loopStart: 0.25, loopEnd: 60.25 },
-  maintenance_tunnel: { files: ['amb/maintenance_tunnel.m4a'], gain: 1, loop: true, loopStart: 0.25, loopEnd: 60.25, extras: true },
+  house_night: { files: ['amb/house_night.m4a'], gain: 1, loop: true, loopStart: 0.25, loopEnd: 44.25, extras: true, mono: true },
+  library: { files: ['amb/library.m4a'], gain: 1, loop: true, loopStart: 0.25, loopEnd: 60.25, mono: true },
   night_insects: { files: ['amb/night_insects.m4a'], gain: 1, loop: true, loopStart: 0.25, loopEnd: 55.25, extras: true },
   old_house: { files: ['amb/old_house.m4a'], gain: 1, loop: true, loopStart: 0.25, loopEnd: 60.25, extras: true },
   old_station_hall: { files: ['amb/old_station_hall.m4a'], gain: 1, loop: true, loopStart: 0.25, loopEnd: 60.25, extras: true },
   platform: { files: ['amb/platform.m4a'], gain: 1, loop: true, loopStart: 0.25, loopEnd: 60.25, extras: true },
-  police_office: { files: ['amb/police_office.m4a'], gain: 1, loop: true, loopStart: 0.25, loopEnd: 45.25, extras: true },
-  rain: { files: ['amb/rain.m4a'], gain: 1, loop: true, loopStart: 0.25, loopEnd: 60.25, extras: true },
-  rain_on_window: { files: ['amb/rain_on_window.m4a'], gain: 1, loop: true, loopStart: 0.25, loopEnd: 50.25, extras: true },
-  research_facility: { files: ['amb/research_facility.m4a'], gain: 1, loop: true, loopStart: 0.25, loopEnd: 60.25, extras: true },
+  police_office: { files: ['amb/police_office.m4a'], gain: 1, loop: true, loopStart: 0.25, loopEnd: 45.25, extras: true, mono: true },
+  rain: { files: ['amb/rain.m4a'], gain: 1, loop: true, loopStart: 0.25, loopEnd: 60.25, extras: true, mono: true },
+  rain_in_car: { files: ['amb/rain_in_car.m4a'], gain: 1, loop: true, loopStart: 0.25, loopEnd: 60.25, mono: true },
+  rain_on_window: { files: ['amb/rain_on_window.m4a'], gain: 1, loop: true, loopStart: 0.25, loopEnd: 50.25, extras: true, mono: true },
+  research_facility: { files: ['amb/research_facility.m4a'], gain: 1, loop: true, loopStart: 0.25, loopEnd: 60.25, extras: true, mono: true },
   restaurant: { files: ['amb/restaurant.m4a'], gain: 1, loop: true, loopStart: 0.25, loopEnd: 55.25, extras: true },
-  room_tone: { files: ['amb/room_tone.m4a'], gain: 1, loop: true, loopStart: 0.25, loopEnd: 60.25 },
+  room_tone: { files: ['amb/room_tone.m4a'], gain: 1, loop: true, loopStart: 0.25, loopEnd: 60.25, mono: true },
   sea_far: { files: ['amb/sea_far.m4a'], gain: 1, loop: true, loopStart: 0.25, loopEnd: 60.25, extras: true },
   street_afternoon: { files: ['amb/street_afternoon.m4a'], gain: 1, loop: true, loopStart: 0.25, loopEnd: 36.25, extras: true },
   street_evening: { files: ['amb/street_evening.m4a'], gain: 1, loop: true, loopStart: 0.25, loopEnd: 30.25, extras: true },
   street_morning: { files: ['amb/street_morning.m4a'], gain: 1, loop: true, loopStart: 0.25, loopEnd: 48.25, extras: true },
-  tower_square_night: { files: ['amb/tower_square_night.m4a'], gain: 1, loop: true, loopStart: 0.25, loopEnd: 40.25, extras: true },
-  town_square: { files: ['amb/town_square.m4a'], gain: 1, loop: true, loopStart: 0.25, loopEnd: 52.25, extras: true },
+  tower_square_night: { files: ['amb/tower_square_night.m4a'], gain: 1, loop: true, loopStart: 0.25, loopEnd: 40.25, extras: true, mono: true },
+  town_square: { files: ['amb/town_square.m4a'], gain: 1, loop: true, loopStart: 0.25, loopEnd: 52.25, extras: true, mono: true },
   train_interior: { files: ['amb/train_interior.m4a'], gain: 1, loop: true, loopStart: 0.25, loopEnd: 60.25 },
+  tv_murmur: { files: ['amb/tv_murmur.m4a'], gain: 1, loop: true, loopStart: 0.25, loopEnd: 30.25, mono: true },
   wind_open: { files: ['amb/wind_open.m4a'], gain: 1, loop: true, loopStart: 0.25, loopEnd: 50.25, extras: true },
 };
 // </generated manifest>
@@ -251,17 +261,51 @@ function decode(ac: BaseAudioContext, data: ArrayBuffer): Promise<AudioBuffer> {
 
 const RETRY_MS = 3000;
 
+/**
+ * Decoded one-shots and reader clips may hold this much PCM at once (bytes; float32 × channels × frames).
+ * Decoding all 321 one-shots at 48 kHz took ~111 MB; the largest scene's own sounds plus the ones every scene
+ * uses come to ~39 MB, so 40 MB keeps a whole scene decoded while the next one is only fetched.
+ */
+export const SFX_DECODED_BUDGET = 40 * 1024 * 1024;
+/**
+ * Decoded beds (~23 MB per minute of stereo at 48 kHz, half that in mono): the ones playing, plus the next place's,
+ * decoded ahead so it can start as a recording, within this much in all — two minute-long stereo beds, the place
+ * she is leaving and the one she is entering. Beds playing are always kept, however much they hold.
+ */
+export const BED_DECODED_BUDGET = 48 * 1024 * 1024;
+
 export interface SampleBankStats {
+  /** One-shots with at least one variant decoded, ready to play now. */
   sfxReady: number;
+  /** One-shots whose files are all fetched (compressed, ready to decode in a few ms). */
+  sfxFetched: number;
   sfxTotal: number;
   ambReady: number;
   ambTotal: number;
   failed: number;
+  /** PCM held by decoded one-shots and reader clips, and its ceiling (bytes). */
+  decodedBytes: number;
+  decodedBudget: number;
+  /** PCM held by decoded beds (bytes). */
+  bedBytes: number;
+  /** Compressed files kept in memory so a one-shot can be decoded again without the network (bytes). */
+  fetchedBytes: number;
 }
+
+/** What a queued job does with its file: decode it, keep its compressed bytes, or only warm the HTTP cache (beds). */
+type JobKind = 'decode' | 'raw' | 'warm';
+type Job = { path: string; kind: JobKind; done: ((ok: boolean) => void)[] };
+
+const pcmBytes = (b: AudioBuffer): number => b.length * b.numberOfChannels * 4;
 
 /**
  * Fetches, decodes and caches sample files for one AudioContext. Every method is safe to call
  * in any environment: without fetch/decodeAudioData the bank is simply never ready.
+ *
+ * Memory: one-shots are kept compressed (~8 MB for all of them) and decoded on demand into a cache bounded by
+ * `budget`; the least recently used decoded file goes first, the current scene's own sounds (`prefetch`) last.
+ * Beds are decoded only while wanted (see trimBeds). A buffer evicted while it plays keeps playing: the source
+ * node holds it until it ends.
  */
 export class SampleBank {
   private readonly buffers = new Map<string, AudioBuffer>();
@@ -270,8 +314,20 @@ export class SampleBank {
    *  one dropped request (a dev-server reload, a flaky network) must not silence a sound for the session. */
   private readonly failed = new Map<string, number>();
   private readonly lastPick = new Map<string, number>();
-  /** Decoded beds are large (~20 MB per minute of stereo), so only a few stay cached. */
+  /** Beds: path → last use. */
   private readonly bedUse = new Map<string, number>();
+  private readonly bedFiles: ReadonlySet<string>;
+  /** Decoded one-shots and clips: path → size and last use (LRU). */
+  private readonly decoded = new Map<string, { size: number; used: number }>();
+  private decodedBytes = 0;
+  /** Files of the scene playing now: evicted only when nothing else is left to evict. */
+  private hot = new Set<string>();
+  /** Beds of the scene about to play, decoded ahead (prepareBeds). */
+  private incoming: string[] = [];
+  /** Compressed one-shots and clips, and fetches on their way (a bed being warmed is taken over, not fetched twice). */
+  private readonly raw = new Map<string, ArrayBuffer>();
+  private rawBytes = 0;
+  private readonly fetching = new Map<string, Promise<ArrayBuffer>>();
   private useClock = 0;
   readonly supported: boolean;
 
@@ -279,8 +335,11 @@ export class SampleBank {
     private readonly ac: BaseAudioContext,
     private readonly sfxManifest: Partial<Record<SfxId, SfxSample>> = SFX_SAMPLES,
     private readonly ambManifest: Partial<Record<AmbienceId, AmbienceSample>> = AMBIENCE_SAMPLES,
+    readonly budget: number = SFX_DECODED_BUDGET,
+    readonly bedBudget: number = BED_DECODED_BUDGET,
   ) {
     this.supported = typeof fetch === 'function' && typeof (ac as Partial<BaseAudioContext>).decodeAudioData === 'function';
+    this.bedFiles = new Set(Object.values(ambManifest).flatMap((e) => (e ? [...e.files] : [])));
   }
 
   sfxEntry(id: SfxId): SfxSample | undefined {
@@ -291,29 +350,52 @@ export class SampleBank {
     return this.ambManifest[id];
   }
 
+  /** Decoded and in the cache right now. */
+  has(path: string): boolean {
+    return this.buffers.has(path);
+  }
+
+  /** The file's bytes: kept ones, a fetch already on its way, or a new fetch (one-shots and clips are kept). */
+  private bytes(path: string, cache?: RequestCache): Promise<ArrayBuffer> {
+    const kept = this.raw.get(path);
+    if (kept && !cache) return Promise.resolve(kept);
+    const inflight = this.fetching.get(path);
+    if (inflight && !cache) return inflight;
+    const p = fetch(sampleUrl(path), cache ? { cache } : undefined).then(async (res) => {
+      if (!res.ok) throw new Error(`${res.status}`);
+      const data = await res.arrayBuffer();
+      if (!this.bedFiles.has(path)) {
+        this.rawBytes += data.byteLength - (this.raw.get(path)?.byteLength ?? 0);
+        this.raw.set(path, data);
+      }
+      return data;
+    });
+    this.fetching.set(path, p);
+    const clear = (): void => { if (this.fetching.get(path) === p) this.fetching.delete(path); };
+    p.then(clear, clear);
+    return p;
+  }
+
   /** Load one file (deduplicated, cached, never rejects). */
   load(path: string): Promise<AudioBuffer | null> {
     const ready = this.buffers.get(path);
-    if (ready) return Promise.resolve(ready);
+    if (ready) {
+      this.touch(path);
+      return Promise.resolve(ready);
+    }
     if (!this.supported) return Promise.resolve(null);
     const failedAt = this.failed.get(path);
     if (failedAt !== undefined && Date.now() - failedAt < RETRY_MS) return Promise.resolve(null);
     const inflight = this.pending.get(path);
     if (inflight) return inflight;
     const p = (async (): Promise<AudioBuffer | null> => {
-      // A file caught half-written (the dev server while sounds are rebuilt) can stick in the browser cache as
-      // something that is not audio; when it does not decode, fetch it once more past the cache.
-      const fetchDecode = async (cache?: RequestCache): Promise<AudioBuffer> => {
-        const res = await fetch(sampleUrl(path), cache ? { cache } : undefined);
-        if (!res.ok) throw new Error(`${res.status}`);
-        return decode(this.ac, await res.arrayBuffer());
-      };
-      // A bed fetched ahead for the next scene may still be on its way: take it over instead of a second download.
-      const warming = this.warming.get(path);
-      const first = warming ? () => warming.then((bytes) => decode(this.ac, bytes.slice(0))) : () => fetchDecode();
+      // decodeAudioData detaches what it is given: decode a copy, so the kept bytes can be decoded again.
+      const decodeFrom = async (cache?: RequestCache): Promise<AudioBuffer> => decode(this.ac, (await this.bytes(path, cache)).slice(0));
       try {
-        const buf = await first().catch(() => fetchDecode('reload'));
-        this.buffers.set(path, buf);
+        // A file caught half-written (the dev server while sounds are rebuilt) can stick in the browser cache as
+        // something that is not audio; when it does not decode, fetch it once more past the cache.
+        const buf = await decodeFrom().catch(() => decodeFrom('reload'));
+        this.remember(path, buf);
         this.failed.delete(path);
         return buf;
       } catch {
@@ -325,6 +407,42 @@ export class SampleBank {
     })();
     this.pending.set(path, p);
     return p;
+  }
+
+  private remember(path: string, buf: AudioBuffer): void {
+    this.buffers.set(path, buf);
+    if (this.bedFiles.has(path)) {
+      this.bedUse.set(path, ++this.useClock);
+      return;
+    }
+    const size = pcmBytes(buf);
+    this.decodedBytes += size - (this.decoded.get(path)?.size ?? 0);
+    this.decoded.set(path, { size, used: ++this.useClock });
+    this.evict(path);
+  }
+
+  private touch(path: string): void {
+    const d = this.decoded.get(path);
+    if (d) d.used = ++this.useClock;
+  }
+
+  /** Free least recently used decoded files until the cache fits its budget (never `keep`, just decoded). */
+  private evict(keep: string): void {
+    while (this.decodedBytes > this.budget) {
+      let victim: string | null = null;
+      let oldest = Infinity;
+      for (const pass of [false, true]) {
+        for (const [path, d] of this.decoded) {
+          if (path === keep || this.hot.has(path) !== pass) continue;
+          if (d.used < oldest) { oldest = d.used; victim = path; }
+        }
+        if (victim) break;
+      }
+      if (!victim) return;
+      this.decodedBytes -= this.decoded.get(victim)!.size;
+      this.decoded.delete(victim);
+      this.buffers.delete(victim);
+    }
   }
 
   /** Decoded variants of a one-shot, or null while none is ready. */
@@ -343,19 +461,27 @@ export class SampleBank {
   pickSfx(id: SfxId): AudioBuffer | null {
     const list = this.sfx(id);
     if (!list) return null;
-    if (list.length === 1) return list[0]!;
-    const last = this.lastPick.get(id) ?? -1;
-    let i = Math.floor(Math.random() * (list.length - 1));
-    if (i >= last) i++;
-    i = Math.min(i, list.length - 1);
-    this.lastPick.set(id, i);
-    return list[i]!;
+    let i = 0;
+    if (list.length > 1) {
+      const last = this.lastPick.get(id) ?? -1;
+      i = Math.floor(Math.random() * (list.length - 1));
+      if (i >= last) i++;
+      i = Math.min(i, list.length - 1);
+      this.lastPick.set(id, i);
+    }
+    const picked = list[i]!;
+    for (const f of this.sfxManifest[id]?.files ?? []) if (this.buffers.get(f) === picked) this.touch(f);
+    return picked;
   }
 
-  loadSfx(id: SfxId): Promise<void> {
+  /**
+   * Decode every variant of a one-shot. Resolves to the buffers it got: under memory pressure the cache may free
+   * them again before the caller looks (other decodes finishing meanwhile), so the caller plays these, not the cache.
+   */
+  loadSfx(id: SfxId): Promise<AudioBuffer[]> {
     const e = this.sfxManifest[id];
-    if (!e) return Promise.resolve();
-    return Promise.all(e.files.map((f) => this.load(f))).then(() => undefined);
+    if (!e) return Promise.resolve([]);
+    return Promise.all(e.files.map((f) => this.load(f))).then((list) => list.filter((b): b is AudioBuffer => b !== null));
   }
 
   amb(id: AmbienceId): AudioBuffer | null {
@@ -373,17 +499,65 @@ export class SampleBank {
     return this.load(f);
   }
 
+  /** A bed's file can be asked for now (it did not just fail to load). */
+  bedLoadable(id: AmbienceId): boolean {
+    const f = this.ambManifest[id]?.files[0];
+    if (!f || !this.supported) return false;
+    const failedAt = this.failed.get(f);
+    return failedAt === undefined || Date.now() - failedAt >= RETRY_MS;
+  }
+
+  /** What a bed holds decoded, or will (estimated from its loop length and channels before it is decoded). */
+  private bedBytes(path: string): number {
+    const b = this.buffers.get(path);
+    if (b) return pcmBytes(b);
+    const e = Object.values(this.ambManifest).find((entry) => entry?.files[0] === path);
+    if (!e) return 0;
+    return Math.ceil((e.loopEnd + e.loopStart) * this.ac.sampleRate) * (e.mono ? 1 : 2) * 4;
+  }
+
+  private bedFile(id: AmbienceId): string | undefined {
+    return this.ambManifest[id]?.files[0];
+  }
+
   /**
-   * Forget decoded beds beyond the `max` most recently used ones, never those in `keep`
-   * (a layer that is still playing holds its own reference until it is disposed).
+   * Decode the beds of the scene about to play ahead (`ids`, in order), next to the ones playing (`playing`),
+   * as far as bedBudget allows; a bed that does not fit is loaded when its scene starts. Until the next call
+   * they are kept over every other bed but the ones playing.
    */
-  trimBeds(keep: readonly AmbienceId[], max = 4): void {
-    const pinned = new Set(keep.map((id) => this.ambManifest[id]?.files[0]).filter((f): f is string => !!f));
-    const cached = [...this.bedUse.entries()].filter(([f]) => this.buffers.has(f)).sort((a, b) => b[1] - a[1]);
-    let kept = 0;
-    for (const [f] of cached) {
-      if (pinned.has(f) || kept < max) {
-        kept++;
+  prepareBeds(ids: readonly AmbienceId[], playing: readonly AmbienceId[] = []): void {
+    if (!this.supported) return;
+    const kept = new Set(playing.map((id) => this.bedFile(id)).filter((f): f is string => !!f && this.buffers.has(f)));
+    let used = [...kept].reduce((sum, f) => sum + this.bedBytes(f), 0);
+    const next: string[] = [];
+    for (const id of ids) {
+      const f = this.bedFile(id);
+      if (!f || kept.has(f) || next.includes(f)) continue;
+      const size = this.bedBytes(f);
+      if (used + size > this.bedBudget) continue;
+      used += size;
+      next.push(f);
+    }
+    this.incoming = next;
+    this.trimBeds(playing);
+    const fresh = next.filter((f) => !this.buffers.has(f));
+    for (const f of fresh) this.bedUse.set(f, ++this.useClock);
+    if (fresh.length) void this.enqueue(fresh.map((path) => ({ path, kind: 'decode' as const })), true);
+  }
+
+  /**
+   * Keep the beds in `keep` (the ones playing), then the next place's (prepareBeds), then the most recently used,
+   * while they fit in bedBudget; forget the rest. A layer still fading out holds its own reference until it is disposed.
+   */
+  trimBeds(keep: readonly AmbienceId[]): void {
+    const pinned = new Set(keep.map((id) => this.bedFile(id)).filter((f): f is string => !!f && this.buffers.has(f)));
+    let used = [...pinned].reduce((sum, f) => sum + this.bedBytes(f), 0);
+    const recent = [...this.bedUse.entries()].sort((a, b) => b[1] - a[1]).map(([f]) => f);
+    const others = [...new Set([...this.incoming, ...recent])].filter((f) => this.buffers.has(f) && !pinned.has(f));
+    for (const f of others) {
+      const size = this.bedBytes(f);
+      if (used + size <= this.bedBudget) {
+        used += size;
         continue;
       }
       this.buffers.delete(f);
@@ -391,71 +565,129 @@ export class SampleBank {
     }
   }
 
-  /** Load every one-shot in the background, a few at a time; `prefetch` can push a scene's sounds ahead of them. */
+  /**
+   * Fetch every one-shot in the background, a few at a time, and keep it compressed (decoding all of them would
+   * hold ~111 MB); `prefetch` decodes a scene's sounds ahead of them, and any other is decoded when first played.
+   */
   preloadSfx(concurrency = 8): Promise<void> {
     if (!this.supported) return Promise.resolve();
     this.concurrency = Math.max(1, concurrency);
     const files = Object.values(this.sfxManifest).flatMap((e) => (e ? [...e.files] : []));
-    const queued = new Set(this.queue.map((job) => job.path));
-    for (const path of new Set(files)) if (!queued.has(path)) this.queue.push({ path, warm: false });
-    this.pump();
-    return new Promise((resolve) => this.drained.push(resolve));
+    void this.enqueue([...new Set(files)].map((path) => ({ path, kind: 'raw' as const })), false);
+    return new Promise((resolve) => {
+      this.drained.push(resolve);
+      this.pump();
+    });
   }
 
   /**
-   * Fetch these next, ahead of everything already queued: the sounds of the scene about to play, so on a slow
-   * connection its first cue does not arrive too late to be heard. One-shots of `sfx` are decoded; beds in
-   * `amb` are only fetched into the browser cache (a decoded bed is large), so loading them later is quick.
+   * Load these next, ahead of everything already queued: the sounds of the scene about to play (`sfx`, decoded and
+   * kept over the others while the cache is full), so on a slow connection its first cue does not arrive too late
+   * to be heard. `later` (the scenes after it) are only fetched; beds in `amb` are only fetched into the browser
+   * cache (a decoded bed is large), so loading them later is quick.
    */
-  prefetch(sfx: readonly SfxId[], amb: readonly AmbienceId[] = []): void {
+  prefetch(sfx: readonly SfxId[], amb: readonly AmbienceId[] = [], later: readonly SfxId[] = []): void {
     if (!this.supported) return;
-    const jobs = [
-      ...sfx.flatMap((id) => this.sfxManifest[id]?.files ?? []).filter((path) => !this.buffers.has(path)).map((path) => ({ path, warm: false })),
-      ...amb.map((id) => this.ambManifest[id]?.files[0]).filter((path): path is string => !!path && !this.buffers.has(path) && !this.warmed.has(path)).map((path) => ({ path, warm: true })),
-    ];
-    const first = new Set(jobs.map((job) => job.path));
-    this.queue = [...jobs, ...this.queue.filter((job) => !first.has(job.path))];
-    this.pump();
+    const files = (ids: readonly SfxId[]) => [...new Set(ids.flatMap((id) => this.sfxManifest[id]?.files ?? []))];
+    const now = files(sfx);
+    this.hot = new Set(now);
+    void this.enqueue([
+      ...now.map((path) => ({ path, kind: 'decode' as const })),
+      ...files(later).map((path) => ({ path, kind: 'raw' as const })),
+      ...amb.map((id) => this.ambManifest[id]?.files[0]).filter((path): path is string => !!path).map((path) => ({ path, kind: 'warm' as const })),
+    ], true);
   }
 
-  private queue: { path: string; warm: boolean }[] = [];
+  /** Queue other files (reader clips) ahead of the rest; resolves true once every one of them is loaded. */
+  prefetchFiles(paths: readonly string[], kind: 'decode' | 'raw' = 'decode'): Promise<boolean> {
+    if (!this.supported) return Promise.resolve(false);
+    return this.enqueue([...new Set(paths)].map((path) => ({ path, kind })), true);
+  }
+
+  private queue: Job[] = [];
   private running = 0;
   private concurrency = 8;
   private readonly warmed = new Set<string>();
-  private readonly warming = new Map<string, Promise<ArrayBuffer>>();
   private drained: (() => void)[] = [];
+
+  private settled(path: string, kind: JobKind): boolean {
+    if (kind === 'decode') return this.buffers.has(path);
+    if (kind === 'raw') return this.buffers.has(path) || this.raw.has(path);
+    return this.buffers.has(path) || this.warmed.has(path);
+  }
+
+  private enqueue(jobs: { path: string; kind: JobKind }[], first: boolean): Promise<boolean> {
+    const waits: Promise<boolean>[] = [];
+    const fresh: Job[] = [];
+    for (const { path, kind } of jobs) {
+      if (this.settled(path, kind)) continue;
+      const queued = this.queue.find((job) => job.path === path);
+      const wait = new Promise<boolean>((resolve) => {
+        if (queued) {
+          if (kind === 'decode') queued.kind = 'decode';
+          queued.done.push(resolve);
+          if (first) fresh.push(queued);
+        } else fresh.push({ path, kind, done: [resolve] });
+      });
+      waits.push(wait);
+    }
+    const moved = new Set(fresh);
+    this.queue = first ? [...fresh, ...this.queue.filter((job) => !moved.has(job))] : [...this.queue, ...fresh.filter((job) => !this.queue.includes(job))];
+    this.pump();
+    return Promise.all(waits).then((oks) => oks.every(Boolean));
+  }
 
   private pump(): void {
     while (this.running < this.concurrency && this.queue.length) {
       const job = this.queue.shift()!;
-      if (this.buffers.has(job.path) || (job.warm && this.warmed.has(job.path))) continue;
+      if (this.settled(job.path, job.kind)) {
+        for (const d of job.done) d(true);
+        continue;
+      }
       this.running++;
-      let done: Promise<unknown>;
-      if (job.warm) {
-        const bytes = fetch(sampleUrl(job.path)).then((res) => {
-          if (!res.ok) throw new Error(`${res.status}`);
-          return res.arrayBuffer();
-        });
-        this.warming.set(job.path, bytes);
-        done = bytes.then(() => { this.warmed.add(job.path); }, () => undefined).finally(() => this.warming.delete(job.path));
-      } else done = this.load(job.path);
-      void done.finally(() => {
+      let done: Promise<boolean>;
+      if (job.kind === 'decode') done = this.load(job.path).then((b) => b !== null);
+      else {
+        done = this.bytes(job.path).then(
+          () => {
+            if (job.kind === 'warm') this.warmed.add(job.path);
+            return true;
+          },
+          () => false,
+        );
+      }
+      void done.then((ok) => {
         this.running--;
+        for (const d of job.done) d(ok);
         this.pump();
       });
     }
     if (!this.running && !this.queue.length) for (const resolve of this.drained.splice(0)) resolve();
   }
 
+  /** A snapshot for the lab page and tests; reading it changes nothing (not even what was used last). */
   stats(): SampleBankStats {
     const sfx = Object.keys(this.sfxManifest) as SfxId[];
     const amb = Object.keys(this.ambManifest) as AmbienceId[];
+    let bedBytes = 0;
+    for (const f of this.bedFiles) {
+      const b = this.buffers.get(f);
+      if (b) bedBytes += pcmBytes(b);
+    }
     return {
       sfxReady: sfx.filter((id) => this.sfx(id)).length,
+      sfxFetched: sfx.filter((id) => this.sfxManifest[id]!.files.every((f) => this.raw.has(f) || this.buffers.has(f))).length,
       sfxTotal: sfx.length,
-      ambReady: amb.filter((id) => this.amb(id)).length,
+      ambReady: amb.filter((id) => {
+        const f = this.ambManifest[id]?.files[0];
+        return !!f && this.buffers.has(f);
+      }).length,
       ambTotal: amb.length,
       failed: this.failed.size,
+      decodedBytes: this.decodedBytes,
+      decodedBudget: this.budget,
+      bedBytes,
+      fetchedBytes: this.rawBytes,
     };
   }
 }
