@@ -1,5 +1,6 @@
 import type { AudioEngine } from '../audio/engine';
 import { DIRECTIONS, DIRECTION_ANGLE, DISTANCES, SFX_SOURCE, type AmbienceId, type Direction, type SfxId, type VibrationId } from '../audio/catalog';
+import { phoneMatters } from '../audio/reader';
 import { condRefs, evalCond, type CondContext } from '../script/conditions';
 import { CHAPTER_NUMERALS, SPEAKER_LABELS, TENSION_MAX, type Beat, type Chapter, type Cond, type ChoiceOption, type EndKind, type DazeLevel, type GameScript, type HeartLevel, type Lesson, type LineBeat, type NoiseLevel, type LineKind, type Pos, type Scene, type ShakeLevel } from '../script/types';
 import { driftClock, heardClock, planClock, type ClockPlan } from './clock';
@@ -109,7 +110,7 @@ export type CenterLine = {
 export type Peripheral = { key: number; kind: 'sfx' | 'murmur' | 'cue' | 'life'; text: string; src?: string; pos: Pos; thread?: string; born: number; until: number };
 
 /** `mark`: a faint line above the loop text on a reset card (結局 B the first time), shown for `markMs`. */
-export type Card = { chapter?: string; title?: string; time?: string; place?: string; loopText?: string; mark?: string; markMs?: number; recap?: { place?: string; memory?: string } };
+export type Card = { chapter?: string; title?: string; time?: string; place?: string; loopText?: string; mark?: string; markMs?: number; recap?: { memory?: string } };
 
 export type View = {
   phase: 'idle' | 'out' | 'card' | 'scene' | 'reset' | 'ending';
@@ -347,9 +348,9 @@ export class Director {
     if (back) this.restore(back);
     this.flags = new Set(this.save.flags);
     this.seen = new Set(this.save.seen);
-    const lastPlace = this.script.scenes.get(sceneId)?.place;
+    // The card already says where she is; from the second day on it also brings back the last line she kept.
     const lastMemory = this.save.loop > 1 ? this.save.memories.at(-1)?.text : undefined;
-    this.recap = lastPlace || lastMemory ? { place: lastPlace, memory: lastMemory } : undefined;
+    this.recap = lastMemory ? { memory: lastMemory } : undefined;
     this.transition(sceneId, resumeWait);
   }
 
@@ -1391,7 +1392,7 @@ export class Director {
     // Her phone reading the time out loud is the time.
     const spoken = beat.kind === 'phone' ? heardClock(text, this.view.clock) : null;
     if (spoken) this.setClock(spoken);
-    if (beat.kind === 'phone' && focused && this.settings.reader && !skipping) this.out.audio.speak?.(text);
+    if (beat.kind === 'phone' && focused && this.settings.reader && !skipping) this.out.audio.speak?.(text, beat.loud ?? phoneMatters(text));
     // Going past at once, a line is not voiced (a rustle every few hundred ms would be noise); sounds still play.
     if (!skipping && (beat.kind === 'char' || beat.kind === 'me' || beat.kind === 'phone')) {
       // Anyone whose words are on screen, a stranger too, is placed by the rustle of turning to talk: the text is their

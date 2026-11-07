@@ -195,6 +195,8 @@ button:focus-visible { outline: 2px solid var(--ink-soft); outline-offset: 6px; 
 
 /* ── turned away: the main conversation keeps going in the middle, out of focus ── */
 .lt-stage.away .lt-center-inner { filter: blur(3.5px); opacity: 0.4; }
+/* A side box placed by its sound that lands over the blurred main line: the main line steps back further. */
+.lt-stage.away.side-over .lt-center-inner { opacity: 0.12; }
 .lt-line.lt-away { pointer-events: none; }
 
 /* ── beside a sound: what she turned toward is written where it comes from ── */
@@ -302,7 +304,13 @@ button:focus-visible { outline: 2px solid var(--ink-soft); outline-offset: 6px; 
 .lt-choice:disabled { color: var(--ink-mute); cursor: default; }
 /* done already: struck through as well as dimmed, so it does not rest on colour alone */
 .lt-choice.done { text-decoration: line-through; text-decoration-thickness: 1px; text-decoration-color: var(--ink-mute); }
-.lt-choice .lt-key { font-family: var(--mono); font-size: calc(var(--ui-small) * 0.86 * var(--ts, 1)); color: var(--ink-mute); margin-right: 0.9em; vertical-align: 1px; }
+.lt-choice .lt-key { font-family: var(--mono); font-size: calc(var(--ui-small) * 0.86 * var(--ts, 1)); color: var(--ink-mute); margin-right: 0.9em; vertical-align: 1px; display: none; }
+/* The digits are for someone answering by keyboard: shown only once a key has been used, never as a list to read. */
+:root[data-input="key"] .lt-choice .lt-key { display: inline; }
+.lt-recall-item .lt-key { display: none; }
+:root[data-input="key"] .lt-recall:not(.lt-keep) .lt-recall-item { grid-template-columns: auto 1fr; }
+:root[data-input="key"] .lt-recall-item .lt-key { display: inline; }
+:root[data-input="key"] .lt-recall:not(.lt-keep) .lt-recall-meta { grid-column: 2; }
 .lt-timer { height: 1px; width: 120px; background: var(--ink-faint); margin-top: 10px; transform-origin: center; animation: lt-timer var(--timeout) linear forwards; }
 .lt-choices.timed .lt-choice { animation: lt-choice-in 700ms var(--ease) forwards, lt-choice-dim var(--timeout) linear forwards; }
 
@@ -540,13 +548,13 @@ button:focus-visible { outline: 2px solid var(--ink-soft); outline-offset: 6px; 
 .lt-recall-head { text-align: center; font-size: calc(var(--ui-small) * var(--ts, 1)); letter-spacing: 0.5em; text-indent: 0.5em; color: var(--ink-dim); margin-bottom: 8px; }
 .lt-recall-hint { text-wrap: balance; text-align: center; font-size: calc(var(--ui-small) * var(--ts, 1)); letter-spacing: 0.12em; color: var(--ink-dim); line-height: 1.8; margin-bottom: 10px; }
 .lt-recall-item {
-  display: grid; grid-template-columns: auto 1fr; column-gap: 12px; text-align: left;
+  display: grid; grid-template-columns: 1fr; column-gap: 12px; text-align: left;
   padding: 10px 14px; border-left: 1px solid var(--ink-ghost); color: var(--ink-dim);
   transition: color 300ms, border-color 300ms;
 }
 .lt-recall-item:hover, .lt-recall-item:focus-visible { color: var(--ink); border-left-color: var(--ink-dim); }
 .lt-recall-text { font-size: calc(clamp(0.95rem, 1.7vw, 1.2rem) * var(--ts, 1)); line-height: 1.7; letter-spacing: 0.06em; }
-.lt-recall-meta { grid-column: 2; font-size: calc(var(--ui-small) * 0.9 * var(--ts, 1)); letter-spacing: 0.2em; color: var(--ink-dim); margin-top: 2px; }
+.lt-recall-meta { grid-column: 1; font-size: calc(var(--ui-small) * 0.9 * var(--ts, 1)); letter-spacing: 0.2em; color: var(--ink-dim); margin-top: 2px; }
 .lt-recall-cancel { align-self: center; margin-top: 10px; padding: 0 14px; min-height: 44px; font-size: calc(var(--ui) * var(--ts, 1)); letter-spacing: 0.4em; text-indent: 0.4em; color: var(--ink-dim); }
 .lt-recall-cancel:hover { color: var(--ink-soft); }
 

@@ -171,6 +171,8 @@ describe('iOS: waking the audio, and keeping it awake', () => {
 });
 
 describe('her phone reading out loud', () => {
+  // Every story line has a pre-rendered clip; a line without one is read by the device's voice, which these cover.
+  const UNRENDERED = '測試中。';
   const setup = async (): Promise<{ engine: AudioEngine; inside: Inside }> => {
     const engine = createAudioEngine();
     await engine.unlock();
@@ -180,7 +182,7 @@ describe('her phone reading out loud', () => {
 
   it('ducks the beds under the device voice and lets go when it ends', async () => {
     const { engine, inside } = await setup();
-    engine.speak!('撥號中。');
+    engine.speak!(UNRENDERED, true);
     expect(spoken).toHaveLength(1);
     expect(inside.bus.speechDuck.gain.target).toBeCloseTo(0.42);
     spoken[0]!.onend!();
@@ -190,7 +192,7 @@ describe('her phone reading out loud', () => {
   it('panic cannot push the beds over the voice', async () => {
     const { engine, inside } = await setup();
     engine.setNoise(3);
-    engine.speak!('撥號中。');
+    engine.speak!(UNRENDERED, true);
     const under = inside.bus.ambLoud.gain.target * inside.bus.speechDuck.gain.target;
     expect(under).toBeCloseTo(0.42);
     engine.setNoise(2);
@@ -200,7 +202,7 @@ describe('her phone reading out loud', () => {
   it('lets go of the duck even if the device never says it finished', async () => {
     vi.useFakeTimers();
     const { engine, inside } = await setup();
-    engine.speak!('撥號中。');
+    engine.speak!(UNRENDERED);
     expect(inside.bus.speechDuck.gain.target).toBeLessThan(1);
     vi.advanceTimersByTime(2100);
     expect(inside.bus.speechDuck.gain.target).toBe(1);
@@ -210,19 +212,40 @@ describe('her phone reading out loud', () => {
     const { engine } = await setup();
     engine.setVolume(0.8);
     engine.setVoiceVolume(0.45);
-    engine.speak!('撥號中。');
+    engine.speak!(UNRENDERED, true);
     expect(spoken.at(-1)!.volume).toBeCloseTo(0.8 * (0.4 + 0.45));
     engine.setVolume(0.4);
-    engine.speak!('撥號中。');
+    engine.speak!(UNRENDERED, true);
     expect(spoken.at(-1)!.volume).toBeCloseTo(0.8 * (0.4 + 0.45) / 4);
     engine.setVolume(1);
     engine.setVoiceVolume(1);
-    engine.speak!('撥號中。');
+    engine.speak!(UNRENDERED, true);
     expect(spoken.at(-1)!.volume).toBeCloseTo(1);
     const before = spoken.length;
     engine.setVoiceVolume(0);
-    engine.speak!('撥號中。');
+    engine.speak!(UNRENDERED);
     expect(spoken).toHaveLength(before);
+  });
+
+  it('plays the rendered clips at the device voice\'s level, not the quieter voice-presence curve', async () => {
+    const { engine, inside } = await setup();
+    engine.setVoiceVolume(0.45);
+    // With the master's own curve after it, this is the 0.8 × (0.4 + voice) the device voice reads at by default.
+    expect((inside.bus as unknown as { reader: { gain: { target: number } } }).reader.gain.target).toBeCloseTo((0.4 + 0.45) / 0.8);
+    engine.setVoiceVolume(0);
+    expect((inside.bus as unknown as { reader: { gain: { target: number } } }).reader.gain.target).toBe(0);
+  });
+
+  it('reads an everyday line quietly, a sound in the room: half the level, the beds back only about 3 dB', async () => {
+    const { engine, inside } = await setup();
+    engine.setVolume(0.8);
+    engine.setVoiceVolume(0.45);
+    engine.speak!(UNRENDERED);
+    expect(spoken.at(-1)!.volume).toBeCloseTo(0.8 * (0.4 + 0.45) * 0.5);
+    expect(inside.bus.speechDuck.gain.target).toBeCloseTo(0.71);
+    engine.speak!(UNRENDERED, true);
+    expect(spoken.at(-1)!.volume).toBeCloseTo(0.8 * (0.4 + 0.45));
+    expect(inside.bus.speechDuck.gain.target).toBeCloseTo(0.42);
   });
 });
 

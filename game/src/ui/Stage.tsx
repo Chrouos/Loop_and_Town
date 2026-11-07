@@ -114,7 +114,7 @@ function choiceAnnouncement(choice: NonNullable<View['choice']>): string {
 }
 
 function cardAnnouncement(card: Card, phase: View['phase']): string {
-  const parts = phase === 'reset' ? [card.mark, card.loopText] : [card.chapter, card.title, card.time, card.place, card.loopText, card.recap?.place && `上次停在${card.recap.place}`, card.recap?.memory];
+  const parts = phase === 'reset' ? [card.mark, card.loopText] : [card.chapter, card.title, card.time, card.place, card.loopText, card.recap?.memory];
   return parts.filter(Boolean).join('，');
 }
 
@@ -324,35 +324,32 @@ function placeSounds(root: HTMLElement, periph: Peripheral[], ripples: View['rip
 
 // Beside the sound it comes from: above it in the lower half of the screen, below it in the upper half, flush with
 // its outer edge, and never off screen. Once that sound has gone, the box stays where it was while it fades.
-/** Narrower than this beside the centre column, a side thread folds the main line away instead (as on a phone). */
-const SIDE_MIN_PX = 240;
 const SIDE_MARGIN = 16;
-/** Half the centre column the main line keeps (blurred while she listens elsewhere): no side box reaches into it. */
-function centreHalf(W: number): number { return Math.min(0.38 * W, 340); }
-/** How wide a side box may be beside the centre column (both halves are the same). */
-export function sideRoom(W: number): number { return W / 2 - centreHalf(W) - 2 * SIDE_MARGIN; }
 
-function placeSide(root: HTMLElement, box: HTMLElement, cue: HTMLElement | null, folded: boolean) {
-  if (!cue || cue.dataset.placed === undefined) return;
+/**
+ * Returns whether the box, placed by its sound, lies over the main line: then the blurred main line steps back
+ * further (.side-over) rather than the box being moved away from the sound it belongs to.
+ */
+function placeSide(root: HTMLElement, box: HTMLElement, cue: HTMLElement | null): boolean {
+  if (!cue || cue.dataset.placed === undefined) return false;
   const W = root.clientWidth;
   const H = root.clientHeight;
   const margin = SIDE_MARGIN;
   const x = parseFloat(cue.style.left);
   const y = parseFloat(cue.style.top);
-  const align = x < W * 0.4 ? 'left' : x > W * 0.6 ? 'right' : 'middle';
-  // Beside the line, not over it: kept to its own side of the centre column. When the main line has folded away
-  // (a phone, or too little room beside it) the whole width is free again.
-  const room = folded || align === 'middle' || W === 0 ? 0 : sideRoom(W);
-  box.style.maxWidth = room > 0 ? `${room}px` : '';
   const w = box.offsetWidth;
+  const align = x < W * 0.4 ? 'left' : x > W * 0.6 ? 'right' : 'middle';
   const left = align === 'left' ? x - cue.offsetWidth / 2 : align === 'right' ? x + cue.offsetWidth / 2 - w : x - w / 2;
-  const lo = room > 0 && align === 'right' ? W / 2 + centreHalf(W) + margin : margin;
-  const hi = room > 0 && align === 'left' ? W / 2 - centreHalf(W) - margin - w : W - w - margin;
-  box.style.left = `${Math.min(Math.max(left, lo), Math.max(lo, hi))}px`;
+  box.style.left = `${Math.min(Math.max(left, margin), W - w - margin)}px`;
   box.dataset.align = align;
   const below = y < H / 2;
   box.style.top = below ? `${y + cue.offsetHeight / 2 + 10}px` : '';
   box.style.bottom = below ? '' : `${Math.max(margin, H - (y - cue.offsetHeight / 2 - 10))}px`;
+  const main = root.querySelector<HTMLElement>('.lt-center-inner .lt-line');
+  if (!main) return false;
+  const a = box.getBoundingClientRect();
+  const b = main.getBoundingClientRect();
+  return a.width > 0 && b.width > 0 && a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
 }
 
 /**
@@ -410,10 +407,7 @@ export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown,
   const turnedAway = (view.focus !== null && view.focus !== 'main') || view.shiftingTo !== null;
   // A phone-width screen has no room beside the line for what she turned toward (see .narrow in game.css).
   const phone = typeof window !== 'undefined' && window.innerWidth < NARROW_PX;
-  // On a wider screen with too little room beside the centre column for a side box (or a sound straight ahead),
-  // the main line folds away just the same: decided per turn in the layout effect below.
-  const [cramped, setCramped] = useState<string | null>(null);
-  const narrow = phone || (turnedAway && cramped !== null);
+  const narrow = phone;
   const className = ['lt-stage', narrow ? 'narrow' : '', `phase-${view.phase}`, view.phase === 'out' && view.brief ? 'brief' : '', shifting ? 'shifting' : '', turnedAway ? 'away' : '', shaking ? `shake shake-${shaking}` : '', view.tension ? `tension-${view.tension}` : '', director.settings.motion ? '' : 'still'].join(' ');
   const firstCue = firstCueHint ? view.periph.find((item) => item.kind === 'cue' && item.thread !== view.focus) : undefined;
 
@@ -477,13 +471,6 @@ export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown,
     // Turned away on a phone: the main conversation steps to the half of the screen the sound is not in. Decided
     // once per turn (from where that sound sits), so it never hops while she listens.
     const turnedTo = root.current.querySelector<HTMLElement>('.lt-p.kind-cue.active[data-placed]');
-    if (!phone && turnedAway && turnedTo) {
-      const W = root.current.clientWidth;
-      const x = parseFloat(turnedTo.style.left);
-      const middle = x >= W * 0.4 && x <= W * 0.6;
-      const next = W > 0 && (middle || sideRoom(W) < SIDE_MIN_PX) ? turnedTo.dataset.key! : null;
-      if (next !== cramped) setCramped(next);
-    } else if (!turnedAway && cramped !== null) setCramped(null);
     if (narrow && turnedAway && turnedTo) {
       const key = turnedTo.dataset.key!;
       if (awayFor.current !== key) {
@@ -492,7 +479,9 @@ export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown,
       }
     } else if (!turnedAway) awayFor.current = null;
     const sideBox = root.current.querySelector<HTMLElement>('.lt-side');
-    if (sideBox) placeSide(root.current, sideBox, sideCue !== undefined ? root.current.querySelector<HTMLElement>(`.lt-p[data-key="${sideCue}"]`) : null, narrow);
+    // The box stays by its sound; on a wide screen, where it lies over the blurred main line, that line steps back.
+    const over = sideBox !== null && placeSide(root.current, sideBox, sideCue !== undefined ? root.current.querySelector<HTMLElement>(`.lt-p[data-key="${sideCue}"]`) : null);
+    root.current.classList.toggle('side-over', over && !narrow);
     placeSounds(root.current, periph.map((entry) => entry.item), view.ripples, turn, placedFor.current !== screen || placedScale.current !== textScale, textScale);
     placedFor.current = screen;
     placedScale.current = textScale;
@@ -925,7 +914,6 @@ function CardView({ card, phase, gone }: { card: Card; phase: View['phase']; gon
       {card.mark && phase === 'reset' && <div className="lt-card-mark" style={{ animationDelay: '600ms', animationDuration: `${card.markMs ?? 2000}ms` }}>{card.mark}</div>}
       {card.loopText && phase === 'reset' && <div className="lt-card-loop" style={{ animationDelay: '3000ms', animationDuration: '3400ms' }}>{card.loopText}</div>}
       {card.loopText && phase !== 'reset' && <div className="lt-card-loop">{card.loopText}</div>}
-      {card.recap?.place && <div className="lt-card-recap">上次停在{card.recap.place}</div>}
       {card.recap?.memory && <div className="lt-card-recap lt-card-echo">{card.recap.memory}</div>}
     </div>
   );

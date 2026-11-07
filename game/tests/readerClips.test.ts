@@ -54,3 +54,69 @@ describe('her phone reads a line from its pre-rendered clips', () => {
     expect([...new Set(missing)]).toEqual([]);
   });
 });
+
+describe('which phone lines are read aloud', () => {
+  it('reads the moments that matter at full level and the rest quietly', async () => {
+    const { phoneMatters } = await import('../src/audio/reader');
+    for (const line of ['鬧鐘。十八點三十一分。', '十八點零三分。', '心率153，過高，已記錄。十八點三十一分。', '死亡。', '撥號中。一一九。', '一，一，九。撥號中。', '鬧鐘。二十三點五十九分。', '十月四日，零點零分。']) {
+      expect(phoneMatters(line), line).toBe(true);
+    }
+    for (const line of ['鬧鐘。六點十二分。', '周予安傳送了一張圖片。', '許若晴：我在家。', '撥號中。周予安。', '十二點二十分。']) {
+      expect(phoneMatters(line), line).toBe(false);
+    }
+  });
+
+  it('lets a script line say so itself, on a phone line only', async () => {
+    const { buildScript } = await import('../src/script/validate');
+    const build = (beats: string) => buildScript([{ name: 'a.yaml', source: `
+chapter: 1
+title: 測試
+start: s1
+scenes:
+  - id: s1
+    beats:
+${beats}
+      - end: reset
+` }]);
+    const ok = build("      - { phone: 不要再找最好的一天。, loud: true }\n      - { phone: 十八點零三分。, loud: false }");
+    expect(ok.errors).toEqual([]);
+    const beats = ok.script.scenes.get('s1')!.beats as { loud?: boolean }[];
+    expect(beats.slice(0, 2).map((beat) => beat.loud)).toEqual([true, false]);
+    expect(build('      - { narr: 雨停了。, loud: true }').errors.join()).toContain('loud 只能用在 phone');
+  });
+});
+
+describe('the director tells the phone how to read', () => {
+  it('passes whether a line matters, and a script line\'s own loud: wins', async () => {
+    const { buildScript } = await import('../src/script/validate');
+    const { Director } = await import('../src/engine/director');
+    const { freshSave } = await import('../src/engine/save');
+    const { silentAudio } = await import('./harness');
+    const { script, errors } = buildScript([{ name: 'a.yaml', source: `
+chapter: 1
+title: 測試
+start: s1
+scenes:
+  - id: s1
+    beats:
+      - phone: 周予安傳送了一張圖片。
+      - phone: 鬧鐘。十八點三十一分。
+      - { phone: 不要再找最好的一天。, loud: true }
+      - { phone: 十八點零三分。, loud: false }
+      - end: reset
+` }]);
+    expect(errors).toEqual([]);
+    const said: [string, boolean | undefined][] = [];
+    const audio = { ...silentAudio(), speak: (text: string, aloud?: boolean) => { said.push([text, aloud]); } };
+    let save = { ...freshSave(), calibrated: true };
+    const director = new Director(script, save, { audio, vibrate: () => undefined, persist: (next) => { save = next; }, wallNow: () => 0 }, { speed: 1 });
+    director.start();
+    for (let i = 0; i < 2000 && said.length < 4; i++) { director.hurry(); director.tick(200); }
+    expect(said).toEqual([
+      ['周予安傳送了一張圖片。', false],
+      ['鬧鐘。十八點三十一分。', true],
+      ['不要再找最好的一天。', true],
+      ['十八點零三分。', false],
+    ]);
+  });
+});

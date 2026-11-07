@@ -35,6 +35,18 @@ function pickVoice(s: SpeechSynthesis): SpeechSynthesisVoice | null {
     ?? null;
 }
 
+/**
+ * The lines her phone reads at full level; everything else (a message, the time on an ordinary hour) it reads
+ * quietly, a sound in the room. The 18:00 hour (18:03 five years ago, the count to 18:31), a heart rate too high,
+ * a death, 119, and the day running out at midnight. A script line's `loud:` overrides this either way.
+ */
+const MATTERS = [/十八點/, /心率/, /死亡/, /一一九|一，一，九/, /二十三點五十九分|零點零分/];
+
+export function phoneMatters(text: string): boolean {
+  const words = readable(text);
+  return MATTERS.some((pattern) => pattern.test(words));
+}
+
 /** What is on screen, minus marks that are for the eye: phrase breaks, ellipses read as a pause anyway. */
 export function readable(text: string): string {
   return text.replace(/\|/g, '').replace(/[「」『』]/g, '').trim();

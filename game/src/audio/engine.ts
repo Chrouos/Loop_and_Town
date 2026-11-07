@@ -66,8 +66,9 @@ export interface AudioEngine {
   silence(ms: number): void;
   suspend(): void;
   resume(): void;
-  /** Her phone's screen reader says this out loud (a synthesized voice: the reader is one). */
-  speak?(text: string): void;
+  /** Her phone's screen reader says this out loud (a synthesized voice: the reader is one). `aloud`: a moment that
+   *  matters (18:31, a death, 119) is read at full level; otherwise the phone stays in the room, quieter. */
+  speak?(text: string, aloud?: boolean): void;
   /** The screen reader stops mid-word: a new line, a new scene. */
   hush?(): void;
 }
@@ -237,6 +238,8 @@ interface Buses {
   sfx: GainNode;
   sfxVerb: GainNode;
   voice: GainNode;
+  /** Her phone's reader clips: the same level the device's voice gets (readerBusGain), not the voice-presence curve. */
+  reader: GainNode;
   ui: GainNode;
   reverbIn: GainNode;
   rooms: [{ conv: ConvolverNode; wet: GainNode }, { conv: ConvolverNode; wet: GainNode }];
@@ -251,7 +254,10 @@ const sfxGain = (v: number): number => perceptual(v) * 2;
 const UI_TRIM = 0.62;
 /** Her phone: in her right pocket or her right hand, close. The reader's clips play from there. */
 const PHONE_POS: SpatialPos = { dir: 'right', dist: 'near' };
-const READER_GAIN = 1;
+/** The clips are rendered quiet (about -34 dB mean, peaks near -19 dB): +12 dB brings them level with a cough or a step. */
+const READER_GAIN = 4;
+/** Before the master: the reader's level as the device voice has it (readerVolume) without the master's own curve. */
+const readerBusGain = (voice: number): number => (voice > 0 ? (0.4 + voice) / 0.8 : 0);
 /** A reader clip that takes longer than this to load is read by the device's voice instead (it would land late). */
 const READER_LATE_MS = 700;
 const READER_MANIFEST = { lines: READER_LINES, templates: READER_TEMPLATES, numbers: READER_NUMBERS };
@@ -268,8 +274,11 @@ const READER_MANIFEST = { lines: READER_LINES, templates: READER_TEMPLATES, numb
 const GLUE = { threshold: -20, knee: 12, ratio: 2.5, attack: 0.012, release: 0.3 } as const;
 const LIMITER = { threshold: -3.2, knee: 0, ratio: 20, attack: 0.001, release: 0.12 } as const;
 const MIX_LIFT_DB = 5.86;
-/** While her phone reads a line, the beds step back by about 7.5 dB (and never sit higher than that, panic or not). */
+/** While her phone reads a line that matters, the beds step back by about 7.5 dB (and never sit higher than that, panic or not). */
 const SPEECH_DUCK = 0.42;
+/** An everyday line (a message, the time) is a sound in the room: the phone about 6 dB down, the beds back only 3 dB. */
+const READER_QUIET = 0.5;
+const SPEECH_DUCK_QUIET = 0.71;
 const SPEECH_ATTACK_TC = 0.025;
 const SPEECH_RELEASE_TC = 0.16;
 /** A device voice that never reports its end releases the duck after this long per character (and at least 2 s). */
@@ -328,6 +337,9 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
   private readerNumbersWarm = false;
   /** Her phone is reading a line now (a clip or the device's voice): the beds stay ducked under it. */
   private speaking = false;
+  /** How this line is read: its level against the reader's, and how far the beds step back under it. */
+  private readerLevel = 1;
+  private speechDuckTo = SPEECH_DUCK;
   private speechTimer: ReturnType<typeof setTimeout> | null = null;
   /** The panic level setNoise last asked for (1 = as mixed). */
   private noise = 1;
@@ -523,6 +535,8 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
     sfx.connect(world);
     const voice = gain(perceptual(this.voiceVolume) * 1.2);
     voice.connect(world);
+    const reader = gain(readerBusGain(this.voiceVolume));
+    reader.connect(world);
     const ui = gain(sfxGain(this.sfxVolume) * UI_TRIM);
     ui.connect(master);
     const body = gain(sfxGain(this.sfxVolume));
@@ -566,7 +580,7 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
     }
 
     this.ac = ac;
-    this.bus = { master, world, attention, daze, dazeGain, body, ambIn, ambTone, ambDuck, ambLoud, speechDuck, speechDuckVerb, ambVerb, sfx, sfxVerb, voice, ui, reverbIn, rooms };
+    this.bus = { master, world, attention, daze, dazeGain, body, ambIn, ambTone, ambDuck, ambLoud, speechDuck, speechDuckVerb, ambVerb, sfx, sfxVerb, voice, reader, ui, reverbIn, rooms };
     this.listen(ac);
     this.applyRoom(0);
     try {
@@ -594,6 +608,7 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
     this.reader.setVolume(this.readerVolume());
     if (!this.ac || !this.bus) return;
     glide(this.bus.voice.gain, perceptual(this.voiceVolume) * 1.2, this.ac.currentTime, 0.05);
+    glide(this.bus.reader.gain, readerBusGain(this.voiceVolume), this.ac.currentTime, 0.05);
   }
 
   setAmbienceVolume(v: number): void {
@@ -669,8 +684,10 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
    * same on every device), placed where her phone is; otherwise the device's own voice. A clip that cannot be
    * loaded in time is read by the device's voice instead, so the line is never silent.
    */
-  speak(text: string): void {
+  speak(text: string, aloud = false): void {
     this.stopReader();
+    this.readerLevel = aloud ? 1 : READER_QUIET;
+    this.speechDuckTo = aloud ? SPEECH_DUCK : SPEECH_DUCK_QUIET;
     if (this.readerVolume() <= 0) return;
     const clips = this.sampleMode === 'synth' ? null : readerClipsFor(text, READER_MANIFEST);
     const bank = this.bank;
@@ -687,7 +704,7 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
 
   /** The device's own voice reads it; the beds step back until it is done (or would have been). */
   private speakDevice(text: string, gen: number): void {
-    const started = this.reader.speak(text, this.readerVolume(), () => {
+    const started = this.reader.speak(text, this.readerVolume() * this.readerLevel, () => {
       if (gen === this.readerGen) this.setSpeaking(false);
     });
     if (started) this.setSpeaking(true, Math.max(2000, readable(text).length * TTS_MS_PER_CHAR));
@@ -707,14 +724,14 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
     this.applySpeechDuck();
   }
 
-  /** Under the reader the beds sit at SPEECH_DUCK of their mixed level, however loud panic (setNoise) made them. */
+  /** Under the reader the beds sit at this line's duck (SPEECH_DUCK or SPEECH_DUCK_QUIET), however loud panic (setNoise) made them. */
   private applySpeechDuck(): void {
     const ac = this.ac;
     const bus = this.bus;
     if (!ac || !bus) return;
     const now = ac.currentTime;
-    const dry = this.speaking ? SPEECH_DUCK / this.noise : 1;
-    const wet = this.speaking ? SPEECH_DUCK : 1;
+    const dry = this.speaking ? this.speechDuckTo / this.noise : 1;
+    const wet = this.speaking ? this.speechDuckTo : 1;
     const tc = this.speaking ? SPEECH_ATTACK_TC : SPEECH_RELEASE_TC;
     glide(bus.speechDuck.gain, dry, now, tc);
     glide(bus.speechDuckVerb.gain, wet, now, tc);
@@ -738,7 +755,7 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
           return t - c.t + 0.05;
         },
       };
-      this.readerShot = spawnShot(ac, recipe, { dest: bus.voice, reverb: null, place: placementOf(PHONE_POS), t: ac.currentTime + 0.01, gain: READER_GAIN });
+      this.readerShot = spawnShot(ac, recipe, { dest: bus.reader, reverb: null, place: placementOf(PHONE_POS), t: ac.currentTime + 0.01, gain: READER_GAIN * this.readerLevel });
     } catch {
       // a broken clip must never break the game
     }
