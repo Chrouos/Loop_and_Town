@@ -57,6 +57,8 @@ export type LineBeat = {
    *  'tap' = tap the screen to go on, 'turn' = tap a sound to turn toward it, 'keep' = long-press the line to keep it.
    *  'locate' / 'approach' / 'hold': says how the moment coming up works, waits for a tap, and that lesson is then given. */
   teach?: Lesson;
+  /** Her phone only: read at full level (true) or quietly (false). Unset, reader.ts phoneMatters decides. */
+  loud?: boolean;
 };
 
 /** Memory Input: she says a remembered line out loud. Only the accepted memories change anything. */

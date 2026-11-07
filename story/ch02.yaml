@@ -1755,8 +1755,8 @@ scenes:
       - if: "chloop < 2 || flag.c2_ruoqing_safe || !know.k_watch_engraving"
         then:
           - narr: 書桌上那只錶是冷的。我把它翻過來，指腹沿著背面的刻痕走，再把手機鏡頭貼上去。
-          - phone: 如果你第二次看見十八點三十一分，
-          - { phone: 還會有下一個。, learn: k_watch_engraving }
+          - { phone: 如果你第二次看見十八點三十一分，, loud: true }
+          - { phone: 還會有下一個。, learn: k_watch_engraving, loud: true }
         else:
           - narr: 書桌上那只錶是冷的。我把它翻過來，指腹沿著背面的刻痕走。
           - think: 那兩行字，我不用再拿手機照了。

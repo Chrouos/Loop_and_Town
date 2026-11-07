@@ -7,7 +7,7 @@ import { DAZE_LEVELS, HEART_LEVELS, NOISE_LEVELS, SHAKE_LEVELS, TENSION_STEP_MAX
 
 export const CHARACTER_KEYS = ['yuan', 'ruoqing', 'boxun', 'tingan', 'zhiyuan', 'zhixia', 'man', 'woman', 'child', 'old_man', 'old_woman', 'announcer'] as const;
 const LINE_KEYS = new Set<string>(['narr', 'me', 'think', 'phone', ...CHARACTER_KEYS]);
-const LINE_ATTRS = new Set(['at', 'to', 'as', 'learn', 'mem', 'dist', 'shake', 'via', 'whisper', 'teach']);
+const LINE_ATTRS = new Set(['at', 'to', 'as', 'learn', 'mem', 'dist', 'shake', 'via', 'whisper', 'teach', 'loud']);
 const END_KINDS: EndKind[] = ['reset', 'ending_a', 'ending_b', 'ending_c'];
 
 type Errors = string[];
@@ -110,6 +110,10 @@ function parseLine(key: string, raw: Obj, where: string, errors: Errors): LineBe
     if (!['keep', 'tap', 'turn', 'locate', 'approach', 'hold'].includes(String(raw.teach))) errors.push(`${where}：teach 只能是 tap／turn／keep／locate／approach／hold`);
     else if (raw.teach === 'keep' && raw.mem === undefined) errors.push(`${where}：teach: keep 的那句要有 mem`);
     else line.teach = raw.teach as Lesson;
+  }
+  if (raw.loud !== undefined) {
+    if (kind !== 'phone' || typeof raw.loud !== 'boolean') errors.push(`${where}：loud 只能用在 phone，值是 true 或 false`);
+    else line.loud = raw.loud;
   }
   if (raw.via !== undefined) {
     const via = String(raw.via);
