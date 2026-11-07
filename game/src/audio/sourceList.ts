@@ -31,10 +31,12 @@ export function parseSoundSources(markdown: string): SoundSource[] {
     const [, file, id, rest] = match;
     const found = [...rest.matchAll(SOURCE)];
     if (found.length === 0) continue;
-    const last = found[found.length - 1];
-    const license = LICENSE.exec(rest.slice(last.index + last[0].length))?.[1] ?? '';
+    // Each source carries its own license right after its URL; an older line names one after the last source only.
+    const after = (i: number) => LICENSE.exec(rest.slice(found[i].index + found[i][0].length))?.[1];
+    const fallback = after(found.length - 1) ?? '';
     const use = describe(id);
-    for (const [, title, author, url] of found) {
+    for (const [i, [, title, author, url]] of found.entries()) {
+      const license = after(i) ?? fallback;
       let entry = byUrl.get(url);
       if (!entry) {
         entry = { title, author, url, license, kind: file.startsWith('amb/') ? 'amb' : 'sfx', uses: [] };

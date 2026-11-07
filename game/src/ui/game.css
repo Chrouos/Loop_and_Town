@@ -23,7 +23,11 @@
   --bg: #000;
   --ink: #ece6da;
   --ink-soft: rgba(236, 230, 218, 0.72);
-  --ink-dim: rgba(236, 230, 218, 0.5);
+  /* every word that tells the player something is at least --ink-dim: 5:1 on black (WCAG 1.4.3 asks 4.5:1) */
+  --ink-dim: rgba(236, 230, 218, 0.54);
+  /* what cannot be chosen, still readable (3.4:1) */
+  --ink-mute: rgba(236, 230, 218, 0.42);
+  /* decoration only (lines, rings, a murmur): never words she needs */
   --ink-faint: rgba(236, 230, 218, 0.26);
   --ink-ghost: rgba(236, 230, 218, 0.12);
   --phone: #9db0c4;
@@ -32,7 +36,18 @@
   --mono: 'Sarasa Fixed TC', 'LXGW WenKai TC', ui-monospace, monospace;
   --past: 'Iansui', 'LXGW WenKai TC', serif;
   --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  /* Interface words and the small ones (names, the clock, a sound's source): at least 18px on a 1080p desktop
+     (Xbox Accessibility Guideline 101), smaller on a phone where the screen is held close. */
+  --ui: clamp(0.92rem, 0.55rem + 0.55vw, 1.2rem);
+  --ui-small: clamp(0.78rem, 0.4rem + 0.62vw, 1.15rem);
   color-scheme: dark;
+}
+/* --text-scale is the player's text size (GameApp). A phone-sized screen takes it up to 特大: past that the stage
+   has no room; the menu and her memories scroll, so they take it whole. Stage.tsx caps its sums the same way. */
+.lt-app { --ts: var(--text-scale, 1); }
+@media (max-width: 560px), (max-height: 500px) {
+  .lt-app { --ts: min(var(--text-scale, 1), 1.4); }
+  .lt-overlay { --ts: var(--text-scale, 1); }
 }
 
 * { box-sizing: border-box; }
@@ -48,7 +63,11 @@ body {
   touch-action: manipulation;
 }
 button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
-button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px; border-radius: 2px; }
+/* Where the keyboard is must be plain to see (8:1, two pixels); a click leaves no ring. */
+:focus-visible { outline: 2px solid var(--ink-soft); outline-offset: 4px; border-radius: 2px; }
+button:focus-visible { outline: 2px solid var(--ink-soft); outline-offset: 6px; border-radius: 2px; }
+/* What only the script focuses (a dialog, its heading, the ending) is not a control: no ring around it. */
+[tabindex="-1"]:focus { outline: none; }
 
 /* --wound (tension / 100, set by Stage) glides, so the words blur and clear with it a little at a time */
 @property --wound { syntax: '<number>'; inherits: true; initial-value: 0; }
@@ -100,7 +119,9 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 .tension-2 .lt-line:not(.lt-echo) .lt-text, .tension-3 .lt-line:not(.lt-echo) .lt-text { --blur: calc((var(--wound, 0) - 0.3) * 3.4px); filter: blur(var(--blur)); }
 /* panic: the words swim in and out of focus and double up, like eyes that cannot settle */
 .tension-3 .lt-line:not(.lt-echo) .lt-text { animation: lt-unsteady 2.2s ease-in-out infinite; }
-.lt-stage.still .lt-text { animation: none; }
+.lt-stage.still .lt-text { animation: none !important; }
+/* screen motion off: the red still shows how hard her heart goes, held steady instead of pulsing with each beat */
+.lt-stage.still .lt-heart.beat-0, .lt-stage.still .lt-heart.beat-1 { animation: none; opacity: calc((var(--lo) + var(--hi)) / 2); }
 .tension-3 .lt-heart:not(.beating) { opacity: 0.16; }
 .lt-world { position: absolute; inset: 0; transition: opacity 900ms var(--ease), filter 900ms var(--ease); will-change: transform; }
 .lt-stage.phase-out .lt-world, .lt-stage.phase-card .lt-world, .lt-stage.phase-reset .lt-world { opacity: 0; filter: blur(6px); }
@@ -126,7 +147,7 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
    and steps to the half of the screen the sound she turned to is not in (--away-top, set by Stage). What she
    hears there keeps no echo of its own: the line before fades straight out. The desktop is unchanged. */
 .lt-stage.narrow.away .lt-center { top: var(--away-top, 26%); }
-.lt-stage.narrow.away .lt-center-inner { clip-path: inset(calc(100% - 3.4rem * var(--text-scale, 1)) -100vw -40px -100vw); }
+.lt-stage.narrow.away .lt-center-inner { clip-path: inset(calc(100% - 3.4rem * var(--ts, 1)) -100vw -40px -100vw); }
 .lt-stage.narrow .lt-side .lt-echo { animation: lt-fade-out 520ms var(--ease) forwards; }
 .lt-stage.shifting .lt-center-inner { filter: blur(5px); opacity: 0.25; }
 
@@ -134,24 +155,27 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 .lt-line { position: relative; pointer-events: auto; }
 .lt-line-in { padding: 18px 0; transform-origin: 50% 100%; }
 .lt-label {
-  font-size: calc(0.72rem * var(--text-scale, 1)); letter-spacing: 0.42em; color: var(--ink-dim);
+  font-size: calc(var(--ui-small) * var(--ts, 1)); letter-spacing: 0.32em; color: var(--ink-dim);
   margin-bottom: 0.9em; opacity: 0; animation: lt-fade-in 600ms var(--ease) forwards;
-  text-indent: 0.42em;
+  text-indent: 0.32em;
 }
-.lt-text { margin: 0; font-size: calc(clamp(1.15rem, 2.3vw, 1.6rem) * var(--text-scale, 1)); line-height: 1.85; font-weight: 400; letter-spacing: 0.06em; text-wrap: balance; }
+.lt-text { margin: 0; font-size: calc(clamp(1.15rem, 2.3vw, 1.6rem) * var(--ts, 1)); line-height: 1.85; font-weight: 400; letter-spacing: 0.06em; text-wrap: balance; line-break: strict; }
 .lt-sent { display: inline-block; max-width: 100%; margin: 0 0.5em; word-break: keep-all; overflow-wrap: break-word; }
 .lt-line.kind-me .lt-sent:first-child { margin-left: 0; }
 .lt-line.kind-me .lt-sent:last-of-type { margin-right: 0; }
 .lt-phrase { display: inline; opacity: 0; filter: blur(7px); animation: lt-phrase 620ms var(--ease) forwards; }
+/* a closing mark rides with the character before it (engine/text.ts gluePunctuation): 「，」 never starts a row */
+.lt-glue { white-space: nowrap; }
 .lt-line.revealed .lt-phrase { animation-delay: 0ms !important; }
 
 /* The quotes ride inside the first and last sentence, so a full row never pushes them onto rows of their own. */
 .lt-line.kind-me .lt-sent:first-child::before { content: '「'; color: var(--ink-dim); }
 .lt-line.kind-me .lt-sent:last-of-type::after { content: '」'; color: var(--ink-dim); }
-.lt-line.kind-think .lt-text { color: var(--ink-soft); font-style: italic; letter-spacing: 0.14em; font-weight: 300; }
-.lt-line.kind-narr .lt-text { font-size: calc(clamp(0.98rem, 1.8vw, 1.22rem) * var(--text-scale, 1)); color: rgba(236, 230, 218, 0.8); letter-spacing: 0.1em; font-weight: 300; }
-.lt-line.kind-phone .lt-text { font-family: var(--mono); color: var(--phone); font-size: calc(clamp(0.92rem, 1.7vw, 1.12rem) * var(--text-scale, 1)); letter-spacing: 0.22em; }
-.lt-line.kind-phone .lt-label { color: rgba(157, 176, 196, 0.6); }
+/* no italic: CJK has none, the browser would only slant it; her thoughts are softer and wider spaced instead */
+.lt-line.kind-think .lt-text { color: var(--ink-soft); letter-spacing: 0.14em; font-weight: 300; }
+.lt-line.kind-narr .lt-text { font-size: calc(clamp(0.98rem, 1.8vw, 1.22rem) * var(--ts, 1)); color: rgba(236, 230, 218, 0.8); letter-spacing: 0.1em; font-weight: 300; }
+.lt-line.kind-phone .lt-text { font-family: var(--mono); color: var(--phone); font-size: calc(clamp(0.92rem, 1.7vw, 1.15rem) * var(--ts, 1)); letter-spacing: 0.22em; }
+.lt-line.kind-phone .lt-label { color: rgba(157, 176, 196, 0.75); }
 /* a voice from before: a softer, handwritten hand, a little warmer, as if worn by being played again */
 .lt-line.voice-past .lt-text { font-family: var(--past); letter-spacing: 0.08em; color: #e6dccb; }
 .lt-line.holding .lt-text { text-shadow: 0 0 18px rgba(236, 230, 218, 0.35); }
@@ -182,7 +206,7 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 .lt-side[data-align="right"] .lt-line-in { transform-origin: 100% 100%; }
 .lt-side[data-align="left"] .lt-sent { margin: 0 1em 0 0; }
 .lt-side[data-align="right"] .lt-sent { margin: 0 0 0 1em; }
-.lt-side .lt-text { font-size: calc(clamp(1.02rem, 2vw, 1.4rem) * var(--text-scale, 1)); }
+.lt-side .lt-text { font-size: calc(clamp(1.02rem, 2vw, 1.4rem) * var(--ts, 1)); }
 .lt-side .lt-label { margin-bottom: 0.5em; text-indent: 0; }
 
 /* ── periphery: sounds around her ── */
@@ -191,18 +215,18 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
   white-space: nowrap; letter-spacing: 0.18em;
   pointer-events: none;
 }
-.lt-p.dist-near { font-size: calc(clamp(1.1rem, 2.2vw, 1.45rem) * var(--text-scale, 1)); }
-.lt-p.dist-mid { font-size: calc(clamp(0.95rem, 1.8vw, 1.15rem) * var(--text-scale, 1)); }
-.lt-p.dist-far { font-size: calc(clamp(0.8rem, 1.4vw, 0.95rem) * var(--text-scale, 1)); }
+.lt-p.dist-near { font-size: calc(clamp(1.1rem, 2.2vw, 1.5rem) * var(--ts, 1)); }
+.lt-p.dist-mid { font-size: calc(clamp(0.95rem, 1.8vw, 1.25rem) * var(--ts, 1)); }
+.lt-p.dist-far { font-size: calc(clamp(0.8rem, 1.4vw, 1.125rem) * var(--ts, 1)); }
 .lt-p.kind-sfx { animation: lt-sfx var(--life, 2600ms) var(--ease) forwards; color: var(--ink-soft); }
 .lt-p.kind-sfx.dist-far { color: var(--ink-dim); }
 .lt-p.kind-murmur {
-  color: var(--ink-faint); filter: blur(1.6px); font-size: calc(0.86rem * var(--text-scale, 1)); font-style: italic;
+  color: var(--ink-faint); filter: blur(1.6px); font-size: calc(0.86rem * var(--ts, 1));
   animation: lt-murmur var(--life, 3000ms) linear forwards;
 }
 /* other people, half-heard: readable, but plainly not hers to answer */
 .lt-p.kind-life {
-  color: var(--ink-dim); font-size: calc(0.82rem * var(--text-scale, 1)); font-style: italic; letter-spacing: 0.14em; filter: blur(0.4px);
+  color: var(--ink-dim); font-size: calc(0.82rem * var(--ts, 1)); letter-spacing: 0.14em; filter: blur(0.4px);
   white-space: normal; width: max-content; max-width: min(40vw, 320px); text-align: center; line-height: 1.6; text-wrap: balance;
   animation: lt-sfx var(--life, 3000ms) var(--ease) forwards;
 }
@@ -215,10 +239,10 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 /* what the sound is, the way she would name it: small, under the onomatopoeia */
 .lt-p-src {
   display: block; margin-top: 0.35em; text-align: center;
-  font-size: calc(0.72rem * var(--text-scale, 1)); letter-spacing: 0.28em; text-indent: 0.28em; font-style: normal;
+  font-size: calc(var(--ui-small) * 0.9 * var(--ts, 1)); letter-spacing: 0.28em; text-indent: 0.28em; font-style: normal;
   color: var(--ink-dim); line-height: 1.2;
 }
-.lt-p.dist-far .lt-p-src { font-size: calc(0.66rem * var(--text-scale, 1)); }
+.lt-p.dist-far .lt-p-src { font-size: calc(var(--ui-small) * 0.84 * var(--ts, 1)); }
 .lt-p.kind-cue {
   pointer-events: auto; color: var(--ink-dim); z-index: 3; /* above the centre lines, which take taps too */
   padding: 14px 18px;
@@ -237,7 +261,7 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 .lt-p.kind-cue.held { pointer-events: none; color: var(--ink-faint); animation-play-state: running, paused; }
 .lt-hint {
   position: absolute; left: 50%; top: 100%; transform: translateX(-50%);
-  font-size: calc(0.68rem * var(--text-scale, 1)); letter-spacing: 0.3em; color: var(--ink-faint);
+  font-size: calc(var(--ui-small) * var(--ts, 1)); letter-spacing: 0.24em; color: var(--ink-dim);
   margin-top: 2px; animation: lt-hint 7s var(--ease) forwards; white-space: nowrap;
 }
 
@@ -264,15 +288,21 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 }
 .lt-choice {
   flex-shrink: 0;
-  pointer-events: auto; padding: 10px 18px; font-size: calc(clamp(0.98rem, 1.8vw, 1.12rem) * var(--text-scale, 1)); letter-spacing: 0.1em;
+  pointer-events: auto; padding: 10px 18px; min-height: 44px; font-size: calc(clamp(0.98rem, 1.8vw, 1.2rem) * var(--ts, 1)); letter-spacing: 0.1em;
   color: var(--ink-dim); opacity: 0; animation: lt-choice-in 700ms var(--ease) forwards;
   transition: color 300ms;
   text-align: center; line-height: 1.6;
 }
 /* Only the color answers the pointer: widening the letters re-wraps a long choice mid-transition and it flickers. */
 .lt-choice:hover, .lt-choice:focus-visible, .lt-choice.selected { color: var(--ink); }
-.lt-choice:disabled { color: var(--ink-ghost); cursor: default; }
-.lt-choice .lt-key { font-family: var(--mono); font-size: calc(0.62rem * var(--text-scale, 1)); color: var(--ink-ghost); margin-right: 0.9em; vertical-align: 2px; }
+/* the list scrolls when it must, which would cut a ring drawn outside: draw it inside */
+.lt-recall-item:focus-visible { outline-offset: -2px; }
+/* a keyboard's place among the answers: no box over the dark, a thin underline (a cue beyond colour alone) */
+.lt-choice:focus-visible { outline: none; text-decoration: underline 1px var(--ink-dim); text-underline-offset: 0.5em; }
+.lt-choice:disabled { color: var(--ink-mute); cursor: default; }
+/* done already: struck through as well as dimmed, so it does not rest on colour alone */
+.lt-choice.done { text-decoration: line-through; text-decoration-thickness: 1px; text-decoration-color: var(--ink-mute); }
+.lt-choice .lt-key { font-family: var(--mono); font-size: calc(var(--ui-small) * 0.86 * var(--ts, 1)); color: var(--ink-mute); margin-right: 0.9em; vertical-align: 1px; }
 .lt-timer { height: 1px; width: 120px; background: var(--ink-faint); margin-top: 10px; transform-origin: center; animation: lt-timer var(--timeout) linear forwards; }
 .lt-choices.timed .lt-choice { animation: lt-choice-in 700ms var(--ease) forwards, lt-choice-dim var(--timeout) linear forwards; }
 
@@ -282,11 +312,12 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
   gap: 18px; pointer-events: none; text-align: center;
 }
 .lt-card > * { opacity: 0; animation: lt-card var(--card-ms, 2600ms) var(--ease) forwards; }
-.lt-card-time { font-family: var(--mono); font-size: calc(0.86rem * var(--text-scale, 1)); letter-spacing: 0.5em; color: var(--ink-dim); text-indent: 0.5em; }
-.lt-card-place { font-size: calc(clamp(1.1rem, 2.2vw, 1.4rem) * var(--text-scale, 1)); letter-spacing: 0.6em; text-indent: 0.6em; color: var(--ink-soft); animation-delay: 220ms !important; animation-duration: calc(var(--card-ms, 2600ms) - 220ms) !important; }
-.lt-card-chapter { font-size: calc(0.8rem * var(--text-scale, 1)); letter-spacing: 0.7em; text-indent: 0.7em; color: var(--ink-dim); }
-.lt-card-title { font-size: calc(clamp(1.6rem, 3.6vw, 2.4rem) * var(--text-scale, 1)); letter-spacing: 0.5em; text-indent: 0.5em; font-weight: 300; animation-delay: 400ms !important; animation-duration: calc(var(--card-ms, 2600ms) - 400ms) !important; }
-.lt-card-loop { font-size: calc(0.92rem * var(--text-scale, 1)); letter-spacing: 0.5em; text-indent: 0.5em; color: var(--ink-dim); }
+.lt-card-time { font-family: var(--mono); font-size: calc(var(--ui) * var(--ts, 1)); letter-spacing: 0.5em; color: var(--ink-dim); text-indent: 0.5em; }
+.lt-card-place { font-size: calc(clamp(1.1rem, 2.2vw, 1.4rem) * var(--ts, 1)); letter-spacing: 0.6em; text-indent: 0.6em; color: var(--ink-soft); animation-delay: 220ms !important; animation-duration: calc(var(--card-ms, 2600ms) - 220ms) !important; }
+.lt-card-chapter { font-size: calc(var(--ui) * var(--ts, 1)); letter-spacing: 0.7em; text-indent: 0.7em; color: var(--ink-dim); }
+.lt-card-title { font-size: calc(clamp(1.6rem, 3.6vw, 2.4rem) * var(--ts, 1)); letter-spacing: 0.5em; text-indent: 0.5em; font-weight: 300; animation-delay: 400ms !important; animation-duration: calc(var(--card-ms, 2600ms) - 400ms) !important; }
+.lt-card-loop { font-size: calc(var(--ui) * var(--ts, 1)); letter-spacing: 0.5em; text-indent: 0.5em; color: var(--ink-dim); }
+.lt-card-mark { font-size: calc(var(--ui-small) * var(--ts, 1)); letter-spacing: 0.6em; text-indent: 0.6em; color: var(--ink-dim); }
 
 /* ── where: time and place, quietly in the corner ── */
 .lt-where {
@@ -297,13 +328,13 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 /* the corner fades with the world, and stays put through a continuous scene change */
 .lt-stage.phase-card .lt-where, .lt-stage.phase-reset .lt-where, .lt-stage.phase-out:not(.brief) .lt-where { opacity: 0; transition-duration: 600ms; }
 .lt-where > * { animation: lt-where 2400ms var(--ease) forwards; }
-.lt-where-time { font-family: var(--mono); font-size: calc(0.72rem * var(--text-scale, 1)); letter-spacing: 0.3em; color: var(--ink-dim); }
-.lt-where-place { font-size: calc(0.78rem * var(--text-scale, 1)); letter-spacing: 0.3em; color: var(--ink-dim); max-width: 46vw; }
+.lt-where-time { font-family: var(--mono); font-size: calc(var(--ui-small) * var(--ts, 1)); letter-spacing: 0.3em; color: var(--ink-dim); }
+.lt-where-place { font-size: calc(var(--ui-small) * var(--ts, 1)); letter-spacing: 0.3em; color: var(--ink-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60vw; }
 
 /* ── waiting ── */
 .lt-wait { position: absolute; left: 50%; bottom: 12vh; transform: translateX(-50%); text-align: center; pointer-events: none; }
 .lt-wait-teach, .lt-choice-teach {
-  font-size: calc(0.76rem * var(--text-scale, 1)); letter-spacing: 0.2em; line-height: 1.9; color: var(--ink-dim); text-align: center;
+  font-size: calc(var(--ui-small) * var(--ts, 1)); letter-spacing: 0.2em; line-height: 1.9; color: var(--ink-dim); text-align: center;
   opacity: 0; animation: lt-fade-in 900ms var(--ease) 900ms forwards;
 }
 .lt-choice-teach { margin-top: 14px; flex-shrink: 0; }
@@ -316,7 +347,7 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 .lt-dev-tension { position: fixed; left: 12px; bottom: 10px; font-family: var(--mono); font-size: 0.72rem; color: var(--ink-dim); pointer-events: none; z-index: 40; }
 .lt-corner {
   position: fixed; right: max(18px, env(safe-area-inset-right)); bottom: max(18px, env(safe-area-inset-bottom));
-  width: 44px; height: 44px; display: grid; place-items: center; z-index: 5; opacity: 0.55; transition: opacity 300ms;
+  width: 44px; height: 44px; display: grid; place-items: center; z-index: 5; opacity: 0.8; transition: opacity 300ms;
 }
 .lt-corner:hover, .lt-corner:focus-visible { opacity: 1; }
 .lt-corner-dot { width: 7px; height: 7px; border-radius: 50%; border: 1px solid var(--ink-dim); transition: background 400ms; }
@@ -326,7 +357,7 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 /* what she carries, left of the menu: brighter while a question is open, any question */
 .lt-mem-btn {
   position: fixed; right: calc(max(18px, env(safe-area-inset-right)) + 44px); bottom: max(18px, env(safe-area-inset-bottom));
-  width: 44px; height: 44px; display: grid; place-items: center; z-index: 5; opacity: 0.55; transition: opacity 300ms;
+  width: 44px; height: 44px; display: grid; place-items: center; z-index: 5; opacity: 0.8; transition: opacity 300ms;
 }
 .lt-mem-btn svg { width: 18px; height: 18px; fill: none; stroke: var(--ink-dim); stroke-width: 1.2; stroke-linecap: square; transition: stroke 400ms; }
 .lt-mem-btn.has svg { stroke: var(--ink-soft); }
@@ -338,7 +369,7 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 .lt-mem-teach {
   position: fixed; right: max(18px, env(safe-area-inset-right)); bottom: calc(max(18px, env(safe-area-inset-bottom)) + 52px); z-index: 5;
   max-width: min(78vw, 300px); text-align: right; pointer-events: none;
-  font-size: calc(0.76rem * var(--text-scale, 1)); letter-spacing: 0.14em; line-height: 1.9; color: var(--ink-dim);
+  font-size: calc(var(--ui-small) * var(--ts, 1)); letter-spacing: 0.14em; line-height: 1.9; color: var(--ink-dim);
   opacity: 0; animation: lt-fade-in 900ms var(--ease) 600ms forwards;
 }
 
@@ -353,38 +384,45 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 .lt-overlay::-webkit-scrollbar { width: 4px; }
 .lt-overlay::-webkit-scrollbar-thumb { background: var(--ink-ghost); border-radius: 2px; }
 .lt-overlay::-webkit-scrollbar-track { background: transparent; }
-.lt-overlay-head { font-size: calc(0.86rem * var(--text-scale, 1)); letter-spacing: 0.5em; text-indent: 0.5em; color: var(--ink); padding: 6px 0; margin-bottom: 5vh; }
-.lt-tabs { display: flex; flex-wrap: wrap; justify-content: center; column-gap: 24px; row-gap: 12px; margin-bottom: 5vh; }
-.lt-tab { font-size: calc(0.86rem * var(--text-scale, 1)); letter-spacing: 0.5em; color: var(--ink-faint); padding: 6px 0; }
-.lt-tab.on { color: var(--ink); }
+.lt-overlay-head { font-size: calc(var(--ui) * var(--ts, 1)); letter-spacing: 0.5em; text-indent: 0.5em; color: var(--ink); padding: 6px 0; margin-bottom: 5vh; }
+.lt-tabs { display: flex; flex-wrap: wrap; justify-content: center; column-gap: 12px; row-gap: 4px; margin-bottom: 5vh; }
+/* every control here is at least 44 × 44 css px to touch, however short its word */
+.lt-tab { font-size: calc(var(--ui) * var(--ts, 1)); letter-spacing: 0.5em; text-indent: 0.5em; color: var(--ink-dim); min-height: 44px; min-width: 44px; padding: 0 10px; }
+/* the open tab and the chosen option: brighter and underlined, never colour alone */
+.lt-tab.on, .lt-opt.on { color: var(--ink); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.55em; text-decoration-color: var(--ink-dim); }
+.lt-tabpanel { width: min(100%, 560px); }
 .lt-panel { width: min(100%, 560px); }
-.lt-mem { padding: 16px 0; border-bottom: 1px solid var(--ink-ghost); display: flex; gap: 16px; align-items: baseline; }
-.lt-mem-body { flex: 1; }
-.lt-mem-text { font-size: calc(1rem * var(--text-scale, 1)); line-height: 1.7; letter-spacing: 0.06em; }
-.lt-mem-meta { font-size: calc(0.66rem * var(--text-scale, 1)); letter-spacing: 0.2em; color: var(--ink-faint); margin-top: 6px; }
-.lt-mem-drop { font-size: calc(0.72rem * var(--text-scale, 1)); letter-spacing: 0.3em; color: var(--ink-faint); white-space: nowrap; }
+.lt-mem { padding: 16px 0; border-bottom: 1px solid var(--ink-ghost); display: flex; gap: 16px; align-items: center; }
+.lt-mem-body { flex: 1; min-width: 0; }
+.lt-mem-text { font-size: calc(1.125rem * var(--ts, 1)); line-height: 1.7; letter-spacing: 0.06em; }
+.lt-mem-meta { font-size: calc(var(--ui-small) * var(--ts, 1)); letter-spacing: 0.2em; color: var(--ink-dim); margin-top: 6px; }
+.lt-mem-drop { font-size: calc(var(--ui) * var(--ts, 1)); letter-spacing: 0.3em; color: var(--ink-dim); white-space: nowrap; min-height: 44px; min-width: 44px; padding: 0 10px; }
 .lt-mem-drop:hover { color: var(--ink-soft); }
-.lt-empty { color: var(--ink-faint); letter-spacing: 0.2em; text-align: center; font-size: calc(0.9rem * var(--text-scale, 1)); line-height: 2; text-wrap: balance; }
-.lt-count { font-family: var(--mono); font-size: calc(0.7rem * var(--text-scale, 1)); letter-spacing: 0.3em; color: var(--ink-faint); text-align: center; margin-bottom: 18px; }
-.lt-row { display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center; padding: 16px 0; border-bottom: 1px solid var(--ink-ghost); letter-spacing: 0.2em; font-size: calc(0.92rem * var(--text-scale, 1)); }
-.lt-row .lt-opts { display: flex; flex-wrap: wrap; gap: 12px 18px; }
-.lt-opt { color: var(--ink-faint); font-size: calc(0.86rem * var(--text-scale, 1)); letter-spacing: 0.2em; }
-.lt-opt.on { color: var(--ink); }
-.lt-range { width: 140px; height: 24px; margin: 0; background: transparent; cursor: pointer; -webkit-appearance: none; appearance: none; }
+.lt-empty { color: var(--ink-dim); letter-spacing: 0.2em; text-align: center; font-size: calc(var(--ui) * var(--ts, 1)); line-height: 2; text-wrap: balance; }
+.lt-count { font-family: var(--mono); font-size: calc(var(--ui-small) * var(--ts, 1)); letter-spacing: 0.3em; color: var(--ink-dim); text-align: center; margin-bottom: 18px; }
+.lt-row { display: flex; flex-wrap: wrap; gap: 8px 12px; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--ink-ghost); letter-spacing: 0.2em; font-size: calc(var(--ui) * var(--ts, 1)); }
+.lt-row > span { min-width: 0; overflow-wrap: anywhere; }
+.lt-row .lt-opts { display: flex; flex-wrap: wrap; gap: 0 4px; }
+.lt-opt { color: var(--ink-dim); font-size: calc(var(--ui) * var(--ts, 1)); letter-spacing: 0.2em; text-indent: 0.2em; min-height: 44px; min-width: 44px; padding: 0 10px; display: inline-flex; align-items: center; justify-content: center; }
+/* 開／關 is one switch: each word is half of it, and either half is a full-size target */
+.lt-switch { display: inline-flex; align-items: center; }
+.lt-switch:focus-visible { outline-offset: 2px; }
+.lt-range { width: 140px; height: 44px; margin: 0; background: transparent; cursor: pointer; -webkit-appearance: none; appearance: none; }
 .lt-range:focus { outline: none; }
-.lt-range::-webkit-slider-runnable-track { height: 1px; background: var(--ink-faint); }
-.lt-range::-moz-range-track { height: 1px; background: var(--ink-faint); }
+.lt-range:focus-visible { outline: 2px solid var(--ink-soft); outline-offset: 2px; }
+.lt-range::-webkit-slider-runnable-track { height: 1px; background: var(--ink-dim); }
+.lt-range::-moz-range-track { height: 1px; background: var(--ink-dim); }
 .lt-range::-moz-range-progress { height: 1px; background: var(--ink-soft); }
-.lt-range::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 11px; height: 11px; margin-top: -5px; border-radius: 50%; border: 0; background: var(--ink-soft); transition: transform 200ms var(--ease); }
-.lt-range::-moz-range-thumb { width: 11px; height: 11px; border-radius: 50%; border: 0; background: var(--ink-soft); }
+.lt-range::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 14px; height: 14px; margin-top: -6.5px; border-radius: 50%; border: 0; background: var(--ink-soft); transition: transform 200ms var(--ease); }
+.lt-range::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; border: 0; background: var(--ink-soft); }
 .lt-range:active::-webkit-slider-thumb, .lt-range:focus-visible::-webkit-slider-thumb { transform: scale(1.3); background: var(--ink); }
-.lt-credits { padding: 22px 0 6px; font-size: calc(0.72rem * var(--text-scale, 1)); line-height: 1.9; letter-spacing: 0.08em; color: var(--ink-faint); overflow-wrap: anywhere; }
-.lt-credits-head { letter-spacing: 0.3em; color: var(--ink-dim); margin-bottom: 8px; }
+.lt-credits { padding: 22px 0 6px; font-size: calc(var(--ui-small) * var(--ts, 1)); line-height: 1.9; letter-spacing: 0.08em; color: var(--ink-dim); overflow-wrap: anywhere; }
+.lt-credits-head { letter-spacing: 0.3em; color: var(--ink-soft); margin-bottom: 8px; }
 .lt-credit + .lt-credit { margin-top: 6px; }
-.lt-credit-use { color: var(--ink-dim); margin-right: 0.8em; }
-.lt-credits a { color: inherit; text-decoration: underline; text-decoration-color: var(--ink-ghost); text-underline-offset: 3px; }
+.lt-credit-use { color: var(--ink-soft); margin-right: 0.8em; }
+.lt-credits a { color: inherit; text-decoration: underline; text-decoration-color: var(--ink-faint); text-underline-offset: 3px; }
 .lt-credits a:hover { color: var(--ink-soft); }
-.lt-close { margin-top: 6vh; font-size: calc(0.8rem * var(--text-scale, 1)); letter-spacing: 0.5em; color: var(--ink-dim); padding: 10px; }
+.lt-close { margin-top: 6vh; font-size: calc(var(--ui) * var(--ts, 1)); letter-spacing: 0.5em; text-indent: 0.5em; color: var(--ink-dim); padding: 0 12px; min-height: 44px; }
 .lt-danger { color: rgba(220, 170, 160, 0.7); }
 
 /* Memory full: which line to let go. No box: it floats under the line, laid out like the recall list (.lt-recall). */
@@ -396,19 +434,31 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 
 /* ── title ── */
 .lt-title { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; cursor: pointer; outline: none; }
-.lt-title:focus-visible .lt-title-hint { color: var(--ink-dim); }
-.lt-title-name { font-size: calc(clamp(2.2rem, 6vw, 3.6rem) * var(--text-scale, 1)); letter-spacing: 0.8em; text-indent: 0.8em; font-weight: 300; opacity: 0; animation: lt-title 3.2s var(--ease) 400ms forwards; }
-.lt-title-sub { margin-top: 22px; font-size: calc(0.9rem * var(--text-scale, 1)); letter-spacing: 0.9em; text-indent: 0.9em; color: var(--ink-dim); opacity: 0; animation: lt-title 2.6s var(--ease) 1.6s forwards; }
-.lt-title-hint { position: absolute; bottom: 18vh; font-size: calc(0.78rem * var(--text-scale, 1)); letter-spacing: 0.5em; text-indent: 0.5em; color: var(--ink-faint); opacity: 0; animation: lt-title 2s var(--ease) 3s forwards, lt-breathe 4s ease-in-out 5s infinite; line-height: 2.4; }
-.lt-title-meta { position: absolute; bottom: 9vh; font-size: calc(0.64rem * var(--text-scale, 1)); letter-spacing: 0.4em; color: var(--ink-ghost); opacity: 0; animation: lt-title 2s var(--ease) 3.4s forwards; }
+.lt-title:focus-visible .lt-title-hint { color: var(--ink-soft); }
+.lt-title-name { font-size: calc(clamp(2.2rem, 6vw, 3.6rem) * var(--ts, 1)); letter-spacing: 0.8em; text-indent: 0.8em; font-weight: 300; opacity: 0; animation: lt-title 3.2s var(--ease) 400ms forwards; }
+.lt-title-sub { margin-top: 22px; font-size: calc(var(--ui) * var(--ts, 1)); letter-spacing: 0.9em; text-indent: 0.9em; color: var(--ink-dim); opacity: 0; animation: lt-title 2.6s var(--ease) 1.6s forwards; }
+.lt-title-hint { position: absolute; bottom: 18vh; font-size: calc(var(--ui) * var(--ts, 1)); letter-spacing: 0.5em; text-indent: 0.5em; color: var(--ink-dim); opacity: 0; animation: lt-title 2s var(--ease) 3s forwards, lt-breathe 4s ease-in-out 5s infinite; line-height: 2.4; }
+.lt-title-meta { position: absolute; bottom: 9vh; padding: 0 16px; font-size: calc(var(--ui-small) * var(--ts, 1)); letter-spacing: 0.4em; color: var(--ink-dim); opacity: 0; animation: lt-title 2s var(--ease) 3.4s forwards; }
 
 .lt-ending { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 26px; text-align: center; padding: 0 24px; }
 .lt-ending > * { opacity: 0; animation: lt-title 3s var(--ease) forwards; }
-.lt-ending-line { font-size: calc(clamp(1rem, 2vw, 1.3rem) * var(--text-scale, 1)); letter-spacing: 0.3em; line-height: 2; color: var(--ink-soft); }
-.lt-ending-mark { font-size: calc(0.8rem * var(--text-scale, 1)); letter-spacing: 0.6em; color: var(--ink-dim); text-indent: 0.6em; }
-.lt-ending-back { font-size: calc(0.74rem * var(--text-scale, 1)); letter-spacing: 0.5em; color: var(--ink-faint); margin-top: 6vh; padding: 10px; }
+.lt-ending-line { font-size: calc(clamp(1rem, 2vw, 1.3rem) * var(--ts, 1)); letter-spacing: 0.3em; line-height: 2; color: var(--ink-soft); }
+.lt-ending-mark { font-size: calc(var(--ui) * var(--ts, 1)); letter-spacing: 0.6em; color: var(--ink-dim); text-indent: 0.6em; }
+.lt-ending-back { font-size: calc(var(--ui) * var(--ts, 1)); letter-spacing: 0.5em; text-indent: 0.5em; color: var(--ink-dim); margin-top: 6vh; padding: 0 12px; min-height: 44px; }
 
 .lt-calib { position: fixed; inset: 0; }
+.lt-calib-skip {
+  position: absolute; left: 50%; bottom: max(6vh, env(safe-area-inset-bottom)); transform: translateX(-50%);
+  min-height: 44px; padding: 0 14px; font-size: calc(var(--ui-small) * var(--ts, 1)); letter-spacing: 0.4em; text-indent: 0.4em; color: var(--ink-dim);
+}
+.lt-calib-skip:hover { color: var(--ink-soft); }
+/* For the keyboard and screen readers (記住這句, 下一句): out of sight until focused, then a quiet word at the bottom. */
+.lt-quiet-key { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.lt-quiet-key:focus-visible, .lt-quiet-key:focus {
+  position: fixed; left: 50%; bottom: max(18px, env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 6;
+  width: auto; height: auto; min-height: 44px; padding: 0 14px; clip: auto; overflow: visible;
+  font-size: calc(var(--ui) * var(--ts, 1)); letter-spacing: 0.3em; text-indent: 0.3em; color: var(--ink-soft);
+}
 .lt-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
 @keyframes lt-phrase { to { opacity: 1; filter: blur(0); } }
@@ -424,7 +474,7 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 @keyframes lt-breathe { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
 @keyframes lt-ripple { from { transform: scale(0.15); opacity: 0.7; } to { transform: scale(2.4); opacity: 0; } }
 @keyframes lt-choice-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes lt-choice-dim { 0% { color: var(--ink-dim); } 100% { color: var(--ink-ghost); } }
+@keyframes lt-choice-dim { 0% { color: var(--ink-dim); } 100% { color: var(--ink-mute); } }
 @keyframes lt-timer { from { transform: scaleX(1); } to { transform: scaleX(0); } }
 @keyframes lt-where { 0% { opacity: 0; color: var(--ink-soft); } 18% { opacity: 1; color: var(--ink-soft); } 100% { opacity: 1; } }
 @keyframes lt-card { 0% { opacity: 0; filter: blur(6px); } 22% { opacity: 1; filter: blur(0); } 78% { opacity: 1; filter: blur(0); } 100% { opacity: 0; filter: blur(4px); } }
@@ -456,6 +506,9 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 
 @media (prefers-reduced-motion: reduce) {
   .lt-stage.shake-light .lt-world, .lt-stage.shake-hard .lt-world, .lt-body, .lt-daze { animation: none !important; }
+  /* panic still blurs the words, without the swimming; the heart's red holds steady instead of pulsing */
+  .lt-text { animation: none !important; }
+  .lt-heart.beat-0, .lt-heart.beat-1 { animation: none; opacity: calc((var(--lo) + var(--hi)) / 2); }
   .lt-phrase { filter: none; }
   .lt-ripple { animation-duration: 1ms; }
   .lt-line.kept { animation: lt-fade-in 1ms reverse forwards; }
@@ -469,11 +522,11 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 .lt-choices { scrollbar-width: none; }
 .lt-choices::-webkit-scrollbar { display: none; }
 .lt-choices.tight { gap: 0; }
-.lt-choices.tight .lt-choice { padding: 5px 14px; line-height: 1.4; letter-spacing: 0.06em; font-size: calc(clamp(0.98rem, 1.8vw, 1.12rem) * min(var(--text-scale, 1), 1.15)); }
+.lt-choices.tight .lt-choice { padding: 5px 14px; line-height: 1.4; letter-spacing: 0.06em; font-size: calc(clamp(0.98rem, 1.8vw, 1.12rem) * min(var(--ts, 1), 1.15)); }
 
 /* ── memory input: saying a remembered line ── */
 .lt-teach-keep {
-  margin-top: 6px; line-height: 2; font-size: calc(0.78rem * var(--text-scale, 1)); letter-spacing: 0.24em; text-indent: 0.24em; color: var(--ink-dim);
+  margin-top: 6px; line-height: 2; font-size: calc(var(--ui-small) * var(--ts, 1)); letter-spacing: 0.24em; text-indent: 0.24em; color: var(--ink-dim);
   opacity: 0; animation: lt-fade-in 900ms var(--ease) 1200ms forwards, lt-breathe 2.4s ease-in-out 2100ms infinite;
 }
 .lt-line.teach .lt-text { text-shadow: 0 0 14px rgba(236, 230, 218, 0.18); }
@@ -484,17 +537,17 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
   display: flex; flex-direction: column; align-items: stretch; gap: 2px;
   animation: lt-fade-in 500ms var(--ease) forwards;
 }
-.lt-recall-head { text-align: center; font-size: calc(0.74rem * var(--text-scale, 1)); letter-spacing: 0.5em; text-indent: 0.5em; color: var(--ink-dim); margin-bottom: 8px; }
-.lt-recall-hint { text-wrap: balance; text-align: center; font-size: calc(0.78rem * var(--text-scale, 1)); letter-spacing: 0.12em; color: var(--ink-faint); line-height: 1.8; margin-bottom: 10px; }
+.lt-recall-head { text-align: center; font-size: calc(var(--ui-small) * var(--ts, 1)); letter-spacing: 0.5em; text-indent: 0.5em; color: var(--ink-dim); margin-bottom: 8px; }
+.lt-recall-hint { text-wrap: balance; text-align: center; font-size: calc(var(--ui-small) * var(--ts, 1)); letter-spacing: 0.12em; color: var(--ink-dim); line-height: 1.8; margin-bottom: 10px; }
 .lt-recall-item {
   display: grid; grid-template-columns: auto 1fr; column-gap: 12px; text-align: left;
   padding: 10px 14px; border-left: 1px solid var(--ink-ghost); color: var(--ink-dim);
   transition: color 300ms, border-color 300ms;
 }
 .lt-recall-item:hover, .lt-recall-item:focus-visible { color: var(--ink); border-left-color: var(--ink-dim); }
-.lt-recall-text { font-size: calc(clamp(0.95rem, 1.7vw, 1.05rem) * var(--text-scale, 1)); line-height: 1.7; letter-spacing: 0.06em; }
-.lt-recall-meta { grid-column: 2; font-size: calc(0.62rem * var(--text-scale, 1)); letter-spacing: 0.2em; color: var(--ink-faint); margin-top: 2px; }
-.lt-recall-cancel { align-self: center; margin-top: 10px; padding: 8px 14px; font-size: calc(0.78rem * var(--text-scale, 1)); letter-spacing: 0.4em; color: var(--ink-faint); }
+.lt-recall-text { font-size: calc(clamp(0.95rem, 1.7vw, 1.2rem) * var(--ts, 1)); line-height: 1.7; letter-spacing: 0.06em; }
+.lt-recall-meta { grid-column: 2; font-size: calc(var(--ui-small) * 0.9 * var(--ts, 1)); letter-spacing: 0.2em; color: var(--ink-dim); margin-top: 2px; }
+.lt-recall-cancel { align-self: center; margin-top: 10px; padding: 0 14px; min-height: 44px; font-size: calc(var(--ui) * var(--ts, 1)); letter-spacing: 0.4em; text-indent: 0.4em; color: var(--ink-dim); }
 .lt-recall-cancel:hover { color: var(--ink-soft); }
 
 /* ── hands and ears: 摸讀、聽聲辨位、點字板 ── */
@@ -502,11 +555,11 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 .lt-interact > * { pointer-events: auto; }
 .lt-interact-prompt {
   position: absolute; left: 50%; top: calc(50% + 40px); transform: translateX(-50%); width: min(86vw, 520px);
-  text-align: center; font-size: calc(0.8rem * var(--text-scale, 1)); letter-spacing: 0.32em; color: var(--ink-dim); pointer-events: none;
+  text-align: center; font-size: calc(var(--ui) * var(--ts, 1)); letter-spacing: 0.32em; color: var(--ink-dim); pointer-events: none;
 }
 .lt-interact-note {
   position: absolute; left: 50%; top: calc(50% + 196px); transform: translateX(-50%); width: min(86vw, 520px);
-  text-align: center; font-size: calc(0.78rem * var(--text-scale, 1)); letter-spacing: 0.16em; color: var(--ink-faint); min-height: 1.4em; pointer-events: none;
+  text-align: center; font-size: calc(var(--ui-small) * var(--ts, 1)); letter-spacing: 0.16em; color: var(--ink-dim); min-height: 1.4em; pointer-events: none;
 }
 
 .lt-touch-strip {
@@ -524,15 +577,17 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 .lt-groove { width: 70%; height: 42px; border-radius: 3px; background: repeating-linear-gradient(100deg, transparent 0 6px, var(--ink-ghost) 6px 7px); opacity: 0.6; transition: opacity 400ms; }
 .style-engrave .lt-groove { height: 30px; background: repeating-linear-gradient(80deg, transparent 0 3px, var(--ink-ghost) 3px 4px); opacity: 0.35; }
 .lt-touch-cell.clear .lt-groove { opacity: 1; }
-.lt-touch-char { min-height: 1.6em; font-size: calc(clamp(1.1rem, 2.2vw, 1.4rem) * var(--text-scale, 1)); letter-spacing: 0.1em; color: var(--ink); animation: lt-fade-in 500ms var(--ease) forwards; }
+.lt-touch-char { min-height: 1.6em; font-size: calc(clamp(1.1rem, 2.2vw, 1.4rem) * var(--ts, 1)); letter-spacing: 0.1em; color: var(--ink); animation: lt-fade-in 500ms var(--ease) forwards; }
 @keyframes lt-skim { 0%, 100% { transform: translateX(0); } 30% { transform: translateX(3px); } 60% { transform: translateX(-2px); } }
 
-.lt-locate-prompt { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: max-content; max-width: max(160px, calc(1.8 * min(40vw, 560px) - 84px)); text-align: center; text-wrap: balance; line-height: 1.7; font-size: calc(clamp(1rem, 2vw, 1.2rem) * var(--text-scale, 1)); letter-spacing: 0.3em; text-indent: 0.3em; color: var(--ink-soft); pointer-events: none; }
+.lt-locate-prompt { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: max-content; max-width: max(160px, calc(1.8 * min(40vw, 560px) - 84px)); text-align: center; text-wrap: balance; line-height: 1.7; font-size: calc(clamp(1rem, 2vw, 1.2rem) * var(--ts, 1)); letter-spacing: 0.3em; text-indent: 0.3em; color: var(--ink-soft); pointer-events: none; }
 .lt-locate-spot { position: absolute; transform: translate(-50%, -50%); width: 64px; height: 64px; display: grid; place-items: center; border-radius: 50%; }
 .lt-locate-dot { width: 10px; height: 10px; border-radius: 50%; border: 1px solid var(--ink-faint); transition: transform 250ms, background 250ms; }
 .lt-locate-spot:hover .lt-locate-dot, .lt-locate-spot:focus-visible .lt-locate-dot { transform: scale(1.6); background: var(--ink-faint); }
 .lt-locate-spot.wrong .lt-locate-dot { border-color: var(--ink-ghost); opacity: 0.4; }
-.lt-locate-key { position: absolute; bottom: 4px; font-family: var(--mono); font-size: calc(0.56rem * var(--text-scale, 1)); color: var(--ink-ghost); }
+.lt-locate-key { position: absolute; bottom: 2px; font-family: var(--mono); font-size: calc(var(--ui-small) * 0.8 * var(--ts, 1)); color: var(--ink-mute); display: none; }
+/* the key hints are for a keyboard: shown once a key was pressed, gone again with the next tap or click */
+:root[data-input="key"] .lt-locate-key { display: block; }
 .lt-locate-note { top: calc(50% + 40px); }
 .lt-approach-pad { position: absolute; inset: 0; background: none; border: 0; cursor: pointer; }
 .lt-approach .lt-locate-prompt { width: min(86vw, 520px); text-align: center; }
@@ -543,6 +598,12 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
 .lt-hold.holding .lt-hold-breath { animation-name: lt-hold-breathe; animation-timing-function: linear; animation-fill-mode: forwards; }
 @keyframes lt-hold-breathe { from { transform: scale(1); opacity: 0.7; } to { transform: scale(0.25); opacity: 0.15; } }
 @media (prefers-reduced-motion: reduce) { .lt-hold.holding .lt-hold-breath { animation: none; opacity: 0.2; } }
+/* the first time a moment comes, how it works: above its prompt, quiet, gone once it has been done */
+.lt-interact-lesson {
+  position: absolute; left: 50%; top: calc(50% - 64px); transform: translate(-50%, -100%); width: min(86vw, 460px);
+  text-align: center; line-height: 1.9; font-size: calc(var(--ui-small) * var(--ts, 1)); letter-spacing: 0.18em; color: var(--ink-dim);
+  pointer-events: none; opacity: 0; animation: lt-fade-in 700ms var(--ease) 300ms forwards;
+}
 
 .lt-punch-row { position: absolute; left: 50%; top: calc(50% + 78px); transform: translateX(-50%); display: flex; gap: 22px; }
 .lt-punch-cell { display: grid; grid-template-columns: repeat(2, 34px); grid-template-rows: repeat(3, 34px); grid-auto-flow: column; gap: 4px; padding: 8px; border: 1px solid var(--ink-ghost); border-radius: 4px; opacity: 0.45; transition: opacity 300ms; }
@@ -591,3 +652,55 @@ button:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: 6px;
   .lt-recall-item { grid-template-columns: 1fr; }
   .lt-recall-meta { grid-column: 1; }
 }
+
+/* A line heard on an earlier loop, going by faster: a little dimmer (still above --ink-dim, so still 5:1). */
+.lt-line.heard:not(.lt-echo) .lt-line-in { opacity: 0.78; }
+/* Fast-forwarding: one quiet word in the top-left corner while it lasts (the clock has the right). */
+.lt-skip {
+  position: fixed; top: max(18px, env(safe-area-inset-top)); left: max(20px, env(safe-area-inset-left)); z-index: 4; pointer-events: none;
+  font-size: calc(var(--ui) * var(--ts, 1)); letter-spacing: 0.4em; color: var(--ink-dim); opacity: 0; transition: opacity 300ms var(--ease);
+}
+.lt-skip.on { opacity: 1; }
+
+/* Why the save is not (or was not) kept: a calm note at the top, above the title's whole-screen button. */
+.lt-save-note {
+  position: fixed; z-index: 12; top: max(16px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%);
+  width: min(calc(100% - 32px), 560px); padding: 14px 18px; background: rgba(0, 0, 0, 0.92); border: 1px solid var(--ink-ghost);
+  font-size: calc(var(--ui) * var(--ts, 1)); letter-spacing: 0.12em; line-height: 1.8; color: var(--ink-soft); text-align: center;
+}
+.lt-save-text { margin: 0 0 6px; text-wrap: balance; }
+.lt-save-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 0 12px; }
+.lt-save-actions .lt-opt:hover { color: var(--ink-soft); }
+
+/* 剛剛聽到的: a heading for each place, then the lines, newest at the bottom. */
+.lt-log-head { margin: 28px 0 6px; font-weight: normal; font-size: calc(var(--ui) * var(--ts, 1)); letter-spacing: 0.3em; color: var(--ink-soft); }
+.lt-log-head:first-child { margin-top: 0; }
+.lt-log-list { list-style: none; margin: 0; padding: 0; }
+.lt-log-line { padding: 10px 0; border-bottom: 1px solid var(--ink-ghost); font-size: calc(1.125rem * var(--ts, 1)); line-height: 1.7; letter-spacing: 0.06em; user-select: text; -webkit-user-select: text; }
+.lt-log-label { display: block; font-size: calc(var(--ui) * var(--ts, 1)); letter-spacing: 0.2em; color: var(--ink-dim); }
+.lt-log-line.kind-think .lt-log-text { color: var(--ink-soft); letter-spacing: 0.12em; }
+.lt-log-line.kind-phone .lt-log-text { color: var(--phone); font-family: var(--mono); }
+.lt-log-line.kind-narr .lt-log-text { color: var(--ink-soft); }
+
+/* wave3-a1 */
+.lt-title-finished { cursor: default; }
+.lt-title-choices { position: absolute; bottom: 17vh; display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 0 16px; opacity: 0; animation: lt-title 2s var(--ease) 2.4s forwards; }
+.lt-title-choices .lt-opt { min-height: 44px; letter-spacing: 0.3em; }
+.lt-script-broken { max-width: 22em; padding: 0 16px; line-height: 2; letter-spacing: 0.2em; color: var(--ink-soft); text-align: center; }
+.lt-ending-heading { margin: 0; font-weight: inherit; outline: none; }
+.lt-ending-credits { height: 7.5em; overflow: hidden; font-size: calc(var(--ui-small) * var(--ts, 1)); letter-spacing: 0.25em; line-height: 2; color: var(--ink-dim); -webkit-mask-image: linear-gradient(transparent, #000 25%, #000 75%, transparent); mask-image: linear-gradient(transparent, #000 25%, #000 75%, transparent); }
+.lt-ending > .lt-ending-credits { animation: lt-ending-faint 3s var(--ease) forwards; }
+.lt-ending-credits-roll { animation: lt-ending-roll 26s linear both; }
+.lt-ending-credits-head { margin-top: 0.6em; color: var(--ink-soft); }
+@keyframes lt-ending-faint { from { opacity: 0; } to { opacity: 0.7; } }
+@keyframes lt-ending-roll { from { transform: translateY(7.5em); } to { transform: translateY(-100%); } }
+@media (prefers-reduced-motion: reduce) {
+  .lt-ending-credits { height: auto; -webkit-mask-image: none; mask-image: none; }
+  .lt-ending-credits-roll { animation: none; }
+}
+/* wave3-a1: continuing a save, the first card's recap */
+.lt-card-recap { margin-top: 10px; font-size: calc(var(--ui-small) * var(--ts, 1)); letter-spacing: 0.4em; text-indent: 0.4em; color: var(--ink-dim); }
+.lt-card-echo { opacity: 0.55; filter: blur(0.3px); }
+/* wave3-a2: the sound test run again from the menu; the cursor resting on the black screen */
+.lt-recalib { position: fixed; inset: 0; z-index: 60; background: var(--bg); }
+.lt-app.calm, .lt-app.calm * { cursor: none; }

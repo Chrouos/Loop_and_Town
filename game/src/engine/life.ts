@@ -1,18 +1,27 @@
 import type { AmbienceId, Direction, Distance, SfxId, VoiceId } from '../audio/catalog';
+import type { Beat, Scene } from '../script/types';
 
 // Background life: what goes on around her that the story does not need.
 // Not clickable, nothing to learn. Strangers talk, a cup is set down, a scooter passes —
 // so a wait is never just a black screen. Every sound caption plays its own short cue,
 // including details that also belong to a steady ambience (rail joints, insects, server hum).
 
+/**
+ * When in the day a line or sound belongs (none = any time): morning 05:00–10:59, day 11:00–16:29,
+ * evening 16:30–19:59, night 20:00–22:59, late 23:00–04:59. `weather`: 'dry' = never while it rains
+ * (laundry out, kids playing outside), 'wet' = only while it rains.
+ */
+export const DAYPARTS = ['morning', 'day', 'evening', 'night', 'late'] as const;
+export type Daypart = (typeof DAYPARTS)[number];
+type Timed = { when?: readonly Daypart[]; weather?: 'dry' | 'wet' };
 /** `src` is the small caption saying what the sound is (defaults to the sfx's SFX_SOURCE). */
-export type LifeSound = { text: string; src?: string; sfx: SfxId; at?: Direction[]; dist?: Distance };
+export type LifeSound = { text: string; src?: string; sfx: SfxId; at?: Direction[]; dist?: Distance } & Timed;
 export type LifeLine = { say: string; voice: VoiceId };
 /**
  * `reply`: the other side of a small exchange, one line or a few turns (a family on the train, two neighbours).
  * `whisper`: whispered (true) or said out loud (false); unset, the place decides (see `Life.whisper`).
  */
-export type LifeVoice = { say: string; voice: VoiceId; at?: Direction[]; dist?: Distance; reply?: LifeLine | LifeLine[]; whisper?: boolean };
+export type LifeVoice = { say: string; voice: VoiceId; at?: Direction[]; dist?: Distance; reply?: LifeLine | LifeLine[]; whisper?: boolean } & Timed;
 export type LifeEvent = LifeSound | LifeVoice;
 /** `whisper`: a quiet place (a library, a hospital, a house at night) where strangers lower their voices. */
 export type Life = { every: [number, number]; events: LifeEvent[]; whisper?: boolean };
@@ -21,6 +30,9 @@ const AROUND: Direction[] = ['front-left', 'left', 'back-left', 'back', 'back-ri
 const SIDES: Direction[] = ['left', 'right', 'back-left', 'back-right'];
 const BACK: Direction[] = ['back', 'back-left', 'back-right'];
 const FRONT: Direction[] = ['front', 'front-left', 'front-right'];
+const AM: Daypart[] = ['morning'];
+const DAYTIME: Daypart[] = ['morning', 'day'];
+const AFTER_WORK: Daypart[] = ['evening', 'night'];
 
 export const LIFE: Partial<Record<AmbienceId, Life>> = {
   // A morning train home along the coast: families, old people with bags, someone on the phone.
@@ -29,7 +41,6 @@ export const LIFE: Partial<Record<AmbienceId, Life>> = {
     events: [
       { text: '喀噠、喀噠', sfx: 'rail_clack', src: '鐵軌', at: ['back', 'front'], dist: 'near' },
       { text: '喀啦', sfx: 'cabin_rattle', src: '行李架', at: SIDES, dist: 'mid' },
-      { text: '咳、咳', sfx: 'cough', at: ['back-right', 'right'], dist: 'mid' },
       { text: '沙沙', sfx: 'paper_rustle', src: '報紙', at: ['right', 'front-right'], dist: 'mid' },
       { text: '窸窣', sfx: 'cloth_rustle', src: '外套', at: SIDES, dist: 'mid' },
       { text: '叩、叩', sfx: 'step', src: '走道', at: ['left', 'back-left'], dist: 'mid' },
@@ -124,7 +135,7 @@ export const LIFE: Partial<Record<AmbienceId, Life>> = {
       { text: '嘩啦啦——', sfx: 'shutter_roll', src: '鐵捲門', at: ['front-left', 'front-right'], dist: 'far' },
       { text: '刷、刷', sfx: 'broom_sweep', src: '竹掃把', at: ['right', 'back-right'], dist: 'mid' },
       { text: '汪', sfx: 'dog_bark', at: AROUND, dist: 'far' },
-      { text: '唰', sfx: 'water_splash', src: '潑水', at: ['left', 'front-left'], dist: 'mid' },
+      { text: '唰', sfx: 'water_splash', src: '潑水', at: ['left', 'front-left'], dist: 'mid', weather: 'dry' },
       { text: '咚、咚', sfx: 'chop_thud', src: '剁肉', at: ['front-left', 'left'], dist: 'far' },
       { text: '啾啾', sfx: 'bird_chirp', src: '麻雀', at: AROUND, dist: 'far' },
       { text: '叭、叭', sfx: 'car_horn', src: '喇叭', at: ['left', 'right'], dist: 'far' },
@@ -167,11 +178,11 @@ export const LIFE: Partial<Record<AmbienceId, Life>> = {
       { text: '汪', sfx: 'dog_bark', at: AROUND, dist: 'far' },
       { text: '喵', sfx: 'cat_meow', src: '騎樓的貓', at: ['left', 'back-left'], dist: 'mid' },
       { text: '啾', sfx: 'bird_chirp', src: '麻雀', at: AROUND, dist: 'far' },
-      { text: '唰', sfx: 'water_splash', src: '門口潑水', at: ['right', 'back-right'], dist: 'mid' },
+      { text: '唰', sfx: 'water_splash', src: '門口潑水', at: ['right', 'back-right'], dist: 'mid', weather: 'dry' },
       { text: '嗡嗡', sfx: 'fan_hum', src: '電風扇', at: ['left', 'front-left'], dist: 'mid' },
       { text: '嘩', sfx: 'pour_water', src: '泡茶', at: ['left', 'back-left'], dist: 'mid' },
       { text: '叩', sfx: 'cup_set', src: '茶杯', at: ['left', 'back-left'], dist: 'mid' },
-      { text: '叭噗、叭噗', sfx: 'icecream_horn', src: '叭噗車', at: ['front-left', 'front-right'], dist: 'far' },
+      { text: '叭噗、叭噗', sfx: 'icecream_horn', src: '叭噗車', at: ['front-left', 'front-right'], dist: 'far', weather: 'dry' },
       { text: '哐啷', sfx: 'can_rattle', src: '回收的鐵罐', at: ['front-left', 'left'], dist: 'far' },
       { text: '咚、咚', sfx: 'ball_bounce', at: BACK, dist: 'far' },
       { text: '吵吵鬧鬧', sfx: 'crowd_walla', src: '放學的學生', at: ['front-left', 'front-right'], dist: 'far' },
@@ -184,7 +195,7 @@ export const LIFE: Partial<Record<AmbienceId, Life>> = {
       ] },
       { say: '小聲一點，阿公在睡午覺。', voice: 'woman', at: SIDES, dist: 'mid', reply: { say: '喔……', voice: 'child' } },
       { say: '外送！林小姐嗎？', voice: 'man', at: ['right', 'back-right'], dist: 'mid', reply: { say: '對，謝謝，放這邊就好。', voice: 'woman' } },
-      { say: '今天怎麼熱成這樣。', voice: 'old_woman', at: SIDES, dist: 'far', reply: { say: '秋老虎啦，熱沒幾天了。', voice: 'old_woman' } },
+      { say: '今天怎麼熱成這樣。', voice: 'old_woman', at: SIDES, dist: 'far', weather: 'dry', reply: { say: '秋老虎啦，熱沒幾天了。', voice: 'old_woman' } },
       { say: '阿嬤！', voice: 'child', at: BACK, dist: 'far', reply: [
         { say: '書包給阿嬤背，熱不熱？', voice: 'old_woman' },
         { say: '熱死了，我要喝紅茶。', voice: 'child' },
@@ -197,7 +208,7 @@ export const LIFE: Partial<Record<AmbienceId, Life>> = {
         { say: '起手無回啦。', voice: 'old_man' },
       ] },
       { say: '老闆，有開嗎？', voice: 'man', at: FRONT, dist: 'mid', reply: { say: '有啦，剛剛睡一下而已，要什麼？', voice: 'old_man' } },
-      { say: '門口潑一下水，比較不會那麼熱。', voice: 'old_woman', at: ['right', 'back-right'], dist: 'mid', reply: { say: '好啦，我去拿水管。', voice: 'man' } },
+      { say: '門口潑一下水，比較不會那麼熱。', voice: 'old_woman', at: ['right', 'back-right'], dist: 'mid', weather: 'dry', reply: { say: '好啦，我去拿水管。', voice: 'man' } },
       { say: '媽，叭噗！我要吃叭噗！', voice: 'child', at: BACK, dist: 'mid', reply: [
         { say: '你剛剛才喝完飲料欸。', voice: 'woman' },
         { say: '一球就好。', voice: 'child' },
@@ -292,12 +303,15 @@ export const LIFE: Partial<Record<AmbienceId, Life>> = {
         { say: '哪有，是衣服顏色啦。', voice: 'woman' },
         { say: '好啦，那我也要買黑的。', voice: 'woman' },
       ] },
-      { say: '我等一下要面試，幫我看領帶有沒有歪。', voice: 'man', at: ['back-right'], dist: 'mid', reply: { say: '往左一點……好了，很帥。', voice: 'man' } },
+      { say: '我等一下要面試，幫我看領帶有沒有歪。', voice: 'man', at: ['back-right'], dist: 'mid', when: DAYTIME, reply: { say: '往左一點……好了，很帥。', voice: 'man' } },
       { say: '外帶一杯美式，不要糖。', voice: 'man', at: ['back-left'], dist: 'mid' },
       { say: '這附近哪裡比較好停車？', voice: 'woman', at: ['back-left'], dist: 'mid', reply: { say: '廟口那邊有收費的。', voice: 'woman' } },
       { say: '……我們家那隻貓最近都不吃飯……', voice: 'woman', at: ['front-left', 'left'], dist: 'far' },
       { say: '欸，你的咖啡滴到報告了啦。', voice: 'man', at: SIDES, dist: 'far', reply: { say: '啊完了完了，衛生紙！', voice: 'man' } },
       { say: '這首歌叫什麼？好好聽。', voice: 'woman', at: ['right', 'back-right'], dist: 'far', reply: { say: '不知道欸，等一下問老闆。', voice: 'woman' } },
+      { say: '你們開到幾點？', voice: 'man', at: ['back-left'], dist: 'mid', when: AFTER_WORK, reply: { say: '九點喔，八點半最後點餐。', voice: 'woman' } },
+      { say: '下班了喔？今天怎麼這麼早。', voice: 'woman', at: SIDES, dist: 'far', when: ['evening'], reply: { say: '主管請假啊，大家都溜了。', voice: 'woman' } },
+      { say: '晚上喝咖啡妳睡得著喔？', voice: 'woman', at: ['left', 'front-left'], dist: 'far', when: AFTER_WORK, reply: { say: '低咖啡因的啦。', voice: 'woman' } },
     ],
   },
   // A small eatery after eight: the wok, the TV, a table of men drinking, a family.
@@ -342,7 +356,8 @@ export const LIFE: Partial<Record<AmbienceId, Life>> = {
       { say: '颱風是不是又要來了？', voice: 'old_man', at: ['left', 'front-left'], dist: 'far', reply: { say: '新聞說會轉走啦。', voice: 'man' } },
     ],
   },
-  // Inside the quiet house in the morning; the life is the lane outside: neighbours, laundry, a dog.
+  // Inside the quiet house; the life is the lane outside: neighbours, laundry, a dog. Morning chatter until
+  // eleven, then lunch and the nap, then dinner on the stove; in the rain, people call out about the rain.
   old_house: {
     every: [7, 13],
     events: [
@@ -353,30 +368,48 @@ export const LIFE: Partial<Record<AmbienceId, Life>> = {
       { text: '噗噗——', sfx: 'car_pass', src: '機車', at: ['front-left', 'front-right'], dist: 'far' },
       { text: '汪', sfx: 'dog_bark', at: AROUND, dist: 'far' },
       { text: '叮鈴', sfx: 'bicycle_bell', at: ['front-left', 'front-right'], dist: 'far' },
-      { text: '刷、刷', sfx: 'broom_sweep', src: '鄰居掃地', at: ['front', 'front-right'], dist: 'far' },
+      { text: '刷、刷', sfx: 'broom_sweep', src: '鄰居掃地', at: ['front', 'front-right'], dist: 'far', when: AM, weather: 'dry' },
       { text: '嘩啦啦——', sfx: 'shutter_roll', src: '鐵捲門', at: ['left', 'right'], dist: 'far' },
-      { text: '啾啾', sfx: 'bird_chirp', src: '麻雀', at: FRONT, dist: 'far' },
-      { say: '阿美——今天要曬棉被喔，出大日頭！', voice: 'old_woman', at: ['front-right', 'right'], dist: 'far', reply: { say: '好啦，我等一下拿出來。', voice: 'old_woman' } },
+      { text: '啾啾', sfx: 'bird_chirp', src: '麻雀', at: FRONT, dist: 'far', when: DAYTIME, weather: 'dry' },
+      { say: '阿美——今天要曬棉被喔，出大日頭！', voice: 'old_woman', at: ['front-right', 'right'], dist: 'far', when: AM, weather: 'dry', reply: { say: '好啦，我等一下拿出來。', voice: 'old_woman' } },
       { say: '阿嬤，我的拖鞋呢？', voice: 'child', at: ['front-left', 'left'], dist: 'far', reply: { say: '在門口啦，你都沒在看。', voice: 'old_woman' } },
-      { say: '早，要去哪？', voice: 'old_man', at: ['front', 'front-left'], dist: 'far', reply: { say: '去廟口泡茶啦。', voice: 'old_man' } },
-      { say: '弟弟，早餐帶著，路上吃。', voice: 'woman', at: ['front-right', 'right'], dist: 'far', reply: [
+      { say: '早，要去哪？', voice: 'old_man', at: ['front', 'front-left'], dist: 'far', when: AM, reply: { say: '去廟口泡茶啦。', voice: 'old_man' } },
+      { say: '弟弟，早餐帶著，路上吃。', voice: 'woman', at: ['front-right', 'right'], dist: 'far', when: AM, reply: [
         { say: '我要飯糰，不要三明治。', voice: 'child' },
         { say: '有得吃就好了，快走。', voice: 'woman' },
       ] },
-      { say: '喂？師傅，你們幾點會到？', voice: 'man', at: ['left', 'front-left'], dist: 'far', reply: { say: '好，那我在門口等。', voice: 'man' } },
-      { say: '你家的芒果樹又長過來了啦。', voice: 'old_woman', at: ['right', 'front-right'], dist: 'far', reply: [
+      { say: '喂？師傅，你們幾點會到？', voice: 'man', at: ['left', 'front-left'], dist: 'far', when: DAYTIME, reply: { say: '好，那我在門口等。', voice: 'man' } },
+      { say: '你家的芒果樹又長過來了啦。', voice: 'old_woman', at: ['right', 'front-right'], dist: 'far', weather: 'dry', reply: [
         { say: '好啦，我叫我兒子來剪。', voice: 'old_man' },
         { say: '你上個月也這樣講。', voice: 'old_woman' },
       ] },
-      { say: '小黑！回來！不要亂跑！', voice: 'woman', at: ['left', 'right'], dist: 'far' },
-      { say: '……收購舊冰箱、舊冷氣、舊電視……', voice: 'man', at: ['front-left', 'front-right'], dist: 'far' },
-      { say: '妳等一下要去市場嗎？', voice: 'old_woman', at: ['front', 'front-right'], dist: 'far', reply: [
+      { say: '小黑！回來！不要亂跑！', voice: 'woman', at: ['left', 'right'], dist: 'far', weather: 'dry' },
+      { say: '……收購舊冰箱、舊冷氣、舊電視……', voice: 'man', at: ['front-left', 'front-right'], dist: 'far', when: DAYTIME, weather: 'dry' },
+      { say: '妳等一下要去市場嗎？', voice: 'old_woman', at: ['front', 'front-right'], dist: 'far', when: AM, reply: [
         { say: '要啊，等我換個衣服。', voice: 'old_woman' },
         { say: '那我在門口等妳。', voice: 'old_woman' },
       ] },
-      { say: '阿公，我們今天要去海邊嗎？', voice: 'child', at: ['left', 'front-left'], dist: 'far', reply: { say: '下午啦，早上太曬。', voice: 'old_man' } },
-      { say: '……廁所的磁磚要全部打掉重貼……', voice: 'man', at: ['right'], dist: 'far' },
+      { say: '阿公，我們今天要去海邊嗎？', voice: 'child', at: ['left', 'front-left'], dist: 'far', when: AM, weather: 'dry', reply: { say: '下午啦，早上太曬。', voice: 'old_man' } },
+      { say: '……廁所的磁磚要全部打掉重貼……', voice: 'man', at: ['right'], dist: 'far', when: DAYTIME },
       { say: '妳家阿弟什麼時候退伍？', voice: 'old_woman', at: ['front-left'], dist: 'far', reply: { say: '下個月啦，快了。', voice: 'woman' } },
+      // midday: lunch, the heat, the nap
+      { text: '鏘、鏘', sfx: 'wok', src: '隔壁炒菜', at: ['left', 'right'], dist: 'far', when: ['day'] },
+      { text: '嗡嗡', sfx: 'fan_hum', src: '隔壁電風扇', at: ['left', 'right'], dist: 'far', when: ['day'] },
+      { say: '阿弟，吃飯了，菜要涼了。', voice: 'old_woman', at: ['front-right', 'right'], dist: 'far', when: ['day'], reply: { say: '等一下，這關打完。', voice: 'child' } },
+      { say: '小聲一點，阿公在睡午覺。', voice: 'woman', at: ['left', 'front-left'], dist: 'far', when: ['day'], reply: { say: '喔……', voice: 'child' } },
+      { say: '中午吃什麼？我去買。', voice: 'man', at: ['front', 'front-left'], dist: 'far', when: ['day'], reply: { say: '巷口的乾麵，不要加辣。', voice: 'woman' } },
+      { say: '這種天氣，冷氣不開會死人啦。', voice: 'old_man', at: ['right', 'front-right'], dist: 'far', when: ['day'], weather: 'dry', reply: { say: '電費你要繳喔？', voice: 'old_woman' } },
+      // late afternoon into the evening: school out, laundry in, dinner on the stove
+      { text: '滋啦——', sfx: 'fry_sizzle', src: '隔壁煎魚', at: ['left', 'right'], dist: 'far', when: AFTER_WORK },
+      { text: '叮叮噹噹——', sfx: 'garbage_melody', src: '垃圾車', at: ['front-left', 'front-right'], dist: 'far', when: ['evening'] },
+      { say: '衣服收一收，要吃飯了。', voice: 'old_woman', at: ['front-right', 'right'], dist: 'far', when: ['evening'], weather: 'dry', reply: { say: '好啦，我去收。', voice: 'woman' } },
+      { say: '我回來了——', voice: 'child', at: ['front-left', 'left'], dist: 'far', when: ['evening'], reply: { say: '鞋子擺好，手先去洗。', voice: 'woman' } },
+      { say: '垃圾車要來了，你垃圾綁好了沒？', voice: 'woman', at: ['front', 'front-right'], dist: 'far', when: ['evening'], reply: { say: '綁好了，在門口。', voice: 'man' } },
+      { say: '今天怎麼這麼晚才回來？', voice: 'old_man', at: ['left', 'front-left'], dist: 'far', when: AFTER_WORK, reply: { say: '加班啦，不要問。', voice: 'man' } },
+      // in the rain
+      { say: '下雨了！衣服！衣服啦！', voice: 'old_woman', at: ['front-right', 'right'], dist: 'far', weather: 'wet', reply: { say: '來了來了！', voice: 'woman' } },
+      { say: '這麼大的雨，市場還要去嗎？', voice: 'old_woman', at: ['front', 'front-right'], dist: 'far', when: AM, weather: 'wet', reply: { say: '明天再去啦，冰箱還有菜。', voice: 'old_woman' } },
+      { say: '阿弟，雨衣帶著，騎慢一點。', voice: 'woman', at: ['front-left', 'left'], dist: 'far', weather: 'wet', reply: { say: '知道啦。', voice: 'man' } },
     ],
   },
   // Evening and night: the neighbours' TV through the wall, phone calls, a child who won't bathe.
@@ -391,28 +424,28 @@ export const LIFE: Partial<Record<AmbienceId, Life>> = {
       { text: '噗噗——', sfx: 'car_pass', src: '機車', at: ['front-left', 'front-right'], dist: 'far' },
       { text: '汪、汪', sfx: 'dog_bark', at: AROUND, dist: 'far' },
       { text: '嘩——', sfx: 'flush_water', src: '隔壁沖水', at: ['left', 'right'], dist: 'far' },
-      { text: '鏗、鏗', sfx: 'chopsticks', src: '隔壁洗碗', at: ['left', 'right'], dist: 'far' },
+      { text: '鏗、鏗', sfx: 'chopsticks', src: '隔壁洗碗', at: ['left', 'right'], dist: 'far', when: AFTER_WORK },
       { text: '喵——', sfx: 'cat_meow', src: '貓', at: ['front-left', 'front-right'], dist: 'far' },
       { text: '叩、叩', sfx: 'step', src: '巷子腳步', at: FRONT, dist: 'far' },
       { say: '……好，下一位來賓……', voice: 'announcer', at: ['left', 'right'], dist: 'far' },
       { say: '……接下來，我們來看一段影片……', voice: 'announcer', at: ['left', 'right'], dist: 'far' },
-      { say: '……這個價錢，只有今天晚上喔……', voice: 'announcer', at: ['left', 'right'], dist: 'far' },
+      { say: '……這個價錢，只有今天晚上喔……', voice: 'announcer', at: ['left', 'right'], dist: 'far', when: AFTER_WORK },
       { say: '……媽，我說過了，過年再回去啦……', voice: 'woman', at: ['left', 'front-left'], dist: 'far', reply: { say: '……好啦好啦，我知道。', voice: 'woman' } },
       { say: '電視小聲一點啦，孩子在睡了。', voice: 'man', at: ['right', 'front-right'], dist: 'far', reply: { say: '你自己去轉啦。', voice: 'woman' } },
-      { say: '我不要洗澡！', voice: 'child', at: ['left', 'right'], dist: 'far', whisper: false, reply: [
+      { say: '我不要洗澡！', voice: 'child', at: ['left', 'right'], dist: 'far', whisper: false, when: AFTER_WORK, reply: [
         { say: '不洗就不要上床。', voice: 'woman' },
         { say: '那我睡地板。', voice: 'child' },
         { say: '好啊，你睡啊。', voice: 'woman' },
       ] },
       { say: '明天幾點要去拜拜？', voice: 'old_man', at: ['front-right', 'right'], dist: 'far', reply: { say: '五點就要起來，你早點睡。', voice: 'old_woman' } },
-      { say: '阿弟，衣服收進來了沒？', voice: 'old_woman', at: ['front-left', 'left'], dist: 'far', reply: { say: '收了啦——', voice: 'child' } },
+      { say: '阿弟，衣服收進來了沒？', voice: 'old_woman', at: ['front-left', 'left'], dist: 'far', when: ['evening'], reply: { say: '收了啦——', voice: 'child' } },
       { say: '……喂？對啦，明天早上我去載你……', voice: 'man', at: ['left', 'right'], dist: 'far' },
-      { say: '你又在吃泡麵？', voice: 'woman', at: ['right', 'front-right'], dist: 'far', reply: [
+      { say: '你又在吃泡麵？', voice: 'woman', at: ['right', 'front-right'], dist: 'far', when: ['night', 'late'], reply: [
         { say: '宵夜啦，一包而已。', voice: 'man' },
         { say: '你昨天也說一包而已。', voice: 'woman' },
       ] },
       { say: '後門鎖了沒？', voice: 'old_woman', at: ['left', 'front-left'], dist: 'far', reply: { say: '鎖了啦，妳每天都問。', voice: 'old_man' } },
-      { say: '爸爸，月亮一直跟著我們。', voice: 'child', at: FRONT, dist: 'far', reply: { say: '它跟著每一個人啦。', voice: 'man' } },
+      { say: '爸爸，月亮一直跟著我們。', voice: 'child', at: FRONT, dist: 'far', when: AFTER_WORK, weather: 'dry', reply: { say: '它跟著每一個人啦。', voice: 'man' } },
       { say: '……好，那就這樣，掰掰……', voice: 'man', at: ['left', 'right'], dist: 'far' },
       { say: '欸，你明天便當要帶什麼？', voice: 'woman', at: ['right'], dist: 'far', reply: { say: '隨便，不要又是滷蛋就好。', voice: 'man' } },
     ],
@@ -465,7 +498,7 @@ export const LIFE: Partial<Record<AmbienceId, Life>> = {
       ] },
       { say: '你好，這邊請坐，什麼事？', voice: 'man', at: SIDES, dist: 'mid' },
       { say: '我撿到一個錢包，拿來給你們。', voice: 'woman', at: SIDES, dist: 'mid', reply: { say: '好，謝謝，麻煩幫我填一下這張。', voice: 'man' } },
-      { say: '學長，便當要訂哪家？', voice: 'man', at: BACK, dist: 'far', reply: [
+      { say: '學長，便當要訂哪家？', voice: 'man', at: BACK, dist: 'far', when: DAYTIME, reply: [
         { say: '老樣子，排骨。', voice: 'man' },
         { say: '你每天都排骨。', voice: 'man' },
       ] },
@@ -577,26 +610,29 @@ export const LIFE: Partial<Record<AmbienceId, Life>> = {
         { say: '牠啄我！', voice: 'child' },
         { say: '誰叫你拿那麼近。', voice: 'old_man' },
       ] },
-      { say: '來，坐這邊，這邊有樹蔭。', voice: 'old_man', at: SIDES, dist: 'far', reply: { say: '今天日頭好大喔。', voice: 'old_woman' } },
-      { say: '叭噗一球多少？', voice: 'man', at: ['front-left', 'front-right'], dist: 'far', reply: { say: '一球二十，兩球三十五。', voice: 'old_man' } },
-      { say: '妹妹，帽子戴好，會曬傷。', voice: 'woman', at: BACK, dist: 'mid', reply: { say: '很熱啦——', voice: 'child' } },
-      { say: '你當鬼！', voice: 'child', at: BACK, dist: 'far', reply: { say: '剛剛就是我當了啦！', voice: 'child' } },
+      { say: '來，坐這邊，這邊有樹蔭。', voice: 'old_man', at: SIDES, dist: 'far', when: ['day'], weather: 'dry', reply: { say: '今天日頭好大喔。', voice: 'old_woman' } },
+      { say: '叭噗一球多少？', voice: 'man', at: ['front-left', 'front-right'], dist: 'far', when: ['day', 'evening'], weather: 'dry', reply: { say: '一球二十，兩球三十五。', voice: 'old_man' } },
+      { say: '妹妹，帽子戴好，會曬傷。', voice: 'woman', at: BACK, dist: 'mid', when: ['day'], weather: 'dry', reply: { say: '很熱啦——', voice: 'child' } },
+      { say: '你當鬼！', voice: 'child', at: BACK, dist: 'far', when: ['day', 'evening'], weather: 'dry', reply: { say: '剛剛就是我當了啦！', voice: 'child' } },
       { say: '……我那個媳婦喔，什麼都要網購……', voice: 'old_woman', at: ['left', 'back-left'], dist: 'far' },
       { say: '欸，可以幫我們拍一張嗎？', voice: 'woman', at: SIDES, dist: 'mid', reply: { say: '好啊，一、二、三——', voice: 'man' } },
-      { say: '我們中午吃什麼？', voice: 'woman', at: SIDES, dist: 'far', reply: [
+      { say: '我們中午吃什麼？', voice: 'woman', at: SIDES, dist: 'far', when: DAYTIME, reply: [
         { say: '都可以。', voice: 'man' },
         { say: '那吃麵。', voice: 'woman' },
         { say: '……麵喔？', voice: 'man' },
       ] },
-      { say: '我的氣球！', voice: 'child', at: BACK, dist: 'far', reply: { say: '……好啦，等一下再買一個。', voice: 'woman' } },
-      { say: '外送到了，你在哪？我在廣場這邊。', voice: 'man', at: SIDES, dist: 'far' },
+      { say: '我的氣球！', voice: 'child', at: BACK, dist: 'far', when: ['day', 'evening'], reply: { say: '……好啦，等一下再買一個。', voice: 'woman' } },
+      { say: '外送到了，你在哪？我在廣場這邊。', voice: 'man', at: SIDES, dist: 'far', when: ['day', 'evening', 'night'] },
+      { say: '早，又來運動喔？', voice: 'old_woman', at: SIDES, dist: 'far', when: AM, reply: { say: '走三圈就回去煮早餐。', voice: 'old_woman' } },
+      { say: '一、二、三、四——手再舉高一點——', voice: 'old_woman', at: ['front-left', 'left'], dist: 'far', when: AM, weather: 'dry' },
+      { say: '快點啦，早自習要遲到了！', voice: 'child', at: BACK, dist: 'far', when: AM, reply: { say: '等我，我鞋帶鬆了！', voice: 'child' } },
       { say: '少年仔，廟口往哪邊走？', voice: 'old_woman', at: SIDES, dist: 'mid', reply: { say: '直走，看到紅色屋頂就是了。', voice: 'man' } },
       { say: '爸爸，背我！', voice: 'child', at: BACK, dist: 'mid', reply: [
         { say: '你都幾歲了還要背。', voice: 'man' },
         { say: '六歲。', voice: 'child' },
         { say: '……好啦，上來。', voice: 'man' },
       ] },
-      { say: '下午要不要去海邊看人家釣魚？', voice: 'old_man', at: ['left', 'right'], dist: 'far', reply: { say: '你自己去，我要睡午覺。', voice: 'old_woman' } },
+      { say: '下午要不要去海邊看人家釣魚？', voice: 'old_man', at: ['left', 'right'], dist: 'far', when: DAYTIME, reply: { say: '你自己去，我要睡午覺。', voice: 'old_woman' } },
     ],
   },
   tower_square_night: {
@@ -733,9 +769,79 @@ export const HUSH_MS = 16000;
 
 const SCENE_EVERY: [number, number] = [4, 8];
 
-/** The ambience's life plus whatever this one scene adds. */
-export function lifeOf(ambience: readonly AmbienceId[], scene?: readonly LifeEvent[]): Life | null {
-  const layers = ambience.map((id) => LIFE[id]).filter((life): life is Life => Boolean(life));
+/** Where she is in the day, from a clock like "18:20" or "10月4日 07:10"; undefined when it says no time ("五年前"). */
+export function daypartOf(clock: string | undefined): Daypart | undefined {
+  const m = clock?.match(/(\d{1,2}):(\d{2})(?!.*\d{1,2}:\d{2})/);
+  if (!m) return undefined;
+  const minutes = Number(m[1]) * 60 + Number(m[2]);
+  if (minutes >= 5 * 60 && minutes < 11 * 60) return 'morning';
+  if (minutes >= 11 * 60 && minutes < 16 * 60 + 30) return 'day';
+  if (minutes >= 16 * 60 + 30 && minutes < 20 * 60) return 'evening';
+  if (minutes >= 20 * 60 && minutes < 23 * 60) return 'night';
+  return 'late';
+}
+
+/** Beds that mean it is raining where she is. */
+const WET: ReadonlySet<AmbienceId> = new Set<AmbienceId>(['rain', 'rain_on_window']);
+
+const cueCache = new WeakMap<object, ReadonlySet<SfxId>>();
+/**
+ * Every sound a scene plays on purpose (its sfx and cue beats, interactions, threads): a stranger in the background
+ * never makes one of them, or the player could not tell the story's cough from a passenger's.
+ */
+export function scriptedSfx(scene: Pick<Scene, 'beats' | 'threads'>): ReadonlySet<SfxId> {
+  const cached = cueCache.get(scene);
+  if (cached) return cached;
+  const out = new Set<SfxId>();
+  const visit = (beats: readonly Beat[]): void => {
+    for (const beat of beats) {
+      switch (beat.k) {
+        case 'sfx': out.add(beat.id); break;
+        case 'cue': if (beat.sfx) out.add(beat.sfx); break;
+        case 'locate': out.add(beat.sfx); for (const decoy of beat.decoys) out.add(decoy.sfx); visit(beat.success); visit(beat.fail); break;
+        case 'hold': if (beat.sfx) out.add(beat.sfx); visit(beat.success); visit(beat.fail); break;
+        case 'approach': out.add(beat.sfx); visit(beat.hit); visit(beat.early); visit(beat.late); break;
+        case 'if': visit(beat.then); visit(beat.else); break;
+        case 'choice':
+          for (const option of beat.options) {
+            visit(option.then);
+            for (const entry of option.recall?.accept ?? []) visit(entry.then);
+            if (option.recall) visit(option.recall.miss);
+          }
+          break;
+        default: break;
+      }
+    }
+  };
+  visit(scene.beats);
+  for (const beats of Object.values(scene.threads)) visit(beats);
+  cueCache.set(scene, out);
+  return out;
+}
+
+/** Where and when she is, for choosing the place's life: the clock now, and the scene (its own story sounds stay its own). */
+export type LifeContext = { clock?: string; scene?: Pick<Scene, 'beats' | 'threads'> | null };
+
+/**
+ * The ambience's life plus whatever this one scene adds. With a context, the place's pool keeps only what fits
+ * the hour and the weather and never a sound the scene itself uses as a cue; the scene's own `life:` is
+ * written for it and always plays as written.
+ */
+export function lifeOf(ambience: readonly AmbienceId[], scene?: readonly LifeEvent[], context?: LifeContext): Life | null {
+  const part = daypartOf(context?.clock);
+  const wet = ambience.some((id) => WET.has(id));
+  const cues = context?.scene ? scriptedSfx(context.scene) : undefined;
+  const fits = (event: LifeEvent): boolean => {
+    if (event.weather === 'dry' && wet) return false;
+    if (event.weather === 'wet' && !wet) return false;
+    if (event.when && part && !event.when.includes(part)) return false;
+    return !(cues && !isVoice(event) && cues.has(event.sfx));
+  };
+  const layers = ambience
+    .map((id) => LIFE[id])
+    .filter((life): life is Life => Boolean(life))
+    .map((life) => (context ? { ...life, events: life.events.filter(fits) } : life))
+    .filter((life) => life.events.length > 0);
   if (scene?.length) layers.push({ every: SCENE_EVERY, events: [...scene, ...scene] }); // the scene's own sounds come up more often
   if (!layers.length) return null;
   return {

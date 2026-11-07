@@ -2,8 +2,11 @@ import type { AmbienceId, SfxId } from '../audio/catalog';
 import type { Beat, GameScript, Scene } from '../script/types';
 import { isVoice, lifeOf } from './life';
 
-/** `now`: what this scene's own story plays; `soon`: its background life and the scenes after it. */
-export type SceneSounds = { now: SfxId[]; soon: SfxId[]; amb: AmbienceId[] };
+/**
+ * `now`: what this scene's own story plays; `soon`: its background life and the scenes after it; `amb`: every bed
+ * here and next, `ambNow`: this scene's own (the ones it opens with first); `phone`: the lines her phone reads out, here and next.
+ */
+export type SceneSounds = { now: SfxId[]; soon: SfxId[]; amb: AmbienceId[]; ambNow: AmbienceId[]; phone: string[] };
 
 /**
  * Every recording a scene can play (its cues, interactions, beds and background life) and the scenes it can
@@ -13,13 +16,16 @@ export function soundsAround(script: GameScript, sceneId: string): SceneSounds {
   const now = new Set<SfxId>();
   const soon = new Set<SfxId>();
   const amb = new Set<AmbienceId>();
+  const ambNow = new Set<AmbienceId>();
+  const phone = new Set<string>();
   const next = new Set<string>();
   const visit = (beats: readonly Beat[], into: { sfx: Set<SfxId>; amb: Set<AmbienceId> }, follow: boolean): void => {
     for (const beat of beats) {
       switch (beat.k) {
         case 'sfx': into.sfx.add(beat.id); break;
+        case 'line': if (beat.kind === 'phone') phone.add(beat.text); break;
         case 'cue': if (beat.sfx) into.sfx.add(beat.sfx); break;
-        case 'amb': for (const id of beat.ids) into.amb.add(id); break;
+        case 'amb': for (const id of beat.ids) { into.amb.add(id); amb.add(id); } break;
         case 'heart': into.sfx.add('heartbeat'); break;
         case 'noise': for (const event of beat.with ?? []) if (!isVoice(event)) into.sfx.add(event.sfx); break;
         case 'locate':
@@ -47,8 +53,8 @@ export function soundsAround(script: GameScript, sceneId: string): SceneSounds {
     }
   };
   const add = (scene: Scene, follow: boolean): void => {
-    const into = { sfx: follow ? now : soon, amb };
-    for (const id of scene.ambience ?? []) amb.add(id);
+    const into = { sfx: follow ? now : soon, amb: follow ? ambNow : amb };
+    for (const id of scene.ambience ?? []) { into.amb.add(id); amb.add(id); }
     visit(scene.beats, into, follow);
     for (const beats of Object.values(scene.threads)) visit(beats, into, follow);
     const life = lifeOf(scene.ambience ?? [], Array.isArray(scene.life) ? scene.life : undefined);
@@ -56,11 +62,11 @@ export function soundsAround(script: GameScript, sceneId: string): SceneSounds {
     if (follow && scene.next) next.add(scene.next);
   };
   const scene = script.scenes.get(sceneId);
-  if (!scene) return { now: [], soon: [], amb: [] };
+  if (!scene) return { now: [], soon: [], amb: [], ambNow: [], phone: [] };
   add(scene, true);
   for (const id of next) {
     const later = script.scenes.get(id);
     if (later && later !== scene) add(later, false);
   }
-  return { now: [...now], soon: [...soon].filter((id) => !now.has(id)), amb: [...amb] };
+  return { now: [...now], soon: [...soon].filter((id) => !now.has(id)), amb: [...amb], ambNow: [...ambNow], phone: [...phone] };
 }

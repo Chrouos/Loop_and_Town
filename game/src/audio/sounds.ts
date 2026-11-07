@@ -684,6 +684,23 @@ const BASE_SFX_RECIPES: Record<Exclude<SfxId, AmbientEventId | keyof typeof LIFE
   bike_squeak: alike('mouse_squeak', 0.55),
   scooter_start: alike('boat_engine', 1.8),
   drain_cover: alike('box_close', 0.45),
+  pant: alike('breath', 1.25),
+  gasp: alike('breath', 1.4),
+  cane_drop: alike('cane_tap', 0.85),
+  metal_hit: alike('tools_clink', 0.55),
+  bag_drop: alike('thud', 1.4),
+  zipper: alike('cloth_rustle', 1.6),
+  car_door: alike('door_close', 0.8),
+  lighter_open: {
+    play(c) {
+      // the lid flicked open: the click and its ringing ting, no close, no wheel
+      const t = c.t;
+      const parts: Part[] = [[1, 1, 0.12], [2.4, 0.5, 0.06], [3.9, 0.3, 0.03]];
+      const e1 = click(c, c.out, t, 6000, 0.1, 1, 0.004);
+      const e2 = modal(c, c.out, t, vary(3100, 0.05) * c.p, parts, 0.05);
+      return endOf(c, e1, e2);
+    },
+  },
   // each person's own sound (docs/story.md §1.2)
   step_uneven: {
     play(c) {
@@ -1985,28 +2002,6 @@ const BASE_SFX_RECIPES: Record<Exclude<SfxId, AmbientEventId | keyof typeof LIFE
       return endOf(c, e1, e2);
     },
   },
-  title_tone: {
-    jitter: 0.003,
-    play(c) {
-      const t = c.t;
-      const dur = 10;
-      const env: Pts = [[0, 0], [3, 1], [5, 0.8], [dur, 0]];
-      const filt = c.g.filter('lowpass', 600, 0.7);
-      c.g.lfo(filt.frequency, 0.15, 120, t, t + dur);
-      const out = shaped(c, wetDry(c, 0.5), t, env.map(([a, b]) => [a, b * 0.12] as const));
-      filt.connect(out);
-      const tones: Array<readonly [OscillatorType, number, number]> = [
-        ['sine', 55, 1],
-        ['sine', 55.15, 0.6],
-        ['sine', 82.4, 0.5],
-        ['sine', 110, 0.35],
-        ['triangle', 110.4, 0.15],
-      ];
-      for (const [type, f, a] of tones) c.g.osc(type, f * c.p, t, t + dur).connect(c.g.gain(a)).connect(filt);
-      nshape(c, out, t, { kind: 'pink', type: 'lowpass', f: 400, pts: [[0, 0.25], [dur, 0.25]] });
-      return dur + 0.05;
-    },
-  },
 };
 
 function bell(c: SfxCtx, o: { prime: number; level: number; cutoff: number; wet: number; att: number; maxRatio: number }): number {
@@ -2398,14 +2393,16 @@ const ALIKE: Partial<Record<SfxId, [SfxId, number]>> = {
   cane_scrape: ['chair_scrape', 0.7], gravel_step: ['step_wet', 1], cup_scrape: ['chair_scrape', 0.7], nail_scratch: ['pen_scratch', 1],
   suitcase_roll: ['cart_roll', 1], phone_on_glass: ['cup_set', 1], cough_w: ['cough', 1], bike_squeak: ['mouse_squeak', 0.7],
   scooter_start: ['boat_engine', 0.8], drain_cover: ['box_close', 1],
+  pant: ['breath', 1], gasp: ['breath', 1], cane_drop: ['cane_tap', 1], metal_hit: ['tools_clink', 1], bag_drop: ['thud', 1],
+  zipper: ['cloth_rustle', 1], car_door: ['door_close', 1], lighter_open: ['lighter_lid', 1],
 };
 for (const [id, [from, v]] of Object.entries(ALIKE) as Array<[SfxId, [SfxId, number]]>) SFX_RECIPES[id].level = (SFX_RECIPES[from].level ?? 1) * v;
 
 /** Human effects allow both recordings and synthesis, including immediate synthesis while recordings load. */
 export const HUMAN_SFX: ReadonlySet<SfxId> = new Set<SfxId>([
   'gasp_crowd', 'cough', 'sigh', 'sigh_m', 'breath', 'breath_m', 'laugh_soft', 'laugh_soft_m', 'laugh_soft_adult', 'laugh_soft_adult_m', 'kid_laugh', 'choice_appear',
-  'murmur_w', 'murmur_m', 'murmur_old', 'murmur_child', 'whisper', 'crowd_walla', 'cough_w',
+  'murmur_w', 'murmur_m', 'murmur_old', 'murmur_child', 'whisper', 'crowd_walla', 'cough_w', 'pant', 'gasp',
 ]);
 
 /** Sounds that belong to the "interface" (they bypass the attention muffle). */
-export const UI_SFX: ReadonlySet<SfxId> = new Set<SfxId>(['memory_keep', 'focus_shift', 'choice_appear', 'title_tone']);
+export const UI_SFX: ReadonlySet<SfxId> = new Set<SfxId>(['memory_keep', 'focus_shift', 'choice_appear']);

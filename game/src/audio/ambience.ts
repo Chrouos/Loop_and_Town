@@ -56,6 +56,8 @@ export interface AmbienceEnv {
   wide(o: BedOpts, spread?: number): Bed[];
   /** Static HRTF point source in the layer; connect a sound to the returned node. */
   point(angle: number, r: number, sendScale?: number): AudioNode;
+  /** The angle of a fixed source in this place (see AMBIENCE_LANDMARKS): where the scene put it, else its default. */
+  landmark(name: string): number;
   pan(p: number): AudioNode;
   lfo(param: AudioParam, hz: number, depth: number): void;
   /** Random walk: glide the param to a new random value every minS..maxS seconds. */
@@ -99,6 +101,7 @@ class Env implements AmbienceEnv {
     private readonly resolver: SoundResolver | null = null,
     /** Multiplies every event's gain (sample layers run their events at the synth recipe's level). */
     private readonly eventGain = 1,
+    private readonly landmarks: Readonly<Record<string, number>> = {},
   ) {
     this.g = new Graph(ac);
     this.t0 = ac.currentTime + 0.02;
@@ -132,6 +135,10 @@ class Env implements AmbienceEnv {
 
   point(angle: number, r: number, sendScale = 1): AudioNode {
     return spatialize(this.g, { angle, r }, this.out, this.reverb, { sendScale }).input;
+  }
+
+  landmark(name: string): number {
+    return this.landmarks[name] ?? 0;
   }
 
   pan(p: number): AudioNode {
@@ -400,6 +407,35 @@ function stationPa(e: AmbienceEnv, t: number, angle: number): void {
 
 // ================================================================ recipes
 
+/**
+ * Fixed sources inside a place, by name: the angle (degrees clockwise from front) they sit at unless a scene moves
+ * them (`ambience: [{ id: tower_square_night, at: { tower: front-left } }]`), so the bed agrees with where the scene
+ * says things are. null: a new random side each time the place starts (the building site somewhere in town).
+ */
+export const AMBIENCE_LANDMARKS: Partial<Record<AmbienceId, Readonly<Record<string, number | null>>>> = {
+  tower_square_night: { tower: 0 },
+  cafe: { counter: 150 },
+  restaurant: { kitchen: 210, hood: 180 },
+  house_night: { fridge: 250 },
+  police_office: { fan: 45, clock: 330 },
+  clock_shop: { bench: 0 },
+  platform: { track: 90 },
+  construction_far: { site: null },
+  tv_murmur: { tv: 225 },
+};
+
+/** Recorded beds that come from one spot in the room (the TV on the wall), not from all around her. */
+const BED_SOURCE: Partial<Record<AmbienceId, { landmark: string; r: number }>> = {
+  tv_murmur: { landmark: 'tv', r: 3 },
+};
+
+/** A place's landmark angles: its defaults, with the scene's `at` (degrees) on top. */
+export function landmarkAngles(id: AmbienceId, at?: Readonly<Record<string, number>>): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const [name, angle] of Object.entries(AMBIENCE_LANDMARKS[id] ?? {})) out[name] = at?.[name] ?? angle ?? rand(0, 360);
+  return out;
+}
+
 export const AMBIENCE_RECIPES: Record<AmbienceId, AmbienceRecipe> = {
   train_interior: {
     level: 0.8,
@@ -436,7 +472,7 @@ export const AMBIENCE_RECIPES: Record<AmbienceId, AmbienceRecipe> = {
       e.bed({ kind: 'white', filters: [['highpass', 5000]], gain: 0.004, pan: -0.4 });
       e.every(7, 16, (t) => walk(e, t));
       e.every(45, 100, (t) => stationPa(e, t, rand(-60, 60)), rand(8, 25));
-      e.every(90, 180, (t) => e.shot('train_horn', rand(40, 140), 6, { t, gain: 0.45 }), rand(30, 90));
+      e.every(90, 180, (t) => e.shot('train_horn', e.landmark('track') + rand(-50, 50), 6, { t, gain: 0.45 }), rand(30, 90));
       e.every(12, 30, (t) => e.shot('bird_chirp', anyAngle(), 6, { t, gain: 0.7 }));
       e.every(12, 25, (t) => e.shot('wind_gust', anyAngle(), 6, { t, gain: 0.4 }));
       e.every(30, 60, (t) => e.shot('crow', anyAngle(), 6, { t, gain: 0.5 }), rand(10, 40));
@@ -499,7 +535,7 @@ export const AMBIENCE_RECIPES: Record<AmbienceId, AmbienceRecipe> = {
     level: 1.0,
     build(e) {
       e.bed({ kind: 'brown', filters: [['lowpass', 120]], gain: 0.1 });
-      const site = rand(0, 360);
+      const site = e.landmark('site');
       const engine = e.g.osc('sawtooth', 45, e.t0);
       const lp = e.g.filter('lowpass', 180, 0.7);
       engine.connect(lp).connect(e.g.gain(0.02)).connect(e.point(site, 6));
@@ -528,7 +564,7 @@ export const AMBIENCE_RECIPES: Record<AmbienceId, AmbienceRecipe> = {
     build(e) {
       e.wide({ kind: 'pink', filters: [['lowpass', 200]], gain: 0.04 }, 0.6);
       // the fridge in the next room
-      const fridge = e.point(250, 2.5);
+      const fridge = e.point(e.landmark('fridge'), 2.5);
       const hum = e.g.osc('sawtooth', 59.8, e.t0);
       const fg = e.g.gain(0.03);
       hum.connect(e.g.filter('lowpass', 220, 0.7)).connect(fg).connect(fridge);
@@ -536,7 +572,7 @@ export const AMBIENCE_RECIPES: Record<AmbienceId, AmbienceRecipe> = {
       e.drift(fg.gain, 0.018, 0.034, 8, 20);
       const comp = e.g.noise('pink', e.t0);
       comp.connect(e.g.filter('bandpass', 300, 4)).connect(e.g.gain(0.006)).connect(fridge);
-      e.every(60, 140, (t) => e.shot('fridge_click', 250, 2.5, { t, gain: 0.5 }), rand(20, 60));
+      e.every(60, 140, (t) => e.shot('fridge_click', e.landmark('fridge'), 2.5, { t, gain: 0.5 }), rand(20, 60));
       crickets(e, [[60, 6, 4300, 0.07], [95, 6, 4700, 0.06], [125, 6, 4500, 0.06]], 3000);
       e.every(6, 15, (t) => e.shot('house_tick', anyAngle(), pick([1.6, 2.5, 4]), { t, gain: 0.5 }));
       e.every(15, 35, (t) => e.shot('wood_creak', anyAngle(), 2.5, { t, gain: 0.5 }));
@@ -564,7 +600,7 @@ export const AMBIENCE_RECIPES: Record<AmbienceId, AmbienceRecipe> = {
         loopInto(e, buf, e.point(angle, r), lv, vary(1, 0.004), e.t0 + rand(0, 1));
       });
       e.every(50, 110, (t) => e.shot('clock_chime', anyAngle(), 3, { t, gain: 0.45 }), rand(15, 50));
-      e.every(25, 60, (t) => e.shot('tools_clink', pick([0, 330, 30]), 1.4, { t, gain: 0.25 }));
+      e.every(25, 60, (t) => e.shot('tools_clink', e.landmark('bench') + pick([0, -30, 30]), 1.4, { t, gain: 0.25 }));
     },
   },
   cafe: {
@@ -572,7 +608,7 @@ export const AMBIENCE_RECIPES: Record<AmbienceId, AmbienceRecipe> = {
     build(e) {
       e.space('cafe', 1.1, { brightness: 0.45, damping: 2, level: 0.45 });
       e.wide({ kind: 'pink', filters: [['lowpass', 500]], gain: 0.025, send: 0.3 }, 0.8);
-      const counter = 150;
+      const counter = e.landmark('counter');
       e.every(3, 9, (t) => e.shot('cup_set', anyAngle(), pick([2.5, 4, 6]), { t, gain: rand(0.4, 0.7) }));
       e.every(12, 30, (t) => e.shot('spoon_stir', anyAngle(), pick([2.5, 4]), { t, gain: 0.45 }));
       e.every(20, 40, (t) => e.shot('glass_clink', anyAngle(), 4, { t, gain: 0.35 }));
@@ -606,13 +642,13 @@ export const AMBIENCE_RECIPES: Record<AmbienceId, AmbienceRecipe> = {
       e.space('office', 0.9, { brightness: 0.5, damping: 2, level: 0.4 });
       e.wide({ kind: 'pink', filters: [['lowpass', 400]], gain: 0.03 }, 0.7);
       // desk fan, front-right
-      const fan = e.point(45, 1.6);
+      const fan = e.point(e.landmark('fan'), 1.6);
       const air = e.g.noise('pink', e.t0);
       const am = e.g.gain(0.08);
       air.connect(e.g.filter('bandpass', 700, 0.8)).connect(am).connect(fan);
       e.g.lfo(am.gain, 6.5, 0.025, e.t0);
       e.g.osc('sawtooth', 100, e.t0).connect(e.g.filter('lowpass', 200, 0.7)).connect(e.g.gain(0.006)).connect(fan);
-      loopInto(e, clockBuffer(e.ac, 'office', 1, 1300, 0.3, 77), e.point(330, 3), 0.12);
+      loopInto(e, clockBuffer(e.ac, 'office', 1, 1300, 0.3, 77), e.point(e.landmark('clock'), 3), 0.12);
       e.every(8, 20, (t) => e.shot('typing', pick([60, 120, 300]), pick([2.5, 6]), { t, gain: 0.5 }));
       e.every(40, 90, (t) => e.shot('phone_ring', anyAngle(), 6, { t, gain: 0.45 }), rand(15, 50));
       e.every(10, 25, (t) => e.shot('paper_rustle', anyAngle(), 2.5, { t, gain: 0.4 }));
@@ -650,25 +686,6 @@ export const AMBIENCE_RECIPES: Record<AmbienceId, AmbienceRecipe> = {
       e.every(20, 40, (t) => e.shot('wing_flutter', anyAngle(), 6, { t, gain: 0.5 }));
       e.every(30, 60, (t) => e.shot('metal_groan', anyAngle(), 6, { t, gain: 0.5 }), rand(10, 30));
       e.every(15, 30, (t) => e.shot('wind_gust', anyAngle(), 6, { t, gain: 0.45 }));
-    },
-  },
-  maintenance_tunnel: {
-    level: 1.6,
-    build(e) {
-      e.space('tunnel', 1.6, { brightness: 0.6, damping: 1.6, early: 14, earlySpread: 0.025, level: 0.6 });
-      // transformer hum on both walls, very slightly detuned so it beats slowly
-      for (const [angle, f] of [[270, 50], [90, 50.3]] as const) {
-        const dest = e.point(angle, 1.2, 0.5);
-        e.g.osc('sawtooth', f, e.t0).connect(e.g.filter('lowpass', 300, 0.8)).connect(e.g.gain(0.04)).connect(dest);
-        e.g.osc('sine', f * 2, e.t0).connect(e.g.gain(0.01)).connect(dest);
-      }
-      e.wide({ kind: 'pink', filters: [['bandpass', 260, 1.5]], gain: 0.08, send: 0.3 }, 0.6);
-      e.bed({ kind: 'white', filters: [['highpass', 3000]], gain: 0.003 });
-      const tube = e.g.osc('square', 120, e.t0);
-      tube.connect(e.g.filter('bandpass', 2400, 0.9)).connect(e.g.gain(0.0015)).connect(e.point(0, 2));
-      e.every(1.5, 4, (t) => e.shot(pick<Sound>(['drip', 'drip_metal']), pick([10, 170, 190, 350]) + rand(-15, 15), pick([1.6, 2.5, 4]), { t, gain: rand(0.5, 0.9) }));
-      e.every(15, 35, (t) => e.shot('pipe_knock', pick([0, 180]) + rand(-20, 20), 6, { t, gain: 0.5 }));
-      e.every(30, 70, (t) => e.shot('relay_click', anyAngle(), 4, { t, gain: 0.3 }));
     },
   },
   research_facility: {
@@ -736,6 +753,33 @@ export const AMBIENCE_RECIPES: Record<AmbienceId, AmbienceRecipe> = {
       e.every(90, 200, (t) => e.shot('thunder_far', anyAngle(), 6, { t, gain: 0.4, rate: 0.9 }), rand(30, 90));
     },
   },
+  // The diner's TV up on the wall: a programme's voices and music through a small speaker, never a word she can follow.
+  tv_murmur: {
+    level: 1,
+    build(e) {
+      const tv = e.point(e.landmark('tv'), 3);
+      const talk = e.g.gain(0.012);
+      e.g.noise('pink', e.t0).connect(e.g.filter('bandpass', 700, 0.8)).connect(e.g.filter('lowpass', 2200, 0.7)).connect(talk).connect(tv);
+      e.drift(talk.gain, 0.002, 0.03, 0.12, 0.35);
+      const tone = e.g.gain(0.004);
+      e.g.osc('triangle', 220, e.t0).connect(e.g.filter('lowpass', 900, 0.7)).connect(tone).connect(tv);
+      e.drift(tone.gain, 0, 0.006, 1.5, 4);
+    },
+  },
+  // Inside a parked car in the rain: drumming on the roof right overhead, the windscreen in front.
+  rain_in_car: {
+    level: 1.3,
+    build(e) {
+      e.wide({ kind: 'pink', filters: [['lowpass', 1100]], gain: 0.07 }, 0.5);
+      e.bed({ kind: 'brown', filters: [['lowpass', 140]], gain: 0.05 });
+      ([[0, 8.3], [180, 9.7]] as const).forEach(([a, seconds], i) => {
+        const hp = e.g.filter('highpass', 900, 0.7);
+        hp.connect(e.point(a, 0.8));
+        loopInto(e, rainBuffer(e.ac, 71 + i, seconds, RAIN_GLASS), hp, 0.5, vary(1, 0.02));
+      });
+      e.every(0.3, 1.2, (t) => e.shot('rain_tap_glass', rand(-40, 40), 1.1, { t, gain: rand(0.2, 0.45) }));
+    },
+  },
   sea_far: {
     level: 1.6,
     build(e) {
@@ -783,14 +827,14 @@ export const AMBIENCE_RECIPES: Record<AmbienceId, AmbienceRecipe> = {
     level: 2.8,
     build(e) {
       e.space('restaurant', 0.9, { brightness: 0.5, damping: 2, level: 0.4 });
-      const kitchen = e.point(210, 2.5);
+      const kitchen = e.point(e.landmark('kitchen'), 2.5);
       const sizzle = e.g.buffer(crackleBuffer(e.ac), e.t0, { loop: true, rate: 1 });
       const sg = e.g.gain(0.3);
       sizzle.connect(e.g.filter('highpass', 2500, 0.7)).connect(sg).connect(kitchen);
       e.drift(sg.gain, 0.15, 0.4, 2, 6);
       e.g.noise('white', e.t0).connect(e.g.filter('highpass', 4000, 0.7)).connect(e.g.gain(0.015)).connect(kitchen);
-      e.every(10, 25, (t) => e.shot('wok', 210 + rand(-10, 10), 2.5, { t, gain: 0.6 }));
-      const fan = e.point(180, 3);
+      e.every(10, 25, (t) => e.shot('wok', e.landmark('kitchen') + rand(-10, 10), 2.5, { t, gain: 0.6 }));
+      const fan = e.point(e.landmark('hood'), 3);
       e.g.noise('brown', e.t0).connect(e.g.filter('lowpass', 200, 0.7)).connect(e.g.gain(0.1)).connect(fan);
       e.g.noise('pink', e.t0).connect(e.g.filter('bandpass', 400, 1)).connect(e.g.gain(0.05)).connect(fan);
       e.every(3, 8, (t) => e.shot('cup_set', anyAngle(), pick([2.5, 4]), { t, gain: 0.45, rate: 0.8 }));
@@ -814,7 +858,7 @@ export const AMBIENCE_RECIPES: Record<AmbienceId, AmbienceRecipe> = {
       e.every(15, 40, (t) => e.shot('car_pass', anyAngle(), 6, { t, gain: 0.4 }));
       crickets(e, [[250, 6, 4500, 0.03], [290, 6, 4800, 0.025]]);
       e.every(60, 140, (t) => e.shot('dog_bark', anyAngle(), 6, { t, gain: 0.25 }), rand(20, 60));
-      e.every(30, 70, (t) => e.shot('tower_groan', 0, 6, { t, gain: 0.5 }), rand(10, 30));
+      e.every(30, 70, (t) => e.shot('tower_groan', e.landmark('tower'), 6, { t, gain: 0.5 }), rand(10, 30));
       e.every(25, 60, (t) => walk(e, t, { r: 6, gain: 0.4 }));
     },
   },
@@ -838,7 +882,7 @@ export const SAMPLE_EXTRAS: Partial<Record<AmbienceId, AmbienceRecipe>> = {
   platform: events((e) => {
     e.every(9, 20, (t) => walk(e, t));
     e.every(45, 100, (t) => stationPa(e, t, rand(-60, 60)), rand(8, 25));
-    e.every(90, 180, (t) => e.shot('train_horn', rand(40, 140), 6, { t, gain: 0.45 }), rand(30, 90));
+    e.every(90, 180, (t) => e.shot('train_horn', e.landmark('track') + rand(-50, 50), 6, { t, gain: 0.45 }), rand(30, 90));
     e.every(15, 35, (t) => e.shot('bird_chirp', anyAngle(), 6, { t, gain: 0.6 }));
     e.every(20, 40, (t) => e.shot('wind_gust', anyAngle(), 6, { t, gain: 0.35 }));
     e.every(40, 80, (t) => e.shot('crow', anyAngle(), 6, { t, gain: 0.45 }), rand(10, 40));
@@ -866,7 +910,7 @@ export const SAMPLE_EXTRAS: Partial<Record<AmbienceId, AmbienceRecipe>> = {
     e.every(7, 15, (t) => walk(e, t, { r: rand(2.5, 6) }));
   }),
   construction_far: events((e) => {
-    const site = rand(0, 360);
+    const site = e.landmark('site');
     e.every(14, 30, (t) => e.shot('construction_drill', site + rand(-20, 20), 6, { t, gain: 0.6 }));
     e.every(50, 110, (t) => e.shot('truck_reverse', site + rand(-30, 30), 6, { t, gain: 0.45 }), rand(10, 40));
   }),
@@ -875,18 +919,18 @@ export const SAMPLE_EXTRAS: Partial<Record<AmbienceId, AmbienceRecipe>> = {
     e.every(5, 14, (t) => e.shot('house_tick', anyAngle(), pick([1.6, 2.5, 4]), { t, gain: rand(0.35, 0.7) }));
   }),
   house_night: events((e) => {
-    e.every(60, 140, (t) => e.shot('fridge_click', 250, 2.5, { t, gain: 0.5 }), rand(20, 60));
+    e.every(60, 140, (t) => e.shot('fridge_click', e.landmark('fridge'), 2.5, { t, gain: 0.5 }), rand(20, 60));
     e.every(7, 16, (t) => e.shot('house_tick', anyAngle(), pick([1.6, 2.5, 4]), { t, gain: 0.45 }));
     e.every(18, 40, (t) => e.shot('wood_creak', anyAngle(), 2.5, { t, gain: 0.45 }));
     e.every(45, 90, (t) => e.shot('car_pass', pick([60, 120]), 6, { t, gain: 0.22, rate: 0.9 }));
   }),
   clock_shop: events((e) => {
     e.every(50, 110, (t) => e.shot('clock_chime', anyAngle(), 3, { t, gain: 0.45 }), rand(15, 50));
-    e.every(25, 60, (t) => e.shot('tools_clink', pick([0, 330, 30]), 1.4, { t, gain: 0.25 }));
+    e.every(25, 60, (t) => e.shot('tools_clink', e.landmark('bench') + pick([0, -30, 30]), 1.4, { t, gain: 0.25 }));
   }),
   cafe: events((e) => {
     e.space('cafe', 1.1, { brightness: 0.45, damping: 2, level: 0.45 });
-    const counter = 150;
+    const counter = e.landmark('counter');
     e.every(6, 16, (t) => e.shot('cup_set', anyAngle(), pick([2.5, 4, 6]), { t, gain: rand(0.35, 0.6) }));
     e.every(20, 45, (t) => e.shot('spoon_stir', anyAngle(), pick([2.5, 4]), { t, gain: 0.4 }));
     e.every(40, 80, (t) => e.shot('steam_hiss', counter, 3, { t, gain: 0.5 }), rand(5, 25));
@@ -904,7 +948,7 @@ export const SAMPLE_EXTRAS: Partial<Record<AmbienceId, AmbienceRecipe>> = {
   }),
   police_office: events((e) => {
     e.space('office', 0.9, { brightness: 0.5, damping: 2, level: 0.4 });
-    loopInto(e, clockBuffer(e.ac, 'office', 1, 1300, 0.3, 77), e.point(330, 3), 0.12 * AMBIENCE_RECIPES.police_office.level);
+    loopInto(e, clockBuffer(e.ac, 'office', 1, 1300, 0.3, 77), e.point(e.landmark('clock'), 3), 0.12 * AMBIENCE_RECIPES.police_office.level);
     e.every(8, 20, (t) => e.shot('typing', pick([60, 120, 300]), pick([2.5, 6]), { t, gain: 0.5 }));
     e.every(40, 90, (t) => e.shot('phone_ring', anyAngle(), 6, { t, gain: 0.45 }), rand(15, 50));
     e.every(10, 25, (t) => e.shot('paper_rustle', anyAngle(), 2.5, { t, gain: 0.4 }));
@@ -917,12 +961,6 @@ export const SAMPLE_EXTRAS: Partial<Record<AmbienceId, AmbienceRecipe>> = {
     e.every(20, 40, (t) => e.shot('wing_flutter', anyAngle(), 6, { t, gain: 0.5 }));
     e.every(30, 60, (t) => e.shot('metal_groan', anyAngle(), 6, { t, gain: 0.5 }), rand(10, 30));
     e.every(18, 36, (t) => e.shot('wind_gust', anyAngle(), 6, { t, gain: 0.4 }));
-  }),
-  maintenance_tunnel: events((e) => {
-    e.space('tunnel', 1.6, { brightness: 0.6, damping: 1.6, early: 14, earlySpread: 0.025, level: 0.6 });
-    e.every(1.5, 4, (t) => e.shot(pick<Sound>(['drip', 'drip_metal']), pick([10, 170, 190, 350]) + rand(-15, 15), pick([1.6, 2.5, 4]), { t, gain: rand(0.5, 0.9) }));
-    e.every(15, 35, (t) => e.shot('pipe_knock', pick([0, 180]) + rand(-20, 20), 6, { t, gain: 0.5 }));
-    e.every(30, 70, (t) => e.shot('relay_click', anyAngle(), 4, { t, gain: 0.3 }));
   }),
   research_facility: events((e) => {
     e.space('lab', 1.2, { brightness: 0.5, damping: 1.8, level: 0.4 });
@@ -941,14 +979,14 @@ export const SAMPLE_EXTRAS: Partial<Record<AmbienceId, AmbienceRecipe>> = {
   }),
   restaurant: events((e) => {
     e.space('restaurant', 0.9, { brightness: 0.5, damping: 2, level: 0.4 });
-    e.every(12, 28, (t) => e.shot('wok', 210 + rand(-10, 10), 2.5, { t, gain: 0.55 }));
+    e.every(12, 28, (t) => e.shot('wok', e.landmark('kitchen') + rand(-10, 10), 2.5, { t, gain: 0.55 }));
     e.every(5, 12, (t) => e.shot('chopsticks', anyAngle(), pick([1.6, 2.5]), { t, gain: 0.45 }));
     e.every(6, 14, (t) => e.shot('cup_set', anyAngle(), pick([2.5, 4]), { t, gain: 0.4, rate: 0.8 }));
   }),
   tower_square_night: events((e) => {
     e.every(18, 45, (t) => e.shot('car_pass', anyAngle(), 6, { t, gain: 0.35 }));
     e.every(60, 140, (t) => e.shot('dog_bark', anyAngle(), 6, { t, gain: 0.25 }), rand(20, 60));
-    e.every(30, 70, (t) => e.shot('tower_groan', 0, 6, { t, gain: 0.5 }), rand(10, 30));
+    e.every(30, 70, (t) => e.shot('tower_groan', e.landmark('tower'), 6, { t, gain: 0.5 }), rand(10, 30));
     e.every(25, 60, (t) => walk(e, t, { r: 6, gain: 0.4 }));
   }),
 };
@@ -985,17 +1023,19 @@ export interface StartAmbienceOpts {
   bed?: SampleBed | null;
   /** Recorded samples for event sounds (both modes). */
   resolve?: SoundResolver | null;
+  /** Where this scene puts the place's landmarks (degrees by name; see AMBIENCE_LANDMARKS). */
+  at?: Readonly<Record<string, number>>;
 }
 
 /** A looping recorded bed into the layer, starting at a random point of the loop. */
-function playBed(e: Env, b: SampleBed): void {
+function playBed(e: Env, b: SampleBed, dest: AudioNode = e.out): void {
   const dur = b.buffer.duration;
   const start = clamp(b.loopStart, 0, Math.max(0, dur - 0.1));
   const end = clamp(b.loopEnd, start + 0.05, dur);
   const src = e.g.buffer(b.buffer, e.t0, { loop: true, offset: start + Math.random() * (end - start) * 0.98 });
   src.loopStart = start;
   src.loopEnd = end;
-  src.connect(e.g.gain(b.gain)).connect(e.out);
+  src.connect(e.g.gain(b.gain)).connect(dest);
 }
 
 export function startAmbience(
@@ -1014,7 +1054,8 @@ export function startAmbience(
     ? {
         level: 1,
         build(e) {
-          playBed(e as Env, bed);
+          const spot = BED_SOURCE[id];
+          playBed(e as Env, bed, spot ? e.point(e.landmark(spot.landmark), spot.r) : undefined);
           extras?.build(e);
         },
       }
@@ -1023,7 +1064,7 @@ export function startAmbience(
   out.gain.value = 0;
   out.connect(dest);
   // sample layers keep the synth recipe's level for their sparse events
-  const env = new Env(ac, out, reverb, opts.resolve ?? null, bed ? synth.level : 1);
+  const env = new Env(ac, out, reverb, opts.resolve ?? null, bed ? synth.level : 1, landmarkAngles(id, opts.at));
   try {
     recipe.build(env);
   } catch {

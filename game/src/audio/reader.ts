@@ -3,9 +3,13 @@
 // an alarm. Only Mandarin voices are used; with none on the device the phone stays at its tick.
 
 export interface ScreenReader {
-  /** Inside a user gesture: iOS only lets speech start after one. */
+  /** Inside a user gesture: iOS only lets speech start after one. Safe to call on every gesture (once is enough). */
   prime(): void;
-  speak(text: string, volume: number): void;
+  /**
+   * Read `text` at `volume` (0..1, already shaped by the sliders). Returns whether a voice took it; `onEnd` runs
+   * when it finishes, fails or is cut off.
+   */
+  speak(text: string, volume: number, onEnd?: () => void): boolean;
   setVolume(volume: number): void;
   stop(): void;
 }
@@ -36,6 +40,30 @@ export function readable(text: string): string {
   return text.replace(/\|/g, '').replace(/[「」『』]/g, '').trim();
 }
 
+type ReaderManifest = {
+  lines: Record<string, string>;
+  templates: readonly { before: string; after: string; clips: readonly [string, string] }[];
+  numbers: Record<number, string>;
+};
+
+/**
+ * The pre-rendered clips that read this line, in order (paths under public/audio/), or null when the line has none
+ * and the device's own voice has to read it. A line with a number in it is the words before, the number, the words after.
+ */
+export function readerClipsFor(text: string, manifest: ReaderManifest): string[] | null {
+  const words = readable(text);
+  if (!words) return null;
+  const whole = manifest.lines[words];
+  if (whole) return [whole];
+  for (const t of manifest.templates) {
+    if (!words.startsWith(t.before) || !words.endsWith(t.after) || words.length <= t.before.length + t.after.length) continue;
+    const middle = words.slice(t.before.length, words.length - t.after.length).trim();
+    const number = /^\d+$/.test(middle) ? manifest.numbers[Number(middle)] : undefined;
+    if (number) return [t.clips[0], number, t.clips[1]].filter((clip) => clip !== '');
+  }
+  return null;
+}
+
 export function createScreenReader(): ScreenReader {
   const s = synth();
   let voice: SpeechSynthesisVoice | null = null;
@@ -56,12 +84,13 @@ export function createScreenReader(): ScreenReader {
         s.speak(u);
       } catch { /* ignore */ }
     },
-    speak(text, volume) {
-      if (!s) return;
+    speak(text, volume, onEnd) {
+      if (!s) return false;
       if (!voice) findVoice();
-      if (!voice) return;
+      if (!voice) return false;
       const words = readable(text);
-      if (!words) return;
+      const level = Math.max(0, Math.min(1, Number.isFinite(volume) ? volume : 0));
+      if (!words || level <= 0) return false;
       try {
         s.cancel();
         const u = new SpeechSynthesisUtterance(words);
@@ -69,11 +98,22 @@ export function createScreenReader(): ScreenReader {
         u.lang = voice.lang;
         u.rate = RATE;
         u.pitch = 1;
-        u.volume = Math.max(0, Math.min(1, volume));
+        u.volume = level;
         current = u;
-        u.onend = () => { if (current === u) current = null; };
+        let ended = false;
+        const end = (): void => {
+          if (current === u) current = null;
+          if (ended) return;
+          ended = true;
+          onEnd?.();
+        };
+        u.onend = end;
+        u.onerror = end;
         s.speak(u);
-      } catch { /* a broken voice must never break the game */ }
+        return true;
+      } catch {
+        return false; // a broken voice must never break the game
+      }
     },
     setVolume(volume) {
       // An utterance cannot change volume once started; the next one picks it up.

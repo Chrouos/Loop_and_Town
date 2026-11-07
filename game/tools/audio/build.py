@@ -28,9 +28,23 @@ def sfx(id, variants, sources, gain=1.0, st=-20.0, peak=-3.0, note='', rate=None
     SFX[id] = dict(variants=variants, sources=sources, gain=gain, st=st, peak=peak, note=note, rate=rate, jitter=jitter, wet=wet, move=move, hp=hp, fin=fin, fout=fout, trim_db=trim_db, limit=limit)
 
 
-def amb(id, make, sources, rms=-34.0, note='', gain=1.0, extras=False, bitrate=96000, peak=-3.0, crest=None):
-    """make: callable returning a seamless stereo loop body (2, n)."""
-    AMB[id] = dict(make=make, sources=sources, rms=rms, note=note, gain=gain, extras=extras, bitrate=bitrate, peak=peak, crest=crest)
+def amb(id, make, sources, rms=-34.0, note='', gain=1.0, extras=False, bitrate=96000, peak=-3.0, crest=None, ch='stereo'):
+    """make: callable returning a seamless stereo loop body (2, n). ch='mono': a bed with no stereo image worth
+    keeping (L/R correlation >= 0.8) is stored as one channel, half the file and half the decoded memory."""
+    AMB[id] = dict(make=make, sources=sources, rms=rms, note=note, gain=gain, extras=extras, bitrate=bitrate, peak=peak, crest=crest, ch=ch)
+
+
+def mono_mix(x):
+    """Downmix to one channel. Channels recorded in opposite polarity (negative correlation) would cancel in a
+    plain (L+R)/2, so one is flipped first."""
+    if x.shape[0] == 1:
+        return x
+    l, r = x[0].astype(np.float64), x[1].astype(np.float64)
+    sign = -1.0 if np.dot(l, r) < 0 else 1.0
+    return ((l + sign * r) / 2)[None, :].astype(np.float32)
+
+
+MONO_BED_BITRATE = 64000
 
 
 def encode(wav, m4a, bitrate):
@@ -77,7 +91,7 @@ def build_sfx(id, s):
 
 def build_amb(id, a):
     body = a['make']().astype(np.float32)
-    body = proc.channel(body, 'stereo')
+    body = mono_mix(body) if a.get('ch') == 'mono' else proc.channel(body, 'stereo')
     body = proc.dc(body)
     if a['crest']:
         # tame transients to at most `crest` dB over the bed's RMS (soft knee)
@@ -89,7 +103,7 @@ def build_amb(id, a):
     wav = os.path.join(WORK, id + '.wav')
     ana.write(wav, x)
     m4a = os.path.join(PUB, 'amb', id + '.m4a')
-    encode(wav, m4a, a['bitrate'])
+    encode(wav, m4a, min(a['bitrate'], MONO_BED_BITRATE) if a.get('ch') == 'mono' else a['bitrate'])
     m = measure_m4a(m4a)
     m['bytes'] = os.path.getsize(m4a)
     m['file'] = 'amb/%s.m4a' % id
@@ -160,6 +174,8 @@ def write_manifest(rep):
         parts = ["files: ['%s']" % r['file'], 'gain: %s' % ts_num(a['gain']), 'loop: true', 'loopStart: %s' % ts_num(r['loopStart']), 'loopEnd: %s' % ts_num(r['loopEnd'])]
         if a['extras']:
             parts.append('extras: true')
+        if a.get('ch') == 'mono':
+            parts.append('mono: true')
         lines.append('  %s: { %s },' % (id, ', '.join(parts)))
     lines.append('};')
     p = os.path.join(GAME, 'src', 'audio', 'samples.ts')
@@ -181,6 +197,11 @@ def credit_line(sid, meta):
     return '%s by %s, %s' % (m['title'], m['user'], m['url'])
 
 
+def sources_with_licenses(sources, meta):
+    """Each source with its own license right after it (a CC0 source next to a CC BY one must not read as CC BY)."""
+    return '; '.join('"%s" by %s — %s — %s' % (meta[str(x)]['title'], meta[str(x)]['user'], meta[str(x)]['url'], license_of(meta[str(x)])) for x in sources)
+
+
 def write_credits(rep):
     meta = json.load(open(os.path.join(HERE, 'meta.json')))
     out = ['# Audio credits', '',
@@ -190,27 +211,25 @@ def write_credits(rep):
            'Sources are HQ previews unless a line says it was made from the original file.',
            'All files were trimmed / faded / level-normalized and re-encoded to AAC (.m4a); ambience beds were turned',
            'into seamless loops with a baked crossfade. Further processing is noted per line.', '',
-           'Format: `file` — id — "title" by author — source URL — license — processing.', '', '## One-shots (`sfx/`)', '']
+           'Format: `file` — id — "title" by author — source URL — license (per source, separated by `;`) — processing.', '', '## One-shots (`sfx/`)', '']
     for id in sorted(rep['sfx']):
         if id not in SFX:
             continue
         s = SFX[id]
         r = rep['sfx'][id]
-        srcs = '; '.join('"%s" by %s — %s' % (meta[str(x)]['title'], meta[str(x)]['user'], meta[str(x)]['url']) for x in s['sources'])
-        lic = ' + '.join(sorted({license_of(meta[str(x)]) for x in s['sources']}))
+        srcs = sources_with_licenses(s['sources'], meta)
         n = len(r['files'])
         for i, (f, st) in enumerate(zip(r['files'], r['stats'])):
             var = ('variant %d of %d: ' % (i + 1, n)) if n > 1 else ''
-            out.append('- `%s` — %s — %s — %s — %s%s (%.2f s; RMS %.1f dBFS, peak %.1f dBFS, loudest 50 ms %.1f dBFS)' % (f, id, srcs, lic, var, s['note'] or 'trimmed, faded, normalized', st['dur'], st['rms'], st['peak'], st['st50']))
+            out.append('- `%s` — %s — %s — %s%s (%.2f s; RMS %.1f dBFS, peak %.1f dBFS, loudest 50 ms %.1f dBFS)' % (f, id, srcs, var, s['note'] or 'trimmed, faded, normalized', st['dur'], st['rms'], st['peak'], st['st50']))
     out += ['', '## Ambience beds (`amb/`)', '']
     for id in sorted(rep['amb']):
         if id not in AMB:
             continue
         a = AMB[id]
         r = rep['amb'][id]
-        srcs = '; '.join('"%s" by %s — %s' % (meta[str(x)]['title'], meta[str(x)]['user'], meta[str(x)]['url']) for x in a['sources'])
-        lic = ' + '.join(sorted({license_of(meta[str(x)]) for x in a['sources']}))
-        out.append('- `%s` — %s — %s — %s — %s (loop %.1f s, RMS %.1f dBFS, peak %.1f dBFS)' % (r['file'], id, srcs, lic, a['note'] or 'seamless loop', r['loopEnd'] - r['loopStart'], r['rms'], r['peak']))
+        srcs = sources_with_licenses(a['sources'], meta)
+        out.append('- `%s` — %s — %s — %s (loop %.1f s, RMS %.1f dBFS, peak %.1f dBFS)' % (r['file'], id, srcs, a['note'] or 'seamless loop', r['loopEnd'] - r['loopStart'], r['rms'], r['peak']))
     for s in list(SFX.values()) + list(AMB.values()):
         for x in s['sources']:
             license_of(meta[str(x)])

@@ -16,6 +16,8 @@ for (const [name, engine] of Object.entries({ chromium, webkit })) {
         await page.goto(url);
         await page.locator('.lt-title').tap();
         await page.waitForFunction(() => window.__game?.audio.ready);
+        // The title fades before it hands over: take the stage only once it has (a fresh save goes to the sound test).
+        await page.locator('.lt-calib').waitFor();
         await page.evaluate(() => {
           const { director: d, setScreen } = window.__game;
           setScreen('play'); d.setPaused(true);
@@ -23,10 +25,12 @@ for (const [name, engine] of Object.entries({ chromium, webkit })) {
           d.updateSettings({ fontSize: 'extraLarge' });
         });
         await page.getByRole('button', { name: '選單' }).tap();
-        await page.getByRole('button', { name: '設定', exact: true }).tap();
+        await page.getByRole('tab', { name: '設定', exact: true }).tap();
         const overlay = page.locator('.lt-overlay');
         assert(await overlay.evaluate(el => el.scrollWidth <= el.clientWidth), 'settings overflow horizontally');
         await page.getByRole('button', { name: '回到故事', exact: true }).tap();
+        // Closing the menu resumes the story; hold it again so it cannot replace the moments set up below.
+        await page.evaluate(() => window.__game.director.setPaused(true));
         for (const [type, cells] of [['touch', ['？', '？', '你', '？', '？', '二', '？']], ['punch', [[3, 4, 5, 6], [1, 4, 5]]]]) {
           await page.evaluate(({ type, cells }) => {
             const d = window.__game.director;

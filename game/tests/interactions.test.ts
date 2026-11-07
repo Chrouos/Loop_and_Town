@@ -34,10 +34,13 @@ scenes:
       - end: reset
 `;
 
+// These moments have been taught already: the first-time lesson (and the time it gives to read it) is tested on its own.
+const TAUGHT = ['locate', 'approach', 'hold'];
+
 function setup(source = SCRIPT) {
   const { script, errors } = buildScript([{ name: 'a.yaml', source }]);
   expect(errors).toEqual([]);
-  let save: GameSave = { ...freshSave(), started: true, scene: 's1' };
+  let save: GameSave = { ...freshSave(), started: true, scene: 's1', taught: TAUGHT };
   const director = new Director(script, save, { audio: silentAudio(), vibrate: () => undefined, persist: (next) => { save = next; }, wallNow: () => 0 });
   director.start();
   const run = (ms: number) => { for (let t = 0; t < ms; t += 50) director.tick(50); };

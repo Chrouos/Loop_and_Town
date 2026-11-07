@@ -467,6 +467,37 @@ export function softClipCurve(): Float32Array<ArrayBuffer> {
   return c;
 }
 
+/**
+ * The gain a DynamicsCompressorNode adds on its own (linear). The Web Audio spec (and Chromium/WebKit, which share
+ * the code) makes up for the compression it would apply to a full-scale signal: fullRangeGain = the static curve at
+ * input 1.0, makeup = (1 / fullRangeGain)^0.6. It applies to every signal, quiet ones included, so a compressor
+ * in the master chain silently raises the whole mix. This reproduces the curve (knee: an exponential approach
+ * whose slope at threshold+knee equals 1/ratio; then a constant ratio) so the chain can undo it explicitly.
+ */
+export function compressorMakeup(thresholdDb: number, kneeDb: number, ratio: number): number {
+  const toLin = (db: number) => Math.pow(10, db / 20);
+  const toDb = (x: number) => 20 * Math.log10(Math.max(x, 1e-12));
+  const linThreshold = toLin(thresholdDb);
+  const kneeCurve = (x: number, k: number) => (x < linThreshold ? x : linThreshold + (1 - Math.exp(-k * (x - linThreshold))) / k);
+  const slopeAt = (x: number, k: number) => {
+    if (x < linThreshold) return 1;
+    const x2 = x * 1.001;
+    return (toDb(kneeCurve(x2, k)) - toDb(kneeCurve(x, k))) / (toDb(x2) - toDb(x));
+  };
+  const kneeEnd = toLin(thresholdDb + kneeDb);
+  let minK = 0.1;
+  let maxK = 10000;
+  let k = 5;
+  for (let i = 0; i < 15; i++) {
+    if (slopeAt(kneeEnd, k) < 1 / ratio) maxK = k;
+    else minK = k;
+    k = Math.sqrt(minK * maxK);
+  }
+  const yKneeDb = toDb(kneeCurve(kneeEnd, k));
+  const fullRange = 1 < kneeEnd ? kneeCurve(1, k) : toLin(yKneeDb + (0 - (thresholdDb + kneeDb)) / ratio);
+  return Math.pow(1 / fullRange, 0.6);
+}
+
 /** Gentle saturation for "gritty" electrical sounds. */
 export function driveCurve(amount: number): Float32Array<ArrayBuffer> {
   const n = 1024;
@@ -655,8 +686,10 @@ export interface Shot {
   readonly end: number;
   readonly startedAt: number;
   readonly disposed: boolean;
-  /** Fade out quickly and free (voice stealing / layer teardown). */
-  kill(): void;
+  /** Fade out (quickly by default; `fade` = time constant in seconds) and free (voice stealing / layer teardown). */
+  kill(fade?: number): void;
+  /** Scale its level by `factor` over about `seconds` (a newer copy of the same sound takes over). */
+  scale(factor: number, seconds: number): void;
   dispose(): void;
 }
 
@@ -700,6 +733,7 @@ export function spawnShot(ac: BaseAudioContext, recipe: SfxRecipe, o: ShotOpts):
   if (o.glide) sp.travel(o.glide, o.t, end);
   let timer: ReturnType<typeof setTimeout> | null = null;
   let done = false;
+  let gainNow = level;
   const shot: Shot = {
     end,
     startedAt: o.t,
@@ -714,18 +748,31 @@ export function spawnShot(ac: BaseAudioContext, recipe: SfxRecipe, o: ShotOpts):
       g.dispose();
       o.onDone?.(shot);
     },
-    kill() {
+    kill(fade = 0.012) {
       if (done) return;
       const now = ac.currentTime;
+      const tc = Math.max(0.005, Number.isFinite(fade) ? fade : 0.012);
+      // a time constant: about 7 of them take it under -60 dB
+      const gone = Math.min(tc * 7, 3) + 0.01;
       try {
-        glide(sp.input.gain, 0, now, 0.012);
-        glide(wet.gain, 0, now, 0.012);
-        for (const s of g.sources) s.stop(now + 0.08);
+        glide(sp.input.gain, 0, now, tc);
+        glide(wet.gain, 0, now, tc);
+        for (const s of g.sources) s.stop(now + gone);
       } catch {
         // ignore
       }
       if (timer !== null) clearTimeout(timer);
-      timer = setTimeout(() => shot.dispose(), 160);
+      timer = setTimeout(() => shot.dispose(), gone * 1000 + 80);
+    },
+    scale(factor, seconds) {
+      if (done || !Number.isFinite(factor) || factor < 0) return;
+      gainNow *= factor;
+      try {
+        glide(sp.input.gain, gainNow, ac.currentTime, Math.max(0.005, seconds / 3));
+        glide(wet.gain, gainNow, ac.currentTime, Math.max(0.005, seconds / 3));
+      } catch {
+        // ignore
+      }
     },
   };
   // Free the nodes once the sound (and a little reverb tail) is over. If the context was suspended

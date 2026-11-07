@@ -156,7 +156,7 @@ function Lab() {
         const s = dbg.stats();
         setStats(`${s.state} · layers ${s.layers.length} · sfx ${s.shots} · voices ${s.voices} · layer events ${s.layerShots} · timers ${s.layerTimers}`);
         setSampled(s.sampledLayers);
-        setBank(s.samples ? `錄音已載入：音效 ${s.samples.sfxReady}/${s.samples.sfxTotal} · 環境 ${s.samples.ambReady}/${s.samples.ambTotal}${s.samples.failed ? ` · 失敗 ${s.samples.failed}` : ''}` : '');
+        setBank(s.samples ? `錄音：音效 已解碼 ${s.samples.sfxReady}/已下載 ${s.samples.sfxFetched}/${s.samples.sfxTotal}（${(s.samples.decodedBytes / 1048576).toFixed(1)}/${(s.samples.decodedBudget / 1048576).toFixed(0)} MB）· 環境 ${s.samples.ambReady}/${s.samples.ambTotal}（${(s.samples.bedBytes / 1048576).toFixed(1)} MB）${s.samples.failed ? ` · 失敗 ${s.samples.failed}` : ''}` : '');
       }
       setReady(engine.ready);
     }, 500);

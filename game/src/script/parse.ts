@@ -1,9 +1,9 @@
 import { load } from 'js-yaml';
 import { SFX_SAMPLES } from '../audio/samples';
-import { DIRECTIONS, DISTANCES, VOICES, isAmbience, isDirection, isSfx, VIBRATIONS, type Direction, type Distance, type SfxId, type VibrationId, type VoiceId, VIAS, type Via } from '../audio/catalog';
+import { DIRECTIONS, DISTANCES, VOICES, isAmbience, type AmbienceList, isDirection, isSfx, VIBRATIONS, type Direction, type Distance, type SfxId, type VibrationId, type VoiceId, VIAS, type Via } from '../audio/catalog';
 import type { LifeEvent, LifeLine } from '../engine/life';
 import { parseCond } from './conditions';
-import { DAZE_LEVELS, HEART_LEVELS, NOISE_LEVELS, SHAKE_LEVELS, TENSION_STEP_MAX, type Beat, type Chapter, type ChoiceOption, type DazeLevel, type EndKind, type HeartLevel, type NoiseLevel, type LineBeat, type Pos, type Scene, type ShakeLevel } from './types';
+import { DAZE_LEVELS, HEART_LEVELS, NOISE_LEVELS, SHAKE_LEVELS, TENSION_STEP_MAX, type Beat, type Chapter, type ChoiceOption, type DazeLevel, type EndKind, type HeartLevel, type Lesson, type NoiseLevel, type LineBeat, type Pos, type Scene, type ShakeLevel } from './types';
 
 export const CHARACTER_KEYS = ['yuan', 'ruoqing', 'boxun', 'tingan', 'zhiyuan', 'zhixia', 'man', 'woman', 'child', 'old_man', 'old_woman', 'announcer'] as const;
 const LINE_KEYS = new Set<string>(['narr', 'me', 'think', 'phone', ...CHARACTER_KEYS]);
@@ -51,6 +51,25 @@ function cond(source: unknown, where: string, errors: Errors) {
   try { return parseCond(text); } catch (error) { errors.push(`${where}：${(error as Error).message}`); return undefined; }
 }
 
+/**
+ * Beds: `[cafe, rain_on_window]`; an entry may also move the place's landmarks, `{ id: tower_square_night, at: { tower: front-left } }`
+ * (names and directions are checked in validate.ts).
+ */
+function ambienceList(raw: unknown, where: string, errors: Errors): AmbienceList {
+  const ids: AmbienceList = [];
+  for (const item of Array.isArray(raw) ? raw : raw === undefined || raw === null ? [] : [raw]) {
+    const id = isObj(item) ? str(item.id) : str(item);
+    if (!id || !isAmbience(id)) { errors.push(`${where}：未知環境聲 ${id ?? JSON.stringify(item)}`); continue; }
+    ids.push(id);
+    if (!isObj(item)) continue;
+    for (const key of Object.keys(item)) if (key !== 'id' && key !== 'at') errors.push(`${where}：環境聲 ${id} 未知欄位「${key}」`);
+    if (item.at === undefined) continue;
+    if (!isObj(item.at)) { errors.push(`${where}：環境聲 ${id} 的 at 必須是 map`); continue; }
+    ids.landmarks = { ...ids.landmarks, [id]: Object.fromEntries(Object.entries(item.at).map(([name, dir]) => [name, String(dir) as Direction])) };
+  }
+  return ids;
+}
+
 function list(value: unknown): string[] {
   if (Array.isArray(value)) return value.map((item) => String(item));
   if (value === undefined || value === null) return [];
@@ -88,9 +107,9 @@ function parseLine(key: string, raw: Obj, where: string, errors: Errors): LineBe
   if (raw.shake !== undefined) line.shake = shake(raw.shake, where, errors);
   if (raw.whisper !== undefined) line.whisper = raw.whisper === true;
   if (raw.teach !== undefined) {
-    if (raw.teach !== 'keep' && raw.teach !== 'tap' && raw.teach !== 'turn') errors.push(`${where}：teach 只能是 tap／turn／keep`);
+    if (!['keep', 'tap', 'turn', 'locate', 'approach', 'hold'].includes(String(raw.teach))) errors.push(`${where}：teach 只能是 tap／turn／keep／locate／approach／hold`);
     else if (raw.teach === 'keep' && raw.mem === undefined) errors.push(`${where}：teach: keep 的那句要有 mem`);
-    else line.teach = raw.teach;
+    else line.teach = raw.teach as Lesson;
   }
   if (raw.via !== undefined) {
     const via = String(raw.via);
@@ -98,6 +117,25 @@ function parseLine(key: string, raw: Obj, where: string, errors: Errors): LineBe
     else line.via = via as Via;
   }
   return line;
+}
+
+/**
+ * A line's id: its scene and a hash of who says what. Not its position, so adding or moving other beats leaves it
+ * alone (only rewording the line itself makes it a new line). The same words twice in one scene are one line heard.
+ */
+export function lineId(sceneId: string, line: Pick<LineBeat, 'kind' | 'speaker' | 'text'>): string {
+  const text = `${line.kind}|${line.speaker}|${line.text}`;
+  let hash = 5381;
+  for (let i = 0; i < text.length; i++) hash = ((hash << 5) + hash + text.charCodeAt(i)) | 0;
+  return `${sceneId}#${(hash >>> 0).toString(36)}`;
+}
+
+/** Every line beat under these beats, however deeply nested (choices, branches, interactions), gets its id. */
+function assignLineIds(sceneId: string, node: unknown): void {
+  if (Array.isArray(node)) { node.forEach((item) => assignLineIds(sceneId, item)); return; }
+  if (!isObj(node)) return;
+  if (node.k === 'line') { const line = node as unknown as LineBeat; line.id = lineId(sceneId, line); return; }
+  for (const value of Object.values(node)) if (typeof value === 'object' && value !== null) assignLineIds(sceneId, value);
 }
 
 function parseBeats(raw: unknown, where: string, errors: Errors): Beat[] {
@@ -154,12 +192,9 @@ function parseBeat(raw: unknown, where: string, errors: Errors): Beat | undefine
   }
   if ('amb' in raw) {
     allow('amb', 'fade');
-    const ids = list(raw.amb);
-    const bad = ids.filter((id) => !isAmbience(id));
-    if (bad.length) errors.push(`${where}：未知環境聲 ${bad.join(', ')}`);
     const fade = raw.fade === undefined ? undefined : Number(raw.fade);
     if (fade !== undefined && !(fade >= 0)) errors.push(`${where}：fade 必須是秒數`);
-    return { k: 'amb', ids: ids.filter(isAmbience), fade };
+    return { k: 'amb', ids: ambienceList(raw.amb, where, errors), fade };
   }
   if ('move' in raw) {
     allow('move');
@@ -254,7 +289,7 @@ function parseBeat(raw: unknown, where: string, errors: Errors): Beat | undefine
     if (spec.replay === false && (spec.decoys !== undefined || spec.lag !== undefined || spec.interval !== undefined)) errors.push(`${where}：replay: false 不重播，不用 decoys／lag／interval（干擾聲寫在前面的劇情裡）`);
     const decoys = (Array.isArray(spec.decoys) ? spec.decoys : []).flatMap((decoy, n) => {
       if (!isObj(decoy) || !isSfx(String(decoy.sfx)) || !isDirection(String(decoy.at))) { errors.push(`${where}.decoys[${n}]：需要合法的 sfx 與 at`); return []; }
-      return [{ sfx: String(decoy.sfx) as never, at: String(decoy.at) as never }];
+      return [{ sfx: String(decoy.sfx) as never, at: String(decoy.at) as never, ...(decoy.gain !== undefined ? { gain: Number(decoy.gain) } : {}) }];
     });
     return {
       k: 'locate', sfx: sfx as never, at: at as never, decoys,
@@ -470,9 +505,7 @@ export function parseChapter(source: string, file: string, errors: Errors): Chap
         if (pos) cast[who] = pos;
       }
     }
-    const ambience = rawScene.ambience === undefined ? undefined : list(rawScene.ambience);
-    const badAmb = (ambience ?? []).filter((amb) => !isAmbience(amb));
-    if (badAmb.length) errors.push(`${at}：未知環境聲 ${badAmb.join(', ')}`);
+    const ambience = rawScene.ambience === undefined ? undefined : ambienceList(rawScene.ambience, at, errors);
     const threads: Record<string, Beat[]> = {};
     if (isObj(rawScene.threads)) {
       for (const [name, thread] of Object.entries(rawScene.threads)) {
@@ -480,14 +513,17 @@ export function parseChapter(source: string, file: string, errors: Errors): Chap
         threads[name] = parseBeats(beats, `${at}.threads.${name}`, errors);
       }
     }
+    const sceneBeats = parseBeats(rawScene.beats, `${at}.beats`, errors);
+    assignLineIds(id, sceneBeats);
+    assignLineIds(id, threads);
     scenes.push({
       id,
       chapter: key,
       time: str(rawScene.time),
       place: str(rawScene.place),
-      ambience: ambience?.filter(isAmbience),
+      ambience,
       cast,
-      beats: parseBeats(rawScene.beats, `${at}.beats`, errors),
+      beats: sceneBeats,
       threads,
       next: str(rawScene.next),
       life: rawScene.life === undefined ? undefined : parseLife(rawScene.life, `${at}.life`, errors),

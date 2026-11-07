@@ -9,13 +9,15 @@
 //   reverb sends (ambience/sfx sends scaled like their buses) → room convolvers A/B (crossfaded per place) → reverbOut ┘ │
 //   interface sounds (memory_keep, focus_shift, …) ── uiBus ─────────────────────────────┤
 //   her own body (heartbeat, tinnitus) ── bodyBus: stays clear when the world is dazed ──┼→ master
-//   master(volume·enabled) → glue compressor → limiter → soft clip → destination ←───────┘
+//   master(volume·enabled) → glue compressor → lift → limiter → makeup undo → soft clip → destination ←┘
+//   (ambience also passes speechDuck, which dips it while her phone reads a line out)
 
-import { AMBIENCE, isSfx, type AmbienceId, type SfxId, type SpatialPos, type Via, type VoiceId } from './catalog';
-import { createScreenReader, type ScreenReader } from './reader';
+import { AMBIENCE, DIRECTION_ANGLE, isSfx, type AmbienceAt, type AmbienceId, type AmbienceList, type SfxId, type SpatialPos, type Via, type VoiceId } from './catalog';
+import { createScreenReader, readable, readerClipsFor, type ScreenReader } from './reader';
+import { READER_LINES, READER_NUMBERS, READER_TEMPLATES } from './readerClips';
 import { roomFor, ROOMS, type RoomId } from './rooms';
 import { startAmbience, type AmbienceLayer, type SampleBed, type SoundResolver } from './ambience';
-import { clamp, expRampTo, glide, hold, impulseResponse, placementOf, softClipCurve, spawnShot, type SfxRecipe, type Shot } from './core';
+import { clamp, compressorMakeup, expRampTo, glide, hold, impulseResponse, placementOf, softClipCurve, spawnShot, type SfxRecipe, type Shot } from './core';
 import { SampleBank, sampleRecipe, type SampleBankStats } from './samples';
 import { SFX_RECIPES, UI_SFX } from './sounds';
 import { phoneTick } from './voice';
@@ -24,8 +26,15 @@ import { phoneTick } from './voice';
 export type SfxOpts = { gain?: number; rate?: number; variant?: number; to?: SpatialPos; radius?: number };
 
 export interface AudioEngine {
+  /**
+   * Call from inside a user gesture: everything iOS only allows in one (waking the context, a silent buffer, the
+   * first speech) happens before this returns its promise. Later taps and keys re-wake a context that iOS
+   * interrupted (a call, Siri, another app) on their own, so this is needed once.
+   */
   unlock(): Promise<void>;
   readonly ready: boolean;
+  /** The audio context's state ('running', 'suspended', Safari's 'interrupted', …), or 'none' before unlock. */
+  readonly state?: string;
   setEnabled(on: boolean): void;
   setVolume(v: number): void;
   setVoiceVolume(v: number): void;
@@ -33,13 +42,15 @@ export interface AudioEngine {
   setAmbienceVolume(v: number): void;
   /** Sound effects and interface sounds. */
   setSfxVolume(v: number): void;
-  setAmbience(ids: AmbienceId[], fadeMs?: number): void;
+  /** The beds to play; `ids.landmarks` moves a place's fixed sources (the tower, the café counter) for this scene. */
+  setAmbience(ids: AmbienceList, fadeMs?: number): void;
   play(id: SfxId, pos: SpatialPos, opts?: SfxOpts): void;
   /**
    * Load these recordings ahead of the rest: `now` (the scene about to play) first, then the sounds every scene
-   * uses, then `soon` (its background life, the scenes after it). Beds in `amb` are fetched, not decoded.
+   * uses, then `soon` (its background life, the scenes after it). The scene's own beds (`ambNow`) are decoded
+   * ahead when they fit the bed budget, so they can start as recordings; the other beds in `amb` are only fetched.
    */
-  prefetch?(sounds: { now: readonly SfxId[]; soon: readonly SfxId[]; amb: readonly AmbienceId[] }): void;
+  prefetch?(sounds: SceneSoundsAhead): void;
   /**
    * A line spoken by `speaker`. The cast make no vocal sound, only a small real one (the text is their voice).
    * 'life' = a stranger in the background: a recording of someone talking, too far or muffled to make out;
@@ -63,8 +74,14 @@ export interface AudioEngine {
 
 export type SampleMode = 'auto' | 'synth';
 
+export type SceneSoundsAhead = { now: readonly SfxId[]; soon: readonly SfxId[]; amb: readonly AmbienceId[]; ambNow?: readonly AmbienceId[]; phone?: readonly string[] };
+
 /** A recording still loading may hold its sound back this long; later than that it would land out of place. */
 const LATE_SAMPLE_MS = 2500;
+/** Gestures that may wake a context iOS suspended or interrupted. Listened to once, on the whole document. */
+const WAKE_EVENTS = ['pointerdown', 'pointerup', 'touchend', 'keydown', 'click'] as const;
+/** A context that stopped on its own is asked to run again at most this often outside a gesture. */
+const NUDGE_MS = 1000;
 
 export type VoiceKind = 'line' | 'life' | 'whisper';
 
@@ -139,6 +156,21 @@ const DEFAULT_FADE_MS = 2500;
 const TURN_GAP_S = 8;
 /** Crossfade from a synthesized bed to its recording once that has been decoded. */
 const SWAP_S = 2.5;
+/**
+ * A place whose recording is still being decoded waits this long for it, in silence, rather than starting
+ * synthesized and crossfading 2.5 s later (two beds over each other as the scene opens). Later than this, the
+ * synthesis starts after all and the recording takes over when it comes.
+ */
+const BED_WAIT_MS = 800;
+/**
+ * The same long sound again while earlier ones still ring (the midnight bell, twelve strikes): at most this many
+ * tails at once, the oldest fading out, and each older tail steps down a little so the sum stays off the limiter.
+ */
+const SAME_TAILS = 3;
+const SAME_TAIL_STEP = 0.63; // -4 dB per newer strike
+const SAME_TAIL_FADE = 0.25;
+/** A copy with more than this left to play counts as a ringing tail. */
+const TAIL_S = 1.5;
 const OPEN = 20000;
 const MUFFLED = 900;
 /** Fully dazed: the world through a wall. */
@@ -198,6 +230,9 @@ interface Buses {
   ambTone: BiquadFilterNode;
   ambDuck: GainNode;
   ambLoud: GainNode;
+  /** Dips the ambience (and its reverb send) while the reader talks; separate so it never fights duck() or a slider. */
+  speechDuck: GainNode;
+  speechDuckVerb: GainNode;
   ambVerb: GainNode;
   sfx: GainNode;
   sfxVerb: GainNode;
@@ -214,6 +249,41 @@ const ambienceGain = (v: number): number => perceptual(v) * 0.5;
 const sfxGain = (v: number): number => perceptual(v) * 2;
 /** Interface sounds sit a little under the effects (0.9 at the default effects volume). */
 const UI_TRIM = 0.62;
+/** Her phone: in her right pocket or her right hand, close. The reader's clips play from there. */
+const PHONE_POS: SpatialPos = { dir: 'right', dist: 'near' };
+const READER_GAIN = 1;
+/** A reader clip that takes longer than this to load is read by the device's voice instead (it would land late). */
+const READER_LATE_MS = 700;
+const READER_MANIFEST = { lines: READER_LINES, templates: READER_TEMPLATES, numbers: READER_NUMBERS };
+
+/**
+ * The master chain, made explicit. A DynamicsCompressorNode adds makeup gain of its own (see compressorMakeup):
+ * the glue added +4.99 dB and the old limiter (-4 dB, ratio 20) +2.28 dB to every sound, and an output trim of
+ * 0.85 (-1.41 dB) took a little back: +5.86 dB in all, the level the mix was tuned at by ear. Now each makeup is
+ * undone right after its compressor and that +5.86 dB is one named gain before the limiter, so quiet sounds
+ * come out exactly as loud as before, and changing a compressor setting no longer moves the whole mix.
+ * The limiter catches at -3.2 dBFS (the old one, after its makeup and the trim, sat at about -3.1), just under
+ * the soft clip's knee (0.7 = -3.1 dBFS); the soft clip stays as the last safety for what slips past it.
+ */
+const GLUE = { threshold: -20, knee: 12, ratio: 2.5, attack: 0.012, release: 0.3 } as const;
+const LIMITER = { threshold: -3.2, knee: 0, ratio: 20, attack: 0.001, release: 0.12 } as const;
+const MIX_LIFT_DB = 5.86;
+/** While her phone reads a line, the beds step back by about 7.5 dB (and never sit higher than that, panic or not). */
+const SPEECH_DUCK = 0.42;
+const SPEECH_ATTACK_TC = 0.025;
+const SPEECH_RELEASE_TC = 0.16;
+/** A device voice that never reports its end releases the duck after this long per character (and at least 2 s). */
+const TTS_MS_PER_CHAR = 330;
+/**
+ * Sounds whose level must stay the same every time: a person's own sound (she knows them by it), voices, her body,
+ * the interface. Everything else gets a small random level change (±1.5 dB) along with its small pitch change.
+ */
+const STEADY_LEVEL: ReadonlySet<SfxId> = new Set<SfxId>([
+  'step_uneven', 'strap_click', 'hand_rub', 'raincoat_rustle', 'lighter_lid',
+  'whisper', 'murmur_m', 'murmur_w', 'murmur_old', 'murmur_child',
+  'heartbeat', 'tinnitus',
+]);
+const LEVEL_WOBBLE_DB = 1.5;
 
 const perceptual = (v: number): number => {
   const x = clamp(Number.isFinite(v) ? v : 0, 0, 1);
@@ -233,8 +303,14 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
   private lastSpokeAt = -Infinity;
   private sfxVolume = 0.85;
   private wanted: AmbienceId[] = [];
+  /** Where the scene put each place's landmarks (degrees by name), and which placement each running layer was built with. */
+  private landmarks: AmbienceAt = {};
+  private readonly layerAt = new WeakMap<AmbienceLayer, string>();
+  /** Beds waiting a moment for their recording before they start (see BED_WAIT_MS). */
+  private readonly bedWaits = new Map<AmbienceId, object>();
   private layers = new Map<AmbienceId, AmbienceLayer>();
   private shots: Shot[] = [];
+  private readonly shotIds = new WeakMap<Shot, SfxId>();
   private voices: Shot[] = [];
   private attentionTimer: ReturnType<typeof setTimeout> | null = null;
   private bank: SampleBank | null = null;
@@ -246,6 +322,19 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
   private roomSlot = 0;
   private roomShown: RoomId | null = null;
   private readonly reader: ScreenReader = createScreenReader();
+  /** The pre-rendered reader clip playing now, and a count that drops a clip still loading when the next line comes. */
+  private readerShot: Shot | null = null;
+  private readerGen = 0;
+  private readerNumbersWarm = false;
+  /** Her phone is reading a line now (a clip or the device's voice): the beds stay ducked under it. */
+  private speaking = false;
+  private speechTimer: ReturnType<typeof setTimeout> | null = null;
+  /** The panic level setNoise last asked for (1 = as mixed). */
+  private noise = 1;
+  /** Suspended on purpose (the page is hidden): a tap must not wake it, resume() will. */
+  private held = false;
+  private listening = false;
+  private lastNudge = -Infinity;
   private readonly resolver: SoundResolver = (id) => (isSfx(id) ? this.sampleFor(id) : undefined);
 
   constructor(private readonly Ctor: AudioContextCtor) {}
@@ -254,32 +343,114 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
     return !!this.ac && this.ac.state === 'running';
   }
 
+  get state(): string {
+    return this.ac?.state ?? 'none';
+  }
+
   async unlock(): Promise<void> {
     if (this.failed) return;
+    let resumed: Promise<void> = Promise.resolve();
     try {
       if (!this.ac) this.build();
       const ac = this.ac;
       if (!ac) return;
-      if (ac.state !== 'running') await Promise.race([ac.resume(), sleep(1200)]);
-      if (!this.primed) {
-        // iOS: a (silent) buffer started inside the gesture fully unlocks output
-        this.primed = true;
-        const b = ac.createBuffer(1, 1, ac.sampleRate);
-        const s = ac.createBufferSource();
-        s.buffer = b;
-        s.connect(ac.destination);
-        s.start();
-        s.onended = () => s.disconnect();
-      }
+      this.held = false;
+      // Everything iOS allows only inside the gesture happens here, before the first await: after it, the
+      // gesture is over and Safari would refuse the first speech (and may refuse the resume).
+      resumed = this.wake(ac, !this.primed);
+      this.primed = true;
       this.reader.prime();
-      if (!this.preloading && this.bank && ac.state === 'running') {
-        // fetch the one-shots in the background; until each arrives its recipe plays instead
-        this.preloading = true;
-        void this.bank.preloadSfx().catch(() => undefined);
-      }
+    } catch {
+      return; // never throw from unlock
+    }
+    try {
+      await Promise.race([resumed, sleep(1200)]);
+      this.startPreload();
     } catch {
       // never throw from unlock
     }
+  }
+
+  /** Once the context runs: fetch the one-shots in the background; until each arrives its recipe plays instead. */
+  private startPreload(): void {
+    if (this.preloading || !this.bank || this.ac?.state !== 'running') return;
+    this.preloading = true;
+    void this.bank.preloadSfx().catch(() => undefined);
+  }
+
+  /**
+   * Ask the context to run, synchronously (call it inside a gesture). With `kick`, also start a one-sample silent
+   * buffer: on iOS that is what really opens the output after an unlock or an interruption.
+   */
+  private wake(ac: AudioContext, kick: boolean): Promise<void> {
+    let resumed: Promise<void> = Promise.resolve();
+    if (ac.state !== 'running' && ac.state !== 'closed') {
+      try {
+        resumed = ac.resume().catch(() => undefined);
+      } catch {
+        // an old engine without a promise
+      }
+    }
+    if (kick) {
+      try {
+        const s = ac.createBufferSource();
+        s.buffer = ac.createBuffer(1, 1, ac.sampleRate);
+        s.connect(ac.destination);
+        s.onended = () => s.disconnect();
+        s.start();
+        s.stop(ac.currentTime + 0.05);
+      } catch {
+        // ignore
+      }
+    }
+    return resumed;
+  }
+
+  /**
+   * iOS stops the context on its own (a call, Siri, an alarm, another app taking the audio session, the screen
+   * locking) and only a gesture may start it again; play() does nothing until it runs. So every tap and key
+   * anywhere on the page wakes a stopped context, and a context that stops by itself is asked to run again
+   * (Safari's 'interrupted' resolves that request once the interruption ends).
+   */
+  private listen(ac: AudioContext): void {
+    if (this.listening) return;
+    this.listening = true;
+    const onGesture = (): void => {
+      if (this.ac !== ac || ac.state === 'closed') return;
+      this.reader.prime();
+      if (ac.state !== 'running' && !this.held) this.wake(ac, true);
+    };
+    try {
+      if (typeof document !== 'undefined') {
+        for (const type of WAKE_EVENTS) document.addEventListener(type, onGesture, { capture: true, passive: true });
+      }
+    } catch {
+      // no document: nothing to listen to
+    }
+    const onState = (): void => {
+      const state = ac.state as string;
+      if (state === 'running') this.startPreload();
+      if (state === 'running' || state === 'closed' || this.held) return;
+      // 'suspended' or 'interrupted' without being asked: speech that was going is gone with it.
+      this.stopReader();
+      this.nudge(true);
+    };
+    try {
+      if (typeof ac.addEventListener === 'function') ac.addEventListener('statechange', onState);
+      else (ac as { onstatechange: unknown }).onstatechange = onState;
+    } catch {
+      // ignore
+    }
+  }
+
+  /** Outside a gesture: ask a context that stopped on its own to run again (harmless when the browser says no). */
+  private nudge(now = false): void {
+    const ac = this.ac;
+    if (!ac || this.held || ac.state === 'running' || ac.state === 'closed') return;
+    const t = Date.now();
+    if (!now && t - this.lastNudge < NUDGE_MS) return;
+    this.lastNudge = t;
+    this.wake(ac, false);
   }
 
   private build(): void {
@@ -308,22 +479,23 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
       return g;
     };
     const master = gain(this.enabled ? perceptual(this.volume) : 0);
-    const glue = ac.createDynamicsCompressor();
-    glue.threshold.value = -20;
-    glue.knee.value = 12;
-    glue.ratio.value = 2.5;
-    glue.attack.value = 0.012;
-    glue.release.value = 0.3;
-    const limiter = ac.createDynamicsCompressor();
-    limiter.threshold.value = -4;
-    limiter.knee.value = 0;
-    limiter.ratio.value = 20;
-    limiter.attack.value = 0.002;
-    limiter.release.value = 0.12;
-    const trim = gain(0.85);
+    const compressor = (o: typeof GLUE | typeof LIMITER): DynamicsCompressorNode => {
+      const c = ac.createDynamicsCompressor();
+      c.threshold.value = o.threshold;
+      c.knee.value = o.knee;
+      c.ratio.value = o.ratio;
+      c.attack.value = o.attack;
+      c.release.value = o.release;
+      return c;
+    };
+    const glue = compressor(GLUE);
+    // undo the glue's own makeup, then the mix's one deliberate lift (see MIX_LIFT_DB)
+    const lift = gain(Math.pow(10, MIX_LIFT_DB / 20) / compressorMakeup(GLUE.threshold, GLUE.knee, GLUE.ratio));
+    const limiter = compressor(LIMITER);
+    const unmake = gain(1 / compressorMakeup(LIMITER.threshold, LIMITER.knee, LIMITER.ratio));
     const clip = ac.createWaveShaper();
     clip.curve = softClipCurve();
-    master.connect(glue).connect(limiter).connect(trim).connect(clip).connect(ac.destination);
+    master.connect(glue).connect(lift).connect(limiter).connect(unmake).connect(clip).connect(ac.destination);
 
     const attention = ac.createBiquadFilter();
     attention.type = 'lowpass';
@@ -344,7 +516,8 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
     ambTone.Q.value = 0.5;
     const ambDuck = gain(1);
     const ambLoud = gain(1);
-    ambIn.connect(ambTone).connect(ambDuck).connect(ambLoud).connect(world);
+    const speechDuck = gain(1);
+    ambIn.connect(ambTone).connect(ambDuck).connect(ambLoud).connect(speechDuck).connect(world);
 
     const sfx = gain(sfxGain(this.sfxVolume));
     sfx.connect(world);
@@ -357,7 +530,8 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
 
     const reverbIn = gain(1);
     const ambVerb = gain(ambienceGain(this.ambienceVolume));
-    ambVerb.connect(reverbIn);
+    const speechDuckVerb = gain(1);
+    ambVerb.connect(speechDuckVerb).connect(reverbIn);
     const sfxVerb = gain(sfxGain(this.sfxVolume));
     sfxVerb.connect(reverbIn);
     const reverbOut = gain(1);
@@ -392,7 +566,8 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
     }
 
     this.ac = ac;
-    this.bus = { master, world, attention, daze, dazeGain, body, ambIn, ambTone, ambDuck, ambLoud, ambVerb, sfx, sfxVerb, voice, ui, reverbIn, rooms };
+    this.bus = { master, world, attention, daze, dazeGain, body, ambIn, ambTone, ambDuck, ambLoud, speechDuck, speechDuckVerb, ambVerb, sfx, sfxVerb, voice, ui, reverbIn, rooms };
+    this.listen(ac);
     this.applyRoom(0);
     try {
       this.bank = new SampleBank(ac);
@@ -405,7 +580,7 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
   setEnabled(on: boolean): void {
     this.enabled = !!on;
     this.applyMaster(0.06);
-    if (!this.enabled) this.reader.stop();
+    if (!this.enabled) this.stopReader();
   }
 
   setVolume(v: number): void {
@@ -444,9 +619,10 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
     glide(this.bus.master.gain, this.enabled ? perceptual(this.volume) : 0, this.ac.currentTime, tc);
   }
 
-  setAmbience(ids: AmbienceId[], fadeMs: number = DEFAULT_FADE_MS): void {
+  setAmbience(ids: AmbienceList, fadeMs: number = DEFAULT_FADE_MS): void {
     const valid = Array.isArray(ids) ? ids.filter((id) => Object.prototype.hasOwnProperty.call(AMBIENCE, id)) : [];
     this.wanted = [...new Set(valid)];
+    this.landmarks = (Array.isArray(ids) && ids.landmarks) || {};
     // The beds name the place; a bed that is only weather (night insects) leaves her in the room she was in.
     const room = roomFor(this.wanted);
     if (room && room !== this.room) {
@@ -478,18 +654,106 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
     this.roomShown = this.room;
   }
 
-  /** The reader follows the master volume and the reader slider (settings.voice). */
+  /**
+   * The device's voice bypasses Web Audio, so the master slider gets the same squared (perceptual) curve as the mix,
+   * scaled so the default master (0.8) reads as loud as it always has (0.8 × (0.4 + voice)); the voice level at 0 is silent.
+   * (iOS Safari ignores an utterance's volume: there the device voice follows only the phone's own volume.)
+   */
   private readerVolume(): number {
-    return clamp(this.volume * (0.4 + this.voiceVolume), 0, 1);
+    if (!this.enabled || this.voiceVolume <= 0) return 0;
+    return clamp((perceptual(this.volume) / 0.8) * (0.4 + this.voiceVolume), 0, 1);
   }
 
+  /**
+   * Her phone reads the line: the pre-rendered clip when there is one (a flat voice through a small speaker, the
+   * same on every device), placed where her phone is; otherwise the device's own voice. A clip that cannot be
+   * loaded in time is read by the device's voice instead, so the line is never silent.
+   */
   speak(text: string): void {
-    if (!this.enabled || this.volume <= 0) return;
-    this.reader.speak(text, this.readerVolume());
+    this.stopReader();
+    if (this.readerVolume() <= 0) return;
+    const clips = this.sampleMode === 'synth' ? null : readerClipsFor(text, READER_MANIFEST);
+    const bank = this.bank;
+    if (!clips || !bank || !this.ac || this.ac.state !== 'running') { this.speakDevice(text, this.readerGen); return; }
+    const gen = ++this.readerGen;
+    const asked = performance.now();
+    void Promise.all(clips.map((clip) => bank.load(clip))).then((buffers) => {
+      if (gen !== this.readerGen) return;
+      const ready = buffers.every((buffer): buffer is AudioBuffer => buffer !== null);
+      if (!ready || performance.now() - asked > READER_LATE_MS) { this.speakDevice(text, gen); return; }
+      this.playReader(buffers);
+    });
+  }
+
+  /** The device's own voice reads it; the beds step back until it is done (or would have been). */
+  private speakDevice(text: string, gen: number): void {
+    const started = this.reader.speak(text, this.readerVolume(), () => {
+      if (gen === this.readerGen) this.setSpeaking(false);
+    });
+    if (started) this.setSpeaking(true, Math.max(2000, readable(text).length * TTS_MS_PER_CHAR));
+  }
+
+  /** Duck the beds under the reader. `forMs`: let go by then even if no end is ever reported. */
+  private setSpeaking(on: boolean, forMs = 0): void {
+    if (this.speechTimer !== null) clearTimeout(this.speechTimer);
+    this.speechTimer = null;
+    this.speaking = on;
+    if (on && forMs > 0) {
+      this.speechTimer = setTimeout(() => {
+        this.speechTimer = null;
+        this.setSpeaking(false);
+      }, forMs);
+    }
+    this.applySpeechDuck();
+  }
+
+  /** Under the reader the beds sit at SPEECH_DUCK of their mixed level, however loud panic (setNoise) made them. */
+  private applySpeechDuck(): void {
+    const ac = this.ac;
+    const bus = this.bus;
+    if (!ac || !bus) return;
+    const now = ac.currentTime;
+    const dry = this.speaking ? SPEECH_DUCK / this.noise : 1;
+    const wet = this.speaking ? SPEECH_DUCK : 1;
+    const tc = this.speaking ? SPEECH_ATTACK_TC : SPEECH_RELEASE_TC;
+    glide(bus.speechDuck.gain, dry, now, tc);
+    glide(bus.speechDuckVerb.gain, wet, now, tc);
+  }
+
+  private playReader(buffers: AudioBuffer[]): void {
+    const ac = this.ac;
+    const bus = this.bus;
+    if (!ac || !bus || ac.state !== 'running') return;
+    const seconds = buffers.reduce((sum, b) => sum + b.duration, 0);
+    this.setSpeaking(true, seconds * 1000 + 60);
+    try {
+      const recipe: SfxRecipe = {
+        jitter: 0,
+        play(c) {
+          let t = c.t;
+          for (const buffer of buffers) {
+            c.g.buffer(buffer, t).connect(c.out);
+            t += buffer.duration;
+          }
+          return t - c.t + 0.05;
+        },
+      };
+      this.readerShot = spawnShot(ac, recipe, { dest: bus.voice, reverb: null, place: placementOf(PHONE_POS), t: ac.currentTime + 0.01, gain: READER_GAIN });
+    } catch {
+      // a broken clip must never break the game
+    }
+  }
+
+  private stopReader(): void {
+    this.readerGen += 1;
+    this.readerShot?.kill();
+    this.readerShot = null;
+    this.reader.stop();
+    if (this.speaking || this.speechTimer !== null) this.setSpeaking(false);
   }
 
   hush(): void {
-    this.reader.stop();
+    this.stopReader();
   }
 
   private reconcile(fadeMs: number): void {
@@ -500,6 +764,7 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
     for (const [id, layer] of this.layers) {
       if (!this.wanted.includes(id) && !layer.stopping) layer.stop(sec);
     }
+    for (const id of [...this.bedWaits.keys()]) if (!this.wanted.includes(id)) this.bedWaits.delete(id);
     for (const id of this.wanted) this.ensureLayer(id, sec);
     this.bank?.trimBeds(this.wanted);
   }
@@ -513,21 +778,37 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
     return { buffer, gain: entry.gain, loopStart: entry.loopStart, loopEnd: entry.loopEnd, extras: !!entry.extras };
   }
 
+  /** The scene's placement of `id`'s landmarks in degrees, or undefined (the place as it always sounds). */
+  private landmarkAt(id: AmbienceId): Record<string, number> | undefined {
+    const at = this.landmarks[id];
+    if (!at) return undefined;
+    const out: Record<string, number> = {};
+    for (const [name, dir] of Object.entries(at)) if (dir in DIRECTION_ANGLE) out[name] = DIRECTION_ANGLE[dir];
+    return Object.keys(out).length ? out : undefined;
+  }
+
   /**
-   * Make sure the wanted layer `id` is running from the best available source. A synthesized
-   * layer whose recording becomes available is crossfaded into the recording.
+   * Make sure the wanted layer `id` is running from the best available source. A place starting from silence
+   * waits up to BED_WAIT_MS for its recording; a synthesized layer whose recording arrives later is crossfaded
+   * into it, and so is a layer whose landmarks this scene puts somewhere else.
    */
-  private ensureLayer(id: AmbienceId, sec: number): void {
+  private ensureLayer(id: AmbienceId, sec: number, mayWait = true): void {
     const ac = this.ac;
     const bus = this.bus;
     if (!ac || !bus) return;
     const bed = this.bedFor(id);
+    const at = this.landmarkAt(id);
+    const placed = at ? JSON.stringify(at) : '';
     const existing = this.layers.get(id);
-    if (existing && !existing.disposed) {
-      if (existing.stopping) existing.revive(sec);
-      if (existing.sampled === !!bed) return;
-      existing.stop(Math.max(sec, SWAP_S));
+    const live = existing && !existing.disposed ? existing : undefined;
+    if (live) {
+      if (live.stopping) live.revive(sec);
+      if (live.sampled === !!bed && (this.layerAt.get(live) ?? '') === placed) return;
+    } else if (!bed && this.recordingComing(id)) {
+      if (mayWait) this.awaitBed(id, sec);
+      if (mayWait || this.bedWaits.has(id)) return;
     }
+    live?.stop(Math.max(sec, SWAP_S));
     const layer = startAmbience(
       ac,
       id,
@@ -536,17 +817,44 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
       (l) => {
         if (this.layers.get(l.id) === l) this.layers.delete(l.id);
       },
-      { bed, resolve: this.resolver },
+      { bed, resolve: this.resolver, at },
     );
     if (layer) {
       this.layers.set(id, layer);
-      layer.fadeIn(existing ? Math.max(sec, SWAP_S) : sec);
+      this.layerAt.set(layer, placed);
+      layer.fadeIn(live ? Math.max(sec, SWAP_S) : sec);
     }
-    if (!bed && this.bank && this.sampleMode !== 'synth' && this.bank.ambEntry(id)) {
-      void this.bank.loadAmb(id).then((buf) => {
+    if (!bed && this.recordingComing(id)) {
+      void this.bank!.loadAmb(id).then((buf) => {
         if (buf && this.wanted.includes(id)) this.ensureLayer(id, SWAP_S);
       });
     }
+  }
+
+  /** `id` has a recording that may still arrive (not synth-only, not just failed). */
+  private recordingComing(id: AmbienceId): boolean {
+    return !!this.bank && this.sampleMode !== 'synth' && !!this.bank.ambEntry(id) && this.bank.bedLoadable(id);
+  }
+
+  /** Hold a starting place back until its recording is decoded, or BED_WAIT_MS at most; then start it either way. */
+  private awaitBed(id: AmbienceId, sec: number): void {
+    const bank = this.bank;
+    if (!bank || this.bedWaits.has(id)) return;
+    const token = {};
+    this.bedWaits.set(id, token);
+    const asked = performance.now();
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const go = (): void => {
+      if (timer !== null) clearTimeout(timer);
+      timer = null;
+      if (this.bedWaits.get(id) !== token) return;
+      this.bedWaits.delete(id);
+      if (!this.wanted.includes(id)) return;
+      const waited = (performance.now() - asked) / 1000;
+      this.ensureLayer(id, Math.max(0.6, sec - waited), false);
+    };
+    timer = setTimeout(go, BED_WAIT_MS);
+    void bank.loadAmb(id).then(go, go);
   }
 
   /** A recorded variant of `id` ready to play, or undefined (and its loading is kicked off). */
@@ -563,21 +871,68 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
     return sampleRecipe(buf, entry);
   }
 
-  prefetch(sounds: { now: readonly SfxId[]; soon: readonly SfxId[]; amb: readonly AmbienceId[] }): void {
+  /** A recipe from buffers a load just handed back (the cache may already have let them go). */
+  private loadedRecipe(id: SfxId, loaded: readonly AudioBuffer[]): SfxRecipe | undefined {
+    const entry = this.bank?.sfxEntry(id);
+    const buf = loaded[Math.floor(Math.random() * loaded.length)];
+    return entry && buf ? sampleRecipe(buf, entry) : undefined;
+  }
+
+  prefetch(sounds: SceneSoundsAhead): void {
     if (this.sampleMode === 'synth') return;
-    this.bank?.prefetch([...new Set([...sounds.now, ...EVERYWHERE_SFX, ...sounds.soon])], sounds.amb);
+    // This scene's sounds (and the ones every scene uses) are decoded now and kept; the scenes after it are only
+    // fetched, and decoded when they begin (or when first played), so decoded memory stays within its budget.
+    const ambNow = sounds.ambNow ?? [];
+    this.bank?.prefetch([...new Set([...sounds.now, ...EVERYWHERE_SFX])], sounds.amb.filter((id) => !ambNow.includes(id)), sounds.soon);
+    // Its beds are decoded while the last place fades out (and its card shows), next to the beds still playing.
+    this.bank?.prepareBeds(ambNow, this.wanted);
+    this.prefetchReader(sounds.phone ?? []);
+  }
+
+  /**
+   * The reader clips for the phone lines ahead, through the bank's queue (decoded clips count against its budget).
+   * A line with a number to fill in fetches every number once, compressed (decoded when read); a fetch that fails
+   * is tried again with the next scene.
+   */
+  private prefetchReader(lines: readonly string[]): void {
+    const bank = this.bank;
+    if (!bank || !lines.length) return;
+    const clips = new Set<string>();
+    let numbers = false;
+    for (const line of lines) {
+      if (line.includes('<')) {
+        for (const t of READER_TEMPLATES) for (const clip of t.clips) if (clip) clips.add(clip);
+        numbers = true;
+        continue;
+      }
+      for (const clip of readerClipsFor(line, READER_MANIFEST) ?? []) clips.add(clip);
+    }
+    if (clips.size) void bank.prefetchFiles([...clips]);
+    if (numbers && !this.readerNumbersWarm) {
+      const all = Object.values(READER_NUMBERS);
+      if (!all.length) return;
+      this.readerNumbersWarm = true;
+      void bank.prefetchFiles(all, 'raw').then((ok) => {
+        if (!ok) this.readerNumbersWarm = false;
+      });
+    }
   }
 
   play(id: SfxId, pos: SpatialPos, opts?: SfxOpts): void {
     const ac = this.ac;
     const bus = this.bus;
+    if (ac && ac.state !== 'running') this.nudge();
     if (!ac || !bus || ac.state !== 'running') return;
     if (!isSfx(id)) return;
     // Script numbers are converted to zero-based indices by the director.
-    // Await the exact recording rather than substituting another loaded variant.
+    // Await the exact recording rather than substituting another loaded variant; like any recording, one that
+    // arrives too late is dropped (it would land out of place), and one that cannot be had plays its recipe.
     if (opts?.variant !== undefined && this.sampleMode !== 'synth') {
-      void this.playSource(id, pos, 'sample', opts).then((played) => {
-        if (!played) this.shoot(id, pos, opts, SFX_RECIPES[id]);
+      const asked = performance.now();
+      void this.variantRecipe(id, opts.variant).then((recipe) => {
+        if (recipe === null) { this.shoot(id, pos, opts, SFX_RECIPES[id]); return; }
+        if (performance.now() - asked > LATE_SAMPLE_MS) { this.dropped.set(id, (this.dropped.get(id) ?? 0) + 1); return; }
+        if (this.ac?.state === 'running') this.shoot(id, pos, opts, recipe);
       });
       return;
     }
@@ -588,10 +943,10 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
     const bank = this.bank;
     if (bank && this.sampleMode !== 'synth' && bank.sfxEntry(id)) {
       const asked = performance.now();
-      void bank.loadSfx(id).then(() => {
+      void bank.loadSfx(id).then((loaded) => {
         const late = performance.now() - asked > LATE_SAMPLE_MS;
         if (late) { this.dropped.set(id, (this.dropped.get(id) ?? 0) + 1); return; }
-        this.shoot(id, pos, opts, this.sampleFor(id) ?? SFX_RECIPES[id]);
+        this.shoot(id, pos, opts, this.sampleFor(id) ?? this.loadedRecipe(id, loaded) ?? SFX_RECIPES[id]);
       });
       return;
     }
@@ -605,20 +960,44 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
     try {
       this.shots = this.shots.filter((s) => !s.disposed);
       while (this.shots.length >= MAX_SFX) this.shots.shift()?.kill();
+      this.yieldTails(id, ac.currentTime);
       const shot = spawnShot(ac, recipe, {
         dest: UI_SFX.has(id) ? bus.ui : BODY_SFX.has(id) ? bus.body : bus.sfx,
         reverb: BODY_SFX.has(id) ? null : bus.sfxVerb,
         place: opts?.radius !== undefined ? { ...placementOf(pos), r: opts.radius } : placementOf(pos),
         glide: opts?.to ? placementOf(opts.to) : undefined,
         t: ac.currentTime + 0.01,
-        gain: clamp((opts?.gain ?? 1) * distanceLift(opts?.radius ?? placementOf(pos).r), 0, 6),
+        gain: clamp((opts?.gain ?? 1) * distanceLift(opts?.radius ?? placementOf(pos).r) * this.levelWobble(id, recipe), 0, 6),
         rate: clamp(opts?.rate ?? 1, 0.25, 4),
       });
-      if (shot) this.shots.push(shot);
+      if (shot) {
+        this.shots.push(shot);
+        this.shotIds.set(shot, id);
+      }
       this.sideEffects(id);
     } catch {
       // a broken recipe must never break the game
     }
+  }
+
+  /**
+   * Earlier copies of `id` still ringing make room for a new one: past SAME_TAILS the oldest fades out, and the rest
+   * step down, so twelve bell strikes ring like a bell and not like twelve bells stacked on the limiter.
+   */
+  private yieldTails(id: SfxId, now: number): void {
+    const ringing = this.shots.filter((s) => !s.disposed && this.shotIds.get(s) === id && s.end - now > TAIL_S);
+    while (ringing.length >= SAME_TAILS) {
+      const oldest = ringing.shift()!;
+      oldest.kill(SAME_TAIL_FADE);
+      this.shotIds.delete(oldest); // fading out: no longer one of the tails
+    }
+    for (const s of ringing) s.scale(SAME_TAIL_STEP, 0.3);
+  }
+
+  /** A small random level change (±1.5 dB) so a repeated sound is never the same twice; none where it must be. */
+  private levelWobble(id: SfxId, recipe: SfxRecipe): number {
+    if (STEADY_LEVEL.has(id) || UI_SFX.has(id) || recipe.jitter === 0) return 1;
+    return Math.pow(10, ((Math.random() * 2 - 1) * LEVEL_WOBBLE_DB) / 20);
   }
 
   /** Some sounds also change the world: power cuts darken the room, silence_drop pulls everything away. */
@@ -703,12 +1082,15 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
   }
 
   setNoise(loud: number): void {
+    const l = clamp(Number.isFinite(loud) ? loud : 1, 1, 3);
+    this.noise = l;
     const ac = this.ac;
     const bus = this.bus;
     if (!ac || !bus) return;
-    const l = clamp(Number.isFinite(loud) ? loud : 1, 1, 3);
-    // It swells in over a couple of breaths, and drains away more slowly.
+    // It swells in over a couple of breaths, and drains away more slowly. Under the reader the swell is held
+    // back (applySpeechDuck divides it out): panic presses in on her, it never drowns what her phone says.
     glide(bus.ambLoud.gain, l, ac.currentTime, l > 1 ? 0.5 : 1.2);
+    if (this.speaking) this.applySpeechDuck();
   }
 
   setAttention(level: number): void {
@@ -750,13 +1132,16 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
   }
 
   suspend(): void {
-    this.reader.stop();
+    this.held = true;
+    this.stopReader();
     this.ac?.suspend().catch(() => undefined);
   }
 
   resume(): void {
+    this.held = false;
     if (!this.ac || this.ac.state === 'closed') return;
-    this.ac.resume().catch(() => undefined);
+    // Not a gesture on iOS (visibilitychange): this may be refused; the next tap wakes it (see listen()).
+    this.wake(this.ac, false);
   }
 
   stats(): ReturnType<AudioEngineDebug['stats']> {
@@ -796,18 +1181,25 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
     if (!entry || !this.bank) return false;
     let recipe: SfxRecipe | undefined;
     if (opts?.variant !== undefined) {
-      if (!Number.isInteger(opts.variant) || opts.variant < 0 || opts.variant >= entry.files.length) return false;
-      const buffer = await this.bank.load(entry.files[opts.variant]!);
-      if (buffer) recipe = sampleRecipe(buffer, entry);
+      recipe = (await this.variantRecipe(id, opts.variant)) ?? undefined;
     } else {
-      await this.bank.loadSfx(id);
-      recipe = this.sampleFor(id, true);
+      const loaded = await this.bank.loadSfx(id);
+      recipe = this.sampleFor(id, true) ?? this.loadedRecipe(id, loaded);
     }
     // A suspended context (tab switch, OS audio change) is not a broken file: wake it before giving up.
     if (this.ac && this.ac.state !== 'running') await this.ac.resume().catch(() => undefined);
     if (!recipe || !this.ac || this.ac.state !== 'running') return false;
     this.shoot(id, pos, opts, recipe);
     return true;
+  }
+
+  /** The exact recorded variant `variant` of `id`, loaded; null when there is no such recording or it cannot load. */
+  private async variantRecipe(id: SfxId, variant: number): Promise<SfxRecipe | null> {
+    const entry = this.bank?.sfxEntry(id);
+    if (!entry || !this.bank) return null;
+    if (!Number.isInteger(variant) || variant < 0 || variant >= entry.files.length) return null;
+    const buffer = await this.bank.load(entry.files[variant]!);
+    return buffer ? sampleRecipe(buffer, entry) : null;
   }
 
   hasSample(id: SfxId | AmbienceId): boolean {
