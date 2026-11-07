@@ -82,13 +82,20 @@ scenes:
           - if: know.lead_f_breath
             then:
               - think: 有一次，我把耳朵貼在東牆的鐵皮上，從頭到尾只聽到自己在喘。
+          - if: know.lead_f_hum_missed
+            then:
+              - think: 有一次在舊站大廳，我指得太快。三個聲音，我一個都沒有聽完。
+          - pause: 1.5
+      - if: "know.lead_f_hum_missed && !know.k_f_again"
+        then:
+          - think: 有一次在舊站大廳，我指得太快。三個聲音，我一個都沒有聽完。
           - pause: 1.5
       - { sfx: rail_clack, at: back, dist: near, text: 喀噠、喀噠 }
       - narr: 鐵軌的接縫從腳底一節一節傳上來。
       - narr: 我沒有站起來，也沒有在腦子裡把今天再排一遍。
       - if: know.k_maintenance_passage
         then:
-          - think: 若晴傍晚會走進舊站大廳。她不來的那一次，陳醫生傍晚六點十二分走進側邊的通道。
+          - think: 若晴傍晚會走進舊站大廳。她不去的那一次，陳醫生十八點十二分一個人走進側邊的通道。
         else:
           - think: 若晴傍晚會走進舊站大廳。她不去的話，陳醫生會一個人從側邊下去。
       - think: 幾條走過的路，我都背得出來。可是他們今天還沒選。
@@ -101,8 +108,7 @@ scenes:
       - if: "know.k_yuan_sent_letter"
         then:
           - narr: 我隔著外套按了一下內側的口袋。信還在，點字的凸點頂著手指。
-          - think: 字是知夏用鉛筆寫的。予安借了點字板，從背面一格一格把它打出來。
-          - think: 他打得很用力，怕我摸不到。
+          - think: 予安打得很用力，怕我摸不到。
         else:
           - narr: 口袋裡，點字還是那一行，指尖下是同樣的凸點。
       - think: 不要回來。
@@ -162,10 +168,11 @@ scenes:
       - if: "flag.f_v_tingan && flag.f_v_yuan && flag.f_v_ruoqing && flag.f_v_boxun && flag.f_v_zhiyuan"
         then:
           - clock: "17:30"
+          - amb: [street_evening]
           - { sfx: phone_buzz, at: right, dist: near, text: 嗡 }
           - phone: 十七點三十分。
           - think: 五個人都找過了。手杖的握把被風吹得有點涼。
-          - narr: 我把五點四十二分、研究所備用會議室的時間和地址，傳給願意來的人。
+          - narr: 我把時間和地點傳給願意來的人：五點四十二分，研究所的備用會議室。
           - if: flag.ev_boxun_partial
             then:
               - { sfx: phone_notify, at: right, dist: near, text: 叮咚 }
@@ -175,10 +182,11 @@ scenes:
         then:
           - set: f_slot1
           - clock: "08:40"
+          - amb: [street_morning]
           - if: "know.k_spare_key"
             then:
               - narr: 門口第三個花盆。我蹲下去，手指伸進盆底那道泥巴縫。
-              - { sfx: key_jingle, at: front, dist: near, text: 鏘啷 }
+              - { sfx: key_jingle, at: right, dist: near, text: 鏘啷 }
               - { yuan: ……妳怎麼知道在那？, at: back }
               - me: 你講過的。你爸放的，第三個，對吧。
               - pause: 1.5
@@ -196,6 +204,7 @@ scenes:
             then:
               - set: f_slot2
               - clock: "10:30"
+              - amb: [street_morning]
               - { sfx: bicycle_bell, at: left, dist: mid, text: 叮叮 }
               - phone: 十點三十分。
               - think: 還有四個人。
@@ -204,6 +213,7 @@ scenes:
                 then:
                   - set: f_slot3
                   - clock: "12:20"
+                  - amb: [street_afternoon, construction_far]
                   - { sfx: construction_drill, at: back-right, dist: far, text: 噠噠噠噠 }
                   - narr: 我按了一下側鍵。
                   - phone: 十二點二十分。
@@ -213,6 +223,7 @@ scenes:
                     then:
                       - set: f_slot4
                       - clock: "14:10"
+                      - amb: [street_afternoon, sea_far]
                       - { sfx: seagull, at: front-left, dist: far, text: 啊——啊—— }
                       - narr: 我又叫手機報了一次時間。
                       - phone: 十四點十分。
@@ -220,6 +231,7 @@ scenes:
                     else:
                       - set: f_slot5
                       - clock: "15:50"
+                      - amb: [street_afternoon]
                       - { sfx: car_pass, at: right, dist: far, text: 嗚—— }
                       - narr: 我壓了一下手機側邊。
                       - phone: 十五點五十分。
@@ -298,10 +310,10 @@ scenes:
       - { sfx: door_open, at: front, dist: near, text: 吱 }
       - { sfx: raincoat_rustle, at: front, dist: near, text: 沙、沙 }
       - narr: 她在屋子裡也沒把雨衣脫掉。
-      - tingan: ……請問妳找誰？
+      - tingan: ……打電話來的是妳？
       - think: 門只開了一條縫，鍊條還扣著。她的聲音從縫裡出來，我還是認得。
-      - me: 葉庭安。
-      - tingan: 林家的妹妹？電話裡怎麼沒說清楚。妳要問研究所什麼事？
+      - me: 是我。
+      - tingan: 林家的妹妹。妳要問研究所什麼事？
       - { sfx: phone_buzz, at: front, dist: mid, text: 嗡、嗡 }
       - narr: 屋子裡有支手機在桌上震，一路震到桌邊。她沒有回頭去接。
       - tingan: 編輯在催。今天要交一版稿子，我還差一半。妳講快一點。
@@ -395,7 +407,7 @@ scenes:
               - me: 就是字面上的意思。妳不信也沒關係。
               - pause: 2
               - tingan: 好，先假設我信。那妳要我給妳什麼？
-          - me: 研究的目標、權限怎麼流，還有舊的備援紀錄。
+          - me: 研究原本在做什麼、誰能下指令，還有舊的備援紀錄。
           - tingan: 拿去幹嘛？給誰看？
           - me: 傍晚全部攤在桌上，給每一個會被它影響的人看。妳也是其中一個。
           - me: 妳不想給，我現在就走。
@@ -421,7 +433,7 @@ scenes:
                       then:
                         - { sfx: pen_scratch, at: front, dist: near, text: 唰 }
                         - narr: 筆在紙上劃了一道，劃破了。
-                        - tingan: ……那句是我講的。我以為那卷帶子早就沒了。
+                        - tingan: ……那句是我講的。那卷帶子我只聽過一次，從來沒給人聽過。
                         - set: f_t_proof
                     - text: 「我沒有來源。只有我記得的事。」
                       then:
@@ -434,11 +446,11 @@ scenes:
               - tingan: 如果妳哪天回來，不要讓妳知道她做過什麼。
               - tingan: 我守了五年。替一個已經不在的人守，很蠢吧？
               - { sfx: wave, at: front, dist: far, text: 嘩—— }
-              - narr: 我用舌尖頂住上排的牙齒，頂到發痠。窗外的浪打上堤防，一下，退回去。
+              - narr: 我用舌尖頂住上排的牙齒，頂到發痠。
               - if: "know.k_dont_become_me"
                 then:
                   - think: 庭安轉述過知夏的另一句話。不要讓她變成我。
-                  - think: 我沒有講出來。那句話不該拿來說服人。
+                  - think: 我沒有講出來。那句話是知夏留給我的，我不想拿它來換資料。
               - tingan: 可是妳看起來，不太像是來要答案的。
               - { sfx: paper_rustle, at: front, dist: near, text: 沙沙 }
               - tingan: 研究的目標，是災害的時候怎麼分流。颱風、封路、醫院。一開始跟時間完全沒關係。
@@ -476,7 +488,7 @@ scenes:
           - tingan: 其他的，我不知道妳在講什麼。
           - { sfx: door_slam, at: front, dist: near, text: 碰！, shake: light }
           - { sfx: lock_turn, at: front, dist: near, text: 喀、喀 }
-          - narr: 我手裡多了一張紙。門甩上帶起的風撲到我臉上，鎖從裡面轉了兩圈。
+          - narr: 我手裡多了一張紙。門甩上帶起的風撲到我臉上。
           - think: 換成是我，我也會鎖門。
           - heart: off
           - { sfx: step, at: center, dist: near, text: 叩、叩 }
@@ -494,7 +506,7 @@ scenes:
     beats:
       - set: f_v_yuan
       - { sfx: shop_bell, at: back, dist: near, text: 叮鈴 }
-      - narr: 滿屋子的錶各走各的，沒有兩只對得上。
+      - narr: 滿屋子的錶各走各的。今天我沒有去數它們。
       - { sfx: tools_clink, at: front, dist: near, text: 叮 }
       - narr: 他手上在修一只錶。
       - yuan: 後面有椅子。
@@ -552,8 +564,8 @@ scenes:
                       - { sfx: tools_clink, at: front, dist: near, text: 叮 }
                       - narr: 鑷子擱下以後，就沒有再拿起來。
                       - yuan: ……我不記得我講過。
-                      - { sfx: watch_tick, at: front, dist: near, text: 喀 }
-                      - narr: 他把手上那只錶的後蓋按上去，按了兩次才扣緊。
+                      - { sfx: box_close, src: 錶蓋, at: front, dist: near, text: 喀、喀 }
+                      - narr: 他把手上那只錶的後蓋按上去，第一次沒有扣緊。
                       - me: 你今天早上也來了。所以這一次，換我來問你要不要。
                       - set: [f_y_resp, f_y_recall, f_y_proof]
                   - mem: m_c5_on_time
@@ -591,7 +603,7 @@ scenes:
                   - think: 不是這句。這句他接不住。
       - if: "flag.f_y_resp"
         then:
-          - me: 舊車站東邊，有一個東西會在十八點三十一分醒過來。
+          - me: 舊車站東邊有一個東西，十八點三十一分會出事。
           - if: know.k_tower_kit
             then:
               - me: 它可能跟鐘樓以前的線接在一起。這個我不確定。
@@ -618,7 +630,8 @@ scenes:
               - narr: 發條轉到一半，停了。
               - yuan: 他那箱工具……
               - pause: 2
-              - narr: 後面的話沒有出來。他把那只錶放回盒子裡，蓋子闔上，喀。
+              - { sfx: box_close, at: front, dist: near, text: 喀 }
+              - narr: 後面的話沒有出來。他把那只錶放回盒子裡。
               - yuan: 妳要我做什麼，直接講就好。
               - think: 他在等我先講。我不講，他會把那半句吞回去。
               - choice:
@@ -627,7 +640,7 @@ scenes:
                       if: "know.k_tower_kit"
                       then:
                         - pause: 2
-                        - { sfx: tools_clink, at: front, dist: near, text: 叮 }
+                        - { sfx: box_open, at: front, dist: near, text: 喀 }
                         - narr: 盒子又被打開了。他的手指在裡面摸，摸到一個空的格子。
                         - yuan: ……妳怎麼會知道這個。
                         - me: 你講過。我先不講在哪裡。
@@ -677,6 +690,11 @@ scenes:
               - think: 我拿他最痛的那一分鐘去撬他。
               - heart: off
               - { sfx: shop_bell, at: back-right, dist: near, text: 叮鈴 }
+              - if: flag.f_slot3
+                then:
+                  - { amb: [street_afternoon], fade: 0.6 }
+                else:
+                  - { amb: [street_morning], fade: 0.6 }
               - { sfx: car_pass, at: front-left, dist: mid, to: front-right:mid, text: 噗噗—— }
               - narr: 我推門出去站在騎樓下，機車一台一台從面前騎過去，等心跳自己慢回來。
               - learn: lead_f_yuan_pushed
@@ -721,11 +739,12 @@ scenes:
       - set: f_v_ruoqing
       - { sfx: shop_bell, at: back, dist: near, text: 叮鈴 }
       - { sfx: coffee_grind, at: front-right, text: 嗡嘰嘰嘰 }
+      - { sfx: strap_click, at: front, dist: mid, text: 喀 }
       - ruoqing: 歡迎光——
-      - narr: 她的聲音卡在半句。她卡住的那半拍，我已經聽過很多次了。
+      - narr: 她的聲音停在半句。這半拍，我已經聽過很多次了。
       - ruoqing: 欸，窗邊那裡有扶手，妳要不要坐那邊？
-      - { sfx: typing, at: front-right, dist: mid, text: 噠噠、噠 }
-      - narr: 吧檯後面有台筆電。她打幾個字，就連按好幾下刪除，再打。
+      - { sfx: typing, at: front, dist: mid, text: 噠噠、噠 }
+      - narr: 她手邊有台筆電。她打幾個字，就連按好幾下刪除，再打。
       - ruoqing: 啊這個不用管，報名表啦。自我介紹寫三天了，還是好爛。
       - if: "flag.f_slot4 || flag.f_slot5"
         then:
@@ -741,7 +760,7 @@ scenes:
                 - set: f_r_resp
                 - { sfx: cup_set, at: front, dist: near, text: 叩 }
                 - { sfx: chair_scrape, at: front, dist: near, text: 嘎 }
-                - narr: 咖啡喝到一半就涼了。她自己走過來，在我對面坐下。
+                - narr: 咖啡喝到一半就涼了。她把筆電闔上，在我對面坐下。
             - text: 「妳拍過舊車站的東牆。更新前，跟更新後。」
               if: "know.k_new_cabinet"
               then:
@@ -775,9 +794,10 @@ scenes:
                   - mem: m_c3_another_year
                     then:
                       - me: 「如果等到想好，我可能又會多待一年。」
+                      - { sfx: strap_click, at: front, dist: near, text: 喀、喀 }
                       - pause: 2.5
                       - { sfx: coffee_grind, at: front-right, dist: mid, text: 嗡嘰嘰 }
-                      - narr: 背帶扣停了。磨豆機在她後面空轉了兩圈。
+                      - narr: 背帶扣停了。她身後的機器還在轉，她沒去管。
                       - ruoqing: ……妳很恐怖欸。這句我昨天晚上才在心裡講過。
                       - me: 那就是妳自己的話。我只是先講出來。
                       - set: [f_r_resp, f_r_recall, f_r_proof]
@@ -797,7 +817,7 @@ scenes:
           - if: know.k_new_cabinet
             then:
               - me: 舊車站東邊，今年春天多裝了一個機櫃。
-              - me: 十八點三十一分它會醒過來，那附近的人會有危險。
+              - me: 十八點三十一分它會開始響，那附近的人會有危險。
               - me: 我知道它是一個灰色的鐵櫃，比人高一點。可是在大廳的哪裡，我不知道。
               - me: 妳的照片，可能是唯一的地圖。
             else:
@@ -868,7 +888,7 @@ scenes:
               - ruoqing: 妳不要生氣喔。我拍的東西很少給人，給出去就收不回來了。
               - move: { ruoqing: front-right }
               - { sfx: typing, at: front-right, dist: mid, text: 噠噠 }
-              - narr: 她站起來回吧檯，筆電又開始響，打一個字，刪一個字。
+              - narr: 她抱著筆電站起來回吧檯，打一個字，刪一個字。
               - ruoqing: 傍晚我不會去舊站啦。我晚上要寄報名，這個比較急。
               - think: 她要先確定，我真的聽過那些照片。
               - set: ev_ruoqing_partial
@@ -923,7 +943,7 @@ scenes:
                 - set: [f_b_resp, f_b_proof]
                 - pause: 2.5
                 - boxun: ……那是知夏的諮詢紀錄。除了我，沒有人讀過。
-                - me: 你念給我聽過。你不用相信我，像那時候一樣，一項一項排除就好。
+                - me: 你念給我聽過。你不用信我，照你的方法查就好。
             - text: 「知夏走前十二天的那個人。你一直覺得他不該死。」
               if: "know.k_record_12days"
               then:
@@ -959,7 +979,7 @@ scenes:
                       - { sfx: pen_scratch, at: front, dist: near, text: 唰 }
                       - narr: 他手上的筆在紙上點了一下，沒有寫下去。
                       - boxun: ……今天才三號。十八點三十一分還沒到。
-                      - me: 是你寫的。那天傍晚，你站在碎石上寫的。你說原因之後再一項一項排除。
+                      - me: 是你寫的。那天傍晚，你站在碎石上寫的。
                       - me: 我今天來，就是想請你排除。
                       - set: [f_b_resp, f_b_recall, f_b_proof]
                   - mem: m_c3_which_time
@@ -1007,7 +1027,7 @@ scenes:
                       then:
                         - pause: 2.5
                         - { sfx: hand_rub, at: front, dist: near, text: 沙沙 }
-                        - narr: 他又搓了一次手。這次搓得很慢。
+                        - narr: 他停了比平常更久，才開口。
                         - boxun: ……那份紀錄沒有進系統。除了我，沒有人讀過。
                         - set: f_b_proof
                     - text: 「你私下整理過一份紀錄。姓名塗掉了，知夏走前十二天那一筆，時間沒塗。」
@@ -1052,7 +1072,8 @@ scenes:
               - boxun: 傍晚如果還有需要，我帶這一份過去。
               - think: 他要的是一樣他自己寫過、自己核對得了的東西。
               - { sfx: step, at: front, dist: mid, to: front-right:far, text: 叩……叩…… }
-              - narr: 他往病歷室走了。走到一半，又停下來按了一次乾洗手。
+              - { sfx: hand_rub, at: front-right, dist: far, text: 噗、沙沙 }
+              - narr: 他往病歷室走了，走到一半停了一下。
               - set: ev_boxun_partial
               - learn: lead_f_boxun_record
         else:
@@ -1102,7 +1123,7 @@ scenes:
                 - set: [f_z_resp, f_z_proof]
                 - pause: 3
                 - zhiyuan: ……這件事，沒人知道。
-                - me: 我不是來檢舉你的。那台機器今晚可能用得到。那是你的抽屜。
+                - me: 我不是來檢舉你的。那台機器今晚可能用得到，要不要拿出來，你決定。
             - text: 「你抽屜深處有一台沒登錄的錄音機。不交出來，我就去找督察。」
               then:
                 - tension: 6
@@ -1113,7 +1134,7 @@ scenes:
                       - me: 「……我那時候還在路上。」
                       - pause: 3
                       - narr: 電扇轉過來，又轉過去。他的打火機也沒有再響。
-                      - zhiyuan: 這句話，我沒跟任何人講過。
+                      - zhiyuan: ……這句話，沒有人聽過。
                       - zhiyuan: 我只在車上，自己跟自己講。
                       - me: 我不是來要你交代的。今晚要的是紀錄，不是你的道歉。
                       - set: [f_z_resp, f_z_recall, f_z_proof]
@@ -1142,14 +1163,15 @@ scenes:
             then:
               - { sfx: lighter_lid, at: front, dist: near, text: 叮、喀 }
               - zhiyuan: 妳一直講「那台錄音機」。
-              - zhiyuan: 我抽屜裡有什麼，我沒跟任何人講過。妳講得出它錄了什麼，我再想。
+              - zhiyuan: 我抽屜裡有什麼，外面沒有人知道。妳講得出它錄了什麼，我再想。
               - choice:
                   options:
                     - text: 「十八點三十一分，帶子裡有你在講話。可是那時候，你還沒到。」
                       if: "know.k_recorder_voice"
                       then:
                         - pause: 3
-                        - narr: 打火機的蓋子掀開，停在那裡，沒有蓋回去。
+                        - { sfx: lighter_open, at: front, dist: near, text: 喀 }
+                        - narr: 那個蓋子停在那裡，沒有蓋回去。
                         - zhiyuan: ……這件事，沒人知道。
                         - set: f_z_proof
                     - text: 「我不知道。我只知道它在。」
@@ -1158,9 +1180,13 @@ scenes:
                         - zhiyuan: 那它就繼續在。
           - if: "flag.f_z_proof"
             then:
+              - { sfx: drawer_catch, variant: 1, at: front-right, dist: mid, text: 喀 }
+              - { sfx: drawer_catch, variant: 2, at: front-right, dist: mid, text: 喀 }
               - { sfx: drawer, at: front-right, dist: mid, text: 喀啦 }
+              - { sfx: recorder_click, at: front-right, dist: mid, text: 喀嚓 }
               - { sfx: tape_hiss, at: front-right, dist: mid, text: 沙———— }
-              - narr: 抽屜拉到最底。磁帶的底噪很輕，一直沙沙地響。
+              - narr: 他沒有放給我聽。
+              - { sfx: recorder_click, at: front-right, dist: mid, text: 喀 }
               - zhiyuan: 證物要有保全鏈。誰拿過、幾點、封在哪裡。
               - zhiyuan: 從現在開始，每樣東西經過誰的手，我一筆一筆記。
               - { zhiyuan: 這台錄音機，用我的名字登錄。, mem: m_f_my_name }
@@ -1180,7 +1206,7 @@ scenes:
               - zhiyuan: 這些是公開的，我可以講。
               - zhiyuan: 今晚真的出事，打一一〇。我會到。
               - narr: 抽屜沒有拉開。他又翻回清冊，筆尖一張一張點下去。
-              - think: 抽屜裡有東西，我知道。裡面錄了他，我講不出來。
+              - think: 抽屜裡有東西，我知道。裡面錄了什麼，我講不出來。
               - set: ev_zhiyuan_partial
               - learn: lead_f_zhiyuan_voice
         else:
@@ -1212,20 +1238,44 @@ scenes:
           - narr: 研究所後門的鎖早就壞了。庭安沒有來。
       - { sfx: door_open, at: back, dist: mid, text: 吱 }
       - { sfx: hand_rub, at: back, dist: mid, text: 噗、沙沙 }
-      - narr: 冷氣裡混進一股消毒水味。
+      # P-2 聽聲認人：五個人都可能先到。列出她認得的人，認錯只是被更正，不關門。
       - choice:
           timeout: 7
           options:
-            - text: 「陳醫生，左邊有位子。」
+            - text: 「予安？」
+              if: know.k_sig_yuan
+              then:
+                - pause: 1.5
+                - { boxun: ……不是。我是陳柏勳。, at: back }
+                - narr: 我把手杖往身邊收了一點。
+                - me: 陳醫生。左邊有位子。
+                - tension: 3
+            - text: 「若晴？」
+              if: know.k_sig_ruoqing
+              then:
+                - pause: 1
+                - { boxun: 不是若晴。……陳柏勳。, at: back }
+                - me: ……左邊有位子。
+                - tension: 3
+            - text: 「陳醫生？」
               if: know.k_sig_boxun
               then:
                 - pause: 1.5
                 - { boxun: ……嗯。, at: back }
                 - me: 你進門以前，會先搓手。
                 - { boxun: 這個習慣，我自己倒沒注意過。, at: back }
+                - me: 左邊有位子。
                 - set: f_named_boxun
-            - text: （等他先開口）
+            - text: 「周警官？」
+              if: know.k_sig_zhiyuan
               then:
+                - pause: 1.5
+                - { boxun: ……不是警察。我是陳柏勳。, at: back }
+                - me: 左邊有位子。
+                - tension: 3
+            - text: （等對方先開口）
+              then:
+                - narr: 冷氣裡混進一股消毒水味。
                 - pause: 1.5
                 - { boxun: 林小姐。是我，陳柏勳。, at: back }
                 - me: 左邊有位子。
@@ -1243,10 +1293,12 @@ scenes:
           - boxun: 我只帶了一份。其他的，等妳證明。
       - if: "flag.ev_zhiyuan"
         then:
+          - { sfx: door_open, at: back, dist: mid, text: 吱 }
           - { sfx: radio_noise, at: back, dist: mid, text: 沙沙 }
-          - narr: 無線電馬上被人轉小。那個人走到正前方坐下，一句話也沒講。
+          - narr: 無線電馬上被人轉小。
+          - { sfx: step, at: back, dist: mid, to: front:mid, text: 叩、叩 }
           - { sfx: lighter_lid, at: front, dist: mid, text: 叮、喀 }
-          - think: 周警官。打火機的蓋子開了又關，連轉小聲的那一下，都像在回報。
+          - think: 周警官。打火機的蓋子開了又關，沒有點。
           - { sfx: pen_scratch, at: front, dist: mid, text: 唰唰 }
           - zhiyuan: 十七點四十二分。在場的人，我一個一個記。
         else:
@@ -1274,7 +1326,7 @@ scenes:
         then:
           - { sfx: door_open, at: back, dist: mid, text: 吱 }
           - pause: 1.5
-          - narr: 門又開了。這一次沒有人講話，腳步也放得很輕。
+          - narr: 這一次沒有人講話，腳步也放得很輕。
           - { sfx: strap_click, at: back, dist: near, text: 喀 }
           - heart: fast
           - { sfx: strap_click, at: front-right, dist: mid, text: 喀、喀 }
@@ -1358,7 +1410,7 @@ scenes:
                         then:
                           - { sfx: raincoat_rustle, at: front-left, dist: mid, text: 沙 }
                           - tingan: ……她是站在研究所門口講的，沒有進來。
-                          - tingan: 那句話，我沒有跟任何人講過。
+                          - tingan: 那句話，我連主編都沒講。
                           - narr: 她沒有問我是從哪裡聽來的。
                         else:
                           - think: 跟我轉述這句話的人，今天沒有來。
@@ -1434,10 +1486,17 @@ scenes:
             then:
               - think: 只有一份病歷，什麼都比不出來。
           - think: 少掉的那幾份，我沒辦法自己補。
-      - if: "know.k_tape_1803"
+      - if: "know.k_tape_1803 && flag.ev_zhiyuan"
         then:
           - think: 十八點零三分。電信紀錄寫知夏「撥出」，她自己的筆記寫「收到」。
-          - think: 我沒有講出來。今天不是拿來解這個的。
+          - me: 周警官，今天過完以後，幫我查一通電話。五年前十八點零三分，知夏撥出去的那通。
+          - zhiyuan: ……記了。今天不查。
+          - set: f_z_1803
+        else:
+          - if: "know.k_tape_1803"
+            then:
+              - think: 十八點零三分。電信紀錄寫知夏「撥出」，她自己的筆記寫「收到」。
+              - think: 我沒有講出來。今天不是拿來解這個的。
       - narr: 往舊車站的路上，風一直往北吹。
     next: f_station
 
@@ -1506,11 +1565,11 @@ scenes:
       - { sfx: phone_buzz, at: right, dist: near, text: 嗡, vib: buzz }
       - phone: 心率 <心率>，過高，已記錄。十八點三十一分。
       - { sfx: blackout, at: front, dist: near, text: ——, vib: thud }
-      - { sfx: murmur_m, at: back, dist: far }
-      - narr: 燈管的滋滋聲斷了。門外有工人喊「又停電」，接著是一聲倒抽的氣。
+      - narr: 燈管的滋滋聲斷了。
+      - tension: 20
+      - { man: 又停電了喔！, as: 門外的工人, at: back, dist: far }
       - { sfx: glass_break, at: front-left, dist: far, text: 啪嚓 }
-      - narr: 很遠的地方有玻璃掉下來碎了，沒有人叫。
-      - tension: 8
+      - narr: 大廳裡沒有人出聲。
       # 予安在場時：黑暗裡他往旁邊挪了位置。認得他的腳步，才能先找到他。
       - if: flag.ev_yuan
         then:
@@ -1569,21 +1628,44 @@ scenes:
       - { sfx: hum_rise, at: back-left, dist: far, text: ……嗡 }
       - narr: 這個大廳太空了。每一個聲音撞到牆，都會再回來一次。
       - narr: 回來的那個晚半拍，比較糊。
+      # P-3(c)：第七章轉頭聽過窗外工人的人，記得那個櫃子是「時間到自己跑」。只提示要聽跟著時間的那一個，不給方向。
+      - if: know.k_c7_self_test
+        then:
+          - think: 研究所窗外有工人講過，那個櫃子傍晚會自己測一次。沒有人按，時間到，它自己跑。
       - think: 哪一個，是跟著時間一起往上爬的？
-      - locate:
-          sfx: hum_rise
-          at: right
-          decoys:
-            - { sfx: light_buzz, at: left }
-            - { sfx: hum_fall, at: front }
-            - { sfx: hum_rise, at: back-left }
-          tries: 2
-          timeout: 20
-          prompt: 哪一個在跟著時間變大？
-          success:
-            - set: f_hear_right
-          fail:
-            - narr: 我往錯的那邊走了兩步，手底下的鐵皮一直在抖，音卻一點都沒有變高。
+      # P-6：有一輪在這裡指錯、沒找到它（lead_f_hum_missed），之後每一輪多一次機會。
+      - if: know.lead_f_hum_missed
+        then:
+          - think: 這一次，三個都聽完再指。
+          - locate:
+              sfx: hum_rise
+              at: right
+              decoys:
+                - { sfx: light_buzz, at: left }
+                - { sfx: hum_fall, at: front }
+                - { sfx: hum_rise, at: back-left, gain: 0.55 }
+              tries: 3
+              timeout: 24
+              prompt: 哪一個越來越大？
+              success:
+                - set: f_hear_right
+              fail:
+                - narr: 我往錯的那邊走了兩步，手底下的鐵皮一直在抖，音卻一點都沒有變高。
+        else:
+          - locate:
+              sfx: hum_rise
+              at: right
+              decoys:
+                - { sfx: light_buzz, at: left }
+                - { sfx: hum_fall, at: front }
+                - { sfx: hum_rise, at: back-left, gain: 0.55 }
+              tries: 2
+              timeout: 20
+              prompt: 哪一個越來越大？
+              success:
+                - set: f_hear_right
+              fail:
+                - narr: 我往錯的那邊走了兩步，手底下的鐵皮一直在抖，音卻一點都沒有變高。
       # 若晴不在也行：她只給了照片和位置（ev_ruoqing_photos）、摸過那個鐵櫃（k_cabinet_warm），或聽她念過四月那張照片（k_cabinet_spot）。
       - if: "flag.f_hear_right && (flag.ev_ruoqing || flag.ev_ruoqing_photos || know.k_cabinet_warm || know.k_cabinet_spot)"
         then:
@@ -1639,7 +1721,8 @@ scenes:
             else:
               - { sfx: cane_tap, at: right, dist: near, text: 匡, shake: light }
               - narr: 我轉得太急，手杖甩出去敲在柱子上，震得虎口發麻。
-              - think: 是右邊。等我轉過去，已經來不及了。
+              - think: 等我轉對方向，已經來不及了。
+              - learn: lead_f_hum_missed
       - { sfx: hum_fall, at: right, dist: mid, text: ……嗡 }
       - narr: 然後它降下去，好像什麼事都沒有發生過。
       - heart: off
@@ -1652,6 +1735,7 @@ scenes:
         then:
           - { ruoqing: 我先回店裡弄報名。照片也傳給你們，哪裡不清楚再打給我。, at: back, dist: mid }
           - { ruoqing: 晚點我再過來。, at: back, dist: mid }
+          - { sfx: strap_click, at: back, dist: mid, to: back:far, text: 喀、喀…… }
     threads:
       cab_left:
         beats:
@@ -1704,14 +1788,14 @@ scenes:
           - { tingan: 順序反過來的話，它會當成線路故障，自己再接回去。, at: right, dist: near, as: 電話裡的庭安, via: phone }
           - yuan: ……了解。
           - { sfx: breath_m, at: right, dist: near, text: 呼…… }
-          - narr: 他的手指捏著那條線，沒有動。我聽得到他在用鼻子慢慢吐氣。
+          - narr: 他的手指捏著那條線，沒有動。
           - narr: 我貼在鐵皮上的手掌也不敢動，指尖壓到發麻。
           - pause: 2
           - { tingan: 備援權限撤銷……跑完了。好，拔。, at: right, dist: near, as: 電話裡的庭安, via: phone }
           - yuan: 拔了。
           - { sfx: relay_click, at: right, dist: near, text: 喀噠 }
           - { sfx: hum_fall, at: right, dist: near, text: 嗡…… }
-          - narr: 我把手掌貼在鐵皮上。剛剛一直往上爬的那個東西，停住了。
+          - narr: 我把手掌貼在鐵皮上。鐵皮底下那一點細細的震動，停住了。
           - tension: -10
           - heart: off
           - { tingan: 它現在只是關起來，壞了也不會自己打開。, at: right, dist: near, as: 電話裡的庭安, via: phone }
@@ -1724,7 +1808,8 @@ scenes:
           - yuan: 我八點有約。賣不賣，我還沒決定。
           - yuan: 可是我想自己去聽，他怎麼講。
           - me: 嗯。去吧。
-          - { sfx: step_uneven, at: back-right, dist: far, text: 咚、叩 }
+          - { sfx: step_uneven, at: right, dist: near, to: back-right:far, text: 咚、叩 }
+          - move: { yuan: back-right }
           - set: g2
         else:
           - if: "!flag.g1"
@@ -1805,7 +1890,7 @@ scenes:
     time: "22:00"
     place: 舊車站，東牆
     ambience: [old_station_hall]
-    cast: { zhiyuan: front, boxun: right, tingan: right, yuan: right }
+    cast: { zhiyuan: front, boxun: right, yuan: right }
     beats:
       - if: "flag.ev_zhiyuan"
         then:
@@ -1852,7 +1937,7 @@ scenes:
                     - { sfx: lighter_lid, at: back, dist: near, text: 叮、喀 }
                     - narr: 又響了一次。我屏著氣等，等到它不再響，耳朵已經貼得發燙。
                     - tension: 4
-      - { sfx: breath, at: center, dist: near, text: 呼、呼 }
+      - { sfx: pant, at: center, dist: near, text: 呼、呼 }
       - narr: 結果最吵的是我自己。從研究所一路走下坡過來，我走得太急，氣到現在還沒喘勻。
       - narr: 心跳一下一下撞著耳膜，撞在鐵皮上又彈回來，蓋過裡面的任何聲音。
       - think: 要先把這口氣吐乾淨，才聽得到鐵皮裡面。
@@ -2008,17 +2093,6 @@ scenes:
             then:
               - narr: 心跳退下去以後，鐵皮裡只剩一個平平的低鳴，是上排那些醫院跟路燈的備援電。
               - narr: 它一直在同一個高度，沒有東西在往上爬。
-              - clock: "22:30"
-              - amb: [research_facility]
-              - narr: 二十二點三十分，研究所，主路徑的機櫃前。
-              - narr: 伺服器還在轉。那是預測，它在算明天的風。
-              - narr: 我在這裡也先把氣吐乾淨，才把耳朵貼上去。那個跟著時間往上爬的聲音，這裡也沒有了。
-              - think: 兩邊都安靜了。
-              - tingan: 我再念一次查核結果。主路徑、備援，回寫權限都已撤銷。
-              - tingan: 兩邊都沒有再送出，也沒有接受新的改寫確認。
-              - if: flag.ev_zhiyuan
-                then:
-                  - zhiyuan: 我從兩台設備各取一份原始紀錄。編號分開，跟剛剛念的核對過了。
             else:
               - narr: 心跳退下去以後，鐵皮裡面有一個聲音浮上來。
               - { sfx: hum_rise, at: right, dist: far, text: 嗡—— }
@@ -2035,15 +2109,55 @@ scenes:
               - zhiyuan: 好。證人複核，這一欄我寫「未確認」。
               - zhiyuan: 聽不到，就照寫聽不到。
           - heart: slow
-          - if: "flag.g2"
-            then:
-              - clock: "22:30"
-              - amb: [research_facility]
-              - narr: 二十二點三十分，研究所，主路徑的機櫃前。
-              - tingan: 我再念一次查核結果。主路徑、備援，回寫權限都已撤銷。
-              - think: 說停了的，是它自己的紀錄。東牆那邊，我沒有聽到它停。
+          - pause: 1.5
           - heart: off
-      - if: "flag.g2 && flag.ev_zhiyuan && flag.ev_boxun && flag.f_g4_heard"
+      # 兩條路都撤了：回坡上的研究所，在主路徑那一頭再聽一次（f_gate4_lab，22:30）。沒撤，就停在東牆。
+      - if: "flag.g2"
+        then:
+          - goto: f_gate4_lab
+      - if: "!flag.ev_zhiyuan"
+        then:
+          - think: 沒有人能證明今晚的紀錄沒被改過。我記得的不算數。
+      - if: "!flag.ev_boxun"
+        then:
+          - think: 醫院那邊到底有沒有照常在走，沒有人講得出來。
+      - think: 而且它根本還沒停。
+    next: f_gate5
+
+  # ─────────────────────────── 22:30 主路徑複核 ───────────────────────────
+  - id: f_gate4_lab
+    # 格局：舊研究所，機房／主控台後（docs/scene-layouts.md）
+    # 只有 g2 成立才會來：兩條路都撤了，她從東牆走回坡上，對主路徑再聽一次。G4 在這裡成立。
+    time: "22:30"
+    place: 舊研究所，機房
+    ambience: [research_facility]
+    cast: { tingan: front, zhiyuan: back-left }
+    beats:
+      - { sfx: raincoat_rustle, at: front, dist: near, text: 沙 }
+      - if: flag.ev_zhiyuan
+        then:
+          - { sfx: step, at: back-left, dist: near, text: 叩、叩 }
+          - narr: 周警官一路跟在後面，到這裡都沒開口。
+      - if: "flag.ev_boxun && flag.f_g4_heard"
+        then:
+          - narr: 上坡的路上，我打給陳醫生，跟他講了東牆那邊。他說好，醫院那邊他再盯著。
+      - if: flag.f_g4_ticked
+        then:
+          - narr: 予安的電話，我是到了坡頂才掛的。
+      - narr: 我站到主路徑的機櫃前面。伺服器還在轉，那是預測，它在算明天的風。
+      - if: "flag.f_g4_heard"
+        then:
+          - narr: 我在這裡也先把氣吐乾淨，才把耳朵貼上去。那個跟著時間往上爬的聲音，這裡也沒有了。
+          - think: 兩邊都安靜了。
+          - tingan: 我再念一次查核結果。主路徑、備援，回寫權限都已撤銷。
+          - tingan: 兩邊都沒有再送出，也沒有接受新的改寫確認。
+          - if: flag.ev_zhiyuan
+            then:
+              - zhiyuan: 我從兩台設備各取一份原始紀錄。編號分開，跟剛剛念的核對過了。
+        else:
+          - tingan: 我再念一次查核結果。主路徑、備援，回寫權限都已撤銷。
+          - think: 說停了的，是它自己的紀錄。東牆那邊，我沒有聽到它停。
+      - if: "flag.ev_zhiyuan && flag.ev_boxun && flag.f_g4_heard"
         then:
           - zhiyuan: 三個來源。紀錄、醫院，還有妳的耳朵。
           - { zhiyuan: 妳的耳朵我也照記。證人，林小姐。, mem: m_f_witness }
@@ -2055,10 +2169,7 @@ scenes:
           - if: "!flag.ev_boxun"
             then:
               - think: 醫院那邊到底有沒有照常在走，沒有人講得出來。
-          - if: "!flag.g2"
-            then:
-              - think: 而且它根本還沒停。
-          - if: "flag.g2 && flag.f_g4_heard"
+          - if: "flag.f_g4_heard"
             then:
               - think: 光是我說「它停了」不夠，要別人也查得到才行。
     next: f_gate5
@@ -2069,11 +2180,11 @@ scenes:
     time: "23:30"
     place: 舊研究所，機房
     ambience: [research_facility]
-    cast: { tingan: front, yuan: right, ruoqing: left, zhiyuan: back-left, boxun: back-right }
+    cast: { tingan: front, yuan: right, ruoqing: left, zhiyuan: back-left }
     beats:
       - if: flag.ev_ruoqing
         then:
-          - { sfx: strap_click, at: back-left, dist: mid, text: 喀 }
+          - { sfx: strap_click, at: back-left, dist: mid, to: left:near, text: 喀 }
           - ruoqing: 店裡收好了。我回來看看，再待一會兒。
       - if: "flag.ev_yuan"
         then:
@@ -2158,97 +2269,115 @@ scenes:
       - if: "know.k_dont_become_me"
         then:
           - think: 不要讓她變成我。
+      - if: "know.k_six_letters"
+        then:
+          - think: 第六封最後一行，她寫：不要讓我替妳選。
+          - think: 再來一次，就是我替他們每一個人選。
       - pause: 2
-      - choice:
-          options:
-            - text: 「撤銷所有改寫，然後封存今天。」
-              if: "flag.g1 && flag.g2 && flag.g3 && flag.g4 && flag.g5"
-              then:
-                - set: f_pick_c
-                - pause: 1.5
-                - tingan: ……好。
-                - { sfx: typing, at: front, dist: near, text: 噠、噠、噠 }
-                - tingan: 撤銷，寫死。
-                - { sfx: relay_click, at: front, dist: mid, text: 喀噠 }
-                - tingan: 封存。觀測者那一欄——
-                - narr: 我的喉嚨乾得發痛，第一個字卡了一下才出來。
-                - me: 林。知夏的妹妹。
-                - tension: -15
-                - { sfx: relay_click, at: front, dist: far, text: 喀 }
-                - narr: 伺服器還在轉。現在它只能算，不能再動手了。
-                - heart: off
-            - text: 「只封存這一個今天。」
-              if: "flag.ev_tingan"
-              then:
-                - if: flag.g1
+      - if: "flag.ev_tingan"
+        then:
+          - choice:
+              options:
+                - text: 「撤銷所有改寫，然後封存今天。」
+                  if: "flag.g1 && flag.g2 && flag.g3 && flag.g4 && flag.g5"
                   then:
-                    - set: f_pick_a
-                  else:
-                    - set: f_seal_unverified
-                - if: "flag.g5"
+                    - set: f_pick_c
+                    - pause: 1.5
+                    - tingan: ……好。
+                    - { sfx: typing, at: front, dist: near, text: 噠、噠、噠 }
+                    - tingan: 撤銷，寫死。
+                    - { sfx: relay_click, at: front, dist: mid, text: 喀噠 }
+                    - tingan: 封存。觀測者那一欄——
+                    - narr: 我的喉嚨乾得發痛，第一個字卡了一下才出來。
+                    - me: 林。知夏的妹妹。
+                    - tension: -15
+                    - { sfx: relay_click, at: front, dist: far, text: 喀 }
+                    - narr: 伺服器還在轉。聲音跟剛剛一模一樣。
+                    - heart: off
+                - text: 「只封存這一個今天。」
+                  if: "flag.ev_tingan"
                   then:
-                    - tingan: 不寫死？
-                    - me: 我不敢。寫死以後，要是哪天發現少算了誰，就再也沒辦法改了。
-                    - pause: 2
-                    - tingan: ……那一欄是妳的。
-                - { sfx: typing, at: front, dist: near, text: 噠、噠 }
-                - if: flag.g2
-                  then:
-                    - tingan: 那我撤回今晚的暫時停用，讓主路徑恢復權限。備援那個接頭還留在外面。
-                    - tingan: 這樣才是保留以後再用的可能。妳確定？
-                    - me: 嗯。
-                - tingan: 只封今天。送出。
-                - { sfx: relay_click, at: front, dist: mid, text: 喀 }
-                - if: flag.f_seal_unverified
-                  then:
-                    - pause: 2
-                    - tingan: ……主路徑收到了。
-                    - tingan: 備援那一條沒有回應。它在哪裡，我們一直沒找到。
-                    - { sfx: hum_rise, at: front-right, dist: far, text: 嗡…… }
-                    - narr: 很遠的地方，有個東西還在低低地響，沒有因為她按下去就停。
-                    - think: 封不封得住，要等鐘聲。
-                    - tension: 6
-                  else:
-                    - tension: -6
-            - text: 「……再一次。」
-              then:
-                - set: f_pick_b
-                - learn: k_f_again
-                - pause: 3
-                - narr: 機房裡只剩伺服器在轉。
-                - if: "flag.ev_tingan"
-                  then:
+                    - if: flag.g1
+                      then:
+                        - set: f_pick_a
+                      else:
+                        - set: f_seal_unverified
+                    - if: "flag.g5"
+                      then:
+                        - tingan: 不寫死？
+                        - me: 我不敢。寫死以後，要是哪天發現少算了誰，就再也沒辦法改了。
+                        - pause: 2
+                        - tingan: ……那一欄是妳的。
+                    - { sfx: typing, at: front, dist: near, text: 噠、噠 }
                     - if: flag.g2
                       then:
-                        - me: 先不要封存。今晚的停用，可以撤回嗎？
-                        - tingan: 主路徑可以恢復權限。可是日誌對不上，午夜它可能又會重試。
-                        - me: ……我知道。
-                        - { sfx: typing, at: front, dist: near, text: 噠噠噠 }
-                        - narr: 鍵盤響了一陣。她念出恢復的權限，我聽著，一句也沒有攔。
-                      else:
-                        - tingan: 再一次……什麼再一次？
-                    - narr: 我沒有再說話。鍵盤停了，她也沒有再問。
-                - if: flag.ev_tingan
-                  then:
-                    - if: know.k_my_death_page
+                        - tingan: 那我撤回今晚的暫時停用，讓主路徑恢復權限。備援那個接頭還留在外面。
+                        - tingan: 這樣以後要用，還用得到。妳確定？
+                        - me: 嗯。
+                    - tingan: 只封今天。送出。
+                    - { sfx: relay_click, at: front, dist: mid, text: 喀 }
+                    - if: flag.f_seal_unverified
                       then:
-                        - think: 那一頁上寫的是我。再一次，它也可能再被寫一次，寫的是我，或者別人。
-                    - tension: 20
-                    - heart: pound
-                    - narr: 我把指甲掐進掌心，一直掐，掐到整個手掌發燙。
-                    - { sfx: tinnitus, at: center }
-                    - daze: light
-                    - narr: 伺服器的聲音退到很遠，耳朵裡只剩一條細細的嗡鳴，跟我的心跳。
-                    - think: 我又把所有人的今天，拿回來重排了一次。
-                    - daze: off
-                    - { sfx: door_open, at: back, dist: mid, text: 吱 }
-                    - narr: 有人推開機房的門，夜風灌進來，蟲叫聲才一樣一樣回到耳朵裡。
-                    - { sfx: cricket_chirp, at: back, dist: far, text: 唧——唧—— }
-                  else:
-                    - think: 封不起來。會封的人，今天沒有來。
-                    - think: 今天會再來一次。這一次，不是我選的。
-                    - tension: 8
-                    - narr: 我把手杖橫放在膝蓋上，隔著鎖住的門，聽伺服器一直轉。
+                        - pause: 2
+                        - tingan: ……主路徑收到了。
+                        - tingan: 備援那一條沒有回應。它在哪裡，我們一直沒找到。
+                        - { sfx: hum_rise, at: front-right, dist: far, text: 嗡…… }
+                        - narr: 很遠的地方，有個東西還在低低地響，沒有因為她按下去就停。
+                        - think: 封不封得住，要等鐘聲。
+                        - tension: 6
+                      else:
+                        - tension: -6
+                - text: 「……再一次。」
+                  then:
+                    - set: f_pick_b
+                    - learn: k_f_again
+                    - pause: 3
+                    - narr: 機房裡只剩伺服器在轉。
+                    - if: "flag.ev_tingan"
+                      then:
+                        - if: flag.g2
+                          then:
+                            - me: 先不要封存。今晚的停用，可以撤回嗎？
+                            - tingan: 主路徑可以恢復權限。可是日誌對不上，午夜它可能又會重試。
+                            - me: ……我知道。
+                            - { sfx: typing, at: front, dist: near, text: 噠噠噠 }
+                            - narr: 鍵盤響了一陣。她念出恢復的權限，我聽著，一句也沒有攔。
+                          else:
+                            - tingan: 再一次……什麼再一次？
+                        - narr: 我沒有再說話。鍵盤停了，她也沒有再問。
+                    - if: flag.ev_tingan
+                      then:
+                        - if: know.k_my_death_page
+                          then:
+                            - think: 那一頁上寫的是我。再來一次，它可能又寫一次，寫我，或寫別人。
+                        - tension: 20
+                        - heart: pound
+                        - narr: 我把指甲掐進掌心，一直掐，掐到整個手掌發燙。
+                        - { sfx: tinnitus, at: center }
+                        - daze: light
+                        - narr: 伺服器的聲音退到很遠，耳朵裡只剩一條細細的嗡鳴，跟我的心跳。
+                        - think: 我又把所有人的今天，拿回來重排了一次。
+                        - daze: off
+                        - { sfx: door_open, at: back, dist: mid, text: 吱 }
+                        - narr: 有人推開機房的門，夜風灌進來，蟲叫聲才一樣一樣回到耳朵裡。
+                        - { sfx: cricket_chirp, at: back, dist: far, text: 唧——唧—— }
+        else:
+          # 庭安沒有來，能說的只剩「再一次」。放著讓時間跑完是愣住，不是她說出口（design §7.1-6）：一樣走到 Ending B，但不學 k_f_again。
+          - choice:
+              timeout: 20
+              options:
+                - text: 「……再一次。」
+                  then:
+                    - set: f_pick_b
+                    - learn: k_f_again
+                    - pause: 3
+                    - narr: 機房裡只剩伺服器在轉。
+              silence:
+                - narr: 我張開嘴，什麼都沒有說出來。
+                - think: 今天會再來一次。這一次，不是我選的。
+          - think: 封不起來。會封的人，今天沒有來。
+          - tension: 8
+          - narr: 我把手杖橫放在膝蓋上，隔著鎖住的門，聽伺服器一直轉。
     next: f_midnight
 
   # ─────────────────────────── 等待午夜 ───────────────────────────
@@ -2257,11 +2386,7 @@ scenes:
     time: "23:50"
     place: 舊研究所外的台階
     ambience: [wind_open, night_insects]
-    cast: { yuan: right, ruoqing: left, tingan: back, zhiyuan: back-left, boxun: back-right }
-    life:
-      - { text: 呼……, sfx: breath, at: [left, right], dist: near }
-      - { text: 沙, sfx: cloth_rustle, at: [right, back, back-left, back-right], dist: mid }
-      - { text: 叩, sfx: step, src: 腳步, at: [back, back-left, back-right], dist: mid }
+    cast: { yuan: right, ruoqing: left, tingan: back, zhiyuan: back-left }
     beats:
       - if: "flag.ev_yuan || flag.ev_ruoqing || flag.ev_tingan || flag.ev_zhiyuan"
         then:
@@ -2335,8 +2460,7 @@ scenes:
       - tension: -25
       - heart: off
       - pause: 3
-      - narr: 看得見的人，大概只會覺得這是一個普通的晚上。
-      - narr: 對我來說，這片安靜就是全部了。
+      - narr: 這片安靜，我從頭聽到尾。
       - wait: 4
       - { sfx: heartbeat, at: center, dist: near, vib: heartbeat }
       - narr: 我數自己的心跳，數到十二，再數到十三。
@@ -2361,7 +2485,15 @@ scenes:
     # 格局：林家老屋／知夏的房間／坐床沿（docs/scene-layouts.md）
     time: "10月4日 07:10"
     place: 林家老屋
-    ambience: [old_house, rain_on_window]
+    # 早上的巷子池（old_house）會冒出「出大日頭」之類的晴天台詞，所以底噪改用 room_tone，巷子裡的人只留下雨天會有的。
+    ambience: [room_tone, rain_on_window]
+    life:
+      - { say: 下雨了啦，衣服先收！, voice: old_woman, at: [front-right, right], dist: far, reply: { say: 好啦，我在收了。, voice: woman } }
+      - { say: 阿弟，傘拿去，不要淋濕。, voice: woman, at: [front-left], dist: far }
+      - { text: 噗噗——, sfx: car_pass, src: 機車, at: [front-left, front-right], dist: far }
+      - { text: 啪噠、啪噠, sfx: step_wet, at: [front, front-left], dist: far }
+      - { text: 啪, sfx: umbrella, src: 鄰居的傘, at: [front-right], dist: far }
+      - { text: 喀, sfx: house_tick, src: 木頭, at: [back-left, back-right], dist: mid }
     beats:
       - pause: 2
       - { sfx: rain_burst, at: front-left, dist: mid, text: 嘩—— }
@@ -2370,10 +2502,10 @@ scenes:
       - tension: -12
       - narr: 我摸到枕頭邊的手機，叫它報日期。
       - phone: 十月四日。七點十分。
+      - think: 昨天是知夏走滿五年的日子。這一次，那一天真的過完了。
       - { sfx: scooter_start, at: left, dist: far, text: 噗、噗噗…… }
       - { sfx: laugh_soft_adult_m, at: left, dist: far, text: 哈哈 }
-      - narr: 巷口有台機車發不動，踩了三次，旁邊有人在笑它。
-      - narr: 這些聲音我一個都不認得，全部都是第一次聽到。
+      - narr: 巷口那台機車、旁邊那個笑聲，我一個都沒聽過。
       - think: 下一分鐘會發生什麼，我不知道。
       - think: 我都快忘了，原來是這種感覺。
       - if: "know.k_dont_become_me"
@@ -2398,13 +2530,16 @@ scenes:
       - phone: 稿子寫好了。署名在最上面，我做過的事也寫在裡面。
       - phone: 灰潮鎮這一套關掉了。別的地方，還有類似的東西。
       - phone: 要不要讀，隨便大家啦。
-      - phone: 我要回去睡一覺。這半年，我都睡在車上。
+      - phone: 我要回去睡一覺。這半年不是睡民宿就是睡車上，沒有一晚睡好過。
       - if: flag.f_page_sealed
         then:
           - phone: 那一頁跟紀錄一起封了。上面那個妳，不會再被算出來。
       - { sfx: phone_notify, at: right, dist: near, text: 叮咚 }
       - phone: 周志遠。
       - phone: 錄音機登錄了，清冊最後一行是我的名字。下午督察找我。該講的，我會講。
+      - if: flag.f_z_1803
+        then:
+          - phone: 五年前十八點零三分那通，我調了電信的回函。對方號碼那一欄是空的。這張我也登錄了。
       - phone: 打火機我丟了。手還是會癢。
       - { sfx: phone_notify, at: right, dist: near, text: 叮咚 }
       - phone: 陳柏勳。
@@ -2446,6 +2581,8 @@ scenes:
     time: "10月4日 15:20"
     place: 灰潮鎮車站
     ambience: [platform, rain]
+    # 告別的月台：月台和雨的背景池都有路人講話，整場關掉，只留底噪和寫好的聲音（遠處的火車笛聲在下面）。
+    life: off
     cast: { yuan: right, announcer: front }
     beats:
       - { sfx: cane_tap, at: front, dist: near, text: 叩 }
@@ -2458,11 +2595,10 @@ scenes:
       - yuan: 店不賣。可是也不要照以前那樣開。
       - yuan: 我……
       - { sfx: breath_m, at: right, dist: near }
-      - narr: 他吸了一口氣，停在那裡。
       - narr: 這口氣我聽過。麵店裡、月台上、鐘錶店的櫃台後面。
       - narr: 每一次停到最後，出來的都是「先吃」或是「好」。
-      - { sfx: rain_tap_glass, at: front, dist: near, text: 滴、滴 }
-      - narr: 我的手搭在他手肘上，沒有接話。雨從棚子邊滴下來，滴了三下。
+      - { sfx: rain_drop_near, src: 棚子邊, at: front, dist: near, text: 滴、滴、滴 }
+      - narr: 我的手搭在他手肘上，沒有接話。
       - yuan: 我想重新申請學校。以前一直說明年再去，結果就過了這麼多年。
       - yuan: 店先關三個月。我去問問課，順便整理一下。
       - { yuan: 要不要回來開，到時候再說。這次是我想去。, mem: m_f_yuan_decides }
@@ -2492,6 +2628,7 @@ scenes:
           - narr: 他口袋裡的手機響了。響第二聲，他就接起來。
           - yuan: 喂？……對，我在車站。等一下回你。
           - think: 五年前那一通，他沒有接。
+      - { sfx: train_horn, at: front, dist: far, text: 嗚—— }
       - { sfx: station_chime, at: front, dist: far, text: 叮——咚—— }
       - { announcer: 往北的列車，即將進站。, as: 廣播, via: speaker }
       - { sfx: train_brake, at: front, text: 嘰———— }
@@ -2519,8 +2656,8 @@ scenes:
       - narr: 他把卡片收進胸前的口袋，隔著布按了按。
       - { me: 這次回去，是為了以後還能再回來。, mem: m_f_come_back }
       - { sfx: train_door, at: left, dist: near, text: 噗嘶 }
+      - { amb: [train_interior, rain_on_window], fade: 1.2 }
       - narr: 車門關上的時候，我沒有在數秒。
-      - { sfx: rain_tap_glass, at: left, dist: near, text: 滴答滴答 }
       - narr: 雨打在車窗上。下一站會是什麼聲音，我不知道。
       - pause: 3
       - end: ending_c
@@ -2567,12 +2704,15 @@ scenes:
       - narr: 現在不是十八點三十一分，它也還是在那裡。
       - if: "flag.g2"
         then:
-          - think: 予安拔掉的接頭還沒接回去，可是我讓庭安恢復了主路徑的權限。留著供電的機櫃，又開始低低地響。
+          - think: 予安拔掉的那條還沒接回去。可是另一條，是我讓庭安重新打開的。
       - think: 我封起來的，只有昨天那一天。
       - if: flag.f_page_sealed
         then:
           - think: 知夏寫我的那一頁，跟昨天一起封了。可是寫它的那台機器還開著。
-      - if: know.k_my_death_page && !flag.f_page_sealed
+      - if: flag.f_page_kept
+        then:
+          - think: 知夏寫我的那一頁，就在我外套內側。寫它的那台機器還開著。
+      - if: know.k_my_death_page && !flag.f_page_sealed && !flag.f_page_kept
         then:
           - think: 知夏寫我的那一頁還在。機器還開著，那一頁上的事，就還可能被算出來。
       - if: "know.k_zhixia_voice"
@@ -2593,46 +2733,45 @@ scenes:
     beats:
       - { sfx: phone_buzz, at: right, dist: near, text: 嗡 }
       - phone: 鬧鐘。二十三點五十九分。
-      - { sfx: bell_toll, at: front, text: 噹——, vib: bell }
+      - { sfx: bell_toll, at: front, dist: far, text: 噹——, vib: bell }
       - narr: 第一聲，跟每一次一樣。
       - heart: fast
       - wait: 3
-      - { sfx: bell_toll, at: front, text: 噹——, vib: bell }
+      - { sfx: bell_toll, at: front, dist: far, text: 噹——, vib: bell }
       - wait: 3
-      - { sfx: bell_toll, at: front, text: 噹—— }
+      - { sfx: bell_toll, at: front, dist: far, text: 噹—— }
       - if: flag.f_seal_unverified
         then:
           - think: 庭安送出去的那一封，落在一條已經安靜的路上。另一條一直開著，把今天又接回去了。
-          - think: 光是說「封起來」不夠。要封到對的地方，要有人聽得到它停。
       - if: "flag.g5"
         then:
           - think: 每個人那一欄都簽了。只有最後一欄是空的。
       - wait: 3
-      - { sfx: bell_toll, at: front, text: 噹——, vib: bell }
+      - { sfx: bell_toll, at: front, dist: far, text: 噹——, vib: bell }
       - wait: 3
-      - { sfx: bell_toll, at: front, text: 噹—— }
+      - { sfx: bell_toll, at: front, dist: far, text: 噹—— }
       - think: 下一次，我會做得更好。
       - if: "know.k_not_best_day"
         then:
           - think: 不要再找「最好的一天」。知夏的紙條這樣寫。我摸過那一行，還是坐在這裡等下一次。
       - narr: 我把額頭抵在膝蓋上。鐘聲從台階一路震上來，震進我的牙齒。
       - wait: 3
-      - { sfx: bell_toll, at: front, text: 噹——, vib: bell }
+      - { sfx: bell_toll, at: front, dist: far, text: 噹——, vib: bell }
       - wait: 3
-      - { sfx: bell_toll, at: front, text: 噹—— }
+      - { sfx: bell_toll, at: front, dist: far, text: 噹—— }
       - think: 知夏以前一定也這樣跟自己講過。
       - if: "mem.m_c3_chess"
         then:
           - think: 棋子又要被擺回原來的格子了。這一次，我連自己也擺進去。
       - heart: pound
       - wait: 3
-      - { sfx: bell_toll, at: front, text: 噹——, vib: bell }
+      - { sfx: bell_toll, at: front, dist: far, text: 噹——, vib: bell }
       - wait: 3
-      - { sfx: bell_toll, at: front, text: 噹—— }
+      - { sfx: bell_toll, at: front, dist: far, text: 噹—— }
       - wait: 3
-      - { sfx: bell_toll, at: front, text: 噹——, vib: bell }
+      - { sfx: bell_toll, at: front, dist: far, text: 噹——, vib: bell }
       - wait: 3
-      - { sfx: bell_toll, at: front, text: 噹—— }
+      - { sfx: bell_toll, at: front, dist: far, text: 噹—— }
       - { think: 下一次，真的會是最後一次嗎？, mem: m_f_last_time }
       - wait: 3
       - { sfx: bell_toll, at: front, dist: near, text: 噹———, vib: long }

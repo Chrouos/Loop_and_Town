@@ -8,12 +8,16 @@ type Policy = (options: string[], sceneId: string) => number;
 
 // 18:31 at the old station: where she points, in order. The east wall hums on her right.
 const EAST_WALL: Direction[] = ['right'];
+const G1_PROMPT = '哪一個越來越大？';
 
 // 22:00 at the east wall she has to hold her breath to hear the metal: steady holds until it comes through; shaky lets go every time;
 // 'shaky-then-counted' fails her own two tries and holds on the third, the one somebody counts with her.
 type Breath = 'steady' | 'shaky' | 'shaky-then-counted';
 
-function play(policy: Policy, maxLoops = 1, station: Direction[] = EAST_WALL, forget: string[] = [], breath: Breath = 'steady') {
+// A pointing plan: a fixed list cycled through every locate, or a function of the prompt and the loop.
+type Station = Direction[] | ((prompt: string | undefined, loop: number) => Direction);
+
+function play(policy: Policy, maxLoops = 1, station: Station = EAST_WALL, forget: string[] = [], breath: Breath = 'steady') {
   const { script, errors } = loadScriptFromDisk();
   if (errors.length) throw new Error(errors.join('\n'));
   let wall = 0;
@@ -28,6 +32,9 @@ function play(policy: Policy, maxLoops = 1, station: Direction[] = EAST_WALL, fo
   const scenes: string[] = [];
   let pointed = 0;
   const holds: number[] = [];
+  // How many tries the 18:31 cabinet locate (G1) offers, once per loop.
+  const g1Tries: number[] = [];
+  const seenLocates = new Set<number>();
   // This day's flags as they stand at 23:40, before midnight can clear them.
   let flags = new Set<string>();
   for (let steps = 0; steps < 200_000; steps++) {
@@ -44,7 +51,9 @@ function play(policy: Policy, maxLoops = 1, station: Direction[] = EAST_WALL, fo
     } else if (view.interact?.type === 'punch') {
       director.punchDone();
     } else if (view.interact?.type === 'locate') {
-      director.locatePick(station[pointed++ % station.length]);
+      const { key, prompt, triesLeft } = view.interact;
+      if (!seenLocates.has(key)) { seenLocates.add(key); if (prompt === G1_PROMPT) g1Tries.push(triesLeft); }
+      director.locatePick(typeof station === 'function' ? station(prompt, director.save.loop) : station[pointed++ % station.length]);
     } else if (view.interact?.type === 'hold') {
       if (!holds.includes(view.interact.key)) holds.push(view.interact.key);
       const shaky = breath === 'shaky' || (breath === 'shaky-then-counted' && holds.length <= 2);
@@ -58,7 +67,7 @@ function play(policy: Policy, maxLoops = 1, station: Direction[] = EAST_WALL, fo
     wall += 200;
     director.tick(200);
   }
-  return { endings: director.save.endings, ending: director.view.ending, loop: director.save.loop, knowledge: new Set(director.save.knowledge), flags, finalOptions, scenes, holds: holds.length };
+  return { endings: director.save.endings, ending: director.view.ending, loop: director.save.loop, knowledge: new Set(director.save.knowledge), flags, finalOptions, scenes, holds: holds.length, g1Tries };
 }
 
 const pick = (pattern: RegExp, fallback = 0): Policy => (options) => {
@@ -131,6 +140,31 @@ describe('final chapter paths', () => {
   it('two wrong directions at 18:31 lose G1', () => {
     const result = play(RESPECTFUL_TO_C, 1, ['left', 'front']);
     expect(result.finalOptions[0]).not.toContain('「撤銷所有改寫，然後封存今天。」');
+  });
+
+  // P-6: losing G1 leaves a lead (lead_f_hum_missed); every later 18:31 gives three tries instead of two.
+  it('two wrong directions at 18:31 leave a lead, and the next loop gets three tries to find the east wall', () => {
+    // Loop 1 points left, then front, and misses; loop 2 misses twice more and finds it on the third try.
+    const misses: Direction[] = ['left', 'front', 'left'];
+    const counts = new Map<number, number>();
+    const station = (prompt: string | undefined, loop: number): Direction => {
+      if (prompt !== G1_PROMPT) return 'left'; // 予安 in the dark, on her left
+      const n = counts.get(loop) ?? 0;
+      counts.set(loop, n + 1);
+      return loop >= 2 && n >= 2 ? 'right' : misses[n % misses.length];
+    };
+    const sealOrAgain: Policy = (options, sceneId) => {
+      const sealAll = options.findIndex((text) => text.includes('撤銷所有改寫'));
+      if (sealAll >= 0) return sealAll;
+      if (sceneId === 'f_choice') return options.findIndex((text) => text.includes('再一次'));
+      return 0;
+    };
+    const result = play(sealOrAgain, 2, station);
+    expect(result.g1Tries).toEqual([2, 3]);
+    expect(result.knowledge.has('lead_f_hum_missed')).toBe(true);
+    expect(result.finalOptions[0]).not.toContain('「撤銷所有改寫，然後封存今天。」');
+    expect(result.finalOptions[1]).toContain('「撤銷所有改寫，然後封存今天。」');
+    expect(result.ending).toBe('c');
   });
 
   // G3: a gentle visit gets a hearing, not the whole thing. Without what they can check for themselves, each gives only part.
