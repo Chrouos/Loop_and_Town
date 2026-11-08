@@ -47,7 +47,7 @@ describe('her phone reads a line from its pre-rendered clips', () => {
       if (beat.k === 'line' && beat.kind === 'phone' && said) {
         const text = said.replace('<心率>', '120');
         const clips = readerClipsFor(text, { lines: READER_LINES, templates: READER_TEMPLATES, numbers: READER_NUMBERS });
-        if (!clips || clips.some((clip) => !onDisk.has(clip))) missing.push(beat.text);
+        if (!clips || clips.some((clip) => !onDisk.has(clip))) missing.push(said);
       }
       Object.values(node).forEach(visit);
     };
