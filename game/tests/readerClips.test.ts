@@ -32,7 +32,7 @@ describe('her phone reads a line from its pre-rendered clips', () => {
     expect(READER_VOICE ?? '').not.toMatch(/PREVIEW/);
   });
 
-  // Once the clips are rendered, every phone line must have one: the game plays files, it does not synthesize.
+  // Once the clips are rendered, every phone line read out must have one: the game plays files, it does not synthesize.
   it.runIf(READER_VOICE !== null)('every phone line in the story has its clip on disk', () => {
     const story = Object.values(import.meta.glob('../../story/*.yaml', { query: '?raw', import: 'default', eager: true }) as Record<string, string>);
     const { script } = buildScript(story.map((source, i) => ({ name: `${i}.yaml`, source })));
@@ -41,9 +41,11 @@ describe('her phone reads a line from its pre-rendered clips', () => {
     const visit = (node: unknown): void => {
       if (Array.isArray(node)) { node.forEach(visit); return; }
       if (!node || typeof node !== 'object') return;
-      const beat = node as { k?: string; kind?: string; text?: string };
-      if (beat.k === 'line' && beat.kind === 'phone' && beat.text) {
-        const text = beat.text.replace('<心率>', '120');
+      const beat = node as { k?: string; kind?: string; text?: string; message?: boolean; announce?: string };
+      // Someone's message is only shown; what the phone says instead (who it is from) needs its clip.
+      const said = beat.message ? beat.announce : beat.text;
+      if (beat.k === 'line' && beat.kind === 'phone' && said) {
+        const text = said.replace('<心率>', '120');
         const clips = readerClipsFor(text, { lines: READER_LINES, templates: READER_TEMPLATES, numbers: READER_NUMBERS });
         if (!clips || clips.some((clip) => !onDisk.has(clip))) missing.push(beat.text);
       }
@@ -118,5 +120,90 @@ scenes:
       ['不要再找最好的一天。', true],
       ['十八點零三分。', false],
     ]);
+  });
+});
+
+describe('a message is shown, not read out', () => {
+  const build = async (beats: string) => {
+    const { buildScript } = await import('../src/script/validate');
+    const { script, errors } = buildScript([{ name: 'a.yaml', source: `
+chapter: 1
+title: 測試
+start: s1
+scenes:
+  - id: s1
+    beats:
+${beats}
+      - end: reset
+` }]);
+    expect(errors).toEqual([]);
+    return (script.scenes.get('s1')!.beats as { k: string; text?: string; message?: boolean; then?: { text?: string; message?: boolean }[] }[]);
+  };
+
+  it('reads who it is from and the phone\'s own words, and only shows what they wrote', async () => {
+    const beats = await build(`      - set: x
+      - { sfx: phone_notify, at: right, dist: near, text: 叮咚 }
+      - phone: 許若晴。
+      - phone: 妳還在鎮上嗎？
+      - if: flag.x
+        then:
+          - phone: 下午那張我真的刪掉了。
+      - phone: 我想了一下。
+      - phone: 十八點零三分。
+      - phone: 周予安：店裡沒事。
+      - { phone: 有些話她要它念出來。, read: true }
+      - narr: 我把手機放下。
+      - phone: 撥號中。周予安。
+      - { phone: 這句只給畫面。, read: false }`);
+    const phone = beats.filter((beat) => beat.text !== undefined && beat.k === 'line');
+    const shown = (text: string) => [...phone, ...beats.flatMap((beat) => beat.then ?? [])].find((beat) => beat.text === text)?.message === true;
+    expect(shown('許若晴。')).toBe(false);
+    expect(shown('妳還在鎮上嗎？')).toBe(true);
+    expect(shown('下午那張我真的刪掉了。')).toBe(true);
+    expect(shown('我想了一下。')).toBe(true);
+    expect(shown('十八點零三分。')).toBe(false);
+    expect(shown('周予安：店裡沒事。')).toBe(true);
+    expect(phone.find((beat) => beat.text === '周予安：店裡沒事。')).toMatchObject({ announce: '來自周予安的訊息。' });
+    expect(shown('有些話她要它念出來。')).toBe(false);
+    expect(shown('撥號中。周予安。')).toBe(false);
+    expect(shown('這句只給畫面。')).toBe(true);
+  });
+
+  it('ends a message when time jumps or the place changes', async () => {
+    const beats = await build(`      - phone: 陳柏勳。
+      - phone: 我帶那一份影本過去。
+      - clock: "10:30"
+      - phone: 今天的天氣。`);
+    expect(beats.find((beat) => beat.text === '我帶那一份影本過去。')?.message).toBe(true);
+    expect(beats.find((beat) => beat.text === '今天的天氣。')?.message).toBeUndefined();
+  });
+
+  it('never hands a message to the reader', async () => {
+    const { buildScript } = await import('../src/script/validate');
+    const { Director } = await import('../src/engine/director');
+    const { freshSave } = await import('../src/engine/save');
+    const { silentAudio } = await import('./harness');
+    const { script } = buildScript([{ name: 'a.yaml', source: `
+chapter: 1
+title: 測試
+start: s1
+scenes:
+  - id: s1
+    beats:
+      - phone: 來自許若晴的訊息。
+      - phone: 妳還在鎮上嗎？
+      - phone: 十七點五十二分。
+      - phone: 周予安：店裡沒事。
+      - end: reset
+` }]);
+    const said: string[] = [];
+    const audio = { ...silentAudio(), speak: (text: string) => { said.push(text); } };
+    let save = { ...freshSave(), calibrated: true };
+    const director = new Director(script, save, { audio, vibrate: () => undefined, persist: (next) => { save = next; }, wallNow: () => 0 }, { speed: 1 });
+    director.start();
+    for (let i = 0; i < 2000 && said.length < 3; i++) { director.hurry(); director.tick(200); }
+    expect(said.slice(0, 3)).toEqual(['來自許若晴的訊息。', '十七點五十二分。', '來自周予安的訊息。']);
+    expect(said).not.toContain('妳還在鎮上嗎？');
+    expect(said).not.toContain('周予安：店裡沒事。');
   });
 });

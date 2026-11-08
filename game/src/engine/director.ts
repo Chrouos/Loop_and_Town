@@ -1392,7 +1392,9 @@ export class Director {
     // Her phone reading the time out loud is the time.
     const spoken = beat.kind === 'phone' ? heardClock(text, this.view.clock) : null;
     if (spoken) this.setClock(spoken);
-    if (beat.kind === 'phone' && focused && this.settings.reader && !skipping) this.out.audio.speak?.(text, beat.loud ?? phoneMatters(text));
+    // Someone's message is only shown: the phone says who it is from (its sender line, or `announce`), not what they wrote.
+    const reads = beat.message ? beat.announce : text;
+    if (beat.kind === 'phone' && reads && focused && this.settings.reader && !skipping) this.out.audio.speak?.(reads, beat.loud ?? phoneMatters(reads));
     // Going past at once, a line is not voiced (a rustle every few hundred ms would be noise); sounds still play.
     if (!skipping && (beat.kind === 'char' || beat.kind === 'me' || beat.kind === 'phone')) {
       // Anyone whose words are on screen, a stranger too, is placed by the rustle of turning to talk: the text is their

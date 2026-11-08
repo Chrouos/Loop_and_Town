@@ -1123,7 +1123,7 @@ scenes:
       - if: flag.c1_ruoqing_number
         then:
           - { sfx: phone_notify, at: right, dist: near, text: 叮咚, vib: buzz }
-          - phone: 許若晴。
+          - phone: 來自許若晴的訊息。
           - phone: 妳還在鎮上嗎？
           - if: flag.c1_photo_deleted
             then:

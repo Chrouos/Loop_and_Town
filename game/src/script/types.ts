@@ -59,6 +59,12 @@ export type LineBeat = {
   teach?: Lesson;
   /** Her phone only: read at full level (true) or quietly (false). Unset, reader.ts phoneMatters decides. */
   loud?: boolean;
+  /** Her phone only: read out (true) or only shown (false). Unset, a message's words are only shown (`message`). */
+  read?: boolean;
+  /** Set at parse time (parse.ts markMessages): someone's words arriving on her phone, shown and not read out. */
+  message?: boolean;
+  /** Set at parse time for a message written `name：words`: what the phone says instead (「來自周予安的訊息。」). */
+  announce?: string;
 };
 
 /** Memory Input: she says a remembered line out loud. Only the accepted memories change anything. */

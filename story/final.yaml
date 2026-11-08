@@ -2516,7 +2516,7 @@ scenes:
       - if: flag.ev_ruoqing || flag.ev_ruoqing_photos
         then:
           - { sfx: phone_notify, at: right, dist: near, text: 叮咚 }
-          - phone: 許若晴。
+          - phone: 來自許若晴的訊息。
           - phone: 外地那個課我報名了！自我介紹刪了八次，最後只留一句。
           - phone: 我媽說她早就叫我去了，講得好像是她的功勞。
           - phone: 週末我會回來。這是我自己排的喔。
@@ -2526,7 +2526,7 @@ scenes:
         else:
           - think: 若晴那個課報了沒有，我不知道。她沒有傳訊息來。
       - { sfx: phone_notify, at: right, dist: near, text: 叮咚 }
-      - phone: 葉庭安。
+      - phone: 來自葉庭安的訊息。
       - phone: 稿子寫好了。署名在最上面，我做過的事也寫在裡面。
       - phone: 灰潮鎮這一套關掉了。別的地方，還有類似的東西。
       - phone: 要不要讀，隨便大家啦。
@@ -2535,14 +2535,14 @@ scenes:
         then:
           - phone: 那一頁跟紀錄一起封了。上面那個妳，不會再被算出來。
       - { sfx: phone_notify, at: right, dist: near, text: 叮咚 }
-      - phone: 周志遠。
+      - phone: 來自周志遠的訊息。
       - phone: 錄音機登錄了，清冊最後一行是我的名字。下午督察找我。該講的，我會講。
       - if: flag.f_z_1803
         then:
           - phone: 五年前十八點零三分那通，我調了電信的回函。對方號碼那一欄是空的。這張我也登錄了。
       - phone: 打火機我丟了。手還是會癢。
       - { sfx: phone_notify, at: right, dist: near, text: 叮咚 }
-      - phone: 陳柏勳。
+      - phone: 來自陳柏勳的訊息。
       - phone: 今天去見五年前那位死者的家屬，就是知夏走前十二天那位。那些紀錄，他們也有權知道。
       - phone: 外地醫院那封邀請，我回信了。去不去還沒決定，可是我回了。
       - if: know.k_boxun_invitation
