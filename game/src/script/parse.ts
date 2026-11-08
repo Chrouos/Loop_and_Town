@@ -7,7 +7,7 @@ import { DAZE_LEVELS, HEART_LEVELS, NOISE_LEVELS, SHAKE_LEVELS, TENSION_STEP_MAX
 
 export const CHARACTER_KEYS = ['yuan', 'ruoqing', 'boxun', 'tingan', 'zhiyuan', 'zhixia', 'man', 'woman', 'child', 'old_man', 'old_woman', 'announcer'] as const;
 const LINE_KEYS = new Set<string>(['narr', 'me', 'think', 'phone', ...CHARACTER_KEYS]);
-const LINE_ATTRS = new Set(['at', 'to', 'as', 'learn', 'mem', 'dist', 'shake', 'via', 'whisper', 'teach', 'loud']);
+const LINE_ATTRS = new Set(['at', 'to', 'as', 'learn', 'mem', 'dist', 'shake', 'via', 'whisper', 'teach', 'loud', 'read']);
 const END_KINDS: EndKind[] = ['reset', 'ending_a', 'ending_b', 'ending_c'];
 
 type Errors = string[];
@@ -111,6 +111,10 @@ function parseLine(key: string, raw: Obj, where: string, errors: Errors): LineBe
     else if (raw.teach === 'keep' && raw.mem === undefined) errors.push(`${where}：teach: keep 的那句要有 mem`);
     else line.teach = raw.teach as Lesson;
   }
+  if (raw.read !== undefined) {
+    if (kind !== 'phone' || typeof raw.read !== 'boolean') errors.push(`${where}：read 只能用在 phone，值是 true 或 false`);
+    else line.read = raw.read;
+  }
   if (raw.loud !== undefined) {
     if (kind !== 'phone' || typeof raw.loud !== 'boolean') errors.push(`${where}：loud 只能用在 phone，值是 true 或 false`);
     else line.loud = raw.loud;
@@ -121,6 +125,60 @@ function parseLine(key: string, raw: Obj, where: string, errors: Errors): LineBe
     else line.via = via as Via;
   }
   return line;
+}
+
+/** Who texts her. A phone line 「來自許若晴的訊息。」, or one that starts `name：`, is a message arriving. */
+const SENDERS = ['許若晴', '周予安', '葉庭安', '陳柏勳', '周志遠', '未知號碼'];
+const SENDER_LINE = new RegExp(`^(來自)?(${SENDERS.join('|')})(的訊息)?。$`);
+export const announceFrom = (sender: string): string => `來自${sender}的訊息。`;
+const SENDER_PREFIX = new RegExp(`^(${SENDERS.join('|')})：`);
+/** The phone's own words (the time, a call, an alarm, what the camera found): read out, and the end of any message. */
+const MACHINE = /^(撥號中|鬧鐘|來電|心率|找不到聯絡人|偵測到|未偵測到|已傳送|以下為|面向|沒有聽清楚|再試一次|收件人|寄件人)|^[零一二三四五六七八九十兩]+點([零一二三四五六七八九十]+分)?。$/;
+
+/**
+ * Marks the words of a message `message`: shown, not read out. In this game nobody's words are voiced (the text is
+ * their voice), so her phone says who it is from and leaves what they wrote to the screen. A message runs from its
+ * sender to the next line that is not the phone's (narration, a thought, someone talking) or a choice; pauses, sounds
+ * and ifs inside it do not end it. A page the phone reads aloud to her (a note, an engraving) is not a message.
+ */
+export function markMessages(beats: Beat[], open = { on: false }): void {
+  const fresh = (list: Beat[] | undefined) => { if (list) markMessages(list, { on: false }); };
+  for (const beat of beats) {
+    if (beat.k === 'line') {
+      if (beat.kind !== 'phone') { open.on = false; continue; }
+      const words = beat.text.trim();
+      if (SENDER_LINE.test(words)) { open.on = true; continue; }
+      if (MACHINE.test(words)) { open.on = false; if (beat.read === false) beat.message = true; continue; }
+      const from = SENDER_PREFIX.exec(words)?.[1];
+      if (from) open.on = true;
+      if (beat.read === false || (open.on && beat.read !== true)) {
+        beat.message = true;
+        // `name：words` has no sender line before it: the phone says who it is from, and the words stay on screen.
+        if (from) beat.announce = announceFrom(from);
+      }
+      continue;
+    }
+    if (beat.k === 'if') {
+      const then = { on: open.on };
+      markMessages(beat.then, then);
+      markMessages(beat.else, { on: open.on });
+      open.on = then.on;
+      continue;
+    }
+    if (beat.k === 'choice') {
+      open.on = false;
+      for (const option of beat.options) {
+        fresh(option.then);
+        for (const accept of option.recall?.accept ?? []) fresh(accept.then);
+        fresh(option.recall?.miss);
+      }
+      continue;
+    }
+    if (beat.k === 'locate' || beat.k === 'hold') { open.on = false; fresh(beat.success); fresh(beat.fail); continue; }
+    // Time passing or the place changing: whatever arrived before is over.
+    if (beat.k === 'clock' || beat.k === 'amb' || beat.k === 'wait') { open.on = false; continue; }
+    if (beat.k === 'approach') { open.on = false; fresh(beat.hit); fresh(beat.early); fresh(beat.late); continue; }
+  }
 }
 
 /**
@@ -520,6 +578,8 @@ export function parseChapter(source: string, file: string, errors: Errors): Chap
     const sceneBeats = parseBeats(rawScene.beats, `${at}.beats`, errors);
     assignLineIds(id, sceneBeats);
     assignLineIds(id, threads);
+    markMessages(sceneBeats);
+    for (const thread of Object.values(threads)) markMessages(thread);
     scenes.push({
       id,
       chapter: key,

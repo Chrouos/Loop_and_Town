@@ -20,8 +20,10 @@ const templates = new Map<string, { before: string; after: string }>();
 const visit = (node: unknown): void => {
   if (Array.isArray(node)) { for (const item of node) visit(item); return; }
   if (!node || typeof node !== 'object') return;
-  const beat = node as { k?: string; kind?: string; text?: string };
-  if (beat.k === 'line' && beat.kind === 'phone' && typeof beat.text === 'string') {
+  const beat = node as { k?: string; kind?: string; text?: string; message?: boolean; announce?: string };
+  // Someone's message is shown, not read out: only who it is from needs a clip.
+  if (beat.k === 'line' && beat.kind === 'phone' && beat.message && beat.announce) lines.add(readable(beat.announce));
+  if (beat.k === 'line' && beat.kind === 'phone' && !beat.message && typeof beat.text === 'string') {
     const [before, ...rest] = beat.text.split('<心率>');
     if (rest.length) {
       const t = { before: readable(before), after: readable(rest.join('')) };
