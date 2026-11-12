@@ -304,13 +304,8 @@ button:focus-visible { outline: 2px solid var(--ink-soft); outline-offset: 6px; 
 .lt-choice:disabled { color: var(--ink-mute); cursor: default; }
 /* done already: struck through as well as dimmed, so it does not rest on colour alone */
 .lt-choice.done { text-decoration: line-through; text-decoration-thickness: 1px; text-decoration-color: var(--ink-mute); }
-.lt-choice .lt-key { font-family: var(--mono); font-size: calc(var(--ui-small) * 0.86 * var(--ts, 1)); color: var(--ink-mute); margin-right: 0.9em; vertical-align: 1px; display: none; }
-/* The digits are for someone answering by keyboard: shown only once a key has been used, never as a list to read. */
-:root[data-input="key"] .lt-choice .lt-key { display: inline; }
-.lt-recall-item .lt-key { display: none; }
-:root[data-input="key"] .lt-recall:not(.lt-keep) .lt-recall-item { grid-template-columns: auto 1fr; }
-:root[data-input="key"] .lt-recall-item .lt-key { display: inline; }
-:root[data-input="key"] .lt-recall:not(.lt-keep) .lt-recall-meta { grid-column: 2; }
+/* No digits drawn beside the answers, even for a keyboard: keys 1–9 still pick, the list stays words only. */
+.lt-choice .lt-key, .lt-recall-item .lt-key { display: none; }
 .lt-timer { height: 1px; width: 120px; background: var(--ink-faint); margin-top: 10px; transform-origin: center; animation: lt-timer var(--timeout) linear forwards; }
 .lt-choices.timed .lt-choice { animation: lt-choice-in 700ms var(--ease) forwards, lt-choice-dim var(--timeout) linear forwards; }
 
@@ -679,16 +674,6 @@ button:focus-visible { outline: 2px solid var(--ink-soft); outline-offset: 6px; 
 .lt-save-text { margin: 0 0 6px; text-wrap: balance; }
 .lt-save-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 0 12px; }
 .lt-save-actions .lt-opt:hover { color: var(--ink-soft); }
-
-/* 剛剛聽到的: a heading for each place, then the lines, newest at the bottom. */
-.lt-log-head { margin: 28px 0 6px; font-weight: normal; font-size: calc(var(--ui) * var(--ts, 1)); letter-spacing: 0.3em; color: var(--ink-soft); }
-.lt-log-head:first-child { margin-top: 0; }
-.lt-log-list { list-style: none; margin: 0; padding: 0; }
-.lt-log-line { padding: 10px 0; border-bottom: 1px solid var(--ink-ghost); font-size: calc(1.125rem * var(--ts, 1)); line-height: 1.7; letter-spacing: 0.06em; user-select: text; -webkit-user-select: text; }
-.lt-log-label { display: block; font-size: calc(var(--ui) * var(--ts, 1)); letter-spacing: 0.2em; color: var(--ink-dim); }
-.lt-log-line.kind-think .lt-log-text { color: var(--ink-soft); letter-spacing: 0.12em; }
-.lt-log-line.kind-phone .lt-log-text { color: var(--phone); font-family: var(--mono); }
-.lt-log-line.kind-narr .lt-log-text { color: var(--ink-soft); }
 
 /* wave3-a1 */
 .lt-title-finished { cursor: default; }

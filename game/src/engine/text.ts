@@ -13,12 +13,13 @@ const HOLD_SCALE: Record<Exclude<TextSpeed, 'instant'>, number> = { slow: 1.35, 
 const READ_MS: Record<TextSpeed, number> = { slow: 210, normal: 144, fast: 84, instant: 84 };
 const FULL_SPACE = '　';
 
+// A sentence's end is where a new row starts: wait long enough to finish reading the last one first.
 function pauseAfter(mark: string): number {
-  if (mark === '|') return 460;
-  if (mark.includes('…')) return 520;
-  if (mark.includes('—')) return 320;
-  if (/[。！？]/.test(mark)) return 360;
-  if (/[，、；：]/.test(mark)) return 200;
+  if (mark === '|') return 760;
+  if (mark.includes('…')) return 760;
+  if (mark.includes('—')) return 420;
+  if (/[。！？]/.test(mark)) return 720;
+  if (/[，、；：]/.test(mark)) return 260;
   return 0;
 }
 
@@ -51,11 +52,11 @@ export function splitPhrases(text: string, kind: LineKind = 'char'): { text: str
     if (shown) parts.push({ text: shown, pause, br });
     else if (parts.length && marks) { parts[parts.length - 1].pause += pause; parts[parts.length - 1].br ||= br; }
   });
-  // Very short fragments read better merged with the following phrase.
+  // Very short fragments read better merged with the following phrase (not across a written beat: | or …).
   const merged: Part[] = [];
   for (const part of parts) {
     const prev = merged[merged.length - 1];
-    if (prev && !prev.br && [...prev.text.trim()].length <= 1 && prev.pause < 400) { prev.text += part.text; prev.pause = part.pause; prev.br = part.br; }
+    if (prev && !prev.br && [...prev.text.trim()].length <= 1 && prev.pause < 740) { prev.text += part.text; prev.pause = part.pause; prev.br = part.br; }
     else merged.push({ ...part });
   }
   if (!merged.length) return [{ text: text.replace(/\|/g, ''), pause: 0 }];
@@ -106,7 +107,7 @@ export function lineTiming(text: string, kind: LineKind, speed: TextSpeed): Line
   }
   const chars = [...text.replace(/\|/g, '')].length;
   const revealMs = Math.max(380, at - (phrases.length ? 0 : 0));
-  const holdMs = (1000 + chars * 38 + (kind === 'think' ? 300 : 0)) * HOLD_SCALE[speed];
+  const holdMs = (1300 + chars * 46 + (kind === 'think' ? 300 : 0)) * HOLD_SCALE[speed];
   return { phrases, revealMs, holdMs };
 }
 

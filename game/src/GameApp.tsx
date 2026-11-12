@@ -4,7 +4,7 @@ import { VIBRATIONS, type VibrationId } from './audio/catalog';
 import { ATTRIBUTION_CREDITS } from './audio/credits';
 import { sampleUrl } from './audio/samples';
 import { parseSoundSources, type SoundSource } from './audio/sourceList';
-import { Director, toChineseNumber, type BacklogEntry } from './engine/director';
+import { Director, toChineseNumber } from './engine/director';
 import { FONT_SIZES, MEMORY_CAPACITY, SAVE_KEY, loadSave, setAsideNewerSave, writeSave, type FontSize, type GameSave, type Memory, type SaveProblem } from './engine/save';
 import { loadGameScript } from './script/load';
 import { CHAPTER_NUMERALS } from './script/types';
@@ -72,12 +72,10 @@ export function GameApp({ storage = safeStorage() }: { storage?: Storage }) {
   // The two corner buttons open two different things: what she carries, and the game's own menu.
   const [overlay, setOverlay] = useState<'memory' | 'menu' | 'calib' | null>(null);
   const menu = overlay !== null;
-  // Which page of the menu is open; H opens it straight on 剛剛聽到的 (and `logFocus` puts focus on the newest line).
+  // Which page of the menu is open.
   const [menuTab, setMenuTab] = useState<MenuTab>('settings');
-  const [logFocus, setLogFocus] = useState(0);
   const openMenu = useCallback((tab: MenuTab = 'settings') => {
     setMenuTab(tab);
-    if (tab === 'log') setLogFocus((value) => value + 1);
     setOverlay('menu');
   }, []);
   const [note, setNote] = useState<CornerNote | null>(null);
@@ -341,11 +339,6 @@ export function GameApp({ storage = safeStorage() }: { storage?: Storage }) {
         else if (!overlay) openMemory();
         return;
       }
-      if ((event.key === 'h' || event.key === 'H') && plain && !view.keep) {
-        if (overlay === 'menu' && menuTab === 'log') setOverlay(null);
-        else if (overlay !== 'memory') openMenu('log');
-        return;
-      }
       if (menu || view.keep) return;
       if (/^[1-9]$/.test(event.key) && view.choice) {
         const option = view.choice.options[Number(event.key) - 1];
@@ -491,7 +484,6 @@ export function GameApp({ storage = safeStorage() }: { storage?: Storage }) {
           director={director}
           tab={menuTab}
           onTab={setMenuTab}
-          logFocus={logFocus}
           onClose={() => setOverlay(null)}
           onTitle={() => { setOverlay(null); setScreen('title'); }}
           onSettings={applySettings}
@@ -689,15 +681,14 @@ function MemoryPanel({ director, onClose }: { director: Director; onClose: () =>
   );
 }
 
-type MenuTab = 'log' | 'chapters' | 'settings' | 'refs';
-const MENU_TABS: [MenuTab, string][] = [['log', '剛剛聽到的'], ['chapters', '章節'], ['settings', '設定'], ['refs', '參考資料']];
+type MenuTab = 'chapters' | 'settings' | 'refs';
+const MENU_TABS: [MenuTab, string][] = [['chapters', '章節'], ['settings', '設定'], ['refs', '參考資料']];
 
 /** The game's own menu, from the small dot: chapters, settings, credits. */
-function Menu({ director, tab, onTab: setTab, logFocus, onClose, onTitle, onSettings, onCalibrate, dev }: { director: Director; tab: MenuTab; onTab: (tab: MenuTab) => void; logFocus: number; onClose: () => void; onTitle: () => void; onSettings: () => void; onCalibrate: () => void; dev: boolean }) {
+function Menu({ director, tab, onTab: setTab, onClose, onTitle, onSettings, onCalibrate, dev }: { director: Director; tab: MenuTab; onTab: (tab: MenuTab) => void; onClose: () => void; onTitle: () => void; onSettings: () => void; onCalibrate: () => void; dev: boolean }) {
   const [confirm, setConfirm] = useState(false);
   const box = useRef<HTMLDivElement>(null);
-  // Opened on 剛剛聽到的 (H), focus lands on the newest line; otherwise on the open tab.
-  useModal(box, tab === 'log' && logFocus && director.backlog.length ? `#${LOG_NEWEST}` : '[role="tab"][aria-selected="true"]');
+  useModal(box, '[role="tab"][aria-selected="true"]');
   const confirmButton = useRef<HTMLButtonElement>(null);
   // The button is swapped for its confirmation: focus follows, so it is not dropped onto the page.
   useEffect(() => { if (confirm) confirmButton.current?.focus(); }, [confirm]);
@@ -771,59 +762,10 @@ function Menu({ director, tab, onTab: setTab, logFocus, onClose, onTitle, onSett
             </div>
           </div>
         )}
-        {tab === 'log' && <Backlog entries={director.backlog} looped={save.loop > 1} focus={logFocus} />}
         {tab === 'chapters' && <Chapters director={director} dev={dev} onPicked={onClose} />}
         {tab === 'refs' && <References />}
       </div>
       <button type="button" className="lt-close" onClick={onClose}>回到故事</button>
-    </div>
-  );
-}
-
-// ───────────────────────── what she just heard ─────────────────────────
-
-const LOG_NEWEST = 'lt-log-newest';
-
-/**
- * 剛剛聽到的: the lines heard clearly, oldest first, under a heading for each place (and each day, once there has been
- * more than one). A list item per line, so a screen reader steps through them; the newest is at the bottom and is
- * where focus goes when H opens it.
- */
-function Backlog({ entries, looped, focus }: { entries: readonly BacklogEntry[]; looped: boolean; focus: number }) {
-  const list = useRef<HTMLDivElement>(null);
-  useLayoutEffect(() => {
-    const newest = list.current?.querySelector<HTMLElement>(`#${LOG_NEWEST}`);
-    newest?.scrollIntoView?.({ block: 'end' });
-    if (focus) newest?.focus({ preventScroll: true });
-  }, [focus]);
-  if (!entries.length) return <div className="lt-panel"><div className="lt-empty">還沒有聽清楚任何一句</div></div>;
-  const groups: { head: string; entries: BacklogEntry[] }[] = [];
-  let last: BacklogEntry | undefined;
-  for (const entry of entries) {
-    if (!last || entry.place !== last.place || entry.loop !== last.loop) {
-      const day = looped ? `第${toChineseNumber(entry.loop)}次` : '';
-      groups.push({ head: [day, entry.clock, entry.place].filter(Boolean).join(' · ') || '……', entries: [] });
-    }
-    groups[groups.length - 1].entries.push(entry);
-    last = entry;
-  }
-  const newestKey = entries[entries.length - 1].key;
-  return (
-    <div className="lt-panel lt-log" ref={list}>
-      {groups.map((group, index) => (
-        <section key={group.entries[0].key} aria-labelledby={`lt-log-head-${index}`}>
-          <h3 className="lt-log-head" id={`lt-log-head-${index}`}>{group.head}</h3>
-          <ul className="lt-log-list">
-            {group.entries.map((entry) => (
-              <li key={entry.key} className={`lt-log-line kind-${entry.kind}`} {...(entry.key === newestKey ? { id: LOG_NEWEST, tabIndex: -1 } : {})}>
-                {entry.label && <span className="lt-log-label">{entry.label}<span className="lt-sr">：</span></span>}
-                {entry.kind === 'think' && <span className="lt-sr">心裡想：</span>}
-                <span className="lt-log-text">{unstop(entry.kind === 'me' ? `「${entry.text}」` : entry.text)}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ))}
     </div>
   );
 }

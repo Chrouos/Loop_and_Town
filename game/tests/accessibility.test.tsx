@@ -68,9 +68,9 @@ describe('settings menu for a screen reader', () => {
     expect(dialog.getAttribute('aria-modal')).toBe('true');
 
     const tabs = [...dialog.querySelectorAll('[role="tablist"] [role="tab"]')];
-    expect(tabs.map((tab) => tab.textContent)).toEqual(['剛剛聽到的', '章節', '設定', '參考資料']);
-    expect(tabs.map((tab) => tab.getAttribute('aria-selected'))).toEqual(['false', 'false', 'true', 'false']);
-    expect(dialog.querySelector('[role="tabpanel"]')!.getAttribute('aria-labelledby')).toBe(tabs[2].id);
+    expect(tabs.map((tab) => tab.textContent)).toEqual(['章節', '設定', '參考資料']);
+    expect(tabs.map((tab) => tab.getAttribute('aria-selected'))).toEqual(['false', 'true', 'false']);
+    expect(dialog.querySelector('[role="tabpanel"]')!.getAttribute('aria-labelledby')).toBe(tabs[1].id);
 
     const switches = [...dialog.querySelectorAll('[role="switch"]')];
     expect(switches.map(nameOf)).toEqual(['聲音', '震動', '手機讀屏念出來', '畫面晃動', '聲音來源', '聽過的話自動放快', '選擇不倒數']);
@@ -104,8 +104,6 @@ describe('settings menu for a screen reader', () => {
     press(settings, 'ArrowRight');
     expect(document.activeElement?.id).toBe('lt-tab-refs');
     expect(document.activeElement?.getAttribute('aria-selected')).toBe('true');
-    press(document.activeElement!, 'ArrowRight');
-    expect(document.activeElement?.id).toBe('lt-tab-log');
     press(document.activeElement!, 'ArrowRight');
     expect(document.activeElement?.id).toBe('lt-tab-chapters');
   });

@@ -1,4 +1,4 @@
-import { BACKLOG_SIZE, Director } from '../src/engine/director';
+import { Director } from '../src/engine/director';
 import { DEFAULT_SETTINGS, SAVE_KEY, freshSave, loadSave, writeSave, type GameSave } from '../src/engine/save';
 import { lineTiming, readingMs } from '../src/engine/text';
 import { lineId } from '../src/script/parse';
@@ -230,40 +230,6 @@ describe('heard lines are kept', () => {
     const again = loadSave(doubled).save;
     expect(again.heard).toEqual(['a#1', 'b#2']);
     expect(again.settings.textSpeed).toBe('instant');
-  });
-});
-
-describe('剛剛聽到的', () => {
-  it('keeps each line heard clearly, with who said it, where and when', () => {
-    const { director, tick } = play(build());
-    director.start();
-    liveLoop(director, tick);
-    const log = director.backlog;
-    expect(log[0]).toMatchObject({ kind: 'narr', text: '雨打在窗外冷氣機的鐵殼上，一聲一聲，很慢。', place: '車站', clock: '06:12', loop: 1 });
-    expect(log.find((entry) => entry.text === '妳醒了嗎？車快到了，等一下要下車喔。')?.label).toBe('予安');
-    expect(log.some((entry) => entry.kind === 'me' && entry.text === '好。')).toBe(true);
-    expect(log[log.length - 1].text).toBe('列車停了下來，門打開，外面的風灌進來。');
-  });
-
-  it(`keeps the last ${BACKLOG_SIZE}`, () => {
-    const many = Array.from({ length: BACKLOG_SIZE + 15 }, (_, i) => `      - narr: 第${i}句。`).join('\n');
-    const { director, tick, until } = play(build(`
-chapter: 1
-title: 測試
-start: s1
-advance: []
-scenes:
-  - id: s1
-    beats:
-${many}
-      - pause: 5
-      - end: reset
-`));
-    director.start();
-    until(() => director.backlog.some((entry) => entry.text === `第${BACKLOG_SIZE + 14}句。`), 200000);
-    expect(director.backlog.length).toBe(BACKLOG_SIZE);
-    expect(director.backlog[0].text).toBe('第15句。');
-    tick();
   });
 });
 

@@ -169,8 +169,6 @@ export type View = {
   skipping: boolean;
 };
 
-/** One line in 剛剛聽到的: what was heard clearly, where and when. */
-export type BacklogEntry = { key: number; kind: LineKind; label?: string; text: string; clock?: string; place?: string; loop: number };
 
 export type TensionBand = 0 | 1 | 2 | 3;
 
@@ -276,8 +274,6 @@ export class Director {
   /** Every line id heard clearly on any loop (save.heard), and the scenes those lines belong to. */
   private heard = new Set<string>();
   private heardScenes = new Set<string>();
-  /** 剛剛聽到的: the last BACKLOG_SIZE lines heard clearly. Kept in memory only (see backlog). */
-  private log: BacklogEntry[] = [];
   /** Why saves are not landing (newer build on disk, or a failed write), what loading found, and what was read. */
   private saveBlocked: 'newer' | 'failed' | null = null;
   private saveNotice: SaveProblem | null = null;
@@ -309,12 +305,6 @@ export class Director {
   get loopFlags(): ReadonlySet<string> { return this.flags; }
   get currentScene(): Scene | null { return this.scene; }
   get tension(): number { return this.save.tension; }
-  /**
-   * 剛剛聽到的, oldest first. Not saved: a reload replays the scene from its resume point, which hears those lines
-   * again and puts them back here, so a saved copy would only show them twice; and writing up to 200 lines on every
-   * line would be the heaviest thing in the save.
-   */
-  get backlog(): readonly BacklogEntry[] { return this.log; }
   /** Whether this line id was heard clearly on some loop (or earlier on this one). */
   hasHeard(id: string): boolean { return this.heard.has(id); }
   get threadsRunning(): string[] { return [...this.runs.values()].filter((run) => !run.done && run.id !== 'main').map((run) => run.id); }
@@ -399,7 +389,6 @@ export class Director {
   private forget(): void {
     this.save = freshSave(this.save);
     this.loadHeard();
-    this.log = [];
     this.knowledge = new Set();
     this.flags = new Set();
     this.recallTried = new WeakMap();
@@ -411,7 +400,6 @@ export class Director {
   jumpToChapter(key: string, grantEarlierKnowledge: boolean): void {
     this.save = { ...freshSave(this.save), started: true, chapter: key };
     this.loadHeard();
-    this.log = [];
     this.knowledge = new Set();
     if (grantEarlierKnowledge) {
       for (const chapter of this.script.chapters) {
@@ -1425,11 +1413,9 @@ export class Director {
     this.bump();
   }
 
-  /** A line heard clearly: it goes into 剛剛聽到的, and on later loops it counts as heard (save.heard). */
+  /** A line heard clearly: on later loops it counts as heard (save.heard). */
   private hear(line: ActiveLine): void {
     const center = line.center;
-    this.log.push({ key: center.key, kind: center.kind, label: center.label, text: center.text.replace(/\|/g, ''), clock: this.view.clock, place: this.view.place, loop: this.save.loop });
-    if (this.log.length > BACKLOG_SIZE) this.log.splice(0, this.log.length - BACKLOG_SIZE);
     const id = this.idOf(line.beat);
     if (id === undefined || this.heard.has(id)) return;
     this.heard.add(id);
@@ -2100,8 +2086,6 @@ const TEACH_GIVE_UP_MS = 25000;
 
 const SHAKE_VIBRATION: Record<ShakeLevel, VibrationId> = { light: 'thud', hard: 'crash' };
 
-/** 剛剛聽到的 keeps this many lines. */
-export const BACKLOG_SIZE = 200;
 /** 聽過的話自動放快: a `pause` in a stretch she has heard before takes this fraction of its time (lines: HEARD_SCALE). */
 const HEARD_PAUSE_SCALE = 0.5;
 /** Fast-forward: how long a heard line stays, the longest a pause or a sound with a word may hold it up, and the

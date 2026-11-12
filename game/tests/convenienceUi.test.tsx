@@ -1,7 +1,7 @@
 import { flushSync } from 'react-dom';
 import { createRoot, type Root } from 'react-dom/client';
 import { GameApp } from '../src/GameApp';
-import type { BacklogEntry, Director, View } from '../src/engine/director';
+import type { Director, View } from '../src/engine/director';
 import { NEWER_KEY, SAVE_KEY, SAVE_VERSION, freshSave, writeSave } from '../src/engine/save';
 
 vi.mock('../src/audio/engine', async () => ({ createAudioEngine: (await import('./harness')).silentAudio }));
@@ -56,54 +56,6 @@ afterEach(() => {
   flushSync(() => root.unmount());
   container.remove();
   localStorage.clear();
-});
-
-describe('剛剛聽到的', () => {
-  const entries: BacklogEntry[] = [
-    { key: 1, kind: 'narr', text: '雨打在窗外的鐵殼上。', clock: '06:12', place: '列車上', loop: 1 },
-    { key: 2, kind: 'char', label: '予安', text: '妳醒了嗎？', clock: '06:13', place: '列車上', loop: 1 },
-    { key: 3, kind: 'think', text: '他的聲音比平常低。', clock: '06:20', place: '月台', loop: 1 },
-    { key: 4, kind: 'me', text: '好。', clock: '06:21', place: '月台', loop: 1 },
-  ];
-
-  it('H opens it: a heading for each place, a list item for each line, focus on the newest; H or Esc closes it', async () => {
-    const game = mountPlaying();
-    (game.director as unknown as { log: BacklogEntry[] }).log.push(...entries);
-    press('h');
-    const dialog = container.querySelector('[role="dialog"]')!;
-    expect(dialog.querySelector('[role="tab"][aria-selected="true"]')?.textContent).toBe('剛剛聽到的');
-    expect([...dialog.querySelectorAll('h3')].map((head) => head.textContent)).toEqual(['06:12 · 列車上', '06:20 · 月台']);
-    const items = [...dialog.querySelectorAll('section ul li')];
-    expect(items).toHaveLength(4);
-    expect(items[1].textContent).toBe('予安：妳醒了嗎？');
-    expect(items[2].textContent).toBe('心裡想：他的聲音比平常低');
-    expect(items[3].textContent).toBe('「好」');
-    expect(document.activeElement).toBe(items[3]);
-    // Each place's section is named by its heading.
-    const section = dialog.querySelector('section')!;
-    expect(document.getElementById(section.getAttribute('aria-labelledby')!)?.textContent).toBe('06:12 · 列車上');
-    press('Escape');
-    await settle();
-    expect(container.querySelector('[role="dialog"]')).toBeNull();
-    press('H', window);
-    expect(container.querySelector('[role="dialog"]')).not.toBeNull();
-    press('H');
-    expect(container.querySelector('[role="dialog"]')).toBeNull();
-  });
-
-  it('says so when nothing has been heard yet', () => {
-    mountPlaying();
-    press('h', window);
-    expect(container.querySelector('[role="tabpanel"]')!.textContent).toContain('還沒有聽清楚任何一句');
-  });
-
-  it('names the day too once there has been more than one', () => {
-    const game = mountPlaying();
-    game.director.save.loop = 2;
-    (game.director as unknown as { log: BacklogEntry[] }).log.push({ ...entries[0], loop: 2 });
-    press('h', window);
-    expect(container.querySelector('h3')?.textContent).toBe('第二次 · 06:12 · 列車上');
-  });
 });
 
 describe('fast-forward controls', () => {
