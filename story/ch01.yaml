@@ -595,8 +595,11 @@ scenes:
       - narr: 他在替一只錶上發條，一格一格，上得很慢。
       - yuan: 他走之前一直說，這間店以後就是我的。
       - yuan: 說得很理所當然。
-      - narr: 他好像還有話，最後只是把錶放回桌上。
-      - pause: 2
+      - narr: 上發條的聲音停了。錶放回桌上，很輕的一聲。
+      - think: 早上那則房仲的訊息。他說，還沒決定。
+      - me: 那你呢？
+      - pause: 1.5
+      - yuan: ……茶，冰箱還有。
       - narr: 之後我們都沒有再說話。冰箱拿出來的茶，在我手裡慢慢退冰。
       - { sfx: shop_bell, at: back-right, dist: near, text: 叮鈴 }
       - { man: 少年仔，我的錶好了沒？, as: 來拿錶的阿伯, at: back-right, dist: near }
@@ -833,7 +836,8 @@ scenes:
       - { ruoqing: 妳望著影子發呆……啊不是，妳又看不到。反正就是像在等什麼。, as: 年輕的女聲 }
       - { ruoqing: 然後妳的臉剛好一半在光裡，一半不在。, as: 年輕的女聲 }
       - pause: 1.5
-      - think: 從來沒有人這樣跟我描述一張照片。
+      - narr: 我把臉往窗戶那邊偏了一點。左邊的臉頰溫溫的，右邊沒有。
+      - think: ……她說的是這一半。
       - choice:
           options:
             - text: 「不用刪。妳再說一點給我聽。」
@@ -1092,7 +1096,10 @@ scenes:
           - ruoqing: 陳醫生要把一份以前留下的東西交給我。
           - ruoqing: ……知夏姊留下的。
           - me: 為什麼跟我說？
-          - ruoqing: 妳剛剛問我想不想去。以前只有知夏姊會這樣問我。
+          - ruoqing: 妳剛剛不是問我，那個課想不想去。
+          - ruoqing: 我回去洗杯子，洗到一半一直在想那句。
+          - pause: 0.8
+          - ruoqing: ……上一個這樣問我的，是知夏姊。
           - ruoqing: 欸，我其實還在想要不要跟妳講耶……結果就講了。
           - { sfx: step_run, at: back, dist: far, text: 噠噠 }
           - narr: 她又跑走了。
@@ -1165,7 +1172,8 @@ scenes:
                     - narr: 鄰居在收衣服了。他把手機擱上桌以後，它就一直沒有震。
                     - pause: 3
                     - { yuan: ……這個時間，我都不太想一個人待著。, mem: m_c1_not_alone }
-                    - think: 他不知道我知道。我也沒有講。
+                    - narr: 我把手肘往右邊靠過去，碰到他的袖子，就沒有再移開。
+                    - me: 嗯。
                     - narr: 又過了一陣子，是他先站起來的。
                     - tension: -8
                 - text: （不提）
@@ -1188,7 +1196,9 @@ scenes:
           - me: 還不餓。
           - yuan: 嗯。
           - yuan: 天要黑了。妳還想去哪裡看看嗎？我載妳。
-          - narr: 他問得很隨便。我知道他是怕我一直坐在這裡摸那封信。
+          - narr: 他問得很隨便。
+          - narr: 我這才發現，手又伸進外套口袋裡了，拇指一直在搓信封的角。
+          - narr: 我把手抽出來，放回膝蓋上。
         else:
           - { sfx: phone_ring, at: right, dist: near, text: 鈴——, vib: buzz }
           - narr: 我接起手機。
@@ -1213,9 +1223,19 @@ scenes:
                 - if: flag.c1_yuan_with_me
                   then:
                     - me: 予安，你帶我去舊車站。
-                    - yuan: ……現在？那邊早就沒在用了。
-                    - me: 拜託。
-                    - yuan: 好。
+                    # 他剛聽到若晴叫她過去：他接得上是誰找她。只有她從上一輪知道的話，他什麼都不知道。
+                    - if: flag.c1_ruoqing_number
+                      then:
+                        - yuan: ……她叫妳去那裡？
+                        - me: 嗯。
+                        - yuan: 那邊早就沒在用了。晚上連個人都沒有。
+                        - me: 她會在。
+                        - pause: 1
+                        - yuan: ……我陪妳進去。
+                      else:
+                        - yuan: ……現在？那邊早就沒在用了。
+                        - me: 拜託。
+                        - yuan: 好。
                   else:
                     - { sfx: phone_ringback, at: right, dist: near, text: 嘟——嘟—— }
                     - { man: 舊車站？小姐，那邊早就沒車了啦。, as: 計程車司機, at: right, via: phone }
@@ -1271,8 +1291,14 @@ scenes:
       - if: flag.c1_yuan_with_me
         then:
           - yuan: 裡面地不平，我陪妳——
-          - me: 你在門口等。裡面太空，兩個人的腳步我會聽亂。
-          - yuan: ……好。我在門口。
+          # 若晴追出來說過「剛剛在店裡，有些話不好說」：多一個人在，她不會講。
+          - me: 下午的時候，她原本想說什麼。
+          - me: 可是她沒有，她猶豫。
+          - narr: 我按了按予安的手臂，讓他往後退一點。
+          - me: ……你在旁邊，她更不會講了。
+          - pause: 1
+          - yuan: ……那我在門口。妳喊一聲，我就進去。
+          - me: 好。
         else:
           - { sfx: car_pass, at: back, dist: far, text: 嗚—— }
           - narr: 計程車開走了。
@@ -1722,7 +1748,9 @@ scenes:
       - if: "seen.c1_station && !flag.c1_yuan_with_me"
         then:
           - narr: 員警幫我打給予安。他趕到的時候一直在喘，外套的拉鍊都沒拉。
-      - narr: 醫院已經確認，若晴沒有救回來。予安陪我坐在這裡，等警官把電話講完。
+      - narr: 醫院已經確認，若晴沒有救回來。
+      - narr: 予安坐在我右邊，一直沒有開口。他的膝蓋偶爾碰到我的，碰到了也沒有移開。
+      - narr: 我們在等警官把電話講完。
       - learn: k_ruoqing_died
       - if: seen.c1_locate_success
         then:
@@ -1955,10 +1983,12 @@ scenes:
               - if: flag.c1_found_ruoqing
                 then:
                   - narr: 我的右手一直張不太開，好像她的手指還在裡面。我把它壓在膝蓋上，壓到發麻。
-                  - think: 我就在那裡。我在那裡，也什麼都做不了。
+                  - think: 我摸到背帶的時候，那個扣子還是溫的。
+                  - think: ……我就跪在她旁邊。
                 else:
                   - narr: 掌心被玻璃割開的地方，一跳一跳地痛。
-                  - think: 我聽得到她，卻爬錯了邊。我在那裡，也什麼都做不了。
+                  - think: 那個扣子最後響的幾下，是在我背後。
+                  - think: ……我還一直往前爬。
               - tension: 6
             else:
               - think: 她跑回來跟我說她要去舊車站，我聽見了，然後自己回家。

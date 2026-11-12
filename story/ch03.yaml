@@ -310,7 +310,8 @@ scenes:
       - if: chloop >= 2
         then:
           - think: 一個字都沒變。對他來說，每一次都是第一次這樣講。
-      - narr: 我沒有回答，他也就沒有再問。
+      - narr: 我伸手去找他的手肘，先碰到袖子，再往上抓住。
+      - narr: 他的手臂繃了一下，沒有抽開，也沒有再問。
       - yuan: 對了。
       - yuan: 老家那把鑰匙有一齒磨平了，不太好轉。下次不好開就換備用那把。
       - { yuan: 備用鑰匙在門口第三個花盆底下。我爸以前放的。, learn: k_spare_key, mem: m_c3_spare_key }
@@ -525,7 +526,9 @@ scenes:
           - think: 我說誰不去，他就會打給誰。所以那句話，要先是真的。
       - if: know.lead_c3_proof
         then:
-          - think: 光說我怕不夠。要給他一件他自己查得到的事。
+          - think: 上次他說，他沒辦法拿一件查不到的事，去改掉跟病人家屬約好的時間。
+          - narr: 我把手杖換到左手，右手在褲子上擦了兩下，掌心還是濕的。
+          - think: ……那這次，就給他一件他自己查得到的。
       - { wait: 15, clock: "17:20", until: "17:38" }
       - clock: "17:38"
       - { sfx: door_open, at: front, dist: far, text: 喀 }
@@ -812,7 +815,8 @@ scenes:
               - heart: fast
               - narr: 耳朵燙起來，一路燙到脖子。我抓著手杖，好像那樣就站得比較直。
               - tension: 8
-              - think: 他不收我說的話。他收的是他自己打出去的那通電話。
+              - think: 我才說若晴不去，他就當著我的面撥給她，音量開得那麼大。
+              - think: ……我講的話，他都要自己再對一次。
               - learn: lead_c3_he_checks
               - set: c3_b_caught
             else:
@@ -1137,7 +1141,9 @@ scenes:
           - narr: 她拉了一下我的袖子，把我往左帶了半步，然後就放開了。
           - { sfx: gravel_step, at: front, dist: far, text: 沙、沙…… }
           - narr: 她往大廳那邊去了。我站在碎石地的邊上，沒有跟上去。
-          - think: 我聽得出她在哪裡，連她走哪一條路都聽得出來。她還是要進去。
+          - narr: 被她拉過的那截袖子皺在手腕上，我用拇指把它推平，推平了又去捏。
+          - think: 她走哪一條路，我都聽得出來。
+          - think: ……聽得出來，又怎樣。
           - set: c3_caught_her
       - if: chloop >= 2
         then:
@@ -1582,7 +1588,8 @@ scenes:
       - { sfx: strap_click, at: front-left, dist: mid, text: 喀 }
       - { sfx: coffee_grind, at: front-left, dist: mid, text: 嗡嘰嘰嘰 }
       - narr: 店長沒有再說什麼。
-      - think: 她活著，所以她可以做這件事。那封辭呈寫了什麼，我沒有問。
+      - think: 她還在為她媽回診誰載煩惱。
+      - think: 那封辭呈寫了什麼，我沒有問。
       - narr: 我把手杖靠在桌邊，背往椅背上靠，整個人沉進去。
       - tension: -8
     next: c3_note
@@ -1601,7 +1608,10 @@ scenes:
       - yuan: 好的。麻煩您了。
       - { sfx: shop_bell, at: back, dist: near, text: 叮鈴 }
       - yuan: 妳沒回我訊息。我就一直待到房仲來。
-      - think: 每一次的今天，他都陪我開門、開窗、搬行李。我從來沒問過他晚上本來要做什麼。
+      - think: 早上在月台，他說「我晚上八點本來就」，後面被我截掉了。
+      - narr: 我的手摸到櫃台玻璃的邊，指甲沿著那條縫來回刮。
+      - me: ……你早上就是要講這個。
+      - yuan: 嗯。也不是什麼大事。
       - { sfx: step_uneven, at: front, dist: near, to: front:mid, text: 咚、叩 }
       - { sfx: chair_scrape, at: front, dist: mid, text: 嘎—— }
       - { sfx: chair_creak, at: front, dist: mid, text: 吱 }
@@ -1765,7 +1775,11 @@ scenes:
       - { sfx: paper_rustle, at: front, dist: near, text: 沙 }
       - narr: 一張紙放到桌上，很薄，邊角有點捲。
       - boxun: 這五年，有一件事我一直私下在對。沒有人要我對，是我自己停不下來。
-      - boxun: 今天有人跟我一樣，怕同一個傍晚。我不想再一個人拿著它。
+      - { sfx: hand_rub, at: front, dist: near, text: 噗、沙沙 }
+      - boxun: 下午，妳叫住我。
+      - boxun: 第一次有人跟我怕同一個傍晚。
+      - pause: 1.5
+      - boxun: ……這張，我不想再一個人拿著。
       - if: flag.c3_visit_named
         then:
           - boxun: 妳耳朵很好。我念一次，妳應該就記得住。
@@ -1852,7 +1866,8 @@ scenes:
                   - think: 我叫她不要去。她說好，然後還是去了。
                 else:
                   - think: 我叫她不要去。她說「這樣可以了吧」，我就當成她答應了。
-              - think: 她要的那份東西對她有多重要，我連問都沒有問。
+              - think: 下午她從我桌邊走開，腳步比走過來的時候快。
+              - think: 她要去拿的是什麼，那時候坐在她對面，我一句也沒問。
             else:
               - think: 那個牛皮紙袋，現在不知道在通道裡的哪個地方。
               - if: flag.c3_b_until6

@@ -249,7 +249,9 @@ scenes:
       - tingan: 我把這句話念給她聽。她想了很久，只說：「下一次，要把他太太也算進去。」
       - pause: 2
       - tingan: 從那天以後，她就不問了。
-      - think: 問了，人家會說不要。不問，就只剩下算。
+      - narr: 我把手伸回早期那一疊。最上面那張，凹痕還是一樣深。
+      - think: 她問過的。阿伯說不行。
+      - think: ……後來，就只剩下算了。
       - { sfx: page_turn, at: front, dist: near, text: 沙啦 }
       - narr: 我往後翻。凹痕越來越淺，一筆和下一筆幾乎黏在一起。
       - tingan: 字越寫越小了。每個名字後面，都列著時間跟路線。
@@ -331,7 +333,8 @@ scenes:
           - think: 那一天，只有她記得。
           - pause: 2.5
           # 第四章過章就一定學到 k_zhixia_saw_my_death，不用再判斷。
-          - think: 庭安說過她看過我死。那時候是聽懂了，現在那張紙就在我手裡。
+          - think: 「她看過妳死。」庭安講這句那天，我一直抓著她雨衣的袖口，沒有放。
+          - narr: 現在我抓著的，是這張紙。
           - daze: off
           - { sfx: chair_scrape, at: back, dist: near, text: 嘎 }
           - narr: 機器的低鳴回來了，一樣冷。
@@ -356,10 +359,12 @@ scenes:
       - narr: 我說要出去吹風。她跟出來，坐在長椅另一頭。
       - { sfx: raincoat_rustle, at: right, dist: near, text: 啪沙 }
       - think: 「走了，就不要再回來。」
+      - think: 講這句以前，她換了一口氣。講完，她把鑰匙放在鞋櫃上，人往旁邊讓。
       - pause: 2
-      - me: 她是故意的。
-      - tingan: 她知道妳會怎麼回。她太了解妳了。
-      - tingan: 她知道說哪一句，妳就一定會走。
+      - me: 那天她連門口都讓給我了。
+      - me: ……她是故意的。
+      - tingan: 她知道妳會怎麼回。
+      - tingan: 說哪一句妳就一定會走，她都知道。
       - pause: 2
       - { tingan: 她是想救妳。, mem: m_c7_save_you }
       - pause: 1.5
@@ -384,10 +389,11 @@ scenes:
           silence:
             - { sfx: raincoat_rustle, at: right, dist: near, text: 沙、沙 }
             - narr: 她也沒有再開口。
-      - think: 她知道我會頂嘴、會摔門。我知道若晴會先答應，陳醫生開口前會先停一下。
+      - think: 她知道我會頂嘴、會摔門。
+      - think: 早上打給庭安，我跟她說「說了，妳會掛電話」。她就沒有掛。
       - pause: 2
       - narr: 我把手杖橫在膝上，握到指節發痠。
-      - think: 她算我，我算他們。
+      - think: 若晴會先答應，陳醫生開口前會先停一下。……這些我也都知道。
     next: c7_tape
 
   # ─────────────────────────── 13:40 錄音 ───────────────────────────
@@ -406,8 +412,8 @@ scenes:
       - pause: 2
       - tingan: 裡面有她的聲音。
       - pause: 3
-      - think: 五年了。我記得她的臉，以為那樣就夠了。
-      - think: 記憶裡她說過的話，其實都是我自己替她說的。
+      - think: 五年了。這五年，我在腦子裡跟她吵過很多次，她每一句都回得很快。
+      - think: ……回我的，一直都是我自己的聲音。
       - choice:
           options:
             - text: （按下去）
@@ -1334,7 +1340,9 @@ scenes:
                 - pause: 2
                 - yuan: 那妳……
                 - narr: 他沒有問下去。我也沒有替他問。
-                - think: 他只有這一個今天。在這一個今天，他才剛念完第六封。
+                - narr: 我彎下腰，手掌貼著地板往前摸，摸到那支鑷子，放回他手邊的玻璃上。
+                - pause: 1.5
+                - yuan: ……謝謝。
                 - set: c7_told_seventh
             - text: 「謝謝你念。」
               then:
@@ -1553,8 +1561,8 @@ scenes:
           - daze: light
           - { sfx: clock_tick, at: back-left, dist: far }
           - narr: 滿屋子上發條的滴答一下子變得好遠，胸口的心跳重得像有人在裡面敲門。
-          - think: 「照我說的做」那幾句，是我講的。
-          - think: 他們自己想怎麼做，我連聽都沒有聽完。
+          - think: 那幾句說出去，對方回答以前都停了一下。
+          - think: ……那一下裡本來要說的話，我沒有問。
         else:
           - heart: off
           - pause: 2
