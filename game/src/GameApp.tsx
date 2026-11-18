@@ -830,7 +830,7 @@ function Menu({ director, tab, onTab: setTab, onClose, onTitle, onSettings, onCa
         {tab === 'refs' && <References />}
       </div>
       <button type="button" className="lt-close" onClick={onClose}>回到故事</button>
-      <div className="lt-version">版本 {import.meta.env.VITE_BUILD_VERSION || '開發版'}</div>
+      <div className="lt-version">版本 {import.meta.env.VITE_BUILD_VERSION || 'v0.001_261118'}</div>
     </div>
   );
 }
