@@ -1794,8 +1794,7 @@ scenes:
           - zhiyuan: 妳剛才說，六點三十一分。
           - zhiyuan: 妳說妳看不見。
           - zhiyuan: 那妳怎麼確定，她倒下的時間？
-          - me: 我手機會報時。
-          - me: 而且我聽得到。
+          - me: 我手機有報時紀錄。
           - pause: 1.5
           - zhiyuan: ……好。
         else:
