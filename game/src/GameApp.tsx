@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent } from 'react';
-import { createAudioEngine, type AudioEngine } from './audio/engine';
-import { VIBRATIONS, type VibrationId } from './audio/catalog';
+import { createAudioEngine, type AudioEngine, type SfxOpts } from './audio/engine';
+import { VIBRATIONS, type SfxId, type SpatialPos, type VibrationId } from './audio/catalog';
 import { ATTRIBUTION_CREDITS } from './audio/credits';
 import { sampleUrl } from './audio/samples';
 import { parseSoundSources, type SoundSource } from './audio/sourceList';
-import { Director, toChineseNumber, type BacklogEntry } from './engine/director';
+import { Director, toChineseNumber } from './engine/director';
 import { FONT_SIZES, MEMORY_CAPACITY, SAVE_KEY, loadSave, setAsideNewerSave, writeSave, type FontSize, type GameSave, type Memory, type SaveProblem } from './engine/save';
 import { loadGameScript } from './script/load';
 import { CHAPTER_NUMERALS } from './script/types';
@@ -15,7 +15,15 @@ import './ui/game.css';
 type Screen = 'title' | 'calibrate' | 'play';
 const CURSOR_REST_MS = 3000;
 const HINT_KEY = 'listening-town-cue-hint';
-const TITLE_FADE_MS = 600;
+const TITLE_FADE_MS = 900;
+/** The title surfacing: someone walks past on water, right to left, a drop and a ripple at each step (ms after it starts). */
+const TITLE_STEPS: { at: number; x: string; pos: SpatialPos; gain: number }[] = [
+  { at: 500, x: '84%', pos: { dir: 'right', dist: 'mid' }, gain: 0.6 },
+  { at: 1100, x: '50%', pos: { dir: 'center', dist: 'near' }, gain: 0.8 },
+  { at: 1700, x: '16%', pos: { dir: 'left', dist: 'mid' }, gain: 0.6 },
+];
+/** Then 第七封信, uncovered left to right by a wind that comes round behind her from the left to the right. */
+const TITLE_WIND_AT = 2600;
 // The mouse cursor hides over the stage after this long without moving, during play.
 const CURSOR_IDLE_MS = 3000;
 
@@ -72,12 +80,10 @@ export function GameApp({ storage = safeStorage() }: { storage?: Storage }) {
   // The two corner buttons open two different things: what she carries, and the game's own menu.
   const [overlay, setOverlay] = useState<'memory' | 'menu' | 'calib' | null>(null);
   const menu = overlay !== null;
-  // Which page of the menu is open; H opens it straight on 剛剛聽到的 (and `logFocus` puts focus on the newest line).
+  // Which page of the menu is open.
   const [menuTab, setMenuTab] = useState<MenuTab>('settings');
-  const [logFocus, setLogFocus] = useState(0);
   const openMenu = useCallback((tab: MenuTab = 'settings') => {
     setMenuTab(tab);
-    if (tab === 'log') setLogFocus((value) => value + 1);
     setOverlay('menu');
   }, []);
   const [note, setNote] = useState<CornerNote | null>(null);
@@ -191,7 +197,7 @@ export function GameApp({ storage = safeStorage() }: { storage?: Storage }) {
 
   // A held Enter on the title repeats: one start only.
   const starting = useRef(false);
-  // The title fades out (~600 ms) while the audio unlocks; the unlock itself is called at once, inside the gesture.
+  // The title dissolves (TITLE_FADE_MS) in silence while the audio unlocks (its drops already fell as it surfaced); the unlock itself is called at once, inside the gesture.
   const [leaving, setLeaving] = useState(false);
   // After an ending the title asks which way back: the final morning keeps everything, the first 10/3 forgets it all.
   const begin = useCallback(async (after?: 'final' | 'over') => {
@@ -202,6 +208,7 @@ export function GameApp({ storage = safeStorage() }: { storage?: Storage }) {
     setLeaving(true);
     try {
       await unlocked;
+      applySettings();
       const rest = TITLE_FADE_MS - (performance.now() - startedAt);
       if (rest > 0 && !reducedMotion()) await new Promise((resolve) => window.setTimeout(resolve, rest));
     } finally { starting.current = false; setLeaving(false); }
@@ -341,11 +348,6 @@ export function GameApp({ storage = safeStorage() }: { storage?: Storage }) {
         else if (!overlay) openMemory();
         return;
       }
-      if ((event.key === 'h' || event.key === 'H') && plain && !view.keep) {
-        if (overlay === 'menu' && menuTab === 'log') setOverlay(null);
-        else if (overlay !== 'memory') openMenu('log');
-        return;
-      }
       if (menu || view.keep) return;
       if (/^[1-9]$/.test(event.key) && view.choice) {
         const option = view.choice.options[Number(event.key) - 1];
@@ -407,7 +409,15 @@ export function GameApp({ storage = safeStorage() }: { storage?: Storage }) {
   if (screen === 'title') {
     return (
       <div className="lt-app" style={fontStyle}>
-        <Title save={director.save} onStart={() => { void begin(); }} onStartOver={() => { void begin('over'); }} />
+        <Title
+          save={director.save}
+          leaving={leaving}
+          awake={audio.ready}
+          onWake={() => { void audio.unlock().then(applySettings); }}
+          sound={(id, pos, opts) => audio.play(id, pos, opts)}
+          onStart={() => { void begin(); }}
+          onStartOver={() => { void begin('over'); }}
+        />
         {view.saveProblem && (
           <SaveNotice
             problem={view.saveProblem}
@@ -462,12 +472,12 @@ export function GameApp({ storage = safeStorage() }: { storage?: Storage }) {
       </button>
       {teachRecall ? (
         <div className="lt-mem-teach" role="status">
-          記住的話都在這裡<br />要回答的時候，可以挑一句說出口<br />不一定每次都用得上
+          重要的都在這裡<br />覺得很重要，就說出去<br />但不一定適合
         </div>
       ) : note && (
         <div key={note} className={`lt-mem-teach note-${note}`} role="status">
           {note === 'stored'
-            ? <>剛剛那句記下來了，收在這裡<br />點一下就能翻看</>
+            ? <>剛剛那句記下來了<br />點一下在這裡看</>
             : <>右下角的小圓點是選單<br />章節、音量、字體大小都在裡面</>}
         </div>
       )}
@@ -491,7 +501,6 @@ export function GameApp({ storage = safeStorage() }: { storage?: Storage }) {
           director={director}
           tab={menuTab}
           onTab={setMenuTab}
-          logFocus={logFocus}
           onClose={() => setOverlay(null)}
           onTitle={() => { setOverlay(null); setScreen('title'); }}
           onSettings={applySettings}
@@ -525,22 +534,69 @@ function safeStorage(): Storage | undefined {
 
 // ───────────────────────── title ─────────────────────────
 
-function Title({ save, onStart, onStartOver }: { save: GameSave; onStart: () => void; onStartOver: () => void }) {
+type TitleProps = {
+  save: GameSave;
+  leaving: boolean;
+  /** Sound may already play (back from the story); otherwise the first tap wakes it and the title comes after. */
+  awake: boolean;
+  onWake: () => void;
+  sound: (id: SfxId, pos: SpatialPos, opts?: SfxOpts) => void;
+  onStart: () => void;
+  onStartOver: () => void;
+};
+
+function Title({ save, leaving, awake, onWake, sound, onStart, onStartOver }: TitleProps) {
   const inProgress = save.started && !save.finished;
+  // Browsers keep sound shut until a tap, and the title is made of sound: before one, only the headphones line asks for it.
+  const [gate, setGate] = useState(!awake);
+  useEffect(() => {
+    if (gate) return;
+    const timers = TITLE_STEPS.map((step) => window.setTimeout(() => sound('drip', step.pos, { gain: step.gain }), step.at));
+    timers.push(window.setTimeout(() => sound('wind_gust', { dir: 'left', dist: 'mid' }, { gain: 0.7, to: { dir: 'right', dist: 'mid' } }), TITLE_WIND_AT));
+    return () => timers.forEach((timer) => window.clearTimeout(timer));
+  }, [gate, sound]);
+  const wake = () => { onWake(); setGate(false); };
   const chapter = CHAPTER_NUMERALS[save.chapter] ?? '';
   // The whole screen is the start button, and it has focus from the first frame: Enter or Space begins.
   const ref = useRef<HTMLDivElement>(null);
   const firstChoice = useRef<HTMLButtonElement>(null);
   const confirmButton = useRef<HTMLButtonElement>(null);
   const [confirm, setConfirm] = useState(false);
-  useEffect(() => { (save.finished ? firstChoice.current : ref.current)?.focus({ preventScroll: true }); }, [save.finished]);
+  useEffect(() => { (save.finished && !gate ? firstChoice.current : ref.current)?.focus({ preventScroll: true }); }, [save.finished, gate]);
   useEffect(() => { if (confirm) confirmButton.current?.focus({ preventScroll: true }); }, [confirm]);
+  const water = (
+    <div className="lt-title-water">
+      <div className="lt-title-name">灰潮鎮</div>
+      {!gate && TITLE_STEPS.map((step) => [0, 240].map((later) => (
+        <span key={`${step.at}-${later}`} className={`lt-title-drop${later ? ' after' : ''}`} style={{ left: step.x, animationDelay: `${step.at + later}ms` }} aria-hidden="true" />
+      )))}
+    </div>
+  );
+  if (gate) {
+    return (
+      <div
+        ref={ref}
+        className="lt-title gate"
+        role="button"
+        tabIndex={0}
+        aria-keyshortcuts="Enter Space"
+        onClick={wake}
+        onKeyDown={(event) => {
+          if (event.key !== 'Enter' && event.key !== ' ') return;
+          event.preventDefault();
+          if (!event.repeat) wake();
+        }}
+      >
+        <div className="lt-title-hint">建議戴上耳機遊玩<br />點一下繼續</div>
+      </div>
+    );
+  }
   const endings = save.endings.length ? `抵達過的結局 ${save.endings.map((e) => e.toUpperCase()).sort().join(' ')}` : '';
   // After an ending a tap must not quietly forget everything: two ways back, and forgetting asks twice.
   if (save.finished) {
     return (
-      <div className="lt-title lt-title-finished">
-        <div className="lt-title-name">灰潮鎮</div>
+      <div ref={ref} className={`lt-title lt-title-finished${leaving ? ' leaving' : ''}`} tabIndex={-1}>
+        {water}
         <div className="lt-title-sub">第七封信</div>
         <div className="lt-title-choices">
           <button ref={firstChoice} type="button" className="lt-opt" onClick={onStart}>回到最終章的早上</button>
@@ -555,7 +611,7 @@ function Title({ save, onStart, onStartOver }: { save: GameSave; onStart: () => 
   return (
     <div
       ref={ref}
-      className="lt-title"
+      className={`lt-title${leaving ? ' leaving' : ''}`}
       role="button"
       tabIndex={0}
       aria-keyshortcuts="Enter Space"
@@ -566,11 +622,11 @@ function Title({ save, onStart, onStartOver }: { save: GameSave; onStart: () => 
         if (!event.repeat) onStart();
       }}
     >
-      <div className="lt-title-name">灰潮鎮</div>
+      {water}
       <div className="lt-title-sub">第七封信</div>
       <div className="lt-title-hint">
-        請戴上耳機<br />
-        {inProgress ? '點一下，繼續聆聽' : '點一下，開始聆聽'}
+        建議戴上耳機遊玩<br />
+        {inProgress ? '點一下 繼續' : '點一下 開始'}
       </div>
       <div className="lt-title-meta">
         {inProgress ? (save.loop > 1 ? `${chapter}　第${toChineseNumber(save.loop)}次的十月三日` : chapter) : ''}
@@ -610,7 +666,7 @@ const CALIBRATION: { at: number; text?: string; cue?: { dir: 'left' | 'right' | 
   { at: 7000, text: '如果左右反了，耳機可能戴反了' },
   { at: 9600, text: '後面', cue: { dir: 'back', text: '叩' } },
   { at: 11800, text: '前後分不太出來也沒關係' },
-  { at: 14400, text: '聲音會從它真正的方向傳來' },
+  { at: 14400, text: '慢慢聽就會熟悉了' },
   { at: 17000 },
 ];
 
@@ -677,7 +733,7 @@ function MemoryPanel({ director, onClose }: { director: Director; onClose: () =>
         {[...save.memories].reverse().map((memory) => (
           <div className="lt-mem" key={memory.key}>
             <div className="lt-mem-body">
-              <div className="lt-mem-text" id={`lt-mem-${memory.key}`}>{unstop(memory.kind === 'me' ? `「${memory.text}」` : memory.text)}</div>
+              <div className={`lt-mem-text kind-${memory.kind}`} id={`lt-mem-${memory.key}`}>{unstop(memory.kind === 'me' ? `「${memory.text}」` : memory.text)}</div>
               <div className="lt-mem-meta">{memoryMeta(memory, save.loop > 1)}</div>
             </div>
             <button type="button" className="lt-mem-drop" id={`lt-drop-${memory.key}`} aria-labelledby={`lt-drop-${memory.key} lt-mem-${memory.key}`} onClick={() => director.releaseMemory(memory.key)}>放下</button>
@@ -689,15 +745,14 @@ function MemoryPanel({ director, onClose }: { director: Director; onClose: () =>
   );
 }
 
-type MenuTab = 'log' | 'chapters' | 'settings' | 'refs';
-const MENU_TABS: [MenuTab, string][] = [['log', '剛剛聽到的'], ['chapters', '章節'], ['settings', '設定'], ['refs', '參考資料']];
+type MenuTab = 'chapters' | 'settings' | 'refs';
+const MENU_TABS: [MenuTab, string][] = [['chapters', '章節'], ['settings', '設定'], ['refs', '參考資料']];
 
 /** The game's own menu, from the small dot: chapters, settings, credits. */
-function Menu({ director, tab, onTab: setTab, logFocus, onClose, onTitle, onSettings, onCalibrate, dev }: { director: Director; tab: MenuTab; onTab: (tab: MenuTab) => void; logFocus: number; onClose: () => void; onTitle: () => void; onSettings: () => void; onCalibrate: () => void; dev: boolean }) {
+function Menu({ director, tab, onTab: setTab, onClose, onTitle, onSettings, onCalibrate, dev }: { director: Director; tab: MenuTab; onTab: (tab: MenuTab) => void; onClose: () => void; onTitle: () => void; onSettings: () => void; onCalibrate: () => void; dev: boolean }) {
   const [confirm, setConfirm] = useState(false);
   const box = useRef<HTMLDivElement>(null);
-  // Opened on 剛剛聽到的 (H), focus lands on the newest line; otherwise on the open tab.
-  useModal(box, tab === 'log' && logFocus && director.backlog.length ? `#${LOG_NEWEST}` : '[role="tab"][aria-selected="true"]');
+  useModal(box, '[role="tab"][aria-selected="true"]');
   const confirmButton = useRef<HTMLButtonElement>(null);
   // The button is swapped for its confirmation: focus follows, so it is not dropped onto the page.
   useEffect(() => { if (confirm) confirmButton.current?.focus(); }, [confirm]);
@@ -766,64 +821,16 @@ function Menu({ director, tab, onTab: setTab, logFocus, onClose, onTitle, onSett
             <div className="lt-row"><span>回到標題</span><button type="button" className="lt-opt" aria-label="回到標題" onClick={onTitle}>回去</button></div>
             <div className="lt-row"><span>{save.loop > 1 ? '從第一個十月三日重新開始' : '從頭開始'}</span>
               {confirm
-                ? <button ref={confirmButton} type="button" className="lt-opt lt-danger" onClick={() => { setConfirm(false); director.newGame(); onClose(); }}>確定，全部忘記</button>
+                ? <button ref={confirmButton} type="button" className="lt-opt lt-danger" onClick={() => { setConfirm(false); director.forgetAll(); onTitle(); }}>確定，全部忘記</button>
                 : <button type="button" className="lt-opt" onClick={() => setConfirm(true)}>清除進度</button>}
             </div>
           </div>
         )}
-        {tab === 'log' && <Backlog entries={director.backlog} looped={save.loop > 1} focus={logFocus} />}
         {tab === 'chapters' && <Chapters director={director} dev={dev} onPicked={onClose} />}
         {tab === 'refs' && <References />}
       </div>
       <button type="button" className="lt-close" onClick={onClose}>回到故事</button>
-    </div>
-  );
-}
-
-// ───────────────────────── what she just heard ─────────────────────────
-
-const LOG_NEWEST = 'lt-log-newest';
-
-/**
- * 剛剛聽到的: the lines heard clearly, oldest first, under a heading for each place (and each day, once there has been
- * more than one). A list item per line, so a screen reader steps through them; the newest is at the bottom and is
- * where focus goes when H opens it.
- */
-function Backlog({ entries, looped, focus }: { entries: readonly BacklogEntry[]; looped: boolean; focus: number }) {
-  const list = useRef<HTMLDivElement>(null);
-  useLayoutEffect(() => {
-    const newest = list.current?.querySelector<HTMLElement>(`#${LOG_NEWEST}`);
-    newest?.scrollIntoView?.({ block: 'end' });
-    if (focus) newest?.focus({ preventScroll: true });
-  }, [focus]);
-  if (!entries.length) return <div className="lt-panel"><div className="lt-empty">還沒有聽清楚任何一句</div></div>;
-  const groups: { head: string; entries: BacklogEntry[] }[] = [];
-  let last: BacklogEntry | undefined;
-  for (const entry of entries) {
-    if (!last || entry.place !== last.place || entry.loop !== last.loop) {
-      const day = looped ? `第${toChineseNumber(entry.loop)}次` : '';
-      groups.push({ head: [day, entry.clock, entry.place].filter(Boolean).join(' · ') || '……', entries: [] });
-    }
-    groups[groups.length - 1].entries.push(entry);
-    last = entry;
-  }
-  const newestKey = entries[entries.length - 1].key;
-  return (
-    <div className="lt-panel lt-log" ref={list}>
-      {groups.map((group, index) => (
-        <section key={group.entries[0].key} aria-labelledby={`lt-log-head-${index}`}>
-          <h3 className="lt-log-head" id={`lt-log-head-${index}`}>{group.head}</h3>
-          <ul className="lt-log-list">
-            {group.entries.map((entry) => (
-              <li key={entry.key} className={`lt-log-line kind-${entry.kind}`} {...(entry.key === newestKey ? { id: LOG_NEWEST, tabIndex: -1 } : {})}>
-                {entry.label && <span className="lt-log-label">{entry.label}<span className="lt-sr">：</span></span>}
-                {entry.kind === 'think' && <span className="lt-sr">心裡想：</span>}
-                <span className="lt-log-text">{unstop(entry.kind === 'me' ? `「${entry.text}」` : entry.text)}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ))}
+      <div className="lt-version">版本 {import.meta.env.VITE_BUILD_VERSION || 'v0.001_261118'}</div>
     </div>
   );
 }
@@ -877,9 +884,9 @@ function Chapters({ director, dev, onPicked }: { director: Director; dev: boolea
 
 const FONTS = [
   { name: '霞鶩文楷 TC', author: 'LXGW WenKai Project Authors', url: 'https://github.com/lxgw/LxgwWenkaiTC' },
-  { name: 'Noto Serif TC', author: 'Google', url: 'https://fonts.google.com/noto/specimen/Noto+Serif+TC' },
-  { name: '更紗黑體 Sarasa Fixed TC', author: 'Belleve Invis', url: 'https://github.com/be5invis/Sarasa-Gothic' },
-  { name: '芫荽 Iansui', author: 'The Iansui Project Authors', url: 'https://github.com/ButTaiwan/iansui' },
+  { name: '流行點陣體16 FashionBitmap16', author: '字言字型 Luke Liu', url: 'https://github.com/scott0107000/FashionBitmap16' },
+  { name: '源雲明體 GenWanMin2 TW', author: 'ButTaiwan', url: 'https://github.com/ButTaiwan/genwan-font' },
+  { name: '思源黑體 Noto Sans CJK TC', author: 'Adobe / Google', url: 'https://github.com/notofonts/noto-cjk' },
 ];
 
 const WRITING = [

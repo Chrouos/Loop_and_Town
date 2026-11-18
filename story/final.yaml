@@ -150,7 +150,9 @@ scenes:
       - if: "know.k_yuan_sent_letter"
         then:
           - think: 前天傍晚，他才把那封信投進郵筒，然後照樣來接我。
-          - think: 這件事，他一個字都不會提。
+          - narr: 我搭在他手肘上的手指，收緊了一點。
+          - yuan: ……地不平？
+          - me: 嗯。
         else:
           - think: 他不記得。每一次都不記得。
       - me: 予安，我今天會去找幾個人，你也是其中一個。
@@ -668,9 +670,10 @@ scenes:
               - yuan: 妳要什麼？我寫給妳。
               - { sfx: pen_scratch, at: front, dist: near, text: 沙沙沙 }
               - yuan: 舊線的接頭。三個銅片，中間那片比較長。
-              - narr: 他把紙塞進我手裡，就回去修錶了。
-              - think: 他講到他爸那箱工具就停了。沒講完的那半句，是他自己想不想知道。
-              - think: 他會幫忙，他一直都會。我要的不是這種「好」。
+              - narr: 他把紙塞進我手裡，就回去修錶了。紙摺了兩次，摺線壓得很平。
+              - think: 剛剛講到他爸那箱工具，盒子就蓋上了。
+              - think: 他會幫忙，他一直都會。
+              - think: ……那半句，他還沒講完。
               - set: ev_yuan_partial
               - learn: lead_f_yuan_kit
         else:
@@ -877,7 +880,9 @@ scenes:
                   - pause: 2
                   - ruoqing: 傍晚我不去舊站了。報名資料我今天晚上要寄出去，這件事我拖太久了。
                   - ruoqing: 位置我都講了。妳們要是找不到，打給我，我再講一次。
-                  - think: 她把她知道的給了我，然後回去做她自己的事。
+                  - me: 好。
+                  - { sfx: typing, at: front, dist: mid, text: 噠噠噠噠 }
+                  - narr: 筆電又響起來。這一次她打了一長串，中間沒有按刪除。
                   - set: ev_ruoqing_photos
                 else:
                   - ruoqing: 傍晚我會去。我站門口，那邊光比較好。
@@ -1136,7 +1141,9 @@ scenes:
                       - narr: 電扇轉過來，又轉過去。他的打火機也沒有再響。
                       - zhiyuan: ……這句話，沒有人聽過。
                       - zhiyuan: 我只在車上，自己跟自己講。
-                      - me: 我不是來要你交代的。今晚要的是紀錄，不是你的道歉。
+                      - me: 你講那句之前，打火機的蓋子按得很用力。
+                      - pause: 1.5
+                      - me: ……我只要今晚的紀錄。那句話，你自己留著。
                       - set: [f_z_resp, f_z_recall, f_z_proof]
                   - mem: m_zhixia_1831
                     then:
@@ -1472,8 +1479,9 @@ scenes:
           - me: 跟知夏那次一樣？
           - tingan: 這一部分一樣。再往下，我還不能斷言。
           - tingan: 至少舊紀錄裡，沒有任何血緣條件。
-          - narr: 三份紀錄，來自三個地方。沒有一份是從我腦子裡拿出來的。
-          - think: 我記得的事不能拿來當證據。這三份可以。
+          - narr: 陳醫生那份影本還在我手邊。我把它拉過來，用手掌壓平。
+          - think: 紙上的時間，不是我講的。
+          - think: ……我記得的那些，終於有別人也拿得出來。
         else:
           - narr: 桌上的紀錄少了幾份。
           - if: "!flag.ev_tingan"
@@ -2211,7 +2219,8 @@ scenes:
                   options:
                     - text: 「封進去。」
                       then:
-                        - me: 那一頁上的我，不要再被任何東西算出來。
+                        - narr: 我隔著外套按了按內側的口袋。信還在，點字頂著掌心。
+                        - me: ……那一頁上的我，不要再被算出來了。
                         - set: f_page_sealed
                     - text: 「給我。我自己留著。」
                       then:
@@ -2261,8 +2270,8 @@ scenes:
       - phone: 鬧鐘。二十三點四十分。
       - heart: slow
       - think: 我可以重來。
-      - think: 我知道下一次，怎麼讓每個人都不用靠近那面牆。
-      - think: 再來一次，每個人都可以排得更好。
+      - think: 下一次，我一早就去咖啡店，叫若晴傍晚不要出門。陳醫生走的那條通道，我先找人圍起來。
+      - think: 每個人站哪裡，我都排得出來。
       - if: "know.k_zhixia_voice"
         then:
           - think: 「我看過結果。」知夏這樣講過。我也看過，看過好多個。
@@ -2272,7 +2281,8 @@ scenes:
       - if: "know.k_six_letters"
         then:
           - think: 第六封最後一行，她寫：不要讓我替妳選。
-          - think: 再來一次，就是我替他們每一個人選。
+          - narr: 我的拇指擱在手機側鍵上，沒有按下去。
+          - think: ……去叫若晴不要出門，也是我替她選。
       - pause: 2
       - if: "flag.ev_tingan"
         then:
@@ -2289,7 +2299,7 @@ scenes:
                     - { sfx: relay_click, at: front, dist: mid, text: 喀噠 }
                     - tingan: 封存。觀測者那一欄——
                     - narr: 我的喉嚨乾得發痛，第一個字卡了一下才出來。
-                    - me: 林。知夏的妹妹。
+                    - me: 林念冬。
                     - tension: -15
                     - { sfx: relay_click, at: front, dist: far, text: 喀 }
                     - narr: 伺服器還在轉。聲音跟剛剛一模一樣。
@@ -2507,7 +2517,7 @@ scenes:
       - { sfx: laugh_soft_adult_m, at: left, dist: far, text: 哈哈 }
       - narr: 巷口那台機車、旁邊那個笑聲，我一個都沒聽過。
       - think: 下一分鐘會發生什麼，我不知道。
-      - think: 我都快忘了，原來是這種感覺。
+      - narr: 我把手機放回枕頭邊，沒有叫它再報時間。被子拉到下巴，聽那台機車一路騎到聽不見。
       - if: "know.k_dont_become_me"
         then:
           - think: 知夏託庭安帶一句話給我，不要變成她。她最後那幾年，大概沒有過這種早上。

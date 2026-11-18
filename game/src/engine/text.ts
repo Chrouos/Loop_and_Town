@@ -13,16 +13,21 @@ const HOLD_SCALE: Record<Exclude<TextSpeed, 'instant'>, number> = { slow: 1.35, 
 const READ_MS: Record<TextSpeed, number> = { slow: 210, normal: 144, fast: 84, instant: 84 };
 const FULL_SPACE = '　';
 
+/** A sentence ended inside narration or thought: the next one comes in on its own row, which already sets it apart,
+ *  so it follows sooner than after a full stop in speech. A written beat (| or …) still keeps its own pause. */
+const NEW_ROW_PAUSE = 400;
+
 function pauseAfter(mark: string): number {
-  if (mark === '|') return 460;
-  if (mark.includes('…')) return 520;
-  if (mark.includes('—')) return 320;
-  if (/[。！？]/.test(mark)) return 360;
-  if (/[，、；：]/.test(mark)) return 200;
+  if (mark === '|') return 760;
+  if (mark.includes('…')) return 760;
+  if (mark.includes('—')) return 420;
+  if (/[。！？]/.test(mark)) return 800;
+  if (/[，、；：]/.test(mark)) return 500;
   return 0;
 }
 
-type Part = { text: string; pause: number; br: boolean };
+/** `beat`: ends on a written beat (| or …), which a short fragment never merges across. */
+type Part = { text: string; pause: number; br: boolean; beat?: boolean };
 
 // Split at punctuation so each phrase can surface on its own beat (Rhythmic Text, core spec §12).
 // On the black stage the line itself is the sentence, so full stops are not drawn: one that ends the line
@@ -40,7 +45,6 @@ export function splitPhrases(text: string, kind: LineKind = 'char'): { text: str
   }
   const parts: Part[] = [];
   raw.forEach(({ body, marks }, index) => {
-    const pause = pauseAfter(marks);
     const last = raw.slice(index + 1).every((rest) => !(rest.body + rest.marks).replace(/[|」』）》\s]/g, ''));
     const core = marks.replace(/[|」』）》]/g, '');
     const stop = core.endsWith('。') && !core.includes('…');
@@ -48,14 +52,16 @@ export function splitPhrases(text: string, kind: LineKind = 'char'): { text: str
     let shown = (body + (stop ? marks.replace(/。(?=[|」』）》]*$)/, '') : marks).replace(/\|/g, '')).trim();
     const br = rows && sentence && !last;
     if (stop && !rows && !last && shown) shown += FULL_SPACE;
-    if (shown) parts.push({ text: shown, pause, br });
-    else if (parts.length && marks) { parts[parts.length - 1].pause += pause; parts[parts.length - 1].br ||= br; }
+    const beat = /[|…]/.test(marks);
+    const pause = br && !beat ? NEW_ROW_PAUSE : pauseAfter(marks);
+    if (shown) parts.push({ text: shown, pause, br, beat });
+    else if (parts.length && marks) { const prev = parts[parts.length - 1]; prev.pause += pause; prev.br ||= br; prev.beat ||= beat; }
   });
-  // Very short fragments read better merged with the following phrase.
+  // Very short fragments read better merged with the following phrase (not across a written beat: | or …).
   const merged: Part[] = [];
   for (const part of parts) {
     const prev = merged[merged.length - 1];
-    if (prev && !prev.br && [...prev.text.trim()].length <= 1 && prev.pause < 400) { prev.text += part.text; prev.pause = part.pause; prev.br = part.br; }
+    if (prev && !prev.br && !prev.beat && [...prev.text.trim()].length <= 1) { prev.text += part.text; prev.pause = part.pause; prev.br = part.br; prev.beat = part.beat; }
     else merged.push({ ...part });
   }
   if (!merged.length) return [{ text: text.replace(/\|/g, ''), pause: 0 }];
@@ -106,7 +112,7 @@ export function lineTiming(text: string, kind: LineKind, speed: TextSpeed): Line
   }
   const chars = [...text.replace(/\|/g, '')].length;
   const revealMs = Math.max(380, at - (phrases.length ? 0 : 0));
-  const holdMs = (1000 + chars * 38 + (kind === 'think' ? 300 : 0)) * HOLD_SCALE[speed];
+  const holdMs = (1300 + chars * 46 + (kind === 'think' ? 300 : 0)) * HOLD_SCALE[speed];
   return { phrases, revealMs, holdMs };
 }
 
@@ -120,4 +126,45 @@ export function readingMs(texts: string[], speed: TextSpeed): number {
 export const HEARD_SCALE = 0.35;
 export function scaleTiming(timing: LineTiming, scale: number): LineTiming {
   return { phrases: timing.phrases.map((phrase) => ({ ...phrase, at: phrase.at * scale })), revealMs: timing.revealMs * scale, holdMs: timing.holdMs * scale };
+}
+
+/** Skimming a line read before: per character, on top of a short look (SKIM_BASE_MS). */
+const SKIM_MS: Record<TextSpeed, number> = { slow: 95, normal: 70, fast: 45, instant: 45 };
+const SKIM_BASE_MS = 600;
+/** A line heard before comes in at HEARD_SCALE, but stays long enough to skim, however long it is: scaling the hold
+ *  too would leave a long line on screen for less time than it takes to read it. Never longer than the first time. */
+export function heardTiming(timing: LineTiming, text: string, speed: TextSpeed): LineTiming {
+  const fast = scaleTiming(timing, HEARD_SCALE);
+  const chars = [...text.replace(/\|/g, '')].length;
+  const skim = SKIM_BASE_MS + chars * SKIM_MS[speed];
+  return { ...fast, holdMs: Math.min(timing.holdMs, Math.max(fast.holdMs, skim)) };
+}
+
+/** When her phone's reader clip is talking: [first word, end of the last, [quiet spots between words]] in seconds. */
+export type SpeechTimes = readonly [number, number, readonly number[]];
+/** How far a phrase's estimated start may move to land on a quiet spot in the voice. */
+const SNAP_S = 0.2;
+/** A phrase surfaces out of a blur (.lt-phrase, 620 ms): it starts this much ahead so it is legible as it is said. */
+const LEAD_MS = 150;
+
+/**
+ * Her phone's line as its reader says it: each phrase comes in when the voice gets to it, and the line is all in
+ * when the voice is done. Where a phrase starts is guessed from how much was said before it (a mark counts for a
+ * short pause), then moved onto the nearest quiet spot between words, and starts its fade a moment early (LEAD_MS).
+ * How long it then stays is unchanged.
+ */
+export function voicedTiming(timing: LineTiming, [start, end, gaps]: SpeechTimes): LineTiming {
+  const weight = (text: string) => [...text].reduce((sum, ch) => sum + (/[\p{L}\p{N}]/u.test(ch) ? 1 : /[\p{P}\s]/u.test(ch) ? 0.6 : 0), 0);
+  const total = timing.phrases.reduce((sum, phrase) => sum + weight(phrase.text), 0) || 1;
+  let said = 0;
+  let last = 0;
+  const phrases = timing.phrases.map((phrase) => {
+    let at = start + ((end - start) * said) / total;
+    const near = said > 0 ? gaps.reduce<number | undefined>((best, gap) => (Math.abs(gap - at) <= SNAP_S && (best === undefined || Math.abs(gap - at) < Math.abs(best - at)) ? gap : best), undefined) : undefined;
+    if (near !== undefined) at = near;
+    said += weight(phrase.text);
+    last = Math.max(last, Math.round(at * 1000) - LEAD_MS, 0);
+    return { ...phrase, at: last };
+  });
+  return { phrases, revealMs: Math.max(last, Math.round(end * 1000)), holdMs: timing.holdMs };
 }

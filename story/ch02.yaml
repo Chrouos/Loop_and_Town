@@ -75,7 +75,7 @@ scenes:
               - think: 咖啡店裡，店長在後面講了很久的電話。我沒有轉過去聽。
           - if: know.k_c2_never_asked
             then:
-              - think: 每一次我開口都是叫她不要去。這次先問她。
+              - think: 第一天我還問得出口。這次一樣先問她，她岔開，我就等她繞回來。
             else:
               - think: 這次讓她把話講完。
           - { sfx: breath, at: center, dist: near, text: 呼…… }
@@ -643,7 +643,8 @@ scenes:
       - narr: 我把手杖從右手換到左手，過一下又換回來。
       - if: chloop < 2
         then:
-          - think: 照實講，她會當我瘋了。不照實講，她憑什麼聽我的？
+          - think: 中午在店裡，我才吸了一口氣，她的手機就響了。
+          - think: ……到現在，我還是沒想好要怎麼開口。
       - if: know.k_c2_ruoqing_died_again
         then:
           - if: know.k_c2_never_asked
@@ -661,7 +662,8 @@ scenes:
               then:
                 - ruoqing: 晚點喔……有啦。
                 - { ruoqing: 我要去舊車站，陳醫生有東西要給我。, learn: k_ruoqing_station_plan }
-                - ruoqing: 知夏姊以前留下來的。
+                - ruoqing: 知夏姊以前留下來的。我請他在車站外面給我。
+                - ruoqing: 她在那裡出事以後，我一直沒敢去。這次想去看看。
                 - me: 不要去。
             # 大廳那一輪之後才有：不叫她不要去，先問她為什麼是今天。
             - text: 「妳等一下要去拿的那份東西，一定要今天拿嗎？」
@@ -672,13 +674,16 @@ scenes:
                 - ruoqing: ……妳怎麼知道我要去拿東西？
                 - me: 鎮上很小。我不是要叫妳不要去。
                 - me: 我只是想問，為什麼一定要今天。
-                - ruoqing: 妳很奇怪欸。
+                - ruoqing: ……妳這樣問很犯規耶。
+                - think: 第一天她也這樣講，然後就換了話題。
+                - narr: 這次我沒有找別的話講。手杖立在腳邊，我等她。
                 - { sfx: strap_click, at: front, dist: near, text: 喀、喀 }
                 - narr: 她沒有走開，靠到牆上，鞋跟在牆腳磕了一下。
                 - ruoqing: ……那個攝影課，報名今天晚上截止。
                 - ruoqing: 我想說，先把知夏姊的東西拿回來，看完，再決定要不要報。
                 - ruoqing: 她的東西在陳醫生那邊放了五年。我如果要走，總不能把它丟在那裡吧。
-                - me: 所以拿到她的東西以前，妳都不用決定。
+                - me: 放了五年。
+                - me: ……報名是今天晚上。
                 - ruoqing: 對啊。
                 - pause: 2
                 - ruoqing: ……這樣講出來好像怪怪的。
@@ -850,7 +855,9 @@ scenes:
           - set: c2_ruoqing_safe
           - heart: off
           - tension: -10
-          - think: 是她自己決定的。我只是沒有擋在她前面。
+          - narr: 我握手杖的左手這才鬆開，掌心被橡膠握把壓出一格一格的紋。
+          - think: 她說陳醫生等她很久了，我沒有接話。
+          - think: ……是她自己決定的。
           - goto: c2_evening
         else:
           - goto: c2_goes
@@ -1008,7 +1015,9 @@ scenes:
             - text: 「陳醫生，不要走那裡。」
               then:
                 - { boxun: 為什麼？, at: right }
-                - narr: 我想不出一個他會相信的理由。
+                - think: 跟一個醫生說，這一天我已經過過了？
+                - narr: 我的指甲摳進手杖握把的橡膠裡。
+                - me: ……我就是知道。
                 - pause: 1
                 - { boxun: 妳講不出原因，我只能照我自己查到的來判斷。, at: right }
                 - { boxun: 我上個月才走過。妳早點回去吧。, at: right }
@@ -1147,7 +1156,8 @@ scenes:
       - daze: light
       - { sfx: step_run, at: back, dist: far, text: 噠噠 }
       - narr: 耳鳴退下去一點，那些腳步和喊聲還是像從水底下傳上來。
-      - think: 十八點三十一分。若晴沒有去，換成了他。
+      - think: 他走進去以前，在通道口停了一下，兩手搓開。
+      - think: ……若晴沒有去。去的是他。
       - { sfx: phone_buzz, at: right, dist: near, text: 嗡, vib: buzz }
       - phone: 心率 <心率>，過高，已記錄。十八點五十二分。
       - if: flag.c2_yuan_with_me
@@ -1331,7 +1341,10 @@ scenes:
           - move: { yuan: right }
           - me: 房仲？
           - { yuan: 沒關係，本來就還沒決定。, learn: k_yuan_missed_realtor, mem: m_c2_yuan_realtor }
-          - think: 他今晚本來要去談店的事，是我叫他整天陪著我。
+          - think: 早上在老屋，房仲問的是今天晚上八點。
+          - narr: 我把那杯沒喝的咖啡往右邊推，推到碰到他的手背才停。
+          - me: ……冷掉了，你將就一下。
+          - yuan: 嗯。
       - clock: "20:30"
       - { sfx: chair_scrape, at: back-left, dist: mid, text: 嘎—— }
       - narr: 快打烊了，椅子一張一張倒扣到桌上。
@@ -1772,8 +1785,9 @@ scenes:
             then:
               - think: 若晴活著，陳醫生死了。
               - pause: 1.5
-              - think: 第一個死的人我救下來了。
-              - think: 錶背上說的「下一個」，是他。
+              - narr: 我的拇指還壓在錶背上，停在第二行的刻痕上。
+              - think: 還會有下一個。
+              - think: ……是他。
               - if: seen.c2_station && !flag.c2_bx_named
                 then:
                   - think: 他在正門外等若晴回電，等不到，就自己往通道走了。
@@ -1799,7 +1813,11 @@ scenes:
                   - narr: 我的右手還在發麻。抓得太用力，指節到現在還彎不直。
                   - think: 她問我，到底知道什麼。
                   - think: 我知道她幾點倒下、倒在哪一面牆下。這些我都知道。
-                  - { think: 每一次，我開口都是叫她不要去。她為什麼一定要今天去拿，我一次都沒有問過。, learn: k_c2_never_asked, mem: m_c2_never_asked }
+                  - think: 第一天在咖啡店，我問過她想不想去那個課。她說我犯規，把話岔開，我也就沒有再問。
+                  - if: know.k_c2_photos_heard
+                    then:
+                      - think: 她念照片給我聽的時候，我也聽得進去。理髮店門口那個阿伯，我到現在都記得。
+                  - { think: 後來一想到十八點三十一分，我開口就只剩叫她不要去。她為什麼非今天去拿不可，我沒有再問過。, learn: k_c2_never_asked, mem: m_c2_never_asked }
                   - if: flag.c2_yuan_with_me
                     then:
                       - { sfx: wood_creak, at: back-left, dist: near, text: 嘎 }

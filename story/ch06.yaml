@@ -143,7 +143,7 @@ scenes:
           - phone: 撥號中。許若晴。
           - { sfx: phone_ringback, at: right, dist: near, text: 嘟——嘟—— }
           - { ruoqing: 喂？哪位？, via: phone }
-          - me: 我是林家的。陳醫生今天傍晚要給妳的東西，可不可以改天再拿？
+          - me: 我是林念冬，知夏的妹妹。陳醫生今天傍晚要給妳的東西，可不可以改天再拿？
           - { ruoqing: ……妳怎麼知道這件事？, via: phone }
           - me: 怎麼知道的，我現在講不清楚。我只是很怕妳傍晚去舊車站。
           - me: 要不要改，妳自己決定。
@@ -160,7 +160,7 @@ scenes:
           - { sfx: phone_ringback, at: right, dist: near, text: 嘟——嘟—— }
           - narr: 我的拇指在手機殼的邊上來回刮，刮到一道舊裂痕，就停在那裡。
           - { ruoqing: 喂？哪位？, via: phone }
-          - me: 我是林家的。陳醫生要我跟妳說，今天傍晚的事改天。
+          - me: 我是林念冬，知夏的妹妹。陳醫生要我跟妳說，今天傍晚的事改天。
           - { ruoqing: 改天？欸他怎麼不自己——, via: phone }
           - me: 他說會再找妳。
           - { sfx: strap_click, at: right, dist: near, text: 喀 }
@@ -200,7 +200,9 @@ scenes:
                 - { boxun: ……我們自己改到明天。這是我跟她的事。, via: phone }
           - { sfx: phone_hangup, at: right, dist: near, text: 嘟 }
           - set: c6_caught
-          - think: 我聽過他們太多次了。可是他們兩個之間，還有一通我不在線上的電話。
+          - narr: 我把手機從耳邊拿開，掌心都是汗。
+          - think: 剛剛那段很薄的等待音裡，他們兩個在另一條線上講話。
+          - think: ……他們的聲音，我聽過那麼多次。那一通，我一個字都沒聽到。
       - phone: 撥號中。葉庭安。
       - { sfx: phone_ringback, at: right, dist: near, text: 嘟—— }
       - { tingan: 喂？哪位？……妳怎麼會有這支號碼？, via: phone }
@@ -771,7 +773,8 @@ scenes:
           - heart: slow
           - { sfx: pen_scratch, at: back, dist: mid, text: 唰唰 }
           - narr: 我的手停在門把上，金屬很冰。他沒有再說下去。
-          - think: 一張她自己填的單子。他不是要給我，是自己多講了一句。
+          - think: 一張她自己填的單子。
+          - narr: 背後那枝筆又走起來，唰唰的，好像剛剛那句話不是他講的。
           - heart: off
           - goto: c6_walk
       - boxun: ……我念一段。
@@ -866,7 +869,7 @@ scenes:
           success:
             - narr: 左前方。我手指扣著網眼往那邊走，一格一格數。第六格，網子斷了，是一道沒鎖的鐵門。
             - narr: 雨衣的聲音，就停在門的另一邊。
-            - tingan: ……林家的？妳一個人上來？妳不是約我五點四十？
+            - tingan: ……念冬？妳一個人上來？妳不是約我五點四十？
           fail:
             - me: 葉小姐？
             - narr: 風把我的聲音吹回臉上。坡下敲東西的聲音停了，網子另一邊什麼都沒回。
@@ -874,7 +877,7 @@ scenes:
             - { sfx: metal_rattle, at: front, dist: near, text: 嘩嘩, src: 鐵網 }
             - narr: 我抓住鐵網，鐵絲勒進指節。手心全是汗。
             - { sfx: raincoat_rustle, at: front-left, dist: near, text: 沙、沙 }
-            - tingan: 這邊啦，門在這邊。……林家的？妳一個人上來？
+            - tingan: 這邊啦，門在這邊。……念冬？妳一個人上來？
             - tingan: 妳不是約我五點四十？
       - me: 我等不到五點四十。
       - pause: 1
@@ -1575,7 +1578,9 @@ scenes:
                     - { yuan: 阿伯的錶修好了。他貼在耳朵旁邊聽了很久。, via: phone }
                     - { yuan: 妳不是還在找嗎。等妳找到，再說。, via: phone }
                     - { sfx: phone_hangup, at: right, dist: near, text: 嘟 }
-                    - think: 他在等我先去問。今天鎮上的人，我一個都沒去問。
+                    - think: 早上在月台，他說，找到了跟他講一聲。
+                    - narr: 我把手機從耳邊拿開，貼過臉的那一面還是溫的。
+                    - think: ……今天鎮上的人，我一個都沒去問。
             - text: （回他：好，晚安）
               then:
                 - phone: 已傳送。好，晚安。
@@ -1646,8 +1651,10 @@ scenes:
                 - narr: 我的背已經貼上椅背。聽出是他，才一點一點離開。
       - { sfx: step_uneven, at: back, dist: mid, to: front:mid, text: 咚、叩 }
       - yuan: 妳早上說，妳在找那封信是誰寄的。
-      - yuan: 鎮上很小。妳今天去了哪裡、問了誰，傍晚就有人講給我聽了。
-      - yuan: 我想說，不要讓妳找太久。
+      - yuan: 鎮上很小。妳今天去哪裡，傍晚就有人講給我聽。
+      - think: 早上在月台，他說，找到了跟他講一聲。
+      - narr: 他的鞋底在地板上磨了一下，又停住。
+      - yuan: ……我想說，不要讓妳找太久。
       - me: 阿伯的錶呢？
       - yuan: 下午拿走了。他戴上去，貼在耳朵旁邊聽了很久，說走得跟他太太在的時候一樣。
       - me: 房仲也走了？
@@ -1680,7 +1687,7 @@ scenes:
       - { man: 那就下禮拜再來估。櫃子記得清喔。, at: back, as: 房仲 }
       - { sfx: shop_bell, at: back, dist: near, text: 叮鈴 }
       - narr: 門口跟我擦身而過的人噴了古龍水。滿屋子的滴答一下子湧上來。
-      - yuan: ……林家的？這麼晚了。
+      - yuan: ……念冬？這麼晚了。
       - narr: 我把手杖換到另一隻手，指節按在握把的橡膠紋上。
       - yuan: 請、請坐。椅子在妳左手邊。
       - { sfx: chair_scrape, at: front-left, dist: near, text: 嘎 }
@@ -1786,8 +1793,10 @@ scenes:
           - yuan: 我不想等妳哪天，自己在哪裡摸到。
           - set: c6_told_me
         else:
-          - think: 他天天在月台上等我，陪我開門、搬行李。每一次，他都知道。
+          - think: 今天早上在月台，他的左手肘停在我右手邊。
+          - think: 每一個早上，都是那個高度。
           - narr: 我的指甲掐進手杖握把的橡膠紋裡，一道一道掐下去。
+          - think: ……每一次，他都知道。
           - set: c6_found_out
       - tension: 8
       - heart: fast
@@ -1928,6 +1937,8 @@ scenes:
         then:
           - yuan: 很晚了。我送妳回去。
           - narr: 他把手肘放到我右手邊，高度剛好。
+          - narr: 我把手搭上去，指尖碰到他袖口一圈硬掉的機油漬。
+          - me: 好。
           - { sfx: shop_bell, at: back, dist: near, text: 叮鈴 }
         else:
           - yuan: 我回去了。板子……我明天拿去還。

@@ -11,6 +11,7 @@ export default defineConfig(({ command }) => ({
   server: { fs: { allow: ['..'] } },
   test: {
     environment: 'jsdom',
+    setupFiles: ['tests/setup.ts'],
     globals: true,
     testTimeout: 30_000,
   },

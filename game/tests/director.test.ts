@@ -105,7 +105,7 @@ describe('director', () => {
     run(SHIFT_MS + 50);
     expect(director.view.focus).toBe('side');
     // The next main line arrives while she is still turned away: it replaces the away line, never a murmur.
-    run(2500);
+    run(3500);
     expect(director.view.center?.thread).toBe('side');
     expect(director.view.away?.text).toBe('第二句話也很長很長很長很長。');
     expect(director.view.periph.some((item) => item.kind === 'murmur' && item.thread === 'main')).toBe(false);

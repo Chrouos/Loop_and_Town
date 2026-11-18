@@ -1,6 +1,6 @@
-import { BACKLOG_SIZE, Director } from '../src/engine/director';
+import { Director } from '../src/engine/director';
 import { DEFAULT_SETTINGS, SAVE_KEY, freshSave, loadSave, writeSave, type GameSave } from '../src/engine/save';
-import { lineTiming, readingMs } from '../src/engine/text';
+import { heardTiming, lineTiming, readingMs } from '../src/engine/text';
 import { lineId } from '../src/script/parse';
 import { buildScript } from '../src/script/validate';
 import type { Beat, GameScript, LineBeat } from '../src/script/types';
@@ -110,14 +110,15 @@ describe('line ids', () => {
 });
 
 describe('聽過的話自動放快', () => {
-  it('a second loop of the same day takes less than half the time; the wait in it does not get shorter', () => {
+  // Not much less: a long line still stays long enough to skim (heardTiming). Going past it is fast-forward's job.
+  it('a second loop of the same day takes clearly less time; the wait in it does not get shorter', () => {
     const { director, tick } = play(build());
     director.start();
     const first = liveLoop(director, tick);
     let waited = 0;
     director.subscribe(() => { if (director.view.waiting) waited = director.view.waiting.seconds; });
     const second = liveLoop(director, tick);
-    expect(second).toBeLessThan(first * 0.5);
+    expect(second).toBeLessThan(first * 0.7);
     expect(waited).toBe(3);
   });
 
@@ -137,6 +138,17 @@ describe('聽過的話自動放快', () => {
     expect(director.view.center?.heard).toBe(true);
     const full = lineTiming('雨打在窗外冷氣機的鐵殼上，一聲一聲，很慢。', 'narr', 'normal').revealMs;
     expect(director.view.center!.revealMs).toBeCloseTo(full * 0.35, 0);
+  });
+
+  it('a long line heard before still stays long enough to skim, never longer than the first time', () => {
+    const text = '大概是誰在惡作劇，借了她的名字。還是某個知道我要回去的人。';
+    const first = lineTiming(text, 'think', 'normal');
+    const again = heardTiming(first, text, 'normal');
+    expect(again.revealMs).toBeCloseTo(first.revealMs * 0.35, 0);
+    expect(again.holdMs).toBeGreaterThanOrEqual([...text].length * 70);
+    expect(again.holdMs).toBeLessThanOrEqual(first.holdMs);
+    const short = lineTiming('到底是誰。', 'think', 'normal');
+    expect(heardTiming(short, '到底是誰。', 'normal').revealMs + heardTiming(short, '到底是誰。', 'normal').holdMs).toBeLessThan(short.revealMs + short.holdMs);
   });
 });
 
@@ -230,40 +242,6 @@ describe('heard lines are kept', () => {
     const again = loadSave(doubled).save;
     expect(again.heard).toEqual(['a#1', 'b#2']);
     expect(again.settings.textSpeed).toBe('instant');
-  });
-});
-
-describe('剛剛聽到的', () => {
-  it('keeps each line heard clearly, with who said it, where and when', () => {
-    const { director, tick } = play(build());
-    director.start();
-    liveLoop(director, tick);
-    const log = director.backlog;
-    expect(log[0]).toMatchObject({ kind: 'narr', text: '雨打在窗外冷氣機的鐵殼上，一聲一聲，很慢。', place: '車站', clock: '06:12', loop: 1 });
-    expect(log.find((entry) => entry.text === '妳醒了嗎？車快到了，等一下要下車喔。')?.label).toBe('予安');
-    expect(log.some((entry) => entry.kind === 'me' && entry.text === '好。')).toBe(true);
-    expect(log[log.length - 1].text).toBe('列車停了下來，門打開，外面的風灌進來。');
-  });
-
-  it(`keeps the last ${BACKLOG_SIZE}`, () => {
-    const many = Array.from({ length: BACKLOG_SIZE + 15 }, (_, i) => `      - narr: 第${i}句。`).join('\n');
-    const { director, tick, until } = play(build(`
-chapter: 1
-title: 測試
-start: s1
-advance: []
-scenes:
-  - id: s1
-    beats:
-${many}
-      - pause: 5
-      - end: reset
-`));
-    director.start();
-    until(() => director.backlog.some((entry) => entry.text === `第${BACKLOG_SIZE + 14}句。`), 200000);
-    expect(director.backlog.length).toBe(BACKLOG_SIZE);
-    expect(director.backlog[0].text).toBe('第15句。');
-    tick();
   });
 });
 

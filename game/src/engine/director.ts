@@ -1,10 +1,11 @@
 import type { AudioEngine } from '../audio/engine';
 import { DIRECTIONS, DIRECTION_ANGLE, DISTANCES, SFX_SOURCE, type AmbienceId, type Direction, type SfxId, type VibrationId } from '../audio/catalog';
-import { phoneMatters } from '../audio/reader';
+import { phoneMatters, readable, READER_CLIP_RATE } from '../audio/reader';
+import { READER_TIMES } from '../audio/readerClips';
 import { condRefs, evalCond, type CondContext } from '../script/conditions';
 import { CHAPTER_NUMERALS, SPEAKER_LABELS, TENSION_MAX, type Beat, type Chapter, type Cond, type ChoiceOption, type EndKind, type DazeLevel, type GameScript, type HeartLevel, type Lesson, type LineBeat, type NoiseLevel, type LineKind, type Pos, type Scene, type ShakeLevel } from '../script/types';
 import { driftClock, heardClock, planClock, type ClockPlan } from './clock';
-import { HEARD_SCALE, lineTiming, readingMs, scaleTiming, type LineTiming, type Phrase } from './text';
+import { heardTiming, lineTiming, readingMs, voicedTiming, type LineTiming, type Phrase } from './text';
 import { lineId } from '../script/parse';
 import { HUSH_MS, HUSH_SFX, isVoice, isWhispered, lifeOf, type LifeEvent } from './life';
 import { soundsAround } from './prefetch';
@@ -13,10 +14,11 @@ import { MEMORY_CAPACITY, freshSave, type Checkpoint, type GameSave, type Memory
 // Presentation timings (scene-clock ms). Prototype parameters, core spec §26.
 export const SHIFT_MS = 700;
 const OUT_MS = 1100;
-const CARD_MS = 2600;
-const CHAPTER_CARD_MS = 4200;
+export const CARD_MS = 2600;
+export const CHAPTER_CARD_MS = 4200;
 /** A chapter card that also carries the opening place/time stays a little longer for them to fade in under the title. */
-const CHAPTER_PLACE_EXTRA_MS = 800;
+/** A chapter that opens somewhere new: its name alone for this long, then where and when, as a scene card would (CARD_MS). */
+export const CHAPTER_PART_MS = 3600;
 const ENDING_FADE_MS = 2500;
 const ENDING_MARK_MS = 2000;
 const RESET_MS = 6500;
@@ -107,9 +109,20 @@ export type CenterLine = {
 };
 
 /** `src`: what she hears it as (紙, 衣服, 風), shown small under the onomatopoeia. */
-export type Peripheral = { key: number; kind: 'sfx' | 'murmur' | 'cue' | 'life'; text: string; src?: string; pos: Pos; thread?: string; born: number; until: number };
+/** `look`: a sound with its own look on screen ('water' = rain and dripping: the word falls in drop by drop). */
+export type Peripheral = { key: number; kind: 'sfx' | 'murmur' | 'cue' | 'life'; text: string; src?: string; pos: Pos; thread?: string; born: number; until: number; look?: SoundLook };
 
 /** `mark`: a faint line above the loop text on a reset card (結局 B the first time), shown for `markMs`. */
+/** Which rain the screen shows: the street, a window, a car roof (none of the three = no rain). */
+export type RainKind = 'out' | 'window' | 'car';
+export type SoundLook = 'water';
+const WATER_SFX = new Set<SfxId>(['rain_drop_near', 'rain_tap_glass', 'drip_metal', 'drip', 'rain_burst', 'water_splash']);
+/** Rain and dripping water, by the sound or by what she calls it (a car through a puddle is still water). */
+function lookOf(id?: SfxId, src?: string): SoundLook | undefined {
+  return (id && WATER_SFX.has(id)) || (src && /雨滴|雨打|驟雨|滴水|濺水/.test(src)) ? 'water' : undefined;
+}
+const RAIN_OF: Partial<Record<AmbienceId, RainKind>> = { rain: 'out', rain_on_window: 'window', rain_in_car: 'car' };
+
 export type Card = { chapter?: string; title?: string; time?: string; place?: string; loopText?: string; mark?: string; markMs?: number; recap?: { memory?: string } };
 
 export type View = {
@@ -130,7 +143,9 @@ export type View = {
   /** The main conversation's current line while she listens elsewhere: it keeps going in the middle, blurred. */
   away: CenterLine | null;
   periph: Peripheral[];
-  ripples: { key: number; pos: Pos }[];
+  ripples: { key: number; pos: Pos; look?: SoundLook }[];
+  /** Rain among the ambience, for the screen to show: on the street, on a window, on a car roof. */
+  rain?: RainKind | null;
   /** `teach`: the first question that takes a memory; the memory button says what it is for. `first`: the first question ever. */
   /** `timeout` (s) is already stretched to give time to read every option; unset = it waits (選擇不倒數, or none set).
    *  `fallback`: what happens when the time runs out, for the countdown's description ('silence' = she says nothing). */
@@ -169,8 +184,6 @@ export type View = {
   skipping: boolean;
 };
 
-/** One line in 剛剛聽到的: what was heard clearly, where and when. */
-export type BacklogEntry = { key: number; kind: LineKind; label?: string; text: string; clock?: string; place?: string; loop: number };
 
 export type TensionBand = 0 | 1 | 2 | 3;
 
@@ -276,8 +289,6 @@ export class Director {
   /** Every line id heard clearly on any loop (save.heard), and the scenes those lines belong to. */
   private heard = new Set<string>();
   private heardScenes = new Set<string>();
-  /** 剛剛聽到的: the last BACKLOG_SIZE lines heard clearly. Kept in memory only (see backlog). */
-  private log: BacklogEntry[] = [];
   /** Why saves are not landing (newer build on disk, or a failed write), what loading found, and what was read. */
   private saveBlocked: 'newer' | 'failed' | null = null;
   private saveNotice: SaveProblem | null = null;
@@ -309,12 +320,6 @@ export class Director {
   get loopFlags(): ReadonlySet<string> { return this.flags; }
   get currentScene(): Scene | null { return this.scene; }
   get tension(): number { return this.save.tension; }
-  /**
-   * 剛剛聽到的, oldest first. Not saved: a reload replays the scene from its resume point, which hears those lines
-   * again and puts them back here, so a saved copy would only show them twice; and writing up to 200 lines on every
-   * line would be the heaviest thing in the save.
-   */
-  get backlog(): readonly BacklogEntry[] { return this.log; }
   /** Whether this line id was heard clearly on some loop (or earlier on this one). */
   hasHeard(id: string): boolean { return this.heard.has(id); }
   get threadsRunning(): string[] { return [...this.runs.values()].filter((run) => !run.done && run.id !== 'main').map((run) => run.id); }
@@ -390,16 +395,20 @@ export class Director {
   }
 
   newGame(): void {
+    this.forgetAll();
+    this.start();
+  }
+
+  /** 清除進度 from the menu: everything is forgotten and saved, and nothing starts; the title screen begins the new day. */
+  forgetAll(): void {
     this.forget();
     this.persist();
-    this.start();
   }
 
   /** A new game's save: lessons, endings and settings stay; the story, what she heard and what she knows go. */
   private forget(): void {
     this.save = freshSave(this.save);
     this.loadHeard();
-    this.log = [];
     this.knowledge = new Set();
     this.flags = new Set();
     this.recallTried = new WeakMap();
@@ -411,7 +420,6 @@ export class Director {
   jumpToChapter(key: string, grantEarlierKnowledge: boolean): void {
     this.save = { ...freshSave(this.save), started: true, chapter: key };
     this.loadHeard();
-    this.log = [];
     this.knowledge = new Set();
     if (grantEarlierKnowledge) {
       for (const chapter of this.script.chapters) {
@@ -694,7 +702,7 @@ export class Director {
   /** 摸讀: a fingertip reached cell i (the UI decides whether it was slow enough to count). */
   touchCell(index: number, clear: boolean): void {
     if (this.view.interact?.type !== 'touch') return;
-    this.out.audio.play(clear ? 'braille_stylus' : 'cloth_rustle', CENTER, { gain: clear ? 0.35 : 0.25, rate: 1 + index * 0.03 });
+    this.out.audio.play('braille_read', CENTER, clear ? { gain: 0.45, rate: 1 + index * 0.02 } : { gain: 0.25, rate: 1.3 });
     if (clear) this.vibrate('tap');
   }
 
@@ -851,8 +859,8 @@ export class Director {
       if (this.view.interact?.key !== key) return;
       const pos: Pos = { dir: step.dir, dist: distOf(step.r) };
       this.out.audio.play(beat.sfx, pos, { gain: step.gain * TENSION_EARS[this.view.tension].target, radius: step.r });
-      if (beat.text) this.addPeripheral('sfx', beat.text, pos, this.view.t + beat.interval * 900, undefined, SFX_SOURCE[beat.sfx]);
-      this.ripple(pos);
+      if (beat.text) this.addPeripheral('sfx', beat.text, pos, this.view.t + beat.interval * 900, undefined, SFX_SOURCE[beat.sfx], lookOf(beat.sfx));
+      this.ripple(pos, lookOf(beat.sfx));
       if (step.close) this.vibrate('tap');
       this.maskWithHeart(key, this.view.t + beat.interval * 500);
       this.bump();
@@ -986,7 +994,7 @@ export class Director {
     const card: Card = firstOfChapter
       ? { chapter: CHAPTER_NUMERALS[chapter.key] ?? '', title: chapter.title }
       : { loopText: `第${toChineseNumber(this.save.loop)}次的十月三日` };
-    // A chapter that opens somewhere new says where and when under its own title, instead of a second card after it.
+    // A chapter that opens somewhere new says where and when on its own card: the name first, then the place in its stead.
     const opening = firstOfChapter ? this.script.scenes.get(entry) : undefined;
     const merged = opening?.place !== undefined;
     if (merged) {
@@ -997,7 +1005,7 @@ export class Director {
     this.view.chapterKey = chapter.key;
     this.view.loop = this.save.loop;
     this.prefetchAround(entry);
-    this.setPhase('card', firstOfChapter ? CHAPTER_CARD_MS + (merged ? CHAPTER_PLACE_EXTRA_MS : 0) : CARD_MS, () => this.transition(entry, undefined, merged), card);
+    this.setPhase('card', firstOfChapter ? (merged ? CHAPTER_PART_MS + CARD_MS : CHAPTER_CARD_MS) : CARD_MS, () => this.transition(entry, undefined, merged), card);
   }
 
   /** Fetch what this scene and the ones after it will play, so a slow connection does not swallow a cue. */
@@ -1053,7 +1061,7 @@ export class Director {
     // Somewhere new, a little later: the body comes down a notch on its own.
     if ((scene.time || scene.place) && !resumeWait) this.addTension(TENSION_AUTO.newPlace, true);
     this.syncTension();
-    if (scene.ambience) this.ambience = scene.ambience;
+    if (scene.ambience) this.setAmbienceView(scene.ambience);
     this.startLife();
     this.save.scene = scene.id;
     this.save.flags = [...this.flags];
@@ -1128,6 +1136,7 @@ export class Director {
       delete this.save.wait;
       this.persist();
       this.out.audio.setAmbience([], 6000);
+      this.view.rain = null;
       // Black to black: the last scene fades out before the ending comes up, not a cut.
       this.setPhase('out', ENDING_FADE_MS, () => {
         this.view.phase = 'ending';
@@ -1298,9 +1307,10 @@ export class Director {
         this.out.audio.play(beat.id, beat.pos, { gain: beat.gain ?? (important ? 1 : 0.45), ...(beat.variant !== undefined ? { variant: beat.variant - 1 } : {}), ...(beat.to ? { to: beat.to } : {}) });
         if (beat.vib) this.vibrate(beat.vib);
         else if (beat.shake) this.vibrate(SHAKE_VIBRATION[beat.shake]);
-        if (beat.text) this.addPeripheral('sfx', beat.text, beat.pos, t + SFX_TEXT_MS * (beat.pos.dist === 'far' ? 1.25 : 1), undefined, beat.src ?? SFX_SOURCE[beat.id]);
+        const look = lookOf(beat.id, beat.src);
+        if (beat.text) this.addPeripheral('sfx', beat.text, beat.pos, t + SFX_TEXT_MS * (beat.pos.dist === 'far' ? 1.25 : 1), undefined, beat.src ?? SFX_SOURCE[beat.id], look);
         if (beat.to) this.trail(beat.pos, beat.to, t, SFX_TEXT_MS);
-        else this.ripple(beat.pos);
+        else this.ripple(beat.pos, look);
         const jolt = beat.shake ?? (beat.vib === 'crash' ? 'hard' : beat.vib === 'thud' ? 'light' : undefined);
         if (jolt) this.jolt(jolt);
         if (HUSH_SFX.has(beat.id)) this.lifeHushUntil = t + HUSH_MS;
@@ -1308,7 +1318,7 @@ export class Director {
         this.bump();
         return;
       }
-      case 'amb': this.out.audio.setAmbience(beat.ids, beat.fade !== undefined ? beat.fade * 1000 : 2400); this.ambience = beat.ids; this.startLife(); run.busyUntil = t; return;
+      case 'amb': this.out.audio.setAmbience(beat.ids, beat.fade !== undefined ? beat.fade * 1000 : 2400); this.setAmbienceView(beat.ids); this.startLife(); run.busyUntil = t; return;
       case 'move': Object.assign(this.cast, beat.moves); run.busyUntil = t; return;
       case 'pause': run.busyUntil = t + this.pauseMs(run, beat.seconds * 1000); return;
       case 'wait': this.startWait(run, beat, t, beat.seconds * 1000, topLevelIndex); return;
@@ -1348,13 +1358,19 @@ export class Director {
     run.afterHeard = heardBefore;
     let timing: LineTiming = lineTiming(text, beat.kind, this.settings.textSpeed);
     if (skipping) timing = { phrases: timing.phrases.map((phrase) => ({ ...phrase, at: 0 })), revealMs: 0, holdMs: SKIP_LINE_MS };
-    else if (fast) timing = scaleTiming(timing, HEARD_SCALE);
+    else if (fast) timing = heardTiming(timing, text, this.settings.textSpeed);
+    const focused = this.view.focus === run.id && !this.shift;
+    // Someone's message is only shown: the phone says who it is from (its sender line, or `announce`), not what they wrote.
+    const reads = beat.message ? beat.announce : text;
+    const readAloud = beat.kind === 'phone' && !!reads && focused && this.settings.reader && !skipping;
+    // Read out from its clip, the phone's line comes in with the voice, not at the reading pace.
+    const voiced = readAloud && reads === text && this.settings.textSpeed !== 'instant' ? READER_TIMES[readable(text)] : undefined;
+    if (voiced) timing = voicedTiming(timing, [voiced[0] / READER_CLIP_RATE, voiced[1] / READER_CLIP_RATE, voiced[2].map((gap) => gap / READER_CLIP_RATE)]);
     // A jolt is her body: the phone in her hand takes it too, as it does for a bare `shake` beat.
     if (beat.shake) { this.jolt(beat.shake); this.vibrate(SHAKE_VIBRATION[beat.shake]); }
     const pos = this.posFor(run, beat);
     const glide = beat.to && pos.dir !== 'center' ? beat.to : undefined;
     const glideMs = timing.revealMs + timing.holdMs;
-    const focused = this.view.focus === run.id && !this.shift;
     const label = beat.kind === 'char' ? beat.label ?? SPEAKER_LABELS[beat.speaker] : beat.kind === 'phone' ? beat.label ?? SPEAKER_LABELS.phone : beat.label;
     const center: CenterLine = {
       key: this.keyCounter++,
@@ -1392,9 +1408,7 @@ export class Director {
     // Her phone reading the time out loud is the time.
     const spoken = beat.kind === 'phone' ? heardClock(text, this.view.clock) : null;
     if (spoken) this.setClock(spoken);
-    // Someone's message is only shown: the phone says who it is from (its sender line, or `announce`), not what they wrote.
-    const reads = beat.message ? beat.announce : text;
-    if (beat.kind === 'phone' && reads && focused && this.settings.reader && !skipping) this.out.audio.speak?.(reads, beat.loud ?? phoneMatters(reads));
+    if (readAloud) this.out.audio.speak?.(reads!, beat.loud ?? phoneMatters(reads!));
     // Going past at once, a line is not voiced (a rustle every few hundred ms would be noise); sounds still play.
     if (!skipping && (beat.kind === 'char' || beat.kind === 'me' || beat.kind === 'phone')) {
       // Anyone whose words are on screen, a stranger too, is placed by the rustle of turning to talk: the text is their
@@ -1425,11 +1439,9 @@ export class Director {
     this.bump();
   }
 
-  /** A line heard clearly: it goes into 剛剛聽到的, and on later loops it counts as heard (save.heard). */
+  /** A line heard clearly: on later loops it counts as heard (save.heard). */
   private hear(line: ActiveLine): void {
     const center = line.center;
-    this.log.push({ key: center.key, kind: center.kind, label: center.label, text: center.text.replace(/\|/g, ''), clock: this.view.clock, place: this.view.place, loop: this.save.loop });
-    if (this.log.length > BACKLOG_SIZE) this.log.splice(0, this.log.length - BACKLOG_SIZE);
     const id = this.idOf(line.beat);
     if (id === undefined || this.heard.has(id)) return;
     this.heard.add(id);
@@ -1500,7 +1512,7 @@ export class Director {
     const run: Run = { id: beat.thread, stack: [{ beats, i: 0 }], busyUntil: t + (beat.grab ? SHIFT_MS + 200 : CUE_LEAD_MS), line: null, blocked: false, done: false, pos: beat.pos, whisper: beat.whisper };
     this.runs.set(beat.thread, run);
     if (beat.sfx) this.out.audio.play(beat.sfx, beat.pos);
-    this.addPeripheral('cue', beat.text, beat.pos, Infinity, beat.thread, beat.src ?? (beat.sfx && SFX_SOURCE[beat.sfx]));
+    this.addPeripheral('cue', beat.text, beat.pos, Infinity, beat.thread, beat.src ?? (beat.sfx && SFX_SOURCE[beat.sfx]), lookOf(beat.sfx, beat.src));
     this.ripple(beat.pos);
     if (beat.grab) this.beginShift(beat.thread);
     this.bump();
@@ -1588,6 +1600,12 @@ export class Director {
   }
 
   // ───────────────────────── background life ─────────────────────────
+
+  private setAmbienceView(ids: AmbienceId[]): void {
+    this.ambience = ids;
+    const rain = ids.map((id) => RAIN_OF[id]).find(Boolean) ?? null;
+    if (rain !== (this.view.rain ?? null)) { this.view.rain = rain; this.bump(); }
+  }
 
   private startLife(): void {
     const gen = ++this.lifeGen;
@@ -1679,7 +1697,10 @@ export class Director {
     } else {
       // The engine lifts distance itself; one level here keeps a far sound far without losing it.
       this.out.audio.play(event.sfx, pos, { gain: 0.16 * (noise?.loud ?? 1) * wound.loud });
-      if (!during) this.addPeripheral('sfx', event.text, pos, t + SFX_TEXT_MS * (pos.dist === 'far' ? 1.25 : 1), undefined, event.src ?? (event.sfx && SFX_SOURCE[event.sfx]));
+      const look = lookOf(event.sfx, event.src);
+      if (!during) this.addPeripheral('sfx', event.text, pos, t + SFX_TEXT_MS * (pos.dist === 'far' ? 1.25 : 1), undefined, event.src ?? (event.sfx && SFX_SOURCE[event.sfx]), look);
+      // Rain and dripping land on the water where they are heard, even in the background.
+      if (!during && look) this.ripple(pos, look);
     }
     this.bump();
   }
@@ -1810,13 +1831,13 @@ export class Director {
     this.persist();
   }
 
-  private addPeripheral(kind: Peripheral['kind'], text: string, pos: Pos, until: number, thread?: string, src?: string): void {
-    this.view.periph = [...this.view.periph.filter((item) => !(kind === 'murmur' && item.kind === 'murmur' && item.thread === thread && thread !== undefined)), { key: this.keyCounter++, kind, text, src, pos, born: this.view.t, until, thread }];
+  private addPeripheral(kind: Peripheral['kind'], text: string, pos: Pos, until: number, thread?: string, src?: string, look?: SoundLook): void {
+    this.view.periph = [...this.view.periph.filter((item) => !(kind === 'murmur' && item.kind === 'murmur' && item.thread === thread && thread !== undefined)), { key: this.keyCounter++, kind, text, src, pos, born: this.view.t, until, thread, ...(look ? { look } : {}) }];
   }
 
-  private ripple(pos: Pos): void {
+  private ripple(pos: Pos, look?: SoundLook): void {
     if (pos.dir === 'center') return;
-    this.view.ripples = [...this.view.ripples, { key: this.keyCounter++, pos }];
+    this.view.ripples = [...this.view.ripples, { key: this.keyCounter++, pos, ...(look ? { look } : {}) }];
   }
 
   /** Something on the move: ripples step from where it started to where it ends up, one direction at a time. */
@@ -2100,9 +2121,7 @@ const TEACH_GIVE_UP_MS = 25000;
 
 const SHAKE_VIBRATION: Record<ShakeLevel, VibrationId> = { light: 'thud', hard: 'crash' };
 
-/** 剛剛聽到的 keeps this many lines. */
-export const BACKLOG_SIZE = 200;
-/** 聽過的話自動放快: a `pause` in a stretch she has heard before takes this fraction of its time (lines: HEARD_SCALE). */
+/** 聽過的話自動放快: a `pause` in a stretch she has heard before takes this fraction of its time (lines: heardTiming). */
 const HEARD_PAUSE_SCALE = 0.5;
 /** Fast-forward: how long a heard line stays, the longest a pause or a sound with a word may hold it up, and the
  *  breath between scenes and a new place's card. Real-time waits are never touched. */

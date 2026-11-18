@@ -240,6 +240,18 @@ def C(sid, a, b):
     return lambda: cut(sid, a, b)
 
 
+def CL(sid, a, b, hp=None, lp=None):
+    """A cut with optional high/low-pass."""
+    def make():
+        x = cut(sid, a, b)
+        if hp:
+            x = highpass(x, hp)
+        if lp:
+            x = lowpass(x, lp)
+        return x
+    return make
+
+
 sfx('step', ev('205817', 4, a=0.5, b=50, hp=150, max_len=0.32, decay_db=34, min_gap=0.25, fixed=0.28), [205817], st=-20, limit=10, peak=-6, hp=60, fout=0.04,
     note='4 single footsteps (shoes on a pavement at night, MKH60) cut from a walk')
 sfx('step_heels', ev('343390', 3, a=5.4, b=17.5, hp=150, max_len=0.3, decay_db=30, min_gap=0.25, fixed=0.28), [343390], st=-21, limit=14, peak=-5, hp=80, fout=0.04,
@@ -289,8 +301,13 @@ sfx('page_turn', ev('164806', 3, a=0.5, b=7.5, hp=150, max_len=0.7, decay_db=28,
 sfx('envelope', [C('632116', 1.55, 3.30)], [632116], st=-22, fout=0.2, note='a paper envelope opened and a letter pulled out')
 sfx('pen_scratch', [C('333935', 9.10, 10.79), C('333935', 13.14, 14.79), C('333935', 24.96, 26.46)], [333935], st=-22, hp=200, limit=12, fin=0.05, fout=0.2,
     note='three passages of handwriting with a pencil on paper, close mic')
-sfx('braille_stylus', [C('673782', 1.06, 2.56), C('673782', 30.96, 32.04), C('673782', 41.56, 42.24)], [673782], st=-22, hp=1000, limit=12, fin=0.01, fout=0.08,
-    note='punching braille dots with a slate and stylus (the hardest punches of the recording, high-passed at 1 kHz to drop hiss)')
+sfx('braille_stylus', [CL('673782', 1.06, 2.56, lp=3200), CL('673782', 30.96, 32.04, lp=3200), CL('673782', 41.56, 42.24, lp=3200)], [673782], st=-22, hp=180, limit=12, fin=0.01, fout=0.08, rate=0.88,
+    note='punching braille dots with a slate and stylus (the hardest punches of the recording), kept between 180 Hz and 3.2 kHz '
+         'so the stylus thuds through the paper instead of clicking; played at rate 0.88')
+sfx('braille_read', [(lambda a=a, b=b: lowpass(cut('792457', a, b, 'L'), 3000, order=2)) for a, b in [(20.20, 20.80), (24.30, 25.00), (28.40, 28.95), (33.85, 34.30)]],
+    [792457], st=-26, hp=150, limit=12, fin=0.04, fout=0.12, rate=0.85,
+    note='a fingertip sliding over braille paper: four smooth passages from a woman reading braille (mid channel of the MS recording), '
+         'high-passed at 150 Hz (hand thumps) and gently low-passed at 3 kHz, played at rate 0.85 so it is a low, dry paper rub')
 sfx('cup_set', [C('460241', 1.90, 2.55), C('460242', 0.98, 1.55), C('206171', 0.10, 0.62), C('206171', 1.25, 1.85)], [460241, 460242, 206171], st=-21, peak=-6, fout=0.08,
     note='four porcelain cups set down on saucers/tables')
 sfx('spoon_stir', [C('352872', 0.60, 2.50), C('352872', 8.30, 10.30)], [352872], st=-22, fout=0.2, note='a spoon stirring in a cup (two takes)')
@@ -489,16 +506,6 @@ sfx('crowd_walla', [walla('452408', 2.0, 8.0), walla('452408', 26.0, 32.0), wall
          'Hong Kong (Cantonese), a busy Chinese restaurant in Montreal; high-passed at 120 Hz, low-passed at 5 kHz, swelling in and out')
 
 # ================================================================ story sounds that were still synthesized (2026-10-29)
-def CL(sid, a, b, hp=None, lp=None):
-    """A cut with optional high/low-pass."""
-    def make():
-        x = cut(sid, a, b)
-        if hp:
-            x = highpass(x, hp)
-        if lp:
-            x = lowpass(x, lp)
-        return x
-    return make
 
 
 def tick_L(t):

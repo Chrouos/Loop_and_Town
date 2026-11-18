@@ -57,7 +57,7 @@ scenes:
               - think: 我拿檢舉壓周警官，他就只剩規矩。抽屜裡的東西，要拿我在門外聽到的去換。
           - if: "!know.k_medical_records && know.lead_c4_count"
             then:
-              - think: 陳醫生在我起身的時候問，這是第幾次。他其實想聽我回答。
+              - think: 陳醫生在我起身的時候問，這是第幾次。問完，他就站在我背後，沒有坐回去。
           - if: "!know.k_research_purpose && know.lead_c4_public"
             then:
               - think: 庭安只肯講人口外流。研究所三個字，她要看到我手上有東西才肯接。
@@ -838,8 +838,10 @@ scenes:
           - boxun: 這是我自己留的影本。不在系統裡。
           - if: flag.c4_bx_open
             then:
-              - boxun: 我念，不是因為我相信妳。
-              - boxun: 是妳剛剛講的那件事，跟我五年來一直排除不掉的那件，是同一類。我想放在一起看看。
+              - boxun: 妳剛剛講的，我沒辦法查。
+              - pause: 1
+              - boxun: 這五年，我排除不掉的東西，也只有一件。
+              - boxun: ……我想把它們放在同一張桌子上看。
           - boxun: 我只念她自己講的話。牽涉到別的病人，我不念名字。
           - pause: 1.5
           - boxun: 諮詢紀錄，第一次。
@@ -929,7 +931,7 @@ scenes:
           - heart: slow
           - narr: 手杖尖抵著門檻。冷氣正好吹在我後頸，涼得我縮了一下肩膀。
           - think: 今天以前，我沒有掛過他的號。他問的不是這間診間。
-          - think: 我沒有回答。他其實在等。
+          - narr: 背後搓手的聲音停了。我站在門檻上沒有動，他也沒有坐回椅子上。
           - tension: 6
       - if: flag.c4_bx_open
         then:
@@ -1301,7 +1303,8 @@ scenes:
                     - me: 若晴，今天傍晚……
                     - { ruoqing: 欸妳誰啊？我要出門了啦，等一下再說。, via: phone }
                     - { sfx: phone_hangup, at: right, dist: near, text: 嘟 }
-                    - think: 她連我是誰都不知道。出門前接到陌生人的電話，換作是我也不會聽。
+                    - narr: 我握著手機沒有放下，聽到嘟聲自己停了，才把它擺回玻璃櫃台。
+                    - think: ……我連名字都還沒講。
                     - tension: 6
                     - set: c4_called_late
                 - text: （把手機扣在櫃台上）
@@ -1591,7 +1594,8 @@ scenes:
                     - me: 若晴，今天傍晚……
                     - { ruoqing: 欸妳誰啊？我要出門了啦，等一下再說。, via: phone }
                     - { sfx: phone_hangup, at: right, dist: near, text: 嘟 }
-                    - think: 她連我是誰都不知道。出門前接到陌生人的電話，換作是我也不會聽。
+                    - narr: 我把手機貼在耳朵上，貼到嘟聲斷掉。
+                    - think: ……我連名字都還沒講。
                     - think: 早上我還有一整天可以好好跟她講。那一整天，我拿去問五年前了。
                     - tension: 6
                     - set: c4_called_late
@@ -1668,7 +1672,10 @@ scenes:
           - { sfx: raincoat_rustle, at: front-right, dist: mid, text: 沙、沙 }
           - { sfx: wood_creak, at: front-right, dist: mid, text: 嘎、嘎, src: 窗框 }
           - narr: 她站起來去關窗，推了兩下才推上。
-          - think: 她差一點就說了。我在機房替知夏講了一句話，她就把那件事吞回去了。
+          - think: 剛進來的時候，我說知夏是想救人。
+          - think: 庭安說，知夏以前也是拿這句擋她，擋了快一年。
+          - narr: 我把手從鐵桌上收回來，放到腿上。
+          - think: ……她差一點就說了。
           - tension: 8
           - goto: c4_1831
       - tingan: 如果妳回來，不讓妳知道她做過什麼。
@@ -1769,7 +1776,9 @@ scenes:
                   then:
                     - tingan: 她覺得跟妳講了，妳就會留下來。
                     - pause: 1
-                    - tingan: 她大概沒想錯。
+                    - tingan: 妳剛剛抓我袖子，抓那麼緊，妳自己知道嗎？
+                    - narr: 我的右手在膝蓋上握了一下，指節還有一點酸。
+                    - tingan: ……她大概沒想錯。
                 - text: 「謝謝妳食言。」
                   then:
                     - pause: 1.5
@@ -2009,7 +2018,10 @@ scenes:
               - yuan: 六點到七點，我真的待在店裡。
               - yuan: 很無聊。修了兩只錶。
           - yuan: 所以，可以跟我說為什麼要我待著了嗎？
-          - me: 因為我不想下一次聽見出事的人是你。
+          - me: 早上打給你的時候，你在排隊買蛋餅。
+          - me: 你什麼都沒問，就說好。
+          - narr: 我摸到桌上那雙筷子，把它們對齊，又推回碗邊。
+          - me: ……我不想下一次，聽見出事的是你。
           - pause: 2
           - yuan: ……「下一次」？
           - { sfx: cup_scrape, at: front, dist: near, text: 嘎, src: 醋瓶 }
@@ -2074,8 +2086,8 @@ scenes:
                     - text: 「好。我答應你。」
                       then:
                         - yuan: 一言為定。
-                        - think: 我答應了一件我做不到的事。
-                        - think: 可是我想答應。
+                        - narr: 我把筷子橫擱在碗口，指腹順著竹子的稜角摸到尾端，又摸回來。
+                        - think: ……我還是想答應他。
                     - text: 「如果沒有明天呢？」
                       then:
                         - yuan: 那就今天講。

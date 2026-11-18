@@ -45,7 +45,9 @@ jobs:
           done
           npm run test:mobile
       - name: Build
-        run: npm run build
+        run: |
+          export VITE_BUILD_VERSION="$(printf 'v0.%03d' "$GITHUB_RUN_NUMBER")_$(TZ=Asia/Taipei date +%y%m%d)"
+          npm run build
       - name: Check the game page exists
         run: test -s dist/index.html
       - name: Configure GitHub Pages
