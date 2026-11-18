@@ -14,8 +14,10 @@ export interface ScreenReader {
   stop(): void;
 }
 
-/** Screen-reader users listen fast; a little quicker than a person, still clear. */
-const RATE = 1.2;
+/** Playback speed for recorded phone speech, shared with its subtitle timing. */
+export const READER_CLIP_RATE = 0.85;
+/** Device speech uses its own normal-rate scale. */
+const RATE = 1;
 
 function synth(): SpeechSynthesis | null {
   try {

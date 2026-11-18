@@ -845,6 +845,13 @@ const BASE_SFX_RECIPES: Record<Exclude<SfxId, AmbientEventId | keyof typeof LIFE
       return end - c.t;
     },
   },
+  // until the recording is decoded: a fingertip dragged slowly across paper, low and dry
+  braille_read: {
+    play(c) {
+      const dur = vary(0.55, 0.1);
+      return nshape(c, c.out, c.t, { kind: 'pink', type: 'bandpass', f: 700 * c.p, q: 0.7, fpts: [[dur, 520 * c.p]], pts: [[0, 0], [0.06, 0.12], [dur * 0.6, 0.09], [dur, 0]] }) - c.t;
+    },
+  },
   kid_laugh: {
     play(c) {
       const t = c.t;

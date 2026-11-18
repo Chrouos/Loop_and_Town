@@ -1,6 +1,6 @@
 import { Director } from '../src/engine/director';
 import { DEFAULT_SETTINGS, SAVE_KEY, freshSave, loadSave, writeSave, type GameSave } from '../src/engine/save';
-import { lineTiming, readingMs } from '../src/engine/text';
+import { heardTiming, lineTiming, readingMs } from '../src/engine/text';
 import { lineId } from '../src/script/parse';
 import { buildScript } from '../src/script/validate';
 import type { Beat, GameScript, LineBeat } from '../src/script/types';
@@ -110,14 +110,15 @@ describe('line ids', () => {
 });
 
 describe('聽過的話自動放快', () => {
-  it('a second loop of the same day takes less than half the time; the wait in it does not get shorter', () => {
+  // Not much less: a long line still stays long enough to skim (heardTiming). Going past it is fast-forward's job.
+  it('a second loop of the same day takes clearly less time; the wait in it does not get shorter', () => {
     const { director, tick } = play(build());
     director.start();
     const first = liveLoop(director, tick);
     let waited = 0;
     director.subscribe(() => { if (director.view.waiting) waited = director.view.waiting.seconds; });
     const second = liveLoop(director, tick);
-    expect(second).toBeLessThan(first * 0.5);
+    expect(second).toBeLessThan(first * 0.7);
     expect(waited).toBe(3);
   });
 
@@ -137,6 +138,17 @@ describe('聽過的話自動放快', () => {
     expect(director.view.center?.heard).toBe(true);
     const full = lineTiming('雨打在窗外冷氣機的鐵殼上，一聲一聲，很慢。', 'narr', 'normal').revealMs;
     expect(director.view.center!.revealMs).toBeCloseTo(full * 0.35, 0);
+  });
+
+  it('a long line heard before still stays long enough to skim, never longer than the first time', () => {
+    const text = '大概是誰在惡作劇，借了她的名字。還是某個知道我要回去的人。';
+    const first = lineTiming(text, 'think', 'normal');
+    const again = heardTiming(first, text, 'normal');
+    expect(again.revealMs).toBeCloseTo(first.revealMs * 0.35, 0);
+    expect(again.holdMs).toBeGreaterThanOrEqual([...text].length * 70);
+    expect(again.holdMs).toBeLessThanOrEqual(first.holdMs);
+    const short = lineTiming('到底是誰。', 'think', 'normal');
+    expect(heardTiming(short, '到底是誰。', 'normal').revealMs + heardTiming(short, '到底是誰。', 'normal').holdMs).toBeLessThan(short.revealMs + short.holdMs);
   });
 });
 

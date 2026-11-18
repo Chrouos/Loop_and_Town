@@ -1,7 +1,7 @@
 import { load } from 'js-yaml';
 import chars from '../src/assets/fonts/wenkai-tc-chars.txt?raw';
-import machineChars from '../src/assets/fonts/sarasa-fixed-tc-chars.txt?raw';
-import pastChars from '../src/assets/fonts/iansui-chars.txt?raw';
+import screenChars from '../src/assets/fonts/screen-pixel-chars.txt?raw';
+import stampChars from '../src/assets/fonts/stamps-chars.txt?raw';
 
 const stories = import.meta.glob('../../story/*.yaml', { query: '?raw', import: 'default', eager: true }) as Record<string, string>;
 const sources = {
@@ -19,38 +19,43 @@ function missingFrom(cut: string, texts: Iterable<string>): string {
 }
 
 // Which lines each voice speaks, the same way tools/subset-font.py reads them.
-function voices(): { machine: string[]; past: string[] } {
-  const machine: string[] = [];
-  const past: string[] = [];
+type Voice = 'screen' | 'stamps';
+
+function voices(): Record<Voice, string[]> {
+  const found: Record<Voice, string[]> = { screen: [], stamps: [] };
   const walk = (node: unknown): void => {
     if (Array.isArray(node)) { node.forEach(walk); return; }
     if (!node || typeof node !== 'object') return;
     const map = node as Record<string, unknown>;
-    if (typeof map.phone === 'string') machine.push(map.phone);
-    for (const key of ['time', 'clock', 'until']) if (typeof map[key] === 'string' || typeof map[key] === 'number') machine.push(String(map[key]));
-    if (map.via === 'tape' || typeof map.zhixia === 'string') {
-      for (const [key, value] of Object.entries(map)) if (key !== 'via' && typeof value === 'string') past.push(value);
+    if (typeof map.phone === 'string') found.screen.push(map.phone);
+    for (const key of ['place', 'title']) if (typeof map[key] === 'string') found.stamps.push(map[key] as string);
+    if (typeof map.place === 'string') found.screen.push(map.place);
+    for (const key of ['time', 'clock', 'until']) {
+      if (typeof map[key] === 'string' || typeof map[key] === 'number') { found.screen.push(String(map[key])); found.stamps.push(String(map[key])); }
     }
     Object.values(map).forEach(walk);
   };
   for (const source of Object.values(stories)) walk(load(source));
-  return { machine, past };
+  return found;
 }
+
+// Marks a face does not draw fall back to WenKai.
+const MARKS = /[—《》（）・．／～　·]/g;
 
 describe('self-hosted fonts', () => {
   it('LXGW WenKai TC covers every CJK character in the story and the UI', () => {
     expect(missingFrom(chars, Object.values(sources))).toBe('');
   });
 
-  it('the machine voice (Sarasa Fixed TC) covers every phone line and every clock', () => {
-    const { machine } = voices();
-    expect(machine.length).toBeGreaterThan(50);
-    expect(missingFrom(machineChars, machine)).toBe('');
-  });
-
-  it('a voice from before (Iansui) covers every tape and every line of Zhixia', () => {
-    const { past } = voices();
-    expect(past.length).toBeGreaterThan(5);
-    expect(missingFrom(pastChars, past)).toBe('');
-  });
+  const cases: [string, Voice, string, number][] = [
+    ['the screen (the FashionBitmap16 cut) covers every phone line, clock and place', 'screen', screenChars, 50],
+    ['the stamps (Noto Sans CJK TC Light) cover every card time, place and title', 'stamps', stampChars, 50],
+  ];
+  for (const [name, voice, cut, least] of cases) {
+    it(name, () => {
+      const lines = voices()[voice];
+      expect(lines.length).toBeGreaterThan(least);
+      expect(missingFrom(cut, lines).replace(MARKS, '')).toBe('');
+    });
+  }
 });

@@ -290,7 +290,7 @@ scenes:
             - text: （用手指讀）
               then:
                 - narr: 字不多，凹痕很深。這一頁她寫得很用力。
-                - narr: 第一個字我認得，是我的姓。後面兩個字是我的名字。
+                - narr: 第一個字我認得，是林。後面兩個字是念冬。
                 - think: 小時候她幫我填聯絡簿封面，寫過很多次。我的姓名那一欄，她總比我自己寫得整齊。
                 - narr: 下一行是數字。一、八，冒號，三、一。
                 - narr: 最後兩個字筆畫很多。我的指腹在上面來回走了好幾趟。
@@ -298,13 +298,14 @@ scenes:
             - text: （讓手機念）
               then:
                 - phone: 偵測到手寫文字。
-                - narr: 讀屏先念出我的名字，咬字很清楚，像在點名。
+                - phone: 林念冬。
+                - narr: 讀屏咬字很清楚，像在點名。
                 - phone: 十八點三十一分。
                 - { phone: 死亡。, learn: k_my_death_page, mem: m_c7_my_death }
             - text: 「妳念給我聽。」
               then:
                 - pause: 2
-                - tingan: 妳的名字。
+                - tingan: 林念冬。
                 - tingan: 十八點三十一分。
                 - { tingan: 死亡。, learn: k_my_death_page, mem: m_c7_my_death }
             - text: （摺回去，不讀）

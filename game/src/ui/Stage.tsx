@@ -1,9 +1,10 @@
 import { Fragment, cloneElement, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent, type ReactElement, type RefObject } from 'react';
-import { ECHO_MS, type Card, type CenterLine, type Director, type InteractView, type Peripheral, type View } from '../engine/director';
+import { CARD_MS, CHAPTER_CARD_MS, CHAPTER_PART_MS, ECHO_MS, type Card, type CenterLine, type Director, type InteractView, type Peripheral, type View } from '../engine/director';
 import { interpolateClock, leanOf, placeLabel, type Box } from './geometry';
 import { DEFAULT_PROMPT, INTERACT_LESSON, Interaction, lastInput } from './Interactions';
 import type { Pos } from '../script/types';
 import { FONT_SIZES } from '../engine/save';
+import { Rain } from './Rain';
 import { gluePunctuation, type Phrase } from '../engine/text';
 
 const HOLD_MS = 560;
@@ -256,7 +257,8 @@ function placeSounds(root: HTMLElement, periph: Peripheral[], ripples: View['rip
     return { l: r.left - origin.left - pad, t: r.top - origin.top - pad, r: r.right - origin.left + pad, b: r.bottom - origin.top + pad };
   };
   // Room for a typical three-row line with its label and echo, even before a longer one arrives.
-  const lineH = Math.min(Math.max(18.4, 0.023 * W), 25.6) * 1.85 * textScale;
+  // game.css --line: clamp(1.32rem, 2.65vw, 1.84rem)
+  const lineH = Math.min(Math.max(21.12, 0.0265 * W), 29.44) * 1.85 * textScale;
   const halfW = Math.min(0.38 * W, 340);
   const keepOut: Box[] = [{ l: W / 2 - halfW - gap, r: W / 2 + halfW + gap, t: H / 2 - 3.5 * lineH - 30, b: H / 2 + 1.5 * lineH + 26 + gap }];
   root.querySelectorAll('.lt-center .lt-line:not(.leaving) .lt-text, .lt-center .lt-line:not(.leaving) .lt-label, .lt-teach-keep, .lt-choice, .lt-choice-teach, .lt-wait, .lt-where').forEach((el) => keepOut.push(boxOf(el)));
@@ -345,11 +347,11 @@ function placeSide(root: HTMLElement, box: HTMLElement, cue: HTMLElement | null)
   const below = y < H / 2;
   box.style.top = below ? `${y + cue.offsetHeight / 2 + 10}px` : '';
   box.style.bottom = below ? '' : `${Math.max(margin, H - (y - cue.offsetHeight / 2 - 10))}px`;
-  const main = root.querySelector<HTMLElement>('.lt-center-inner .lt-line');
-  if (!main) return false;
-  const a = box.getBoundingClientRect();
-  const b = main.getBoundingClientRect();
-  return a.width > 0 && b.width > 0 && a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
+  // Every main line (the one going on and the one before it) against the box and every line in it, since the line
+  // before stacks above the box, outside its own height.
+  const mains = [...root.querySelectorAll<HTMLElement>('.lt-center-inner .lt-line')].map((el) => el.getBoundingClientRect());
+  const sides = [box, ...box.querySelectorAll<HTMLElement>('.lt-line')].map((el) => el.getBoundingClientRect());
+  return sides.some((a) => mains.some((b) => a.width > 0 && b.width > 0 && a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom));
 }
 
 /**
@@ -495,11 +497,12 @@ export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown,
 
   return (
     <div className={className} ref={root} style={{ ['--wound' as string]: (director.tension / 100).toFixed(2) }} {...inertProps(blocked)}>
+      <Rain kind={view.phase === 'idle' || view.phase === 'ending' ? null : view.rain ?? null} centerKey={view.center?.key} still={!director.settings.motion} />
       <div className={`lt-heart${beat}`} style={pulse?.glow} aria-hidden="true" />
       <div className="lt-world" {...inertProps(Boolean(view.recall || view.keep))}>
         <div className={`lt-daze${daze ? ` daze-${daze}` : ''}${dazeClearing ? ' clearing' : ''}`}>
           <div className={`lt-body${pulse?.jolt ? `${beat} jolting` : ''}${view.noise ? ` noise-${view.noise.level}` : ''}`} style={pulse?.jolt ?? undefined}>
-            {view.ripples.map((ripple) => <div key={ripple.key} data-key={ripple.key} className={`lt-ripple dist-${ripple.pos.dist}`} />)}
+            {view.ripples.map((ripple) => <div key={ripple.key} data-key={ripple.key} className={`lt-ripple dist-${ripple.pos.dist}${ripple.look ? ` look-${ripple.look}` : ''}`} />)}
             {turn && <div className={`lt-turn${turnGone ? ' gone' : ''}`} />}
 
             {periph.map(({ item, gone }) => {
@@ -579,7 +582,7 @@ export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown,
           key={item.key}
           data-key={item.key}
           type="button"
-          className={`lt-p kind-cue dist-${item.pos.dist}${active ? ' active' : ''}${held ? ' held' : ''}${view.teach === 'turn' && !active ? ' teach' : ''}`}
+          className={`lt-p kind-cue dist-${item.pos.dist}${item.look ? ` look-${item.look}` : ''}${active ? ' active' : ''}${held ? ' held' : ''}${view.teach === 'turn' && !active ? ' teach' : ''}`}
           style={style}
           disabled={held}
           aria-label={active ? `回到自己：${item.text}` : `轉向聲音：${item.text}`}
@@ -594,8 +597,11 @@ export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown,
       );
     }
     return (
-      <span key={item.key} data-key={item.key} className={`lt-p kind-${item.kind} dist-${item.pos.dist}`} style={style} aria-hidden="true">
-        {item.kind === 'sfx' ? item.text : unstop(item.text)}
+      <span key={item.key} data-key={item.key} className={`lt-p kind-${item.kind} dist-${item.pos.dist}${item.look ? ` look-${item.look}` : ''}`} style={style} aria-hidden="true">
+        {item.kind === 'sfx' && item.look === 'water'
+          // Water falls in one drop at a time.
+          ? [...item.text].map((ch, i) => <span key={i} className="lt-drop" style={{ animationDelay: `${i * 90}ms` }}>{ch}</span>)
+          : item.kind === 'sfx' ? item.text : unstop(item.text)}
         {item.src && labels && <span className="lt-p-src">{item.src}</span>}
       </span>
     );
@@ -811,8 +817,8 @@ const RECALL_HINT_KEY = 'listening-town-recall-hint';
 /** Tapping hurries, but the story is meant to be left to its own pace; manual reading waits for every tap. */
 function tapLesson(auto: boolean): ReactElement {
   return auto
-    ? <>點一下，先聽下一句。<br />不點，也會自己說下去。</>
-    : <>每一句都等妳點一下。</>;
+    ? <>點一下，聽下一句。<br />不點，故事也會繼續。</>
+    : <>在等你。</>;
 }
 
 /** The same lessons for a keyboard or a screen reader, said after the visible text and never shown. */
@@ -861,7 +867,7 @@ export function RecallPicker({ director, recall }: { director: Director; recall:
         {recall.memories.map((memory, index) => (
           <button key={memory.key} type="button" className="lt-recall-item" aria-keyshortcuts={index < 9 ? String(index + 1) : undefined} onClick={(event) => { if (!tooSoon(event)) director.recallPick(memory.key); }}>
             <span className="lt-key" aria-hidden="true">{index + 1}</span>
-            <span className="lt-recall-text">{unstop(memory.kind === 'me' ? `「${memory.text}」` : memory.text)}</span>
+            <span className={`lt-recall-text kind-${memory.kind}`}>{unstop(memory.kind === 'me' ? `「${memory.text}」` : memory.text)}</span>
             <span className="lt-recall-meta">{[memory.label, memory.clock, memory.place].filter(Boolean).join(' · ')}</span>
           </button>
         ))}
@@ -903,10 +909,26 @@ function Waiting({ gone, first }: { gone: boolean; first: boolean }) {
 }
 
 function CardView({ card, phase, gone }: { card: Card; phase: View['phase']; gone: boolean }) {
-  const ms = phase === 'reset' ? 6500 : card.chapter ? 4200 : 2600;
+  const key = `${phase}-${card.time}-${card.place}-${card.title}-${card.loopText}`;
+  // A chapter that opens somewhere new: its name alone, then where and when take its place (never four lines at once).
+  if (card.chapter && card.place) {
+    return (
+      <div className={`lt-card${gone ? ' gone' : ''}`} style={{ ['--card-ms' as string]: `${CHAPTER_PART_MS}ms`, ['--then-at' as string]: `${CHAPTER_PART_MS}ms`, ['--then-ms' as string]: `${CARD_MS}ms` }} key={key} aria-hidden="true">
+        <div className="lt-card-part">
+          <div className="lt-card-chapter">{card.chapter}</div>
+          {card.title && <div className="lt-card-title">{card.title}</div>}
+        </div>
+        <div className="lt-card-part then">
+          {card.time && <div className="lt-card-time">{card.time}</div>}
+          <div className="lt-card-place">{card.place}</div>
+        </div>
+      </div>
+    );
+  }
+  const ms = phase === 'reset' ? 6500 : card.chapter ? CHAPTER_CARD_MS : CARD_MS;
   return (
     // Said once by the stage's announcer, so a screen reader does not read it twice.
-    <div className={`lt-card${gone ? ' gone' : ''}`} style={{ ['--card-ms' as string]: `${ms}ms` }} key={`${phase}-${card.time}-${card.place}-${card.title}-${card.loopText}`} aria-hidden="true">
+    <div className={`lt-card${gone ? ' gone' : ''}`} style={{ ['--card-ms' as string]: `${ms}ms` }} key={key} aria-hidden="true">
       {card.chapter && <div className="lt-card-chapter">{card.chapter}</div>}
       {card.title && <div className="lt-card-title">{card.title}</div>}
       {card.time && <div className="lt-card-time">{card.time}</div>}

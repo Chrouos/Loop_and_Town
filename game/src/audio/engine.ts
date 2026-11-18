@@ -13,7 +13,7 @@
 //   (ambience also passes speechDuck, which dips it while her phone reads a line out)
 
 import { AMBIENCE, DIRECTION_ANGLE, isSfx, type AmbienceAt, type AmbienceId, type AmbienceList, type SfxId, type SpatialPos, type Via, type VoiceId } from './catalog';
-import { createScreenReader, readable, readerClipsFor, type ScreenReader } from './reader';
+import { createScreenReader, readable, readerClipsFor, READER_CLIP_RATE, type ScreenReader } from './reader';
 import { READER_LINES, READER_NUMBERS, READER_TEMPLATES } from './readerClips';
 import { roomFor, ROOMS, type RoomId } from './rooms';
 import { startAmbience, type AmbienceLayer, type SampleBed, type SoundResolver } from './ambience';
@@ -741,7 +741,7 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
     const ac = this.ac;
     const bus = this.bus;
     if (!ac || !bus || ac.state !== 'running') return;
-    const seconds = buffers.reduce((sum, b) => sum + b.duration, 0);
+    const seconds = buffers.reduce((sum, b) => sum + b.duration, 0) / READER_CLIP_RATE;
     this.setSpeaking(true, seconds * 1000 + 60);
     try {
       const recipe: SfxRecipe = {
@@ -749,8 +749,8 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
         play(c) {
           let t = c.t;
           for (const buffer of buffers) {
-            c.g.buffer(buffer, t).connect(c.out);
-            t += buffer.duration;
+            c.g.buffer(buffer, t, { rate: READER_CLIP_RATE }).connect(c.out);
+            t += buffer.duration / READER_CLIP_RATE;
           }
           return t - c.t + 0.05;
         },

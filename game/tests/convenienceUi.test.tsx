@@ -58,6 +58,21 @@ afterEach(() => {
   localStorage.clear();
 });
 
+describe('清除進度', () => {
+  it('forgets everything and goes back to the title, where a tap starts the first day over', () => {
+    const game = mountPlaying();
+    game.director.save.heard = ['c1_open#1'];
+    game.director.save.knowledge = ['k_in_station_hall'];
+    press('Escape');
+    flushSync(() => button('清除進度').click());
+    flushSync(() => button('確定，全部忘記').click());
+    expect(container.querySelector('[role="dialog"]')).toBeNull();
+    expect(container.querySelector('.lt-title')).not.toBeNull();
+    expect(game.director.save).toMatchObject({ started: false, chapter: '1', heard: [], knowledge: [] });
+    expect(JSON.parse(localStorage.getItem(SAVE_KEY)!)).toMatchObject({ started: false, heard: [] });
+  });
+});
+
 describe('fast-forward controls', () => {
   it('holding F fast-forwards; letting go, or any other key, stops it', () => {
     const game = mountPlaying();

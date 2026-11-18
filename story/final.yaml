@@ -2299,7 +2299,7 @@ scenes:
                     - { sfx: relay_click, at: front, dist: mid, text: 喀噠 }
                     - tingan: 封存。觀測者那一欄——
                     - narr: 我的喉嚨乾得發痛，第一個字卡了一下才出來。
-                    - me: 林。知夏的妹妹。
+                    - me: 林念冬。
                     - tension: -15
                     - { sfx: relay_click, at: front, dist: far, text: 喀 }
                     - narr: 伺服器還在轉。聲音跟剛剛一模一樣。

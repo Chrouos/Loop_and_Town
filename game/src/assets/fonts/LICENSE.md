@@ -1,14 +1,17 @@
 # Fonts
 
 The `*-subset.woff2` files here are subsets of the fonts below, cut by `tools/subset-font.py` to the characters
-the game shows (each file's `*-chars.txt` lists them). All three are under the SIL Open Font License 1.1,
-reproduced in full at the end. The subsets keep the original names and copyright records in their name tables.
+the game shows (each file's `*-chars.txt` lists them). All four are under the SIL Open Font License 1.1,
+reproduced in full at the end. The subsets keep the original names and copyright records in their name tables, except
+FashionBitmap16, whose names (「流行點陣體16」, "FashionBitmap16") are Reserved Font Names, which the OFL does not let a
+modified (cut) font keep: it is renamed "Grey Tide Pixel", with its copyright and license records kept.
 
 | File | Font | Copyright | Source |
 | --- | --- | --- | --- |
 | `wenkai-tc-subset.woff2` | LXGW WenKai TC 1.530 (霞鶩文楷 TC) | Copyright 2022-2026 The LXGW WenKai Project Authors | https://github.com/lxgw/LxgwWenkaiTC |
-| `sarasa-fixed-tc-subset.woff2` | Sarasa Fixed TC 1.0.43 (更紗黑體) | Copyright (c) 2015-2025, Renzhi Li (aka. Belleve Invis); portions Copyright (c) 2016 The Inter Project Authors; portions Copyright (c) 2014-2021 Adobe Systems Incorporated, with Reserved Font Name 'Source'; portions Copyright (c) 2012 Google Inc. | https://github.com/be5invis/Sarasa-Gothic |
-| `iansui-subset.woff2` | Iansui 1.012 (芫荽) | Copyright 2025 The Iansui Project Authors | https://github.com/ButTaiwan/iansui |
+| `stamps-subset.woff2` | Noto Sans CJK TC Light 2.004 (思源黑體) | Copyright 2014-2021 Adobe (http://www.adobe.com/), with Reserved Font Name 'Source' | https://github.com/notofonts/noto-cjk |
+| `screen-pixel-subset.woff2` | FashionBitmap16 0.092 (流行點陣體16), renamed "Grey Tide Pixel" in the cut | Copyright © 2026 字言字型 fancytype foundry (Luke Liu), with Reserved Font Names "FashionBitmap16", "流行點陣體16", "流行点阵体16"; based on KH-Dot-Kabutochou-16, Copyright (c) Keitarou Hiraki, Font Silo 1990-2015 | https://github.com/scott0107000/FashionBitmap16 |
+| `genwan-min-tw-subset.woff2` | GenWanMin2 TW EL 2.100 (源雲明體) | Copyright 2014-2019 Adobe (http://www.adobe.com/), with Reserved Font Name 'Source'; derivative by ButTaiwan | https://github.com/ButTaiwan/genwan-font |
 
 ---
 

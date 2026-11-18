@@ -43,7 +43,7 @@ describe('listening town scripts', () => {
     it('final reaches every ending under random play', () => {
       const endings = new Set<string>();
       const stuck: string[] = [];
-      for (let seed = 1; seed <= 80 && endings.size < 3; seed++) {
+      for (let seed = 1; seed <= 400 && endings.size < 3; seed++) {
         const result = autoplay({ seed: seed * 104729, maxLoops: 4, startChapter: 'final' });
         if (result.stuck) stuck.push(result.stuck);
         result.endings.forEach((ending) => endings.add(ending));

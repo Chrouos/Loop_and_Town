@@ -14,8 +14,10 @@ for (const [name, engine] of Object.entries({ chromium, webkit })) {
       page.on('pageerror', error => errors.push(error.message));
       try {
         await page.goto(url);
-        await page.locator('.lt-title').tap();
+        // The first tap only wakes the sound; the title surfaces after it and a second tap starts.
+        await page.locator('.lt-title.gate').tap();
         await page.waitForFunction(() => window.__game?.audio.ready);
+        await page.locator('.lt-title:not(.gate)').tap();
         // The title fades before it hands over: take the stage only once it has (a fresh save goes to the sound test).
         await page.locator('.lt-calib').waitFor();
         await page.evaluate(() => {
