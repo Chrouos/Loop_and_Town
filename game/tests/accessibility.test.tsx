@@ -2,7 +2,7 @@ import { flushSync } from 'react-dom';
 import { createRoot, type Root } from 'react-dom/client';
 import { GameApp } from '../src/GameApp';
 import type { Director, View } from '../src/engine/director';
-import { FONT_SIZES, freshSave, writeSave } from '../src/engine/save';
+import { DEFAULT_SETTINGS, FONT_SIZES, freshSave, writeSave } from '../src/engine/save';
 
 vi.mock('../src/audio/engine', async () => ({ createAudioEngine: (await import('./harness')).silentAudio }));
 
@@ -72,28 +72,81 @@ describe('settings menu for a screen reader', () => {
     expect(tabs.map((tab) => tab.getAttribute('aria-selected'))).toEqual(['false', 'true', 'false']);
     expect(dialog.querySelector('[role="tabpanel"]')!.getAttribute('aria-labelledby')).toBe(tabs[1].id);
 
+    const sections = [...dialog.querySelectorAll('section[aria-labelledby]')];
+    expect(sections.map(nameOf)).toEqual(['音量', '顯示', '操作與閱讀', '遊戲進度']);
+    expect([...sections[0].querySelectorAll('input[type="range"]')].map(nameOf)).toEqual(['總音量', '環境音', '音效', '讀屏']);
+    expect([...sections[1].querySelectorAll('[role="group"]')].map(nameOf)).toEqual(['字體大小']);
+
     const switches = [...dialog.querySelectorAll('[role="switch"]')];
-    expect(switches.map(nameOf)).toEqual(['聲音', '震動', '手機讀屏念出來', '畫面晃動', '聲音來源', '聽過的話自動放快', '選擇不倒數']);
+    expect(switches.map(nameOf)).toEqual(['聲音', '畫面晃動', '聲音來源', '震動', '手機讀屏念出來', '聽過的話自動放快', '選擇不倒數']);
+    // 聽過的話自動放快 starts off: a heard line plays at its own pace until the player asks otherwise.
     // 選擇不倒數 starts off: a choice's countdown is part of the story unless the player takes it away.
-    expect(switches.map((el) => el.getAttribute('aria-checked'))).toEqual(['true', 'true', 'true', 'true', 'true', 'true', 'false']);
-    flushSync(() => (switches[3] as HTMLElement).click());
+    expect(switches.map((el) => el.getAttribute('aria-checked'))).toEqual(['true', 'true', 'true', 'true', 'true', 'false', 'false']);
+    const motion = switches.find((el) => nameOf(el) === '畫面晃動') as HTMLElement;
+    flushSync(() => motion.click());
     expect(game.director.settings.motion).toBe(false);
-    expect(dialog.querySelectorAll('[role="switch"]')[3].getAttribute('aria-checked')).toBe('false');
+    expect(motion.getAttribute('aria-checked')).toBe('false');
     // A click on a word sets that word, it does not flip: 關 on an off switch stays off.
-    flushSync(() => dialog.querySelectorAll<HTMLElement>('[role="switch"]')[3].querySelector<HTMLElement>('[data-value="off"]')!.click());
+    flushSync(() => motion.querySelector<HTMLElement>('[data-value="off"]')!.click());
     expect(game.director.settings.motion).toBe(false);
 
-    const sliders = [...dialog.querySelectorAll('input[type="range"]')];
-    expect(sliders.map(nameOf)).toEqual(['總音量', '環境音', '音效', '讀屏']);
+    const sliders = [...dialog.querySelectorAll<HTMLInputElement>('input[type="range"]')];
+    expect(sliders.map(nameOf)).toEqual(['總音量', '環境音', '音效', '讀屏', '文字速度']);
     expect(sliders[0].getAttribute('aria-valuetext')).toBe(`${Math.round(game.director.settings.volume * 100)}%`);
+    // Text speed: characters per second, its far right end all at once.
+    const speed = sliders[4];
+    expect(speed.getAttribute('aria-valuetext')).toBe(`每秒 ${DEFAULT_SETTINGS.textSpeed} 字`);
+    const slide = (to: number) => flushSync(() => {
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(speed, String(to));
+      speed.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    slide(8);
+    expect(game.director.settings.textSpeed).toBe(8);
+    slide(Number(speed.max));
+    expect(game.director.settings.textSpeed).toBe('instant');
+    expect(speed.getAttribute('aria-valuetext')).toBe('立即');
 
     const groups = [...dialog.querySelectorAll('[role="group"]')];
-    expect(groups.map(nameOf)).toEqual(['字體大小', '文字速度', '自動閱讀']);
+    expect(groups.map(nameOf)).toEqual(['字體大小', '自動閱讀']);
     const pressed = (group: Element) => [...group.querySelectorAll('button[aria-pressed="true"]')].map((el) => el.textContent);
-    expect(groups.map(pressed)).toEqual([['標準'], ['中'], ['自動']]);
-    expect([...groups[1].querySelectorAll('button')].map((el) => el.textContent)).toEqual(['慢', '中', '快', '立即']);
-    flushSync(() => [...groups[2].querySelectorAll<HTMLElement>('button')].find((el) => el.textContent === '手動')!.click());
-    expect(pressed(dialog.querySelectorAll('[role="group"]')[2])).toEqual(['手動']);
+    expect(groups.map(pressed)).toEqual([['標準'], ['自動']]);
+    flushSync(() => [...groups[1].querySelectorAll<HTMLElement>('button')].find((el) => el.textContent === '手動')!.click());
+    expect(pressed(dialog.querySelectorAll('[role="group"]')[1])).toEqual(['手動']);
+  });
+
+  it('shows each volume percentage and updates it when the slider changes', () => {
+    mount();
+    flushSync(() => button('選單').click());
+    const sliders = [...container.querySelectorAll<HTMLInputElement>('input[type="range"]')];
+    for (const slider of sliders.slice(0, 4)) {
+      expect(slider.parentElement?.querySelector('.lt-range-value')?.textContent).toBe(slider.getAttribute('aria-valuetext'));
+    }
+    flushSync(() => {
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(sliders[0], '0');
+      sliders[0].dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    expect(sliders[0].parentElement?.querySelector('.lt-range-value')?.textContent).toBe('0%');
+  });
+
+  it('mutes each volume independently and restores it after reopening settings', () => {
+    const { director } = mount();
+    flushSync(() => director.updateSettings({ volume: 0.35, ambience: 0.6 }));
+    flushSync(() => button('選單').click());
+    flushSync(() => button('總音量靜音').click());
+    expect(director.settings.volume).toBe(0);
+    expect(director.settings.ambience).toBe(0.6);
+    expect(button('總音量靜音').getAttribute('aria-pressed')).toBe('true');
+    flushSync(() => button('環境音靜音').click());
+    expect(director.settings.ambience).toBe(0);
+
+    flushSync(() => button('返回').click());
+    flushSync(() => button('選單').click());
+    flushSync(() => button('總音量靜音').click());
+    expect(director.settings.volume).toBe(0.35);
+    expect(director.settings.ambience).toBe(0);
+    expect(button('總音量靜音').getAttribute('aria-pressed')).toBe('false');
+    flushSync(() => button('環境音靜音').click());
+    expect(director.settings.ambience).toBe(0.6);
   });
 
   it('moves between tabs with the arrow keys', () => {
@@ -106,6 +159,31 @@ describe('settings menu for a screen reader', () => {
     expect(document.activeElement?.getAttribute('aria-selected')).toBe('true');
     press(document.activeElement!, 'ArrowRight');
     expect(document.activeElement?.id).toBe('lt-tab-chapters');
+  });
+
+  it('starts references collapsed and skips closed links in the tab order', () => {
+    mount();
+    flushSync(() => button('選單').click());
+    const tab = button('參考資料');
+    flushSync(() => tab.click());
+    const sections = [...container.querySelectorAll<HTMLDetailsElement>('details')];
+    expect(sections.length).toBeGreaterThanOrEqual(4);
+    expect(sections.every((section) => !section.open)).toBe(true);
+
+    const first = sections[0].querySelector('summary')!;
+    const second = sections[1].querySelector('summary')!;
+    tab.focus();
+    press(tab, 'Tab');
+    expect(document.activeElement).toBe(first);
+    press(first, 'Tab');
+    expect(document.activeElement).toBe(second);
+    first.click();
+    expect(sections[0].open).toBe(true);
+    first.focus();
+    press(first, 'Tab');
+    expect(document.activeElement).toBe(sections[0].querySelector('a'));
+    first.click();
+    expect(sections[0].open).toBe(false);
   });
 
   it('offers text up to twice the standard size', () => {
@@ -125,7 +203,7 @@ describe('dialogs', () => {
     expect(corner.hasAttribute('inert')).toBe(true);
     expect(button('記憶').hasAttribute('inert')).toBe(true);
 
-    const close = button('回到故事');
+    const close = button('返回');
     close.focus();
     press(close, 'Tab');
     expect(document.activeElement).toBe(container.querySelector('#lt-tab-settings'));
@@ -301,14 +379,89 @@ describe('title and calibration', () => {
     expect(document.activeElement).toBe(container.querySelector('.lt-title'));
   });
 
-  it('Esc or the button skips the sound check', () => {
+  it('waits for a choice, then runs the test without advancing on a background click', () => {
+    vi.useFakeTimers();
+    try {
+      const game = mount('title');
+      const start = vi.spyOn(game.director, 'start').mockImplementation(() => undefined);
+      flushSync(() => game.setScreen('calibrate'));
+      const stage = container.querySelector<HTMLElement>('.lt-calib')!;
+      flushSync(() => stage.click());
+      flushSync(() => { vi.advanceTimersByTime(18000); });
+      expect(start).not.toHaveBeenCalled();
+
+      const test = button('測試');
+      const skip = button('跳過');
+      press(stage, 'ArrowRight');
+      expect(document.activeElement).toBe(skip);
+      press(skip, 'ArrowLeft');
+      expect(document.activeElement).toBe(test);
+      expect(start).not.toHaveBeenCalled();
+
+      flushSync(() => test.click());
+      flushSync(() => stage.click());
+      flushSync(() => { vi.advanceTimersByTime(2700); });
+      expect(stage.textContent).toContain('左邊');
+      expect(start).not.toHaveBeenCalled();
+      flushSync(() => { vi.advanceTimersByTime(15000); });
+      expect(start).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('starts the story when the player chooses 跳過', () => {
+    const game = mount('title');
+    const start = vi.spyOn(game.director, 'start').mockImplementation(() => undefined);
+    flushSync(() => game.setScreen('calibrate'));
+    flushSync(() => button('跳過').click());
+    expect(start).toHaveBeenCalledTimes(1);
+    expect(container.querySelector('.lt-calib')).toBeNull();
+  });
+
+  it('Esc skips the sound check', () => {
     const game = mount('title');
     flushSync(() => game.setScreen('calibrate'));
     expect(container.querySelector('.lt-calib')).not.toBeNull();
-    expect(button('跳過聲音測試').getAttribute('aria-keyshortcuts')).toBe('Escape');
+    expect(button('跳過').getAttribute('aria-keyshortcuts')).toBe('Escape');
     const start = vi.spyOn(game.director, 'start').mockImplementation(() => undefined);
     press(document.body, 'Escape');
     expect(start).toHaveBeenCalledTimes(1);
     expect(container.querySelector('.lt-calib')).toBeNull();
+  });
+});
+
+describe('developer data panel', () => {
+  it.each(['', '?dev'])('requires the debug parameter (%s)', (search) => {
+    history.replaceState(null, '', `/${search}`);
+    try {
+      mount();
+      expect(container.querySelector('.lt-dev-panel')).toBeNull();
+    } finally {
+      history.replaceState(null, '', '/');
+    }
+  });
+
+  it('shows live text speed, tension and heartbeat', () => {
+    history.replaceState(null, '', '/?debug&dev');
+    try {
+      const game = mount();
+      const panel = container.querySelector('.lt-dev-panel');
+      expect(panel).not.toBeNull();
+      expect(panel?.textContent).toContain('11 字/秒');
+      expect(panel?.textContent).toContain('off');
+
+      flushSync(() => {
+        game.director.updateSettings({ textSpeed: 'instant' });
+        game.director.setTension(70);
+      });
+      show(game, { heart: { level: 'fast', ms: 600, beat: 3, glow: 0.5 } });
+      expect(panel?.textContent).toContain('即時');
+      expect(panel?.textContent).toContain('70/100');
+      expect(panel?.textContent).toContain('100 BPM');
+      expect(container.querySelector('.lt-dev-tension')).toBeNull();
+    } finally {
+      history.replaceState(null, '', '/');
+    }
   });
 });

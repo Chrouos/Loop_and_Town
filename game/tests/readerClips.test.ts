@@ -32,7 +32,7 @@ describe('her phone reads a line from its pre-rendered clips', () => {
     expect(READER_VOICE ?? '').not.toMatch(/PREVIEW/);
   });
 
-  // Once the clips are rendered, every phone line read out must have one: the game plays files, it does not synthesize.
+  // The device's own voice reads first; a clip is what plays where it cannot (no Mandarin voice), so every line needs one.
   it.runIf(READER_VOICE !== null)('every phone line in the story has its clip on disk', () => {
     const story = Object.values(import.meta.glob('../../story/*.yaml', { query: '?raw', import: 'default', eager: true }) as Record<string, string>);
     const { script } = buildScript(story.map((source, i) => ({ name: `${i}.yaml`, source })));

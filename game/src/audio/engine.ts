@@ -13,8 +13,9 @@
 //   (ambience also passes speechDuck, which dips it while her phone reads a line out)
 
 import { AMBIENCE, DIRECTION_ANGLE, isSfx, type AmbienceAt, type AmbienceId, type AmbienceList, type SfxId, type SpatialPos, type Via, type VoiceId } from './catalog';
-import { createScreenReader, readable, readerClipsFor, READER_CLIP_RATE, type ScreenReader } from './reader';
+import { createScreenReader, readable, readerClipsFor, READER_CLIP_RATE, TTS_MS_PER_CHAR, type ScreenReader } from './reader';
 import { READER_LINES, READER_NUMBERS, READER_TEMPLATES } from './readerClips';
+import { BROADCAST_LINES } from './broadcastClips';
 import { roomFor, ROOMS, type RoomId } from './rooms';
 import { startAmbience, type AmbienceLayer, type SampleBed, type SoundResolver } from './ambience';
 import { clamp, compressorMakeup, expRampTo, glide, hold, impulseResponse, placementOf, softClipCurve, spawnShot, type SfxRecipe, type Shot } from './core';
@@ -71,11 +72,14 @@ export interface AudioEngine {
   speak?(text: string, aloud?: boolean): void;
   /** The screen reader stops mid-word: a new line, a new scene. */
   hush?(): void;
+  /** A recording the town plays over a loudspeaker (`via: speaker`), from `pos`, moving to `to` while it plays.
+   *  Only lines with a clip in broadcastClips.ts; a new scene cuts it off. */
+  broadcast?(text: string, pos: SpatialPos, to?: SpatialPos): void;
 }
 
 export type SampleMode = 'auto' | 'synth';
 
-export type SceneSoundsAhead = { now: readonly SfxId[]; soon: readonly SfxId[]; amb: readonly AmbienceId[]; ambNow?: readonly AmbienceId[]; phone?: readonly string[] };
+export type SceneSoundsAhead = { now: readonly SfxId[]; soon: readonly SfxId[]; amb: readonly AmbienceId[]; ambNow?: readonly AmbienceId[]; phone?: readonly string[]; broadcast?: readonly string[] };
 
 /** A recording still loading may hold its sound back this long; later than that it would land out of place. */
 const LATE_SAMPLE_MS = 2500;
@@ -261,6 +265,8 @@ const readerBusGain = (voice: number): number => (voice > 0 ? (0.4 + voice) / 0.
 /** A reader clip that takes longer than this to load is read by the device's voice instead (it would land late). */
 const READER_LATE_MS = 700;
 const READER_MANIFEST = { lines: READER_LINES, templates: READER_TEMPLATES, numbers: READER_NUMBERS };
+/** A loudspeaker's recording (normalized when rendered) against the rest of the world, before distance. */
+const BROADCAST_GAIN = 0.8;
 
 /**
  * The master chain, made explicit. A DynamicsCompressorNode adds makeup gain of its own (see compressorMakeup):
@@ -282,7 +288,6 @@ const SPEECH_DUCK_QUIET = 0.71;
 const SPEECH_ATTACK_TC = 0.025;
 const SPEECH_RELEASE_TC = 0.16;
 /** A device voice that never reports its end releases the duck after this long per character (and at least 2 s). */
-const TTS_MS_PER_CHAR = 330;
 /**
  * Sounds whose level must stay the same every time: a person's own sound (she knows them by it), voices, her body,
  * the interface. Everything else gets a small random level change (±1.5 dB) along with its small pitch change.
@@ -335,6 +340,9 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
   private readerShot: Shot | null = null;
   private readerGen = 0;
   private readerNumbersWarm = false;
+  /** Loudspeaker recordings playing now, and a count that drops one still loading when the scene changes. */
+  private broadcasts: Shot[] = [];
+  private broadcastGen = 0;
   /** Her phone is reading a line now (a clip or the device's voice): the beds stay ducked under it. */
   private speaking = false;
   /** How this line is read: its level against the reader's, and how far the beds step back under it. */
@@ -679,35 +687,33 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
     return clamp((perceptual(this.volume) / 0.8) * (0.4 + this.voiceVolume), 0, 1);
   }
 
-  /**
-   * Her phone reads the line: the pre-rendered clip when there is one (a flat voice through a small speaker, the
-   * same on every device), placed where her phone is; otherwise the device's own voice. A clip that cannot be
-   * loaded in time is read by the device's voice instead, so the line is never silent.
-   */
+  /** Prefer the device's Mandarin voice. If it cannot start, play the recorded reader from the phone's position. */
   speak(text: string, aloud = false): void {
     this.stopReader();
     this.readerLevel = aloud ? 1 : READER_QUIET;
     this.speechDuckTo = aloud ? SPEECH_DUCK : SPEECH_DUCK_QUIET;
     if (this.readerVolume() <= 0) return;
+    const gen = this.readerGen;
+    if (this.speakDevice(text, gen)) return;
     const clips = this.sampleMode === 'synth' ? null : readerClipsFor(text, READER_MANIFEST);
     const bank = this.bank;
-    if (!clips || !bank || !this.ac || this.ac.state !== 'running') { this.speakDevice(text, this.readerGen); return; }
-    const gen = ++this.readerGen;
+    if (!clips || !bank || !this.ac || this.ac.state !== 'running') return;
     const asked = performance.now();
     void Promise.all(clips.map((clip) => bank.load(clip))).then((buffers) => {
       if (gen !== this.readerGen) return;
       const ready = buffers.every((buffer): buffer is AudioBuffer => buffer !== null);
-      if (!ready || performance.now() - asked > READER_LATE_MS) { this.speakDevice(text, gen); return; }
+      if (!ready || performance.now() - asked > READER_LATE_MS) return;
       this.playReader(buffers);
     });
   }
 
   /** The device's own voice reads it; the beds step back until it is done (or would have been). */
-  private speakDevice(text: string, gen: number): void {
+  private speakDevice(text: string, gen: number): boolean {
     const started = this.reader.speak(text, this.readerVolume() * this.readerLevel, () => {
       if (gen === this.readerGen) this.setSpeaking(false);
     });
     if (started) this.setSpeaking(true, Math.max(2000, readable(text).length * TTS_MS_PER_CHAR));
+    return started;
   }
 
   /** Duck the beds under the reader. `forMs`: let go by then even if no end is ever reported. */
@@ -771,6 +777,44 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
 
   hush(): void {
     this.stopReader();
+    this.broadcastGen += 1;
+    for (const shot of this.broadcasts) shot.kill(0.3);
+    this.broadcasts = [];
+  }
+
+  broadcast(text: string, pos: SpatialPos, to?: SpatialPos): void {
+    const clip = BROADCAST_LINES[readable(text)];
+    const bank = this.bank;
+    if (!clip || !bank || this.sampleMode === 'synth' || !this.ac || this.ac.state !== 'running') return;
+    const gen = this.broadcastGen;
+    const asked = performance.now();
+    void bank.load(clip).then((buffer) => {
+      const ac = this.ac;
+      const bus = this.bus;
+      // Late, it would talk over whatever comes next; the line on screen and the speaker's crackle still say it.
+      if (!buffer || gen !== this.broadcastGen || performance.now() - asked > LATE_SAMPLE_MS || !ac || !bus || ac.state !== 'running') return;
+      try {
+        const recipe: SfxRecipe = {
+          jitter: 0,
+          play(c) {
+            c.g.buffer(buffer, c.t).connect(c.out);
+            return buffer.duration + 0.05;
+          },
+        };
+        const place = placementOf(pos);
+        const shot = spawnShot(ac, recipe, {
+          dest: bus.voice,
+          reverb: bus.reverbIn,
+          place,
+          glide: to ? placementOf(to) : undefined,
+          t: ac.currentTime + 0.01,
+          gain: BROADCAST_GAIN * distanceLift(place.r),
+        });
+        if (shot) this.broadcasts = [...this.broadcasts.filter((s) => !s.disposed), shot];
+      } catch {
+        // a broken clip must never break the game
+      }
+    });
   }
 
   private reconcile(fadeMs: number): void {
@@ -904,6 +948,8 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
     // Its beds are decoded while the last place fades out (and its card shows), next to the beds still playing.
     this.bank?.prepareBeds(ambNow, this.wanted);
     this.prefetchReader(sounds.phone ?? []);
+    const casts = (sounds.broadcast ?? []).map((line) => BROADCAST_LINES[readable(line)]).filter((clip): clip is string => !!clip);
+    if (casts.length) void this.bank?.prefetchFiles(casts);
   }
 
   /**
@@ -1042,6 +1088,7 @@ class WebAudioEngine implements AudioEngine, AudioEngineDebug {
   voice(speaker: VoiceId, pos: SpatialPos, _durationMs?: number, kind: VoiceKind = 'line', gain = 1, via?: Via): void {
     // No voice is ever simulated (a synthesized voice under the text read as uncanny; the text is the voice).
     // A voice through a device is placed by the device's own sound: the loudspeaker keying in, the radio's hiss.
+    // (What a loudspeaker plays is a recording, not a person: that one is heard, through broadcast().)
     const device = via ?? (speaker === 'announcer' ? 'speaker' : undefined);
     if (device) {
       const texture = VIA_SOUND[device];

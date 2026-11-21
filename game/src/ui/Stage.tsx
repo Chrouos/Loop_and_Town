@@ -25,7 +25,7 @@ type Role = 'center' | 'away' | 'echo' | 'leaving';
 
 // ───────────────────────── keyboard and screen readers ─────────────────────────
 
-const FOCUSABLE = 'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+const FOCUSABLE = 'button:not([disabled]), a[href], details > summary:first-child, input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 /** What a key press may land on and should act on by itself (Space / Enter activate it natively). */
 export const CONTROL = 'button, a[href], input, select, textarea, [role="button"], [role="tab"], [role="switch"]';
 
@@ -39,7 +39,9 @@ const openDialogs: HTMLElement[] = [];
 
 function focusablesIn(box: HTMLElement): HTMLElement[] {
   // A roving list (the menu's tabs) leaves only its current item in the Tab order.
-  return [...box.querySelectorAll<HTMLElement>(FOCUSABLE)].filter((el) => el.getAttribute('tabindex') !== '-1' && !el.closest('[inert], [aria-hidden="true"]'));
+  return [...box.querySelectorAll<HTMLElement>(FOCUSABLE)].filter((el) =>
+    el.getAttribute('tabindex') !== '-1' && !el.closest('[inert], [aria-hidden="true"], details:not([open]) > :not(summary:first-child)'),
+  );
 }
 
 /**
@@ -715,8 +717,20 @@ function Line({ line, role, side = false, director, view, onCapture }: { line: C
             const group = (
               <span className="lt-sent">
                 {sentence.phrases.map((phrase, n) => {
-                  const delay = Math.max(0, (phrase.at / director.speed) - Math.max(0, mountedAt.current));
-                  return <span key={n} className="lt-phrase" style={{ animationDelay: `${delay}ms` }}>{gluePunctuation(phrase.text).map((piece, k) => (piece.glue ? <span key={k} className="lt-glue">{piece.text}</span> : <Fragment key={k}>{piece.text}</Fragment>))}</span>;
+                  const delay = (at: number) => Math.max(0, at / director.speed - Math.max(0, mountedAt.current));
+                  const charMs = phrase.charMs ?? 0;
+                  const typing = charMs > 0 && line.revealMs > 0;
+                  let index = 0;
+                  return (
+                    <span key={n} className={typing ? undefined : 'lt-phrase'} style={typing ? undefined : { animationDelay: `${delay(phrase.at)}ms` }}>
+                      {gluePunctuation(phrase.text).map((piece, k) => {
+                        const content = typing ? [...piece.text].map((char, i) => (
+                          <span key={i} className="lt-char" style={{ animationDelay: `${delay(phrase.at + index++ * charMs)}ms` }}>{char}</span>
+                        )) : piece.text;
+                        return piece.glue ? <span key={k} className="lt-glue">{content}</span> : <Fragment key={k}>{content}</Fragment>;
+                      })}
+                    </span>
+                  );
                 })}
               </span>
             );
@@ -817,7 +831,7 @@ const RECALL_HINT_KEY = 'listening-town-recall-hint';
 /** Tapping hurries, but the story is meant to be left to its own pace; manual reading waits for every tap. */
 function tapLesson(auto: boolean): ReactElement {
   return auto
-    ? <>點一下，聽下一句。<br />不點，故事也會繼續。</>
+    ? <>點一下，聽下一句<br />不點，故事也會繼續（可以在設定中關閉自動播放）</>
     : <>在等你。</>;
 }
 

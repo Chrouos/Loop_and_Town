@@ -116,7 +116,7 @@ describe('story exploration exhaustion', () => {
   it.each([{ flags: [] }, { flags: ['c1_watch'] }])('room offers three distinct passages and then disables listening ($flags)', ({ flags }) => {
     const { director, pick } = setup(report.script, 'c1_room_touch', '1', flags);
     const first = pick(room);
-    expect(first).toContain('窗簾被風吹得很輕地碰了一下窗框');
+    expect(first).toContain('風吹動窗簾，布擦了一下窗框');
     expect(first).toContain(flags.length ? '姊，妳到底在算什麼' : '椅子沒有推進去');
     expect(pick(room)).toContain('不急');
     expect(pick(room)).toContain('先到這裡吧');

@@ -297,6 +297,12 @@ function parseBeat(raw: unknown, where: string, errors: Errors): Beat | undefine
     if (!(HEART_LEVELS as readonly string[]).includes(level)) { errors.push(`${where}：未知心跳「${level}」（${HEART_LEVELS.join('／')}）`); return undefined; }
     return { k: 'heart', level: level as HeartLevel };
   }
+  if ('pace' in raw) {
+    allow('pace');
+    const delta = Number(raw.pace);
+    if (!Number.isInteger(delta) || Math.abs(delta) > 10) { errors.push(`${where}：pace 必須是 -10 到 10 的整數（每秒多幾字／少幾字，0 = 回到玩家的設定）`); return undefined; }
+    return { k: 'pace', delta };
+  }
   if ('daze' in raw) {
     allow('daze');
     const level = String(raw.daze);

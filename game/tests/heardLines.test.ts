@@ -1,6 +1,6 @@
 import { Director } from '../src/engine/director';
 import { DEFAULT_SETTINGS, SAVE_KEY, freshSave, loadSave, writeSave, type GameSave } from '../src/engine/save';
-import { heardTiming, lineTiming, readingMs } from '../src/engine/text';
+import { heardTiming, INSTANT_READ_CPS, lineTiming, readingMs } from '../src/engine/text';
 import { lineId } from '../src/script/parse';
 import { buildScript } from '../src/script/validate';
 import type { Beat, GameScript, LineBeat } from '../src/script/types';
@@ -52,7 +52,10 @@ function build(source = DAY): GameScript {
   return script;
 }
 
-function play(script: GameScript, save: GameSave = freshSave(), storage?: Storage) {
+// These are about heard lines passing quickly, so the setting is on unless a test says otherwise (it starts off).
+const heardFast = (): GameSave => ({ ...freshSave(), settings: { ...DEFAULT_SETTINGS, fastHeard: true } });
+
+function play(script: GameScript, save: GameSave = heardFast(), storage?: Storage) {
   let wall = 0;
   let current = save;
   const director = new Director(script, save, {
@@ -136,19 +139,22 @@ describe('聽過的話自動放快', () => {
     liveLoop(director, tick);
     until(() => director.view.center?.text === '雨打在窗外冷氣機的鐵殼上，一聲一聲，很慢。');
     expect(director.view.center?.heard).toBe(true);
-    const full = lineTiming('雨打在窗外冷氣機的鐵殼上，一聲一聲，很慢。', 'narr', 'normal').revealMs;
+    const full = lineTiming('雨打在窗外冷氣機的鐵殼上，一聲一聲，很慢。', 'narr', DEFAULT_SETTINGS.textSpeed).revealMs;
     expect(director.view.center!.revealMs).toBeCloseTo(full * 0.35, 0);
   });
 
-  it('a long line heard before still stays long enough to skim, never longer than the first time', () => {
+  it('a heard line types in at a third of the time and moves on like any line; shown whole, it stays long enough to skim', () => {
     const text = '大概是誰在惡作劇，借了她的名字。還是某個知道我要回去的人。';
-    const first = lineTiming(text, 'think', 'normal');
-    const again = heardTiming(first, text, 'normal');
+    const first = lineTiming(text, 'think', 14);
+    const again = heardTiming(first, text, 14);
     expect(again.revealMs).toBeCloseTo(first.revealMs * 0.35, 0);
-    expect(again.holdMs).toBeGreaterThanOrEqual([...text].length * 70);
-    expect(again.holdMs).toBeLessThanOrEqual(first.holdMs);
-    const short = lineTiming('到底是誰。', 'think', 'normal');
-    expect(heardTiming(short, '到底是誰。', 'normal').revealMs + heardTiming(short, '到底是誰。', 'normal').holdMs).toBeLessThan(short.revealMs + short.holdMs);
+    expect(again.holdMs).toBe(first.holdMs);
+    const whole = lineTiming(text, 'think', 'instant');
+    const wholeAgain = heardTiming(whole, text, 'instant');
+    expect(wholeAgain.holdMs).toBeGreaterThanOrEqual([...text].length * 45);
+    expect(wholeAgain.holdMs).toBeLessThanOrEqual(whole.holdMs);
+    const short = lineTiming('到底是誰。', 'think', 14);
+    expect(heardTiming(short, '到底是誰。', 14).revealMs + heardTiming(short, '到底是誰。', 14).holdMs).toBeLessThan(short.revealMs + short.holdMs);
   });
 });
 
@@ -166,7 +172,7 @@ describe('fast-forward', () => {
     until(() => !director.view.skipping);
     expect(director.view.center?.text).toBe('這次，她先聽見了月台上的廣播。');
     expect(director.view.center?.heard).toBeUndefined();
-    expect(director.view.center?.revealMs).toBe(lineTiming('這次，她先聽見了月台上的廣播。', 'narr', 'normal').revealMs);
+    expect(director.view.center?.revealMs).toBe(lineTiming('這次，她先聽見了月台上的廣播。', 'narr', DEFAULT_SETTINGS.textSpeed).revealMs);
     // Nine heard lines and a two-second pause went by in a couple of seconds.
     expect(director.view.t - startedAt).toBeLessThan(3000);
     // Not heard yet: nothing to go past until it has been.
@@ -213,7 +219,7 @@ describe('heard lines are kept', () => {
     const data = new Map<string, string>();
     const storage = { getItem: (key: string) => data.get(key) ?? null, setItem: (key: string, value: string) => { data.set(key, value); }, removeItem: (key: string) => { data.delete(key); } } as unknown as Storage;
     const script = build();
-    const first = play(script, freshSave(), storage);
+    const first = play(script, heardFast(), storage);
     first.director.start();
     liveLoop(first.director, first.tick);
     const id = lineId('s1', { kind: 'narr', speaker: 'me', text: '雨打在窗外冷氣機的鐵殼上，一聲一聲，很慢。' });
@@ -236,7 +242,7 @@ describe('heard lines are kept', () => {
     const storage = { getItem: () => JSON.stringify(old), setItem: () => undefined, removeItem: () => undefined } as unknown as Storage;
     const loaded = loadSave(storage).save;
     expect(loaded.heard).toEqual([]);
-    expect(loaded.settings.fastHeard).toBe(true);
+    expect(loaded.settings.fastHeard).toBe(false);
     expect(loaded.settings.untimedChoices).toBe(false);
     const doubled = { getItem: () => JSON.stringify({ ...old, heard: ['a#1', 'a#1', 7, 'b#2'], settings: { textSpeed: 'instant' } }), setItem: () => undefined, removeItem: () => undefined } as unknown as Storage;
     const again = loadSave(doubled).save;
@@ -281,7 +287,7 @@ ${options.map((text) => `            - text: ${text}\n              then:\n     
     long.director.start();
     long.until(() => Boolean(long.director.view.choice));
     const timeout = long.director.view.choice!.timeout!;
-    expect(timeout * 1000).toBeCloseTo(readingMs(options, 'normal'), 3);
+    expect(timeout * 1000).toBeCloseTo(readingMs(options, DEFAULT_SETTINGS.textSpeed), 3);
     expect(timeout).toBeGreaterThan(14);
   });
 
@@ -310,10 +316,10 @@ ${options.map((text) => `            - text: ${text}\n              then:\n     
 });
 
 describe('text speed 立即', () => {
-  it('shows the whole line at once and stays as long as reading it at 快 would take', () => {
+  it('shows the whole line at once and stays as long as typing it in at INSTANT_READ_CPS would take', () => {
     const text = '雨打在窗外冷氣機的鐵殼上，一聲一聲，很慢。';
     const instant = lineTiming(text, 'narr', 'instant');
-    const fast = lineTiming(text, 'narr', 'fast');
+    const fast = lineTiming(text, 'narr', INSTANT_READ_CPS);
     expect(instant.revealMs).toBe(0);
     expect(instant.phrases.every((phrase) => phrase.at === 0)).toBe(true);
     expect(instant.phrases.map((phrase) => phrase.text)).toEqual(fast.phrases.map((phrase) => phrase.text));

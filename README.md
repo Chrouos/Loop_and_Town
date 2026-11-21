@@ -38,6 +38,8 @@ docs/         story.md（故事）、design.md（體驗與劇本格式）、styl
 
 ## 開發
 
+網址加上 `?debug`，遊玩時左下角會即時顯示場景、字速、劇本 `pace`、心跳和緊張度。可與其他測試參數一起使用，例如 `?dev&debug&scene=c1_1752`。
+
 ```bash
 cd game
 npm test        # 劇本驗證 + 每一章都能玩到下一章 + 三個結局都到得了

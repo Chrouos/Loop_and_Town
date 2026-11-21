@@ -1,19 +1,22 @@
 """Render her phone's screen reader: every phone line in the story as a clip, flat and through a small speaker.
 
-The game plays these instead of the device's own voice, so every player hears the same reader. A line without a
-clip still falls back to the device's voice. Lines with `<心率>` are rendered as the words before and after the
+The device's own voice reads first (flat and robotic, as a phone's reader is); these clips are what plays on a
+device that has no Mandarin voice, so the line is never silent. Lines with `<心率>` are rendered as the words before and after the
 number, plus one clip per number.
 
     python tools/render-reader.py --tts melo --python ~/.venvs/melo/bin/python
     python tools/render-reader.py --tts say          # local preview only: macOS voices may not be published
 
+It also renders the recordings the town plays over a loudspeaker (`via: speaker`: the station's announcements, a
+number called at the hospital, a van's horn) into public/audio/broadcast/ and src/audio/broadcastClips.ts. A
+loudspeaker really does play a recording, so a synthesized voice there is the real thing, unlike a person's voice.
+
 Writes public/audio/reader/*.m4a and src/audio/readerClips.ts, and removes clips no line uses any more. A clip
 is named after its words, the voice and the effect, so a clip already there is kept and only new lines are rendered.
-The clips are committed with the game: render them here, once, whenever a phone line changes; the game only plays
-files and never synthesizes at play time. tests/readerClips.test.ts fails while a phone line has no clip.
+The clips are committed with the game: render them here, once, whenever a phone line changes.
+tests/readerClips.test.ts fails while a phone line has no clip.
 Needs ffmpeg. The `melo` backend needs an environment with MeloTTS (MIT, https://github.com/myshell-ai/MeloTTS);
 `opencc` in that environment is used when present (Traditional → Simplified for the Mandarin front end).
-Re-run it whenever a phone line changes; a line without a clip is read by the device's voice until then.
 """
 from __future__ import annotations
 
@@ -35,6 +38,16 @@ CREDITS = GAME / 'public' / 'audio' / 'CREDITS.md'
 # The phone's small speaker: narrow band, a little grain (the "B" the user picked).
 EFFECT = 'highpass=f=350,lowpass=f=3400,acrusher=bits=10:mix=0.4,volume=1.4'
 NUMBERS = range(40, 231)
+
+BROADCAST_OUT = GAME / 'public' / 'audio' / 'broadcast'
+BROADCAST_MANIFEST = GAME / 'src' / 'audio' / 'broadcastClips.ts'
+# The announcer: a ceiling PA in a hall, wide and a little hollow, with the room answering. Calm and even.
+STATION = 'highpass=f=220,lowpass=f=5200,aecho=0.85:0.5:90|210:0.25|0.15,volume=1.3'
+# A van's horn: a man's voice (pitched down) through a cheap megaphone, narrow, pushed until it breaks up.
+HORN = 'asetrate=44100*0.8,aresample=44100,atempo=1.25,highpass=f=450,lowpass=f=3000,acompressor=threshold=0.1:ratio=6,volume=3,alimiter=limit=0.9'
+BROADCAST_LEVEL = 'loudnorm=I=-20:TP=-3:LRA=7,aresample=44100'
+BROADCAST_SPEED = {'announcer': 1.0}
+HORN_SPEED = 1.1
 DIGITS = '零一二三四五六七八九'
 
 VOICES = {
@@ -59,9 +72,18 @@ def spoken_number(n: int) -> str:
     return out or '零'
 
 
-def clip_name(text: str, tts: str) -> str:
-    key = f'{tts}|{EFFECT}|{text}'
-    return 'reader/' + hashlib.sha1(key.encode('utf-8')).hexdigest()[:12] + '.m4a'
+def clip_name(text: str, tts: str, effect: str = EFFECT, folder: str = 'reader', speed: float = 1.2) -> str:
+    key = f'{tts}|{effect}|{text}' if folder == 'reader' else f'{tts}|{effect}|{BROADCAST_LEVEL}|{speed}|{text}'
+    return f'{folder}/' + hashlib.sha1(key.encode('utf-8')).hexdigest()[:12] + '.m4a'
+
+
+def broadcast_effect(speaker: str) -> str:
+    return STATION if speaker == 'announcer' else HORN
+
+
+def spoken(text: str) -> str:
+    """What the TTS is handed: marks drawn for the eye (a trailing-off ……, a cut-off ——) become a breath or nothing."""
+    return text.replace('……', '，').replace('…', '，').replace('——', '').replace('—', '').strip('，') or text
 
 
 def speech_times(path: pathlib.Path) -> list:
@@ -103,19 +125,19 @@ except Exception:
 jobs = json.load(sys.stdin)
 model = TTS(language='ZH', device='cpu')
 speaker = model.hps.data.spk2id['ZH']
-for text, path in jobs:
-    model.tts_to_file(to_simple(text), speaker, path, speed=1.2, quiet=True)
+for text, path, speed in jobs:
+    model.tts_to_file(to_simple(text), speaker, path, speed=speed, quiet=True)
 '''
 
 
-def synthesize(jobs: list[tuple[str, pathlib.Path]], tts: str, python: str | None) -> None:
+def synthesize(jobs: list[tuple[str, pathlib.Path, float]], tts: str, python: str | None) -> None:
     if tts == 'say':
-        for text, path in jobs:
-            subprocess.run(['say', '-v', 'Meijia', '-r', '230', '--file-format=WAVE', '--data-format=LEI16@22050', '-o', str(path), text], check=True)
+        for text, path, speed in jobs:
+            subprocess.run(['say', '-v', 'Meijia', '-r', str(round(190 * speed)), '--file-format=WAVE', '--data-format=LEI16@22050', '-o', str(path), text], check=True)
         return
     if not python:
         sys.exit('--tts melo needs --python pointing at an environment with MeloTTS installed')
-    payload = json.dumps([[text, str(path)] for text, path in jobs], ensure_ascii=False)
+    payload = json.dumps([[text, str(path), speed] for text, path, speed in jobs], ensure_ascii=False)
     subprocess.run([python, '-c', MELO_WORKER], input=payload, text=True, check=True)
 
 
@@ -150,13 +172,44 @@ def main() -> None:
 
     OUT.mkdir(parents=True, exist_ok=True)
     missing = [text for text, path in texts.items() if not (GAME / 'public' / 'audio' / path).exists()]
+    BROADCAST_OUT.mkdir(parents=True, exist_ok=True)
+    casts = {}  # spoken text -> (clip path, effect, speed)
+    for cast in data['broadcasts']:
+        effect = broadcast_effect(cast['speaker'])
+        speed = BROADCAST_SPEED.get(cast['speaker'], HORN_SPEED)
+        casts[cast['text']] = (clip_name(cast['text'], args.tts, effect, 'broadcast', speed), effect, speed)
+    missing_casts = [text for text, (path, _, _) in casts.items() if not (GAME / 'public' / 'audio' / path).exists()]
     with tempfile.TemporaryDirectory() as tmp:
-        jobs = [(text, pathlib.Path(tmp) / f'{i}.wav') for i, text in enumerate(missing)]
-        if jobs:
-            synthesize(jobs, args.tts, args.python)
-        for text, wav in jobs:
+        jobs = [(text, pathlib.Path(tmp) / f'{i}.wav', 1.2) for i, text in enumerate(missing)]
+        cast_jobs = [(text, pathlib.Path(tmp) / f'b{i}.wav') for i, text in enumerate(missing_casts)]
+        if jobs or cast_jobs:
+            synthesize(jobs + [(spoken(text), wav, casts[text][2]) for text, wav in cast_jobs], args.tts, args.python)
+        for text, wav, _ in jobs:
             dest = GAME / 'public' / 'audio' / texts[text]
             subprocess.run(['ffmpeg', '-loglevel', 'error', '-y', '-i', str(wav), '-af', EFFECT, '-ac', '1', '-c:a', 'aac', '-b:a', '64k', str(dest)], check=True)
+        for text, wav in cast_jobs:
+            path, effect, _ = casts[text]
+            # every broadcast at one level (the game places it by distance), with a short tail so the echo is not cut off
+            subprocess.run(['ffmpeg', '-loglevel', 'error', '-y', '-i', str(wav), '-af', effect + f',{BROADCAST_LEVEL},apad=pad_dur=0.4', '-ac', '1', '-c:a', 'aac', '-b:a', '64k', str(GAME / 'public' / 'audio' / path)], check=True)
+    used_casts = {GAME / 'public' / 'audio' / path for path, _, _ in casts.values()}
+    for old in BROADCAST_OUT.glob('*.m4a'):
+        if old not in used_casts:
+            old.unlink()
+    cast_times = {text: speech_times(GAME / 'public' / 'audio' / path) for text, (path, _, _) in casts.items()}
+    BROADCAST_MANIFEST.write_text('\n'.join([
+        '// <generated by tools/render-reader.py — do not edit by hand>',
+        '// What the town plays over a loudspeaker (`via: speaker`), pre-rendered under public/audio/broadcast/: the station,',
+        '// the hospital calling a number, a van going by. The line comes in on screen as the recording says it.',
+        '',
+        '/** A line (as `readable()` gives it) → its clip. */',
+        f'export const BROADCAST_LINES: Record<string, string> = {json.dumps({t: p for t, (p, _, _) in casts.items()}, ensure_ascii=False, indent=2)};',
+        '',
+        "/** When each clip is talking: [first word, end of the last, [quiet spots between words]] in seconds. */",
+        'export const BROADCAST_TIMES: Record<string, [number, number, number[]]> = {',
+        *[f'  {json.dumps(text, ensure_ascii=False)}: {json.dumps(t)},' for text, t in cast_times.items()],
+        '};',
+        '',
+    ]), encoding='utf-8')
 
     used = {GAME / 'public' / 'audio' / path for path in texts.values()}
     for old in OUT.glob('*.m4a'):
@@ -168,7 +221,7 @@ def main() -> None:
     MANIFEST.write_text('\n'.join([
         '// <generated by tools/render-reader.py — do not edit by hand>',
         "// Her phone's screen reader, pre-rendered: every phone line in the story as a clip under public/audio/reader/.",
-        "// A line without a clip is read by the device's own voice instead.",
+        "// The device's own voice reads first; a clip plays only where the device has no Mandarin voice.",
         '// `voice` names the TTS the clips were made with (credited in public/audio/CREDITS.md).',
         '',
         f'export const READER_VOICE: string | null = {json.dumps(VOICES[args.tts], ensure_ascii=False)};',
@@ -190,11 +243,15 @@ def main() -> None:
     ]), encoding='utf-8')
 
     if args.tts == 'melo':
-        credit = '- 手機讀屏語音：MeloTTS Chinese（MIT License，https://github.com/myshell-ai/MeloTTS），以 tools/render-reader.py 產生並加上手機喇叭效果。'
-        if CREDITS.exists() and credit not in CREDITS.read_text(encoding='utf-8'):
-            with CREDITS.open('a', encoding='utf-8') as f:
-                f.write('\n' + credit + '\n')
+        for credit in [
+            '- 手機讀屏語音：MeloTTS Chinese（MIT License，https://github.com/myshell-ai/MeloTTS），以 tools/render-reader.py 產生並加上手機喇叭效果。',
+            '- 車站與醫院廣播、宣傳車喇叭：MeloTTS Chinese（MIT License，https://github.com/myshell-ai/MeloTTS），以 tools/render-reader.py 產生並加上擴音效果。',
+        ]:
+            if CREDITS.exists() and credit not in CREDITS.read_text(encoding='utf-8'):
+                with CREDITS.open('a', encoding='utf-8') as f:
+                    f.write('\n' + credit + '\n')
     print(f'{len(texts)} clips ({len(lines)} lines, {len(templates)} templates, {len(numbers)} numbers) with {args.tts}; {len(missing)} rendered now')
+    print(f'{len(casts)} broadcasts; {len(missing_casts)} rendered now')
 
 
 if __name__ == '__main__':

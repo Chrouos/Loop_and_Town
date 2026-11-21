@@ -1,11 +1,11 @@
 import type { AudioEngine } from '../audio/engine';
 import { DIRECTIONS, DIRECTION_ANGLE, DISTANCES, SFX_SOURCE, type AmbienceId, type Direction, type SfxId, type VibrationId } from '../audio/catalog';
-import { phoneMatters, readable, READER_CLIP_RATE } from '../audio/reader';
-import { READER_TIMES } from '../audio/readerClips';
+import { phoneMatters, readable, TTS_MS_PER_CHAR } from '../audio/reader';
+import { BROADCAST_TIMES } from '../audio/broadcastClips';
 import { condRefs, evalCond, type CondContext } from '../script/conditions';
 import { CHAPTER_NUMERALS, SPEAKER_LABELS, TENSION_MAX, type Beat, type Chapter, type Cond, type ChoiceOption, type EndKind, type DazeLevel, type GameScript, type HeartLevel, type Lesson, type LineBeat, type NoiseLevel, type LineKind, type Pos, type Scene, type ShakeLevel } from '../script/types';
 import { driftClock, heardClock, planClock, type ClockPlan } from './clock';
-import { heardTiming, lineTiming, readingMs, voicedTiming, type LineTiming, type Phrase } from './text';
+import { HEARD_SCALE, heardTiming, lineTiming, pacedSpeed, readingMs, talkHoldMs, voicedTiming, type LineTiming, type TextSpeed, type Phrase } from './text';
 import { lineId } from '../script/parse';
 import { HUSH_MS, HUSH_SFX, isVoice, isWhispered, lifeOf, type LifeEvent } from './life';
 import { soundsAround } from './prefetch';
@@ -266,6 +266,8 @@ export class Director {
   private ambience: AmbienceId[] = [];
   private lifeGen = 0;
   private lifeHushUntil = 0;
+  /** A scene's `pace:`: characters per second on top of the player's text speed, until changed or the scene ends. */
+  private pace = 0;
   private lifeNextAt = 0;
   private lifeBusyAt = 0;
   private lifeRecent: LifeEvent[] = [];
@@ -320,6 +322,15 @@ export class Director {
   get loopFlags(): ReadonlySet<string> { return this.flags; }
   get currentScene(): Scene | null { return this.scene; }
   get tension(): number { return this.save.tension; }
+  get debugState() {
+    return {
+      textSpeed: this.settings.textSpeed,
+      pace: this.pace,
+      pacedSpeed: this.textSpeed(),
+      heartAsked: this.heartAsked,
+      heartTarget: this.heartTarget,
+    };
+  }
   /** Whether this line id was heard clearly on some loop (or earlier on this one). */
   hasHeard(id: string): boolean { return this.heard.has(id); }
   get threadsRunning(): string[] { return [...this.runs.values()].filter((run) => !run.done && run.id !== 'main').map((run) => run.id); }
@@ -1085,10 +1096,15 @@ export class Director {
     this.bump();
   }
 
+  /** The player's text speed, with this scene's `pace:` on top. */
+  private textSpeed(): TextSpeed {
+    return pacedSpeed(this.settings.textSpeed, this.pace);
+  }
+
   private clearScene(keepHeart = false): void {
     this.view.recall = null;
     this.view.interact = null;
-    if (!keepHeart) this.setHeart('off');
+    if (!keepHeart) { this.setHeart('off'); this.pace = 0; }
     this.setDaze('off');
     this.setNoise('off');
     // Leaving a live scene, the last line lingers as an echo so it fades out with the world instead of blinking off.
@@ -1325,6 +1341,7 @@ export class Director {
       case 'vib': this.vibrate(beat.id); run.busyUntil = t; return;
       case 'shake': this.jolt(beat.level); this.vibrate(SHAKE_VIBRATION[beat.level]); run.busyUntil = t; this.bump(); return;
       case 'heart': this.setHeart(beat.level); run.busyUntil = t; return;
+      case 'pace': this.pace = beat.delta; run.busyUntil = t; return;
       case 'daze': this.setDaze(beat.level); run.busyUntil = t; return;
       case 'noise': this.setNoise(beat.level, beat.speed, beat.loud, beat.with); run.busyUntil = t; return;
       case 'tension': this.addTension(beat.delta); run.busyUntil = t; return;
@@ -1356,16 +1373,21 @@ export class Director {
     const skipping = heardBefore && this.view.skipping;
     const fast = heardBefore && this.settings.fastHeard;
     run.afterHeard = heardBefore;
-    let timing: LineTiming = lineTiming(text, beat.kind, this.settings.textSpeed);
+    const speed = this.textSpeed();
+    let timing: LineTiming = lineTiming(text, beat.kind, speed);
     if (skipping) timing = { phrases: timing.phrases.map((phrase) => ({ ...phrase, at: 0 })), revealMs: 0, holdMs: SKIP_LINE_MS };
-    else if (fast) timing = heardTiming(timing, text, this.settings.textSpeed);
+    else if (fast) timing = heardTiming(timing, text, speed);
     const focused = this.view.focus === run.id && !this.shift;
+    // Not the one she is listening to: it goes on as long as it takes to say, so there is time to turn toward it.
+    if (!focused && !skipping) timing = { ...timing, holdMs: Math.max(timing.holdMs, fast ? talkHoldMs(text, beat.kind) * HEARD_SCALE : talkHoldMs(text, beat.kind)) };
     // Someone's message is only shown: the phone says who it is from (its sender line, or `announce`), not what they wrote.
     const reads = beat.message ? beat.announce : text;
     const readAloud = beat.kind === 'phone' && !!reads && focused && this.settings.reader && !skipping;
-    // Read out from its clip, the phone's line comes in with the voice, not at the reading pace.
-    const voiced = readAloud && reads === text && this.settings.textSpeed !== 'instant' ? READER_TIMES[readable(text)] : undefined;
-    if (voiced) timing = voicedTiming(timing, [voiced[0] / READER_CLIP_RATE, voiced[1] / READER_CLIP_RATE, voiced[2].map((gap) => gap / READER_CLIP_RATE)]);
+    // Read out loud, the next line waits for her phone to finish saying it, not only for the words on screen.
+    if (readAloud) timing = { ...timing, holdMs: Math.max(timing.holdMs, readable(reads!).length * TTS_MS_PER_CHAR - timing.revealMs) };
+    // A loudspeaker's recording: the line comes in as the recording says it.
+    const cast = beat.via === 'speaker' && !skipping ? BROADCAST_TIMES[readable(text)] : undefined;
+    if (cast && this.settings.textSpeed !== 'instant') timing = voicedTiming(timing, cast);
     // A jolt is her body: the phone in her hand takes it too, as it does for a bare `shake` beat.
     if (beat.shake) { this.jolt(beat.shake); this.vibrate(SHAKE_VIBRATION[beat.shake]); }
     const pos = this.posFor(run, beat);
@@ -1415,6 +1437,7 @@ export class Director {
       // voice, and a recorded voice under it would say something else. Recorded talk is only for the background.
       this.out.audio.voice(beat.speaker === 'me' ? 'me' : beat.speaker, beat.kind === 'me' ? CENTER : pos, Math.max(380, timing.revealMs), 'line', 1, beat.via);
     }
+    if (cast) this.out.audio.broadcast?.(text, pos, glide);
     if (glide) this.trail(pos, glide, t, glideMs);
     else if (beat.kind === 'char') this.ripple(pos);
     if (focused) this.showCenter(center);
@@ -1554,7 +1577,7 @@ export class Director {
     const shown = options.filter((option, index) => !option.silent && !option.recall && !disabled[index]).map((option) => option.text);
     const untimed = this.settings.untimedChoices && open;
     const timeoutMs = beat.timeout === undefined || fallback < 0 || untimed ? Infinity
-      : Math.max(beat.timeout * 1000, readingMs(shown, this.settings.textSpeed));
+      : Math.max(beat.timeout * 1000, readingMs(shown, this.textSpeed()));
     if (!open && timeoutMs === Infinity) {
       console.warn(`choice in ${this.scene?.id} has nothing to pick and no timeout: skipped`);
       if (fallback >= 0) this.applyChoice(run, options[fallback]);

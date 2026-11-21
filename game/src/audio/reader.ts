@@ -14,6 +14,9 @@ export interface ScreenReader {
   stop(): void;
 }
 
+/** About how long the device's voice takes per character (a line's speech is never cut off sooner than this). */
+export const TTS_MS_PER_CHAR = 330;
+
 /** Playback speed for recorded phone speech, shared with its subtitle timing. */
 export const READER_CLIP_RATE = 0.85;
 /** Device speech uses its own normal-rate scale. */

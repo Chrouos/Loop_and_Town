@@ -4,9 +4,10 @@ import { isVoice, lifeOf } from './life';
 
 /**
  * `now`: what this scene's own story plays; `soon`: its background life and the scenes after it; `amb`: every bed
- * here and next, `ambNow`: this scene's own (the ones it opens with first); `phone`: the lines her phone reads out, here and next.
+ * here and next, `ambNow`: this scene's own (the ones it opens with first); `phone`: the lines her phone reads out, here and next;
+ * `broadcast`: the lines a loudspeaker plays (`via: speaker`), here and next.
  */
-export type SceneSounds = { now: SfxId[]; soon: SfxId[]; amb: AmbienceId[]; ambNow: AmbienceId[]; phone: string[] };
+export type SceneSounds = { now: SfxId[]; soon: SfxId[]; amb: AmbienceId[]; ambNow: AmbienceId[]; phone: string[]; broadcast: string[] };
 
 /**
  * Every recording a scene can play (its cues, interactions, beds and background life) and the scenes it can
@@ -18,12 +19,16 @@ export function soundsAround(script: GameScript, sceneId: string): SceneSounds {
   const amb = new Set<AmbienceId>();
   const ambNow = new Set<AmbienceId>();
   const phone = new Set<string>();
+  const broadcast = new Set<string>();
   const next = new Set<string>();
   const visit = (beats: readonly Beat[], into: { sfx: Set<SfxId>; amb: Set<AmbienceId> }, follow: boolean): void => {
     for (const beat of beats) {
       switch (beat.k) {
         case 'sfx': into.sfx.add(beat.id); break;
-        case 'line': if (beat.kind === 'phone') phone.add(beat.text); break;
+        case 'line':
+          if (beat.kind === 'phone') phone.add(beat.text);
+          if (beat.via === 'speaker') broadcast.add(beat.text);
+          break;
         case 'cue': if (beat.sfx) into.sfx.add(beat.sfx); break;
         case 'amb': for (const id of beat.ids) { into.amb.add(id); amb.add(id); } break;
         case 'heart': into.sfx.add('heartbeat'); break;
@@ -62,11 +67,11 @@ export function soundsAround(script: GameScript, sceneId: string): SceneSounds {
     if (follow && scene.next) next.add(scene.next);
   };
   const scene = script.scenes.get(sceneId);
-  if (!scene) return { now: [], soon: [], amb: [], ambNow: [], phone: [] };
+  if (!scene) return { now: [], soon: [], amb: [], ambNow: [], phone: [], broadcast: [] };
   add(scene, true);
   for (const id of next) {
     const later = script.scenes.get(id);
     if (later && later !== scene) add(later, false);
   }
-  return { now: [...now], soon: [...soon].filter((id) => !now.has(id)), amb: [...amb], ambNow: [...ambNow], phone: [...phone] };
+  return { now: [...now], soon: [...soon].filter((id) => !now.has(id)), amb: [...amb], ambNow: [...ambNow], phone: [...phone], broadcast: [...broadcast] };
 }
