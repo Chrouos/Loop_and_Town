@@ -24,11 +24,10 @@ scenes:
       - narr: 床上還有幾件衣服。我摸到一疊就放一疊，每放一疊，就用手掌壓平。
       - { sfx: cloth_rustle, at: front, dist: near, text: 窸窣 }
       - pause: 1
-      # - { sfx: phone_buzz, at: right, dist: near, text: 嗡 }
-      # - pause: 1
       - { sfx: envelope, at: front, dist: near, text: 沙—— }
       - narr: 下午回來的時候，管理員把這封信交給我。
       - narr: 他還說，現在很少看到手寫的信了。
+      - pause: 1
       - { sfx: phone_buzz, at: right, dist: near, text: 嗡、嗡, vib: buzz }
       - narr: 我把手機鏡頭對著信封。
       - phone: 收件人，林念冬。
@@ -41,7 +40,6 @@ scenes:
       - pause: 0.5
       - think: 這不可能。
       - pause: 0.8
-      - narr: 我握著手機，手在抖。
       - narr: 我的拇指一直壓在封口上，壓到紙都軟了。
       - pause: 1.5
       - { sfx: paper_rustle, at: front, dist: near, text: 沙沙 }
@@ -64,9 +62,8 @@ scenes:
       - narr: 指尖在那四格上來回摸了好幾遍。
       - { sfx: paper_rustle, at: front, dist: near, text: 沙沙 }
       - think: 大概是誰在惡作劇，借了她的名字。還是某個知道我要回去的人。
+      - think: ……對。有人知道我要回去。
       - think: 到底是誰。
-      - think: 對。
-      - think: 因為不可能。
       - pause: 1.5
       - heart: off
       - pace: 0
@@ -79,6 +76,7 @@ scenes:
       - narr: 我拉開抽屜，摸到那疊用橡皮筋綁著的信。
       - narr: 一共六封。
       - { narr: 從五年前那個秋天開始，知夏就一封一封寄來的。而我一封都沒拆。, mem: m_six_letters }
+      - pause: 1
       - narr: 我想當時我在賭氣。
       - pause: 1
       - narr: 後來我看不見了。
@@ -109,7 +107,6 @@ scenes:
       - narr: 我醒來的時候，手機還在外套口袋裡震，車廂正在微微搖晃。
       - { sfx: rail_clack, at: back, dist: near, text: 喀噠、喀噠 }
       - narr: 我把腳底貼平，讓鐵軌接縫一下一下往上傳。
-      - think: 不小心睡著了。
       - narr: 我伸手摸了摸外套口袋。信還在。
       - pause: 1
       - { cue: gossip, at: back-left, text: 窸窸窣窣, sfx: huddle_rustle, whisper: true }
@@ -122,7 +119,6 @@ scenes:
       - narr: 窗外大概開始亮了。我只感覺得到臉頰那側比較暖。
       - narr: 走道另一邊有人在剝橘子，酸酸的味道一路飄過來。
       - { sfx: cough, at: back-left, dist: mid, text: 咳 }
-      - { sfx: cough, at: back-right, dist: near, text: 咳咳 }
       - pause: 2
       - { sfx: train_horn, at: front, dist: far, text: 嗚—— }
       - narr: 車廂跟著慢下來。
@@ -132,9 +128,12 @@ scenes:
       - announcer: 要下車的旅客，請準備。
       - { sfx: cane_tap, at: front, dist: near, text: 叩 }
       - narr: 我把手杖展開，一節一節卡好。
+      - narr: 最後一節卡上了。我的拇指還按在接頭上。
       - think: 五年了。上一次坐這班車，是往反方向。
       - think: 那天我跟知夏吵完架就走了，沒有人來送我。
+      - pause: 1
       - think: 她的告別式，我也沒有回來。
+      - pause: 2
 
     threads:
       # 主線約 35 秒報站；這條要在那之前講完，講完注意力自動轉回主線。
@@ -145,8 +144,7 @@ scenes:
           - { man: 舊城更新那個？寫得落落長，看一半就睡著。, at: back-left }
           - { man: 反正先換電線啦，從老街一路做到車站。, at: back-left }
           - { woman: ……連舊車站那邊也要重新接電？, at: back-left }
-          - { man: 說是防災的什麼備援系統。, at: back-left }
-          - { man: 鎮公所說更新完，車站以後就不會再停電了。, at: back-left }
+          - { man: 說是防災的，停電了還有電可以用啦。, at: back-left }
           - { woman: 那邊不是五年前出過事。, at: back-left }
           - { man: 噓——小聲點。, at: back-left }
           - pause: 1
