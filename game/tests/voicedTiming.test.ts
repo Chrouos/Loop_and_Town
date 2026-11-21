@@ -12,13 +12,13 @@ describe('a phone line read from its clip', () => {
   });
 
   it('shows each phrase as the voice reaches it, on the quiet spot between words', () => {
-    const timing = voicedTiming(lineTiming('鬧鐘。十月三日。六點十二分。', 'phone', 'slow'), [0.28, 2.25, [0.65, 1.03, 1.49]]);
+    const timing = voicedTiming(lineTiming('鬧鐘。十月三日。六點十二分。', 'phone', 10), [0.28, 2.25, [0.65, 1.03, 1.49]]);
     expect(timing.phrases.map((phrase) => phrase.at)).toEqual([130, 500, 1340]);
     expect(timing.revealMs).toBe(2250);
   });
 
   it('keeps to its estimate when no quiet spot is near, and never goes backwards', () => {
-    const timing = voicedTiming(lineTiming('撥號中。周予安。', 'phone', 'normal'), [0.3, 1.3, []]);
+    const timing = voicedTiming(lineTiming('撥號中。周予安。', 'phone', 14), [0.3, 1.3, []]);
     const [first, second] = timing.phrases.map((phrase) => phrase.at);
     expect(first).toBe(150);
     expect(second).toBeGreaterThan(first);

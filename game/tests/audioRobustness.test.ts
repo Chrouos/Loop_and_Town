@@ -171,7 +171,6 @@ describe('iOS: waking the audio, and keeping it awake', () => {
 });
 
 describe('her phone reading out loud', () => {
-  // Every story line has a pre-rendered clip; a line without one is read by the device's voice, which these cover.
   const UNRENDERED = '測試中。';
   const setup = async (): Promise<{ engine: AudioEngine; inside: Inside }> => {
     const engine = createAudioEngine();
@@ -179,6 +178,13 @@ describe('her phone reading out loud', () => {
     spoken = [];
     return { engine, inside: engine as unknown as Inside };
   };
+
+  it('uses the device voice even when a recorded clip is available', async () => {
+    const { engine } = await setup();
+    engine.speak!('林念冬。');
+    expect(spoken.map((utterance) => utterance.text)).toEqual(['林念冬。']);
+    spoken[0]!.onend!();
+  });
 
   it('ducks the beds under the device voice and lets go when it ends', async () => {
     const { engine, inside } = await setup();

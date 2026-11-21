@@ -1,5 +1,5 @@
 import { CHAPTER_ORDER, TENSION_MAX, type LineKind } from '../script/types';
-import { TEXT_SPEEDS, type TextSpeed } from './text';
+import { TEXT_CPS_MAX, TEXT_CPS_MIN, type TextSpeed } from './text';
 
 export const MEMORY_CAPACITY = 10;
 /** The key stays `-v1` for good: the schema version lives inside the save (`version`), not in its name. */
@@ -101,7 +101,7 @@ export type GameSave = {
   heard?: string[];
 };
 
-export const DEFAULT_SETTINGS: Settings = { audio: true, volume: 0.8, ambience: 0.7, sfx: 0.85, voice: 0.45, vibration: true, reader: true, motion: true, soundLabels: true, textSpeed: 'normal', fontSize: 'normal', autoAdvance: true, fastHeard: true, untimedChoices: false };
+export const DEFAULT_SETTINGS: Settings = { audio: true, volume: 0.8, ambience: 0.7, sfx: 0.85, voice: 0.45, vibration: true, reader: true, motion: true, soundLabels: true, textSpeed: 11, fontSize: 'normal', autoAdvance: true, fastHeard: false, untimedChoices: false };
 
 export function freshSave(previous?: Pick<GameSave, 'settings' | 'endings' | 'calibrated' | 'taught'>): GameSave {
   return {
@@ -285,16 +285,23 @@ function knowledge(value: unknown): string[] {
   return [...new Set(strings(value).filter((id) => id !== 'c1_yuan_pickup').map((id) => RENAMED_KNOWLEDGE[id] ?? id))];
 }
 
+/** Characters per second within the slider's range, or 'instant'; anything else (the old 慢／中／快 too) is the default. */
+function textSpeed(given: unknown): TextSpeed {
+  if (typeof given === 'number' && Number.isFinite(given)) return Math.max(TEXT_CPS_MIN, Math.min(TEXT_CPS_MAX, given));
+  return given === 'instant' ? given : DEFAULT_SETTINGS.textSpeed;
+}
+
 function settings(value: unknown): Settings {
   const out: Settings = { ...DEFAULT_SETTINGS };
   if (!isObject(value)) return out;
   for (const key of Object.keys(DEFAULT_SETTINGS) as (keyof Settings)[]) {
+    if (key === 'textSpeed') continue;
     const given = value[key];
     if (typeof given !== typeof DEFAULT_SETTINGS[key]) continue;
     if (typeof given === 'number' && !Number.isFinite(given)) continue;
     (out as Record<string, unknown>)[key] = typeof given === 'number' ? Math.max(0, Math.min(1, given)) : given;
   }
-  if (!TEXT_SPEEDS.includes(out.textSpeed)) out.textSpeed = DEFAULT_SETTINGS.textSpeed;
+  out.textSpeed = textSpeed(value.textSpeed);
   if (!Object.prototype.hasOwnProperty.call(FONT_SIZES, out.fontSize)) out.fontSize = 'normal';
   return out;
 }

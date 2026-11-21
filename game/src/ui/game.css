@@ -182,10 +182,14 @@ button:focus-visible { outline: 2px solid var(--ink-soft); outline-offset: 6px; 
 .lt-sent { display: inline-block; max-width: 100%; margin: 0 0.5em; word-break: keep-all; overflow-wrap: break-word; }
 .lt-line.kind-me .lt-sent:first-child { margin-left: 0; }
 .lt-line.kind-me .lt-sent:last-of-type { margin-right: 0; }
-.lt-phrase { display: inline; opacity: 0; filter: blur(7px); animation: lt-phrase 620ms var(--ease) forwards; }
+.lt-phrase { display: inline; opacity: 0; filter: blur(7px); animation: lt-phrase 800ms var(--ease) forwards; }
 /* a closing mark rides with the character before it (engine/text.ts gluePunctuation): 「，」 never starts a row */
 .lt-glue { white-space: nowrap; }
-.lt-line.revealed .lt-phrase { animation-delay: 0ms !important; }
+/* Typed in one character at a time, each a short linear fade. Not steps(): a delay like 999.7ms leaves the finished
+   progress a hair under 1, which steps(1, end) rounds down to nothing, and the line stalls there until it is revealed. */
+.lt-char { opacity: 0; animation: lt-char 140ms linear forwards; }
+@keyframes lt-char { from { opacity: 0; } to { opacity: 1; } }
+.lt-line.revealed .lt-phrase, .lt-line.revealed .lt-char { animation: none; opacity: 1; filter: none; }
 
 /* The quotes ride inside the first and last sentence, so a full row never pushes them onto rows of their own. */
 .lt-line.kind-me .lt-sent:first-child::before { content: '「'; color: var(--ink-dim); }
@@ -215,8 +219,7 @@ button:focus-visible { outline: 2px solid var(--ink-soft); outline-offset: 6px; 
   pointer-events: auto;
 }
 .lt-echo .lt-label { animation: lt-fade-out 400ms var(--ease) forwards; }
-.lt-echo .lt-phrase { animation-play-state: paused; }
-.lt-echo.revealed .lt-phrase { animation: none; opacity: 1; filter: none; }
+.lt-echo .lt-phrase, .lt-echo .lt-char { animation-play-state: paused; }
 .lt-echo.holding { animation-play-state: paused; opacity: 0.8; filter: none; }
 .lt-echo.leaving { pointer-events: none; }
 
@@ -406,6 +409,26 @@ button:focus-visible { outline: 2px solid var(--ink-soft); outline-offset: 6px; 
 
 /* ── corner: memory / settings ── */
 .lt-dev-tension { position: fixed; left: 12px; bottom: 10px; font-size: 0.72rem; color: var(--ink-dim); pointer-events: none; z-index: 40; }
+.lt-dev-panel {
+  position: fixed;
+  left: max(12px, env(safe-area-inset-left));
+  bottom: max(12px, env(safe-area-inset-bottom));
+  max-width: calc(100vw - max(12px, env(safe-area-inset-left)) - max(12px, env(safe-area-inset-right)));
+  box-sizing: border-box;
+  padding: 8px 12px;
+  border: 1px solid #555;
+  border-radius: 4px;
+  background: #141414ee;
+  color: #eee;
+  font: 0.75rem/1.35 system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+  pointer-events: none;
+  z-index: 40;
+}
+.lt-dev-panel dl { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 10px; margin: 4px 0 0; }
+.lt-dev-panel dt { color: #bababa; }
+.lt-dev-panel dd { margin: 0; }
 .lt-corner {
   position: fixed; right: max(18px, env(safe-area-inset-right)); bottom: max(18px, env(safe-area-inset-bottom));
   width: 44px; height: 44px; display: grid; place-items: center; z-index: 5; opacity: 0.8; transition: opacity 300ms;
@@ -453,6 +476,12 @@ button:focus-visible { outline: 2px solid var(--ink-soft); outline-offset: 6px; 
 .lt-tab.on, .lt-opt.on { color: var(--ink); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.55em; text-decoration-color: var(--ink-dim); }
 .lt-tabpanel { width: min(100%, 560px); }
 .lt-panel { width: min(100%, 560px); }
+.lt-settings-section + .lt-settings-section { margin-block-start: clamp(20px, 4vh, 36px); }
+.lt-settings-section > h2 {
+  margin: 0; padding: 0 0 8px; border-bottom: 1px solid var(--ink-ghost);
+  color: var(--ink-soft); font-size: calc(var(--ui-small) * var(--ts, 1));
+  font-weight: normal; letter-spacing: 0.25em;
+}
 .lt-mem { padding: 16px 0; border-bottom: 1px solid var(--ink-ghost); display: flex; gap: 16px; align-items: center; }
 .lt-mem-body { flex: 1; min-width: 0; }
 .lt-mem-text { font-size: calc(1.125rem * var(--ts, 1)); line-height: 1.7; letter-spacing: 0.06em; }
@@ -470,6 +499,15 @@ button:focus-visible { outline: 2px solid var(--ink-soft); outline-offset: 6px; 
 .lt-switch:focus-visible { outline-offset: 2px; }
 .lt-range { width: 140px; height: 44px; margin: 0; background: transparent; cursor: pointer; -webkit-appearance: none; appearance: none; }
 .lt-range:focus { outline: none; }
+.lt-range-with { display: inline-flex; align-items: center; gap: 10px; }
+.lt-range-value { font-size: calc(var(--ui-small) * var(--ts, 1)); color: var(--ink-dim); letter-spacing: 0.1em; white-space: nowrap; min-width: 5.5em; text-align: right; }
+.lt-volume { max-width: 100%; margin-inline-start: auto; }
+.lt-volume .lt-range { min-width: 0; }
+.lt-volume .lt-range-value { min-width: 3em; font-variant-numeric: tabular-nums; letter-spacing: 0; color: var(--ink-soft); }
+.lt-volume-mute { display: grid; place-items: center; flex: 0 0 auto; width: 44px; height: 44px; color: var(--ink-dim); }
+.lt-volume-mute:hover, .lt-volume-mute:focus-visible, .lt-volume-mute[aria-pressed="true"] { color: var(--ink-soft); }
+.lt-volume-mute:focus-visible { outline-offset: -2px; }
+.lt-volume-icon { width: 1.1em; height: 1.1em; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
 .lt-range:focus-visible { outline: 2px solid var(--ink-soft); outline-offset: 2px; }
 .lt-range::-webkit-slider-runnable-track { height: 1px; background: var(--ink-dim); }
 .lt-range::-moz-range-track { height: 1px; background: var(--ink-dim); }
@@ -478,7 +516,13 @@ button:focus-visible { outline: 2px solid var(--ink-soft); outline-offset: 6px; 
 .lt-range::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; border: 0; background: var(--ink-soft); }
 .lt-range:active::-webkit-slider-thumb, .lt-range:focus-visible::-webkit-slider-thumb { transform: scale(1.3); background: var(--ink); }
 .lt-credits { padding: 22px 0 6px; font-size: calc(var(--ui-small) * var(--ts, 1)); line-height: 1.9; letter-spacing: 0.08em; color: var(--ink-dim); overflow-wrap: anywhere; }
-.lt-credits-head { letter-spacing: 0.3em; color: var(--ink-soft); margin-bottom: 8px; }
+details.lt-credits { padding: 0; border-bottom: 1px solid var(--ink-ghost); }
+.lt-credits-head {
+  box-sizing: border-box; min-height: 44px; padding: 10px 0;
+  letter-spacing: 0.3em; color: var(--ink-soft); cursor: pointer;
+}
+.lt-credits-head:focus-visible { outline-offset: -2px; }
+.lt-credits-body { padding: 0 0 14px; }
 .lt-credit + .lt-credit { margin-top: 6px; }
 .lt-credit-use { color: var(--ink-soft); margin-right: 0.8em; }
 .lt-credits a { color: inherit; text-decoration: underline; text-decoration-color: var(--ink-faint); text-underline-offset: 3px; }
@@ -524,11 +568,11 @@ button:focus-visible { outline: 2px solid var(--ink-soft); outline-offset: 6px; 
 .lt-ending-back { font-size: calc(var(--ui) * var(--ts, 1)); letter-spacing: 0.5em; text-indent: 0.5em; color: var(--ink-dim); margin-top: 6vh; padding: 0 12px; min-height: 44px; }
 
 .lt-calib { position: fixed; inset: 0; }
-.lt-calib-skip {
-  position: absolute; left: 50%; bottom: max(6vh, env(safe-area-inset-bottom)); transform: translateX(-50%);
-  min-height: 44px; padding: 0 14px; font-size: calc(var(--ui-small) * var(--ts, 1)); letter-spacing: 0.4em; text-indent: 0.4em; color: var(--ink-dim);
+.lt-calib-actions {
+  display: flex; justify-content: center; gap: 24px; margin-top: 12px; white-space: nowrap;
 }
-.lt-calib-skip:hover { color: var(--ink-soft); }
+.lt-calib-actions .lt-opt { color: var(--ink-soft); pointer-events: auto; }
+.lt-calib-actions .lt-opt:hover, .lt-calib-actions .lt-opt:focus-visible { color: var(--ink); }
 /* For the keyboard and screen readers (記住這句, 下一句): out of sight until focused, then a quiet word at the bottom. */
 .lt-quiet-key { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .lt-quiet-key:focus-visible, .lt-quiet-key:focus {

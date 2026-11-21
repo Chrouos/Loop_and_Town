@@ -83,6 +83,9 @@ export type Beat =
   | { k: 'vib'; id: VibrationId }
   | { k: 'shake'; level: ShakeLevel }
   | { k: 'heart'; level: HeartLevel }
+  /** The words come in this many characters per second faster (+) or slower (−) than the player's own setting,
+   *  until changed or the scene ends; 0 = back to theirs. */
+  | { k: 'pace'; delta: number }
   | { k: 'daze'; level: DazeLevel }
   /** Panic: the noise around her comes faster and louder until it crowds the voice she is trying to hear. */
   | { k: 'noise'; level: NoiseLevel; speed?: number; loud?: number; with?: LifeEvent[] }

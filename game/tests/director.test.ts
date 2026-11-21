@@ -33,7 +33,8 @@ scenes:
     threads:
       side:
         beats:
-          - { woman: 旁邊的人在說一件事。, learn: k_side }
+          - { woman: 旁邊的人在說一件事，說得很慢很慢。, learn: k_side }
+          - woman: 她說完又補了一句，還是很慢很慢。
 `;
 
 const NEXT = `
@@ -54,6 +55,8 @@ function make(speed = 1) {
   const { script, errors } = buildScript([{ name: 'a.yaml', source: SCRIPT }, { name: 'b.yaml', source: NEXT }]);
   expect(errors).toEqual([]);
   let save: GameSave = freshSave();
+  // These timings were written at about 14 characters a second.
+  save.settings.textSpeed = 1000 / 72;
   let wall = 0;
   const director = new Director(script, save, { audio: silentAudio(), vibrate: () => undefined, persist: (next) => { save = next; }, wallNow: () => wall }, { speed });
   const run = (ms: number, step = 50) => { for (let t = 0; t < ms; t += step) { wall += step; director.tick(step); } };
@@ -105,7 +108,7 @@ describe('director', () => {
     run(SHIFT_MS + 50);
     expect(director.view.focus).toBe('side');
     // The next main line arrives while she is still turned away: it replaces the away line, never a murmur.
-    run(3500);
+    for (let i = 0; i < 200 && director.view.away?.text !== '第二句話也很長很長很長很長。'; i++) run(50);
     expect(director.view.center?.thread).toBe('side');
     expect(director.view.away?.text).toBe('第二句話也很長很長很長很長。');
     expect(director.view.periph.some((item) => item.kind === 'murmur' && item.thread === 'main')).toBe(false);
@@ -331,7 +334,7 @@ scenes:
   it('captures only perceived lines and caps memories', () => {
     const { director, run, getSave } = make();
     enterScene(director, run);
-    run(2500);
+    for (let i = 0; i < 200 && !director.view.center?.perceived; i++) run(50);
     expect(director.view.center?.perceived).toBe(true);
     expect(director.capture()).toBe(true);
     expect(getSave().memories).toHaveLength(1);
@@ -489,9 +492,9 @@ scenes:
     const director = new Director(script, freshSave(), { audio: silentAudio(log), vibrate: () => undefined, persist: () => undefined, wallNow: () => wall }, { speed: 1 });
     const run = (ms: number) => { for (let t = 0; t < ms; t += 50) { wall += 50; director.tick(50); } };
     enterScene(director, run);
+    const shook = director.view.shake;
     run(1500);
     expect(director.view.heart?.level).toBe('fast');
-    const shook = director.view.shake;
     for (let i = 0; i < 400 && director.view.shake === shook; i++) run(50);
     expect(director.view.shakeLevel).toBe('hard');
     for (let i = 0; i < 400 && director.view.heart?.level !== 'pound'; i++) run(50);

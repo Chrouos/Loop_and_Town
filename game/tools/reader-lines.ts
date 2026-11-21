@@ -1,7 +1,8 @@
 // Every line her phone reads out in the story, as the reader will be handed it (for tools/render-reader.py).
 //   npx vite-node tools/reader-lines.ts
-// Prints JSON: { lines: [...], templates: [{ before, after }] }. A line with `<心率>` becomes a template: the
-// words before and after the number are rendered once each, the number separately.
+// Prints JSON: { lines: [...], templates: [{ before, after }], broadcasts: [{ text, speaker }] }. A line with `<心率>`
+// becomes a template: the words before and after the number are rendered once each, the number separately.
+// `broadcasts`: a recording played over a loudspeaker (`via: speaker`: the station's announcement, a van's horn).
 import { readFileSync, readdirSync } from 'node:fs';
 import { buildScript } from '../src/script/validate';
 import { readable } from '../src/audio/reader';
@@ -17,10 +18,12 @@ if (errors.length) {
 
 const lines = new Set<string>();
 const templates = new Map<string, { before: string; after: string }>();
+const broadcasts = new Map<string, string>();
 const visit = (node: unknown): void => {
   if (Array.isArray(node)) { for (const item of node) visit(item); return; }
   if (!node || typeof node !== 'object') return;
-  const beat = node as { k?: string; kind?: string; text?: string; message?: boolean; announce?: string };
+  const beat = node as { k?: string; kind?: string; text?: string; message?: boolean; announce?: string; via?: string; speaker?: string };
+  if (beat.k === 'line' && beat.via === 'speaker' && typeof beat.text === 'string' && beat.speaker) broadcasts.set(readable(beat.text), beat.speaker);
   // Someone's message is shown, not read out: only who it is from needs a clip.
   if (beat.k === 'line' && beat.kind === 'phone' && beat.message && beat.announce) lines.add(readable(beat.announce));
   if (beat.k === 'line' && beat.kind === 'phone' && !beat.message && typeof beat.text === 'string') {
@@ -37,4 +40,8 @@ const visit = (node: unknown): void => {
 };
 for (const scene of script.scenes.values()) visit(scene);
 
-console.log(JSON.stringify({ lines: [...lines].sort(), templates: [...templates.values()] }));
+console.log(JSON.stringify({
+  lines: [...lines].sort(),
+  templates: [...templates.values()],
+  broadcasts: [...broadcasts].sort(([a], [b]) => a.localeCompare(b)).map(([text, speaker]) => ({ text, speaker })),
+}));

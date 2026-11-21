@@ -390,3 +390,5 @@ Format: `file` — id — "title" by author — source URL — license (per sour
 - `amb/wind_open.m4a` — wind_open — "Wind singing in the mountain, some night cricket in background" by felix.blume — https://freesound.org/people/felix.blume/sounds/165526/ — CC0 — 50 s of wind blowing and howling on a mountain top at night (Schoeps MS), high-passed at 60 Hz (loop 50.0 s, RMS -36.0 dBFS, peak -21.5 dBFS)
 
 - 手機讀屏語音：MeloTTS Chinese（MIT License，https://github.com/myshell-ai/MeloTTS），以 tools/render-reader.py 產生並加上手機喇叭效果。
+
+- 車站與醫院廣播、宣傳車喇叭：MeloTTS Chinese（MIT License，https://github.com/myshell-ai/MeloTTS），以 tools/render-reader.py 產生並加上擴音效果。

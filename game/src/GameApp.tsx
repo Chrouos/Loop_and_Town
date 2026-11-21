@@ -5,7 +5,8 @@ import { ATTRIBUTION_CREDITS } from './audio/credits';
 import { sampleUrl } from './audio/samples';
 import { parseSoundSources, type SoundSource } from './audio/sourceList';
 import { Director, toChineseNumber } from './engine/director';
-import { FONT_SIZES, MEMORY_CAPACITY, SAVE_KEY, loadSave, setAsideNewerSave, writeSave, type FontSize, type GameSave, type Memory, type SaveProblem } from './engine/save';
+import { DEFAULT_SETTINGS, FONT_SIZES, MEMORY_CAPACITY, SAVE_KEY, loadSave, setAsideNewerSave, writeSave, type FontSize, type GameSave, type Memory, type SaveProblem } from './engine/save';
+import { TEXT_CPS_MAX, TEXT_CPS_MIN, type TextSpeed } from './engine/text';
 import { loadGameScript } from './script/load';
 import { CHAPTER_NUMERALS } from './script/types';
 import { arrowsBetween, CONTROL, inertProps, Stage, unstop, useModal } from './ui/Stage';
@@ -13,6 +14,8 @@ import { placeOf } from './ui/geometry';
 import './ui/game.css';
 
 type Screen = 'title' | 'calibrate' | 'play';
+const VOLUME_CONTROLS = [['volume', '總音量'], ['ambience', '環境音'], ['sfx', '音效'], ['voice', '讀屏']] as const;
+type VolumeKey = (typeof VOLUME_CONTROLS)[number][0];
 const CURSOR_REST_MS = 3000;
 const HINT_KEY = 'listening-town-cue-hint';
 const TITLE_FADE_MS = 900;
@@ -52,6 +55,7 @@ function params() {
     mute: search.has('mute'),
     // ?dev lists every chapter in the chapter list, not only the ones this save has reached.
     dev: search.has('dev'),
+    debug: search.has('debug'),
     // ?tension=70 starts her that wound up (testing the hidden tension bands).
     tension: search.get('tension'),
   };
@@ -59,6 +63,29 @@ function params() {
 
 function vibrate(id: VibrationId) {
   try { navigator.vibrate?.([...VIBRATIONS[id]]); } catch { /* unsupported */ }
+}
+
+function DeveloperPanel({ director }: { director: Director }) {
+  const { textSpeed, pace, pacedSpeed, heartAsked, heartTarget } = director.debugState;
+  const { sceneId, phase, center, heart, tension } = director.view;
+  const speedLabel = (speed: number | 'instant') => speed === 'instant' ? '即時' : `${speed} 字/秒`;
+  const heartLevel = heartAsked === heartTarget ? heartTarget : `${heartAsked} → ${heartTarget}`;
+  return (
+    <aside className="lt-dev-panel" aria-label="開發者數據面板">
+      <strong>開發者數據</strong>
+      <dl>
+        <dt>場景</dt><dd>{sceneId ?? '—'} · {phase}</dd>
+        <dt>設定字速</dt><dd>{speedLabel(textSpeed)}</dd>
+        <dt>劇本 pace</dt><dd>{pace > 0 ? '+' : ''}{pace} 字/秒</dd>
+        <dt>套用 pace 後</dt><dd>{speedLabel(pacedSpeed)}</dd>
+        <dt>這句展開耗時</dt><dd>{center ? `${Math.round(center.revealMs)} ms` : '—'}</dd>
+        <dt>緊張</dt><dd>{director.tension}/100 · 第 {tension} 段</dd>
+        <dt>心跳（劇本 → 目標）</dt><dd>{heartLevel}</dd>
+        <dt>心跳間隔</dt>
+        <dd>{heart ? `${Math.round(heart.ms)} ms · ${Math.round(60_000 / heart.ms)} BPM` : '—'}</dd>
+      </dl>
+    </aside>
+  );
 }
 
 export function GameApp({ storage = safeStorage() }: { storage?: Storage }) {
@@ -82,6 +109,7 @@ export function GameApp({ storage = safeStorage() }: { storage?: Storage }) {
   const menu = overlay !== null;
   // Which page of the menu is open.
   const [menuTab, setMenuTab] = useState<MenuTab>('settings');
+  const previousVolumes = useRef<Partial<Record<VolumeKey, number>>>({});
   const openMenu = useCallback((tab: MenuTab = 'settings') => {
     setMenuTab(tab);
     setOverlay('menu');
@@ -491,7 +519,8 @@ export function GameApp({ storage = safeStorage() }: { storage?: Storage }) {
       >
         <span className="lt-corner-dot" />
       </button>
-      {options.dev && <div className="lt-dev-tension" aria-hidden="true">緊張 {director.tension}</div>}
+      {options.debug && <DeveloperPanel director={director} />}
+      {options.dev && !options.debug && <div className="lt-dev-tension" aria-hidden="true">緊張 {director.tension}</div>}
       {/* A save that stops landing mid-play is said once (the newer-build case was already said on the title). */}
       {view.saveProblem === 'failed' && <SaveNotice problem="failed" onDismiss={() => director.dismissSaveProblem()} behind={behind} />}
       {view.keep && <KeepPrompt director={director} memory={view.keep} behind={menu} />}
@@ -499,6 +528,7 @@ export function GameApp({ storage = safeStorage() }: { storage?: Storage }) {
       {overlay === 'menu' && (
         <Menu
           director={director}
+          previousVolumes={previousVolumes.current}
           tab={menuTab}
           onTab={setMenuTab}
           onClose={() => setOverlay(null)}
@@ -659,8 +689,9 @@ function SaveNotice({ problem, onDismiss, onStartOver, behind = false }: { probl
 
 // ───────────────────────── calibration ─────────────────────────
 
+const CALIBRATION_PROMPT = '先確認一下聲音的方向';
 const CALIBRATION: { at: number; text?: string; cue?: { dir: 'left' | 'right' | 'back' | 'front'; text: string } }[] = [
-  { at: 400, text: '先確認一下聲音的方向' },
+  { at: 400, text: CALIBRATION_PROMPT },
   { at: 2600, text: '左邊', cue: { dir: 'left', text: '叩' } },
   { at: 4800, text: '右邊', cue: { dir: 'right', text: '叩' } },
   { at: 7000, text: '如果左右反了，耳機可能戴反了' },
@@ -672,6 +703,7 @@ const CALIBRATION: { at: number; text?: string; cue?: { dir: 'left' | 'right' | 
 
 /** `again`: run from the menu over a paused scene, whose ambience stays as it is. */
 function Calibration({ audio, onDone, again = false }: { audio: AudioEngine; onDone: () => void; again?: boolean }) {
+  const [running, setRunning] = useState(again);
   const [step, setStep] = useState(-1);
   const done = useRef(false);
   // Held in a ref: a caller passing a fresh callback each render must not restart the test's timers.
@@ -679,6 +711,7 @@ function Calibration({ audio, onDone, again = false }: { audio: AudioEngine; onD
   onDoneRef.current = onDone;
   const finish = useCallback(() => { if (!done.current) { done.current = true; onDoneRef.current(); } }, []);
   useEffect(() => {
+    if (!running) return;
     if (!again) audio.setAmbience(['room_tone'], 1500);
     const timers = CALIBRATION.map((entry, index) => window.setTimeout(() => {
       if (index === CALIBRATION.length - 1) { finish(); return; }
@@ -686,25 +719,37 @@ function Calibration({ audio, onDone, again = false }: { audio: AudioEngine; onD
       if (entry.cue) audio.play('cane_tap', { dir: entry.cue.dir, dist: 'mid' }, { gain: 1 });
     }, entry.at));
     return () => timers.forEach((timer) => window.clearTimeout(timer));
-  }, [again, audio, finish]);
-  // Esc (or the button, or a tap anywhere) skips it; Space and Enter do not, so a key still held from the title
-  // cannot skip the one check of the headphones by accident.
+  }, [again, audio, finish, running]);
+  // Focus the stage so a key held from the title cannot activate a choice.
   const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => { ref.current?.focus({ preventScroll: true }); }, []);
+  const testButton = useRef<HTMLButtonElement>(null);
+  const skipButton = useRef<HTMLButtonElement>(null);
+  useEffect(() => { ref.current?.focus({ preventScroll: true }); }, [running]);
+  const chooseDirection = (event: ReactKeyboardEvent) => {
+    if (running || (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight')) return;
+    event.preventDefault();
+    (event.key === 'ArrowLeft' ? testButton : skipButton).current?.focus();
+  };
   useEffect(() => {
     const down = (event: KeyboardEvent) => { if (event.key === 'Escape' && !event.repeat) finish(); };
     window.addEventListener('keydown', down);
     return () => window.removeEventListener('keydown', down);
   }, [finish]);
   const entry = step >= 0 ? CALIBRATION[step] : undefined;
+  const text = running ? entry?.text : CALIBRATION_PROMPT;
   const place = entry?.cue ? placeOf({ dir: entry.cue.dir, dist: 'mid' }) : null;
   return (
-    <div ref={ref} className="lt-stage lt-calib" onClick={finish} tabIndex={-1} role="region" aria-label="聲音測試">
+    <div ref={ref} className="lt-stage lt-calib" onKeyDown={chooseDirection} tabIndex={-1} role="region" aria-label="聲音測試">
       {place && entry?.cue && <><div key={`r${step}`} className="lt-ripple" style={{ left: place.left, top: place.top }} /><span key={`c${step}`} className="lt-p kind-sfx dist-mid" style={{ left: place.left, top: place.top }} aria-hidden="true">{entry.cue.text}</span></>}
-      <div className="lt-center" aria-live="polite">
-        {entry?.text && <div key={step} className="lt-line kind-narr revealed"><p className="lt-text"><span className="lt-phrase">{entry.text}</span></p></div>}
+      <div className="lt-center">
+        <div aria-live="polite">
+          {text && <div key={step} className="lt-line kind-narr revealed"><p className="lt-text"><span className="lt-phrase">{text}</span></p></div>}
+        </div>
+        <div className="lt-calib-actions">
+          {!running && <button ref={testButton} type="button" className="lt-opt" onClick={() => setRunning(true)}>測試</button>}
+          <button ref={skipButton} type="button" className="lt-opt" aria-keyshortcuts="Escape" onClick={finish}>跳過</button>
+        </div>
       </div>
-      <button type="button" className="lt-calib-skip" aria-keyshortcuts="Escape" onClick={(event) => { event.stopPropagation(); finish(); }}>跳過聲音測試</button>
     </div>
   );
 }
@@ -740,7 +785,7 @@ function MemoryPanel({ director, onClose }: { director: Director; onClose: () =>
           </div>
         ))}
       </div>
-      <button type="button" className="lt-close" onClick={onClose}>回到故事</button>
+      <button type="button" className="lt-close" onClick={onClose}>返回</button>
     </div>
   );
 }
@@ -749,7 +794,7 @@ type MenuTab = 'chapters' | 'settings' | 'refs';
 const MENU_TABS: [MenuTab, string][] = [['chapters', '章節'], ['settings', '設定'], ['refs', '參考資料']];
 
 /** The game's own menu, from the small dot: chapters, settings, credits. */
-function Menu({ director, tab, onTab: setTab, onClose, onTitle, onSettings, onCalibrate, dev }: { director: Director; tab: MenuTab; onTab: (tab: MenuTab) => void; onClose: () => void; onTitle: () => void; onSettings: () => void; onCalibrate: () => void; dev: boolean }) {
+function Menu({ director, previousVolumes, tab, onTab: setTab, onClose, onTitle, onSettings, onCalibrate, dev }: { director: Director; previousVolumes: Partial<Record<VolumeKey, number>>; tab: MenuTab; onTab: (tab: MenuTab) => void; onClose: () => void; onTitle: () => void; onSettings: () => void; onCalibrate: () => void; dev: boolean }) {
   const [confirm, setConfirm] = useState(false);
   const box = useRef<HTMLDivElement>(null);
   useModal(box, '[role="tab"][aria-selected="true"]');
@@ -797,39 +842,59 @@ function Menu({ director, tab, onTab: setTab, onClose, onTitle, onSettings, onCa
       <div className="lt-tabpanel" role="tabpanel" id="lt-tabpanel" aria-labelledby={`lt-tab-${tab}`}>
         {tab === 'settings' && (
           <div className="lt-panel">
-            <Toggle label="聲音" on={settings.audio} onChange={(audio) => set({ audio })} />
-            <Slider label="總音量" value={settings.volume} onChange={(volume) => set({ volume })} />
-            <Slider label="環境音" value={settings.ambience} onChange={(ambience) => set({ ambience })} />
-            <Slider label="音效" value={settings.sfx} onChange={(sfx) => set({ sfx })} />
-            <Slider label="讀屏" value={settings.voice} onChange={(voice) => set({ voice })} />
-            <div className="lt-row"><span id="lt-calib-row">聲音測試</span><button type="button" className="lt-opt" aria-describedby="lt-calib-row" onClick={onCalibrate}>再聽一次</button></div>
-            {fullscreenAvailable() && <Toggle label="全螢幕" on={full} onChange={setFullscreen} />}
-            <Toggle label="震動" on={settings.vibration} onChange={(vibration) => set({ vibration })} />
-            <Toggle label="手機讀屏念出來" on={settings.reader} onChange={(reader) => set({ reader })} />
-            <Toggle label="畫面晃動" on={settings.motion} onChange={(motion) => set({ motion })} />
-            <Toggle label="聲音來源" on={settings.soundLabels} onChange={(soundLabels) => set({ soundLabels })} />
-            <Toggle label="聽過的話自動放快" on={settings.fastHeard} onChange={(fastHeard) => set({ fastHeard })} />
-            <Toggle label="選擇不倒數" on={settings.untimedChoices} onChange={(untimedChoices) => set({ untimedChoices })} />
-            <Options
-              label="字體大小"
-              value={settings.fontSize}
-              options={(Object.keys(FONT_SIZES) as FontSize[]).map((size) => [size, FONT_SIZES[size].label])}
-              onChange={(fontSize) => set({ fontSize })}
-            />
-            <Options label="文字速度" value={settings.textSpeed} options={[['slow', '慢'], ['normal', '中'], ['fast', '快'], ['instant', '立即']]} onChange={(textSpeed) => set({ textSpeed })} />
-            <Options label="自動閱讀" value={settings.autoAdvance ? 'auto' : 'manual'} options={[['auto', '自動'], ['manual', '手動']]} onChange={(mode) => set({ autoAdvance: mode === 'auto' })} />
-            <div className="lt-row"><span>回到標題</span><button type="button" className="lt-opt" aria-label="回到標題" onClick={onTitle}>回去</button></div>
-            <div className="lt-row"><span>{save.loop > 1 ? '從第一個十月三日重新開始' : '從頭開始'}</span>
-              {confirm
-                ? <button ref={confirmButton} type="button" className="lt-opt lt-danger" onClick={() => { setConfirm(false); director.forgetAll(); onTitle(); }}>確定，全部忘記</button>
-                : <button type="button" className="lt-opt" onClick={() => setConfirm(true)}>清除進度</button>}
-            </div>
+            <section className="lt-settings-section" aria-labelledby="lt-settings-volume">
+              <h2 id="lt-settings-volume">音量</h2>
+              <Toggle label="聲音" on={settings.audio} onChange={(audio) => set({ audio })} />
+              {VOLUME_CONTROLS.map(([key, label]) => (
+                <Slider
+                  key={key}
+                  label={label}
+                  value={settings[key]}
+                  restoreVolume={previousVolumes[key] ?? DEFAULT_SETTINGS[key]}
+                  onChange={(next) => {
+                    if (next === 0 && settings[key] > 0) previousVolumes[key] = settings[key];
+                    set({ [key]: next });
+                  }}
+                />
+              ))}
+              <div className="lt-row"><span id="lt-calib-row">聲音測試</span><button type="button" className="lt-opt" aria-describedby="lt-calib-row" onClick={onCalibrate}>再聽一次</button></div>
+            </section>
+            <section className="lt-settings-section" aria-labelledby="lt-settings-display">
+              <h2 id="lt-settings-display">顯示</h2>
+              {fullscreenAvailable() && <Toggle label="全螢幕" on={full} onChange={setFullscreen} />}
+              <Toggle label="畫面晃動" on={settings.motion} onChange={(motion) => set({ motion })} />
+              <Toggle label="聲音來源" on={settings.soundLabels} onChange={(soundLabels) => set({ soundLabels })} />
+              <Options
+                label="字體大小"
+                value={settings.fontSize}
+                options={(Object.keys(FONT_SIZES) as FontSize[]).map((size) => [size, FONT_SIZES[size].label])}
+                onChange={(fontSize) => set({ fontSize })}
+              />
+            </section>
+            <section className="lt-settings-section" aria-labelledby="lt-settings-play">
+              <h2 id="lt-settings-play">操作與閱讀</h2>
+              <Toggle label="震動" on={settings.vibration} onChange={(vibration) => set({ vibration })} />
+              <Toggle label="手機讀屏念出來" on={settings.reader} onChange={(reader) => set({ reader })} />
+              <Toggle label="聽過的話自動放快" on={settings.fastHeard} onChange={(fastHeard) => set({ fastHeard })} />
+              <Toggle label="選擇不倒數" on={settings.untimedChoices} onChange={(untimedChoices) => set({ untimedChoices })} />
+              <TextSpeedSlider value={settings.textSpeed} onChange={(textSpeed) => set({ textSpeed })} />
+              <Options label="自動閱讀" value={settings.autoAdvance ? 'auto' : 'manual'} options={[['auto', '自動'], ['manual', '手動']]} onChange={(mode) => set({ autoAdvance: mode === 'auto' })} />
+            </section>
+            <section className="lt-settings-section" aria-labelledby="lt-settings-progress">
+              <h2 id="lt-settings-progress">遊戲進度</h2>
+              <div className="lt-row"><span>回到標題</span><button type="button" className="lt-opt" aria-label="回到標題" onClick={onTitle}>回去</button></div>
+              <div className="lt-row"><span>{save.loop > 1 ? '從第一個十月三日重新開始' : '從頭開始'}</span>
+                {confirm
+                  ? <button ref={confirmButton} type="button" className="lt-opt lt-danger" onClick={() => { setConfirm(false); director.forgetAll(); onTitle(); }}>確定，全部忘記</button>
+                  : <button type="button" className="lt-opt" onClick={() => setConfirm(true)}>清除進度</button>}
+              </div>
+            </section>
           </div>
         )}
         {tab === 'chapters' && <Chapters director={director} dev={dev} onPicked={onClose} />}
         {tab === 'refs' && <References />}
       </div>
-      <button type="button" className="lt-close" onClick={onClose}>回到故事</button>
+      <button type="button" className="lt-close" onClick={onClose}>返回</button>
       <div className="lt-version">版本 {import.meta.env.VITE_BUILD_VERSION || 'v0.001_261118'}</div>
     </div>
   );
@@ -913,57 +978,67 @@ function References() {
   }, []);
   const link = (url: string, text: string) => <a href={url} target="_blank" rel="noreferrer">{text}</a>;
   const sourceGroup = (kind: SoundSource['kind'], head: string) => Array.isArray(sources) && (
-    <div className="lt-credits">
-      <div className="lt-credits-head">{head}</div>
-      {sources.filter((source) => source.kind === kind).map((source) => (
-        <div className="lt-credit" key={source.url}>
-          <span className="lt-credit-use">{source.uses.join('、')}</span>
-          {link(source.url, source.title)}
-          <span> — {source.author}{source.license === 'CC0' ? '' : `，${source.license}`}</span>
-        </div>
-      ))}
-    </div>
-  );
-  return (
-    <div className="lt-panel">
-      <div className="lt-credits">
-        <div className="lt-credits-head">聲音</div>
-        <div className="lt-credit">
-          錄音都來自 {link('https://freesound.org', 'Freesound')}，大多是 CC0，不必標示作者，這裡還是全部列出。每段都經過裁切、淡入淡出、調整音量；沒有錄音或錄音還沒載入的聲音，由瀏覽器當場合成。
-        </div>
-      </div>
-      <div className="lt-credits">
-        <div className="lt-credits-head">需要標示作者的錄音</div>
-        {ATTRIBUTION_CREDITS.map((credit) => (
-          <div className="lt-credit" key={credit.url}>
-            <span className="lt-credit-use">{credit.use}</span>
-            {link(credit.url, credit.title)}
-            <span> — {credit.author}，</span>
-            {link(credit.licenseUrl, credit.license)}
-            <span>，已裁切、濾波、調整音量</span>
+    <details className="lt-credits">
+      <summary className="lt-credits-head">{head}</summary>
+      <div className="lt-credits-body">
+        {sources.filter((source) => source.kind === kind).map((source) => (
+          <div className="lt-credit" key={source.url}>
+            <span className="lt-credit-use">{source.uses.join('、')}</span>
+            {link(source.url, source.title)}
+            <span> — {source.author}{source.license === 'CC0' ? '' : `，${source.license}`}</span>
           </div>
         ))}
       </div>
+    </details>
+  );
+  return (
+    <div className="lt-panel">
+      <details className="lt-credits">
+        <summary className="lt-credits-head">聲音</summary>
+        <div className="lt-credits-body">
+          <div className="lt-credit">
+            錄音都來自 {link('https://freesound.org', 'Freesound')}，大多是 CC0，不必標示作者，這裡還是全部列出。每段都經過裁切、淡入淡出、調整音量；沒有錄音或錄音還沒載入的聲音，由瀏覽器當場合成。
+          </div>
+        </div>
+      </details>
+      <details className="lt-credits">
+        <summary className="lt-credits-head">需要標示作者的錄音</summary>
+        <div className="lt-credits-body">
+          {ATTRIBUTION_CREDITS.map((credit) => (
+            <div className="lt-credit" key={credit.url}>
+              <span className="lt-credit-use">{credit.use}</span>
+              {link(credit.url, credit.title)}
+              <span> — {credit.author}，</span>
+              {link(credit.licenseUrl, credit.license)}
+              <span>，已裁切、濾波、調整音量</span>
+            </div>
+          ))}
+        </div>
+      </details>
       {sources === 'loading' && <div className="lt-credits"><div className="lt-credit">清單讀取中……</div></div>}
       {sources === 'failed' && <div className="lt-credits"><div className="lt-credit">清單讀不到，可以直接看{link(sampleUrl('CREDITS.md'), '完整清單')}</div></div>}
       {sourceGroup('amb', '環境音')}
       {sourceGroup('sfx', '音效')}
       {Array.isArray(sources) && <div className="lt-credits"><div className="lt-credit">每段錄音的來源和處理方式，都寫在{link(sampleUrl('CREDITS.md'), '完整清單')}裡</div></div>}
-      <div className="lt-credits">
-        <div className="lt-credits-head">字型</div>
-        {FONTS.map((font) => (
-          <div className="lt-credit" key={font.url}>{link(font.url, font.name)}<span> — {font.author}，SIL Open Font License 1.1</span></div>
-        ))}
-      </div>
-      <div className="lt-credits">
-        <div className="lt-credits-head">寫作參考</div>
-        {WRITING.map((ref) => (
-          <div className="lt-credit" key={ref.url}>
-            <span className="lt-credit-use">{ref.note}</span>
-            {link(ref.url, ref.name)}<span> — {ref.author}</span>
-          </div>
-        ))}
-      </div>
+      <details className="lt-credits">
+        <summary className="lt-credits-head">字型</summary>
+        <div className="lt-credits-body">
+          {FONTS.map((font) => (
+            <div className="lt-credit" key={font.url}>{link(font.url, font.name)}<span> — {font.author}，SIL Open Font License 1.1</span></div>
+          ))}
+        </div>
+      </details>
+      <details className="lt-credits">
+        <summary className="lt-credits-head">寫作參考</summary>
+        <div className="lt-credits-body">
+          {WRITING.map((ref) => (
+            <div className="lt-credit" key={ref.url}>
+              <span className="lt-credit-use">{ref.note}</span>
+              {link(ref.url, ref.name)}<span> — {ref.author}</span>
+            </div>
+          ))}
+        </div>
+      </details>
     </div>
   );
 }
@@ -995,23 +1070,74 @@ function Toggle({ label, on, onChange }: { label: string; on: boolean; onChange:
   );
 }
 
-/** A volume, named by its row and read out as a percentage. */
-function Slider({ label, value, onChange }: { label: string; value: number; onChange: (value: number) => void }) {
+/** A volume, shown and read out as a percentage. */
+function Slider({ label, value, restoreVolume, onChange }: { label: string; value: number; restoreVolume: number; onChange: (value: number) => void }) {
   const id = useId();
+  const muted = value === 0;
+  const valueText = `${Math.round(value * 100)}%`;
   return (
     <div className="lt-row">
       <span id={id}>{label}</span>
-      <input
-        className="lt-range"
-        type="range"
-        min={0}
-        max={1}
-        step={0.05}
-        value={value}
-        aria-labelledby={id}
-        aria-valuetext={`${Math.round(value * 100)}%`}
-        onChange={(event) => onChange(Number(event.target.value))}
-      />
+      <span className="lt-range-with lt-volume">
+        <button
+          type="button"
+          className="lt-volume-mute"
+          aria-label={`${label}靜音`}
+          aria-pressed={muted}
+          title={muted ? '解除靜音' : '靜音'}
+          onClick={() => onChange(muted ? restoreVolume : 0)}
+        >
+          <svg className="lt-volume-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M3 9h4l5-4v14l-5-4H3z" />
+            {muted ? <path d="m16 10 4 4m0-4-4 4" /> : <path d="M16 9a4 4 0 0 1 0 6m2-9a8 8 0 0 1 0 12" />}
+          </svg>
+        </button>
+        <input
+          className="lt-range"
+          type="range"
+          min={0}
+          max={1}
+          step={0.05}
+          value={value}
+          aria-labelledby={id}
+          aria-valuetext={valueText}
+          onChange={(event) => onChange(Number(event.target.value))}
+        />
+        <span className="lt-range-value" aria-hidden="true">{valueText}</span>
+      </span>
+    </div>
+  );
+}
+
+/**
+ * How fast the words come in, in characters per second, slow on the left; the far right end is 立即 (all at once).
+ * The number is shown beside it, so a pace can be told to someone and set again.
+ */
+function TextSpeedSlider({ value, onChange }: { value: TextSpeed; onChange: (value: TextSpeed) => void }) {
+  const id = useId();
+  const instant = TEXT_CPS_MAX + 1;
+  const cps = value === 'instant' ? instant : Math.round(value);
+  const said = cps === instant ? '立即' : `每秒 ${cps} 字`;
+  return (
+    <div className="lt-row">
+      <span id={id}>文字速度</span>
+      <span className="lt-range-with">
+        <span className="lt-range-value" aria-hidden="true">{said}</span>
+        <input
+          className="lt-range"
+          type="range"
+          min={TEXT_CPS_MIN}
+          max={instant}
+          step={1}
+          value={cps}
+          aria-labelledby={id}
+          aria-valuetext={said}
+          onChange={(event) => {
+            const next = Number(event.target.value);
+            onChange(next >= instant ? 'instant' : next);
+          }}
+        />
+      </span>
     </div>
   );
 }

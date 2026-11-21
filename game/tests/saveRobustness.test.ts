@@ -156,6 +156,16 @@ describe('reading a save', () => {
     expect(readSave(memoryStorage({ [SAVE_KEY]: JSON.stringify({ version: 1, tension: -5 }) }).storage).tension).toBe(0);
     expect(readSave(memoryStorage({ [SAVE_KEY]: JSON.stringify({ version: 1, tension: 'x' }) }).storage).tension).toBe(0);
   });
+
+  it('text speed: characters per second kept within the slider, the old steps and instant still load', () => {
+    const speedOf = (textSpeed: unknown) => readSave(memoryStorage({ [SAVE_KEY]: JSON.stringify({ version: 1, settings: { textSpeed } }) }).storage).settings.textSpeed;
+    expect(speedOf(9)).toBe(9);
+    expect(speedOf(1)).toBe(4);
+    expect(speedOf(500)).toBe(30);
+    expect(speedOf('slow')).toBe(DEFAULT_SETTINGS.textSpeed);
+    expect(speedOf('instant')).toBe('instant');
+    expect(speedOf('warp')).toBe(DEFAULT_SETTINGS.textSpeed);
+  });
 });
 
 describe('a reload replays the scene from where the save stands', () => {
