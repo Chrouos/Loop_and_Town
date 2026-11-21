@@ -30,7 +30,7 @@ for (const [name, engine] of Object.entries({ chromium, webkit })) {
         await page.getByRole('tab', { name: '設定', exact: true }).tap();
         const overlay = page.locator('.lt-overlay');
         assert(await overlay.evaluate(el => el.scrollWidth <= el.clientWidth), 'settings overflow horizontally');
-        await page.getByRole('button', { name: '回到故事', exact: true }).tap();
+        await page.getByRole('button', { name: '返回', exact: true }).tap();
         // Closing the menu resumes the story; hold it again so it cannot replace the moments set up below.
         await page.evaluate(() => window.__game.director.setPaused(true));
         for (const [type, cells] of [['touch', ['？', '？', '你', '？', '？', '二', '？']], ['punch', [[3, 4, 5, 6], [1, 4, 5]]]]) {

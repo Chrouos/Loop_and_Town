@@ -101,7 +101,7 @@ export type GameSave = {
   heard?: string[];
 };
 
-export const DEFAULT_SETTINGS: Settings = { audio: true, volume: 0.8, ambience: 0.7, sfx: 0.85, voice: 0.45, vibration: true, reader: true, motion: true, soundLabels: true, textSpeed: 11, fontSize: 'normal', autoAdvance: true, fastHeard: false, untimedChoices: false };
+export const DEFAULT_SETTINGS: Settings = { audio: true, volume: 0.8, ambience: 0.7, sfx: 0.85, voice: 0.65, vibration: true, reader: true, motion: true, soundLabels: true, textSpeed: 11, fontSize: 'normal', autoAdvance: true, fastHeard: false, untimedChoices: false };
 
 export function freshSave(previous?: Pick<GameSave, 'settings' | 'endings' | 'calibrated' | 'taught'>): GameSave {
   return {
