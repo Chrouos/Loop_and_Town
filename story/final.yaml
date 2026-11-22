@@ -523,6 +523,30 @@ scenes:
           - narr: 我坐下。扶手上有一道裂縫，剛好卡得進指甲。
           - think: 有一次，他就坐在我對面，把那六封信念給我聽。
           - think: 念到第六封，他停了好久。整間店只剩錶在走。
+      # 她以前偷偷翻過別人的抽屜（第四章、第五章）：同樣的空檔又來了一次，這一次她不做。選項只有一個。
+      # 她坐在舊扶手椅（A），櫃台左端在正前方近處，布簾在正前方遠處（docs/scene-layouts.md）。
+      - if: know.k_c4_drawer_opened || know.k_c5_drawer_opened || know.lead_c4_caught || know.lead_c5_caught
+        then:
+          - { sfx: phone_ring, at: front, dist: near, text: 鈴—— }
+          - yuan: 阿伯。我去後面接一下。
+          - { sfx: step_uneven, at: front, dist: near, to: front:far, text: 咚、叩 }
+          - move: { yuan: "front:far" }
+          - { sfx: cloth_rustle, at: front, dist: far, text: 沙, src: 布簾 }
+          - narr: 布簾後面，他講電話的聲音壓得很低。
+          - narr: 櫃台底下那排淺抽屜，我手一伸就碰得到。
+          - think: 他走開多久會回來，哪一個抽屜會響，我都知道。
+          - choice:
+              timeout: 12
+              options:
+                - text: （手放在膝蓋上，等他回來）
+                  then:
+                    - narr: 我把兩隻手壓在膝蓋上，十根手指都壓著。
+                    - think: 以前那幾次，我跟自己說那是在找線索。
+                    - pause: 2.5
+          - { sfx: cloth_rustle, at: front, dist: far, text: 沙, src: 布簾 }
+          - { sfx: step_uneven, at: front, dist: far, to: front:near, text: 咚、叩 }
+          - move: { yuan: front }
+          - yuan: 他問錶好了沒。我說下午。
       - yuan: 妳說要拜託我一件事。
       - choice:
           options:
@@ -1534,19 +1558,32 @@ scenes:
             then:
               - think: 若晴不在。可是那個櫃子我摸過。有一個十月三日，我在那面牆腳摸過它。燙的，裡面一直在嗡。
             else:
-              - if: know.k_cabinet_spot || flag.ev_ruoqing_photos
+              - if: know.k_c1_last_photo
                 then:
-                  - think: 若晴不在。可是她跟我講過四月那張照片：背對正門，右手邊第二根柱子。
+                  - think: 若晴不在。可是她最後那張照片，周警官念給我聽過：東牆，第二根柱子後面，一個比人高的鐵櫃。
                 else:
-                  - if: flag.ev_ruoqing_partial
+                  - if: know.k_cabinet_spot || flag.ev_ruoqing_photos
                     then:
-                      - think: 若晴不在。她只說東牆拍到一個新的東西，在哪一根柱子後面，她沒有講。
+                      - think: 若晴不在。可是她跟我講過四月那張照片：背對正門，右手邊第二根柱子。
                     else:
-                      - if: know.k_new_cabinet
+                      - if: flag.ev_ruoqing_partial
                         then:
-                          - think: 若晴不在。東牆多了一個櫃子，可是我不知道在哪一根柱子後面。
+                          - think: 若晴不在。她只說東牆拍到一個新的東西，在哪一根柱子後面，她沒有講。
                         else:
-                          - think: 若晴不在。這面牆後面多了什麼，沒有人跟我講過。
+                          - if: know.k_new_cabinet
+                            then:
+                              - think: 若晴不在。東牆多了一個櫃子，可是我不知道在哪一根柱子後面。
+                            else:
+                              - think: 若晴不在。這面牆後面多了什麼，沒有人跟我講過。
+      # 第一章重聽時把若晴叫離東牆、她死在玻璃底下（k_c1_moved_her）：這一次她站哪裡，是她自己選的。
+      - if: know.k_c1_moved_her
+        then:
+          - think: 有一個十月三日，我叫她離那面牆遠一點。她就退到了玻璃底下。
+          - if: flag.ev_ruoqing
+            then:
+              - think: 門口是她自己挑的。我沒有替她選。
+            else:
+              - think: 今天她在店裡。那也是她自己選的。
       - if: "flag.ev_yuan"
         then:
           - { yuan: 我在妳右後方，一步。, at: back-right, dist: near }
@@ -1674,8 +1711,9 @@ scenes:
                 - set: f_hear_right
               fail:
                 - narr: 我往錯的那邊走了兩步，手底下的鐵皮一直在抖，音卻一點都沒有變高。
-      # 若晴不在也行：她只給了照片和位置（ev_ruoqing_photos）、摸過那個鐵櫃（k_cabinet_warm），或聽她念過四月那張照片（k_cabinet_spot）。
-      - if: "flag.f_hear_right && (flag.ev_ruoqing || flag.ev_ruoqing_photos || know.k_cabinet_warm || know.k_cabinet_spot)"
+      # 若晴不在也行：她只給了照片和位置（ev_ruoqing_photos）、摸過那個鐵櫃（k_cabinet_warm）、聽她念過四月那張照片（k_cabinet_spot），
+      # 或第一章重聽時聽周警官念過她相機裡最後一張（k_c1_last_photo）。
+      - if: "flag.f_hear_right && (flag.ev_ruoqing || flag.ev_ruoqing_photos || know.k_cabinet_warm || know.k_cabinet_spot || know.k_c1_last_photo)"
         then:
           - if: flag.ev_ruoqing
             then:
@@ -1683,8 +1721,13 @@ scenes:
             else:
               - if: know.k_cabinet_warm
                 then:
-                  - narr: 我往右走，照那天摸到它的方向找過去。鞋尖踢到一條電線。
-                  - narr: 電線比我的手指還粗，外皮滑滑的，一路鑽進牆裡。
+                  - if: know.k_c1_wire_floor
+                    then:
+                      - narr: 我往右走，照那天摸到它的方向找過去。這次手杖壓得很低，貼著地掃。
+                      - narr: 杖尖勾到一條電線，橫在走道上。比我的手指還粗，一路鑽進牆裡。
+                    else:
+                      - narr: 我往右走，照那天摸到它的方向找過去。鞋尖踢到一條電線。
+                      - narr: 電線比我的手指還粗，外皮滑滑的，一路鑽進牆裡。
                 else:
                   - narr: 我背對正門站好，往右走，手杖一路掃著找柱子。第一根，第二根。
                   - narr: 柱子後面的地上拖著一條電線，比我的手指還粗，一路鑽進牆裡。
@@ -1706,7 +1749,12 @@ scenes:
                 then:
                   - think: 跟那天摸到的是同一個。她的手壓過的那條線，就從它底下出來。
                 else:
-                  - think: 比人高一點。跟她在咖啡店講給我聽的一樣。
+                  - if: know.k_c1_last_photo
+                    then:
+                      - narr: 我蹲下去摸櫃子底下。一條粗的，一條細的。細的那條鑽進牆裡。
+                      - think: 跟她最後那張照片一樣。
+                    else:
+                      - think: 比人高一點。跟她在咖啡店講給我聽的一樣。
           - if: "flag.ev_tingan"
             then:
               - { tingan: 主路徑這邊也在跳，兩邊同時。, at: right, dist: near, as: 電話裡的庭安, via: phone }
@@ -1791,9 +1839,23 @@ scenes:
           - yuan: 膠布是我爸纏的。他每次都會多繞一圈，摸得出來。
           - yuan: 這條沒有電，是訊號線。從這裡通到研究所，那邊也會回過來。
           - { tingan: 好，主路徑的權限我這邊撤了。換你們。, at: right, dist: near, as: 電話裡的庭安, via: phone }
-          - { tingan: 等一下，先不要拔！我說拔再拔。, at: right, dist: near, as: 電話裡的庭安, shake: light, via: phone }
-          - heart: fast
-          - { tingan: 順序反過來的話，它會當成線路故障，自己再接回去。, at: right, dist: near, as: 電話裡的庭安, via: phone }
+          # 第一章重聽時周警官念過的那張完整的紙（k_c1_note_full）：她先喊停。只有燒剩的半句（k_c1_note_burnt），她到這裡才接得上。
+          - if: know.k_c1_note_full
+            then:
+              - narr: 予安的手指已經捏住那條線了。
+              - { me: 先不要拔。, shake: light }
+              - me: 等她那邊的備援也撤掉。只關一條，它會從另一條自己接回來。
+              - { tingan: ……對。我說拔再拔。, at: right, dist: near, as: 電話裡的庭安, via: phone }
+              - { tingan: 妳怎麼知道這個？, at: right, dist: near, as: 電話裡的庭安, via: phone }
+              - me: 我姊寫的。有一個人念給我聽過。
+              - heart: fast
+            else:
+              - { tingan: 等一下，先不要拔！我說拔再拔。, at: right, dist: near, as: 電話裡的庭安, shake: light, via: phone }
+              - heart: fast
+              - { tingan: 順序反過來的話，它會當成線路故障，自己再接回去。, at: right, dist: near, as: 電話裡的庭安, via: phone }
+              - if: know.k_c1_note_burnt
+                then:
+                  - think: 自己接回來。那張燒掉一大半的紙上，就剩這幾個字。
           - yuan: ……了解。
           - { sfx: breath_m, at: right, dist: near, text: 呼…… }
           - narr: 他的手指捏著那條線，沒有動。
@@ -1829,6 +1891,9 @@ scenes:
                   - { tingan: 那只撤這邊沒有用。它會從另一條接回去。, at: right, dist: near, as: 電話裡的庭安, via: phone }
                 else:
                   - think: 庭安不在。牆後面那個東西，連名字都沒有人知道。
+                  - if: know.k_c1_note_full
+                    then:
+                      - think: 姊寫過，主的關掉，還有備的。可是另一條在哪裡、誰關得了，我不知道。
               - think: 隔著牆聽到的嗡鳴，不能告訴我該撤哪一條權限。
             else:
               - if: "!flag.ev_yuan"

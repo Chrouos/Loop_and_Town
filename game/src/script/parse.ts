@@ -107,7 +107,7 @@ function parseLine(key: string, raw: Obj, where: string, errors: Errors): LineBe
   if (raw.shake !== undefined) line.shake = shake(raw.shake, where, errors);
   if (raw.whisper !== undefined) line.whisper = raw.whisper === true;
   if (raw.teach !== undefined) {
-    if (!['keep', 'tap', 'turn', 'locate', 'approach', 'hold'].includes(String(raw.teach))) errors.push(`${where}：teach 只能是 tap／turn／keep／locate／approach／hold`);
+    if (!['keep', 'tap', 'turn', 'locate', 'approach', 'hold', 'sneak'].includes(String(raw.teach))) errors.push(`${where}：teach 只能是 tap／turn／keep／locate／approach／hold／sneak`);
     else if (raw.teach === 'keep' && raw.mem === undefined) errors.push(`${where}：teach: keep 的那句要有 mem`);
     else line.teach = raw.teach as Lesson;
   }
@@ -178,6 +178,7 @@ export function markMessages(beats: Beat[], open = { on: false }): void {
     // Time passing or the place changing: whatever arrived before is over.
     if (beat.k === 'clock' || beat.k === 'amb' || beat.k === 'wait') { open.on = false; continue; }
     if (beat.k === 'approach') { open.on = false; fresh(beat.hit); fresh(beat.early); fresh(beat.late); continue; }
+    if (beat.k === 'sneak') { open.on = false; fresh(beat.success); fresh(beat.caught); fresh(beat.fail); continue; }
   }
 }
 
@@ -418,6 +419,51 @@ function parseBeat(raw: unknown, where: string, errors: Errors): Beat | undefine
       late: parseBeats(spec.late, `${where}.late`, errors),
     };
   }
+  if ('sneak' in raw) {
+    allow('sneak');
+    const spec = raw.sneak;
+    if (!isObj(spec)) { errors.push(`${where}：sneak 必須是 map`); return undefined; }
+    for (const key of Object.keys(spec)) if (!['work', 'timeout', 'sfx', 'text', 'watch', 'slips', 'prompt', 'success', 'caught', 'fail'].includes(key)) errors.push(`${where}：sneak 未知欄位「${key}」`);
+    const work = Number(spec.work ?? 6);
+    const timeout = Number(spec.timeout ?? 40);
+    if (!(work >= 2 && work <= 20)) errors.push(`${where}：sneak 的 work 是 2 到 20 秒`);
+    if (!(timeout > work)) errors.push(`${where}：sneak 的 timeout 要比 work 長`);
+    const sfx = String(spec.sfx ?? 'cloth_rustle');
+    if (!isSfx(sfx)) errors.push(`${where}：未知音效「${sfx}」`);
+    if (!Array.isArray(spec.watch) || spec.watch.length === 0) { errors.push(`${where}：sneak 需要 watch（對方一段一段的位置）`); return undefined; }
+    const watch = spec.watch.flatMap((leg, n) => {
+      const at = `${where}.watch[${n}]`;
+      if (!isObj(leg)) { errors.push(`${at}：必須是 map`); return []; }
+      for (const key of Object.keys(leg)) if (!['at', 'dist', 'for', 'sfx', 'text', 'every', 'still', 'looks'].includes(key)) errors.push(`${at}：未知欄位「${key}」`);
+      const dir = String(leg.at);
+      const dist = String(leg.dist ?? 'mid');
+      const seconds = Number(leg.for);
+      const still = leg.still === true;
+      const legSfx = leg.sfx === undefined ? undefined : String(leg.sfx);
+      const every = Number(leg.every ?? 0.8);
+      if (!isDirection(dir)) errors.push(`${at}：at 必須是八個方位之一`);
+      if (!(DISTANCES as readonly string[]).includes(dist)) errors.push(`${at}：未知距離「${dist}」`);
+      if (!(seconds >= 0.5)) errors.push(`${at}：for 至少 0.5 秒`);
+      if (!(every >= 0.3)) errors.push(`${at}：every 至少 0.3 秒`);
+      if (still && legSfx !== undefined) errors.push(`${at}：still 是沒有聲音，不能寫 sfx`);
+      if (!still && legSfx === undefined) errors.push(`${at}：要有 sfx（或寫 still: true）`);
+      if (legSfx !== undefined && !isSfx(legSfx)) errors.push(`${at}：未知音效「${legSfx}」`);
+      // Close by, or gone quiet: she cannot tell whether they are looking, so they are, unless the script says otherwise.
+      const looks = leg.looks === undefined ? still || dist === 'near' : leg.looks === true;
+      return [{ at: dir as Direction, dist: dist as Distance, for: seconds, every, still, looks, ...(legSfx ? { sfx: legSfx as SfxId } : {}), ...(leg.text !== undefined ? { text: String(leg.text) } : {}) }];
+    });
+    if (!watch.some((leg) => !leg.looks)) errors.push(`${where}：sneak 的 watch 至少要有一段對方沒在看（不然做不完）`);
+    const slips = (Array.isArray(spec.slips) ? spec.slips : []).flatMap((slip, n) => {
+      if (!isObj(slip) || !isSfx(String(slip.sfx)) || !(Number(slip.at) > 0 && Number(slip.at) < work)) { errors.push(`${where}.slips[${n}]：需要合法的 sfx，at 在 0 到 work 之間`); return []; }
+      return [{ at: Number(slip.at), sfx: String(slip.sfx) as SfxId, ...(slip.text !== undefined ? { text: String(slip.text) } : {}) }];
+    }).sort((a, b) => a.at - b.at);
+    return {
+      k: 'sneak', work, timeout, sfx: sfx as SfxId, text: str(spec.text), watch, slips, prompt: str(spec.prompt),
+      success: parseBeats(spec.success, `${where}.success`, errors),
+      caught: parseBeats(spec.caught, `${where}.caught`, errors),
+      fail: parseBeats(spec.fail, `${where}.fail`, errors),
+    };
+  }
   if ('punch' in raw) {
     allow('punch');
     const spec = raw.punch;
@@ -465,8 +511,10 @@ function parseBeat(raw: unknown, where: string, errors: Errors): Beat | undefine
       });
     });
     if (options.length === 0) errors.push(`${where}：choice 沒有選項`);
-    if (!options.some((option) => !option.cond && !option.recall)) errors.push(`${where}：至少要有一個沒有 if、也不是 recall 的選項`);
     const timeout = choice.timeout === undefined ? undefined : Number(choice.timeout);
+    if (!(choice.silence !== undefined && timeout !== undefined) && !options.some((option) => !option.cond && !option.recall)) {
+      errors.push(`${where}：至少要有一個沒有 if、也不是 recall 的選項`);
+    }
     const fallback = choice.default === undefined ? undefined : Number(choice.default);
     if (fallback !== undefined && (fallback < 0 || fallback >= options.length)) errors.push(`${where}：default 超出範圍`);
     if (fallback !== undefined && (options[fallback]?.cond || options[fallback]?.recall)) errors.push(`${where}：default 選項不能有 if 或 recall`);

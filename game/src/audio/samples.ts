@@ -49,6 +49,7 @@ export const SFX_SAMPLES: Partial<Record<SfxId, SfxSample>> = {
   bicycle_bell: { files: ['sfx/bicycle_bell_1.m4a', 'sfx/bicycle_bell_2.m4a'], gain: 1 },
   bike_squeak: { files: ['sfx/bike_squeak_1.m4a', 'sfx/bike_squeak_2.m4a', 'sfx/bike_squeak_3.m4a'], gain: 1 },
   blackout: { files: ['sfx/blackout.m4a'], gain: 1 },
+  body_drag: { files: ['sfx/body_drag_1.m4a', 'sfx/body_drag_2.m4a'], gain: 1 },
   box_close: { files: ['sfx/box_close.m4a'], gain: 1 },
   box_open: { files: ['sfx/box_open_1.m4a', 'sfx/box_open_2.m4a', 'sfx/box_open_3.m4a'], gain: 1 },
   braille_read: { files: ['sfx/braille_read_1.m4a', 'sfx/braille_read_2.m4a', 'sfx/braille_read_3.m4a', 'sfx/braille_read_4.m4a'], gain: 1, rate: 0.85 },

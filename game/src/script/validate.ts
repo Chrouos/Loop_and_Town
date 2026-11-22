@@ -17,6 +17,7 @@ function walk(beats: Beat[], visit: (beat: Beat, depth: number) => void, depth =
     if (beat.k === 'if') { walk(beat.then, visit, depth + 1); walk(beat.else, visit, depth + 1); }
     if (beat.k === 'locate' || beat.k === 'hold') { walk(beat.success, visit, depth + 1); walk(beat.fail, visit, depth + 1); }
     if (beat.k === 'approach') { walk(beat.hit, visit, depth + 1); walk(beat.early, visit, depth + 1); walk(beat.late, visit, depth + 1); }
+    if (beat.k === 'sneak') { walk(beat.success, visit, depth + 1); walk(beat.caught, visit, depth + 1); walk(beat.fail, visit, depth + 1); }
     if (beat.k === 'choice') {
       beat.options.forEach((option) => {
         walk(option.then, visit, depth + 1);
@@ -37,6 +38,7 @@ function terminates(beats: Beat[]): boolean {
     if (beat.k === 'if' && terminates(beat.then) && terminates(beat.else)) return true;
     if ((beat.k === 'locate' || beat.k === 'hold') && terminates(beat.success) && terminates(beat.fail)) return true;
     if (beat.k === 'approach' && terminates(beat.hit) && terminates(beat.early) && terminates(beat.late)) return true;
+    if (beat.k === 'sneak' && terminates(beat.success) && terminates(beat.caught) && terminates(beat.fail)) return true;
     // A missed recall returns to the same choice, so a recall option ends the path only if every accepted memory does.
     if (beat.k === 'choice' && beat.options.every((option) => (option.recall ? recallTerminates(option) : option.goto || terminates(option.then)))) return true;
   }
@@ -147,6 +149,7 @@ function walkChoices(beats: Beat[], assume: Cond[], visit: (beat: Extract<Beat, 
     if (beat.k === 'if') { walkChoices(beat.then, [...current, beat.cond], visit); walkChoices(beat.else, [...current, NOT(beat.cond)], visit); }
     if (beat.k === 'locate' || beat.k === 'hold') { walkChoices(beat.success, current, visit); walkChoices(beat.fail, current, visit); }
     if (beat.k === 'approach') { walkChoices(beat.hit, current, visit); walkChoices(beat.early, current, visit); walkChoices(beat.late, current, visit); }
+    if (beat.k === 'sneak') { walkChoices(beat.success, current, visit); walkChoices(beat.caught, current, visit); walkChoices(beat.fail, current, visit); }
     if (beat.k === 'choice') {
       visit(beat, current);
       for (const option of beat.options) {
@@ -321,7 +324,7 @@ export function buildScript(files: { name: string; source: string }[]): ScriptRe
       for (const [name, beats] of Object.entries(scene.threads)) {
         if (!usedThreads.has(name)) errors.push(`${where}：thread「${name}」沒有被 cue`);
         walk(beats, (beat) => {
-          if (['choice', 'goto', 'end', 'wait', 'cue', 'amb', 'touch', 'locate', 'approach', 'punch', 'hold'].includes(beat.k)) errors.push(`${where}.threads.${name}：thread 裡不能有 ${beat.k}`);
+          if (['choice', 'goto', 'end', 'wait', 'cue', 'amb', 'touch', 'locate', 'approach', 'punch', 'hold', 'sneak'].includes(beat.k)) errors.push(`${where}.threads.${name}：thread 裡不能有 ${beat.k}`);
           if (beat.k === 'if') checkRefs(beat.cond, `${where}.threads.${name}`);
         });
       }

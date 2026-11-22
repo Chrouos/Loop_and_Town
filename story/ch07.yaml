@@ -875,6 +875,9 @@ scenes:
       - if: know.lead_c7_ruoqing
         then:
           - think: 有一次我叫她不要去。她偏要去，還走進了大廳。
+      - if: know.k_c1_called_her
+        then:
+          - think: 第一天，我只喊了一句快過來。她連問都沒問，就跑過來了。
       - choice:
           timeout: 14
           options:

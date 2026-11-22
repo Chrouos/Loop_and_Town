@@ -17,7 +17,7 @@ type Breath = 'steady' | 'shaky' | 'shaky-then-counted';
 // A pointing plan: a fixed list cycled through every locate, or a function of the prompt and the loop.
 type Station = Direction[] | ((prompt: string | undefined, loop: number) => Direction);
 
-function play(policy: Policy, maxLoops = 1, station: Station = EAST_WALL, forget: string[] = [], breath: Breath = 'steady') {
+function play(policy: Policy, maxLoops = 1, station: Station = EAST_WALL, forget: string[] = [], breath: Breath = 'steady', add: string[] = []) {
   const { script, errors } = loadScriptFromDisk();
   if (errors.length) throw new Error(errors.join('\n'));
   let wall = 0;
@@ -27,6 +27,8 @@ function play(policy: Policy, maxLoops = 1, station: Station = EAST_WALL, forget
   // Knowledge a real playthrough may have missed (the chapter jump grants everything learnable before).
   const known = (director as unknown as { knowledge: Set<string> }).knowledge;
   for (const id of forget) known.delete(id);
+  // Knowledge only a replayed earlier day can give (behind later.X), which the chapter jump never grants.
+  for (const id of add) known.add(id);
   director.save.knowledge = [...known];
   const finalOptions: string[][] = [];
   const scenes: string[] = [];
@@ -86,6 +88,17 @@ describe('final chapter paths', () => {
     expect(result.scenes).toEqual(expect.arrayContaining(['f_end_c', 'f_epilogue_c', 'f_epilogue_station']));
   });
 
+  // Having gone through someone's drawer before, the same gap comes once more at the clock shop; there is only one thing to do.
+  it('alone by his counter, she only waits: the drawer is not an option', () => {
+    const seen: string[][] = [];
+    const result = play((options, sceneId) => { if (sceneId === 'f_yuan') seen.push(options); return RESPECTFUL_TO_C(options, sceneId); });
+    expect(seen).toContainEqual(['（手放在膝蓋上，等他回來）']);
+    expect(result.ending).toBe('c');
+    const never: string[][] = [];
+    play((options, sceneId) => { if (sceneId === 'f_yuan') never.push(options); return RESPECTFUL_TO_C(options, sceneId); }, 1, EAST_WALL, ['k_c4_drawer_opened', 'k_c5_drawer_opened', 'lead_c4_caught', 'lead_c5_caught']);
+    expect(never).not.toContainEqual(['（手放在膝蓋上，等他回來）']);
+  });
+
   it('the same day can choose to seal only today (Ending A)', () => {
     const result = play(pick(/只封存這一個今天/));
     expect(result.ending).toBe('a');
@@ -116,6 +129,12 @@ describe('final chapter paths', () => {
     const result = play(PRESSURE_RUOQING, 1, EAST_WALL, ['k_cabinet_warm']);
     expect(result.finalOptions[0]).not.toContain('「撤銷所有改寫，然後封存今天。」');
     expect(result.finalOptions[0]).toContain('「只封存這一個今天。」');
+  });
+
+  it("her last photo, heard on a replayed first day, finds the cabinet without Ruoqing", () => {
+    const result = play(PRESSURE_RUOQING, 1, EAST_WALL, ['k_cabinet_warm'], 'steady', ['k_c1_last_photo']);
+    expect(result.flags.has('g1')).toBe(true);
+    expect(result.finalOptions[0]).toContain('「撤銷所有改寫，然後封存今天。」');
   });
 
   it('having touched the cabinet on some 10/3, she finds it without Ruoqing and can still reach Ending C', () => {

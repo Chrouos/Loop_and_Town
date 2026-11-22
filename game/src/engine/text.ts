@@ -1,3 +1,4 @@
+import { presentation } from '../presentation.config';
 import type { LineKind } from '../script/types';
 
 /**
@@ -5,14 +6,14 @@ import type { LineKind } from '../script/types';
  * the whole line is on screen at once, and it still stays up as long as reading it at INSTANT_READ_CPS takes.
  */
 export type TextSpeed = number | 'instant';
-export const TEXT_CPS_MIN = 4;
-export const TEXT_CPS_MAX = 30;
+export const TEXT_CPS_MIN = presentation.reading.minSpeed;
+export const TEXT_CPS_MAX = presentation.reading.maxSpeed;
 /** A scene's `pace:` may take the speed past the slider's ends, but never below this or above PACED_CPS_MAX. */
-const PACED_CPS_MIN = 1;
-const PACED_CPS_MAX = 60;
+const PACED_CPS_MIN = presentation.reading.pacedMinSpeed;
+const PACED_CPS_MAX = presentation.reading.pacedMaxSpeed;
 /** A line shown whole stays up as long as typing it in at this many characters per second would have taken. */
-export const INSTANT_READ_CPS = 24;
-/** `br`: start a new row after this phrase (a sentence ended inside narration or thought). */
+export const INSTANT_READ_CPS = presentation.reading.instantReadSpeed;
+/** `br`: start a new row after this phrase (a sentence ended inside the line; not on the phone). */
 export type Phrase = { text: string; at: number; br?: boolean; charMs?: number };
 export type LineTiming = { phrases: Phrase[]; revealMs: number; holdMs: number };
 
@@ -28,25 +29,30 @@ export function pacedSpeed(speed: TextSpeed, pace: number): TextSpeed {
   return Math.max(PACED_CPS_MIN, Math.min(PACED_CPS_MAX, speed + pace));
 }
 
+/** How far a scene's `pace:` stretches the pauses between phrases (commas, …, a new row), not only the characters:
+ *  the breaks are most of a line's time, so typing faster alone barely shows. 1 at her own speed; under 1 is faster. */
+const PACE_BREATH_MIN = 0.4;
+const PACE_BREATH_MAX = 2.5;
+export function paceBreath(speed: TextSpeed, pace: number): number {
+  if (speed === 'instant' || !pace) return 1;
+  const paced = pacedSpeed(speed, pace) as number;
+  return Math.max(PACE_BREATH_MIN, Math.min(PACE_BREATH_MAX, speed / paced));
+}
+
 const FULL_SPACE = '　';
 
 /** Every new row waits this long after the last character before it, whatever the mark there (。！？… or |): a
  *  sentence ended inside narration or thought, and a line's last character before the next line comes in. The line
  *  was read as it typed in, and it stays above as an echo; a comma, which keeps to its row, keeps its own pause. */
-export const NEW_ROW_PAUSE = 1000;
-
-const WRITTEN_BEAT_PAUSE_MS = 760;
-const DASH_PAUSE_MS = 420;
-const SENTENCE_PAUSE_MS = 1000;
-const COMMA_PAUSE_MS = 650;
-const LIST_PAUSE_MS = 500;
+const { pauseMs } = presentation.reading;
+export const NEW_ROW_PAUSE = pauseMs.newRow;
 
 function pauseAfter(mark: string): number {
-  if (mark === '|' || mark.includes('…')) return WRITTEN_BEAT_PAUSE_MS;
-  if (mark.includes('—')) return DASH_PAUSE_MS;
-  if (/[。！？]/.test(mark)) return SENTENCE_PAUSE_MS;
-  if (mark.includes('，')) return COMMA_PAUSE_MS;
-  if (/[、；：]/.test(mark)) return LIST_PAUSE_MS;
+  if (mark === '|' || mark.includes('…')) return pauseMs.writtenBeat;
+  if (mark.includes('—')) return pauseMs.dash;
+  if (/[。！？]/.test(mark)) return pauseMs.sentence;
+  if (mark.includes('，')) return pauseMs.comma;
+  if (/[、；：]/.test(mark)) return pauseMs.list;
   return 0;
 }
 
@@ -55,11 +61,11 @@ type Part = { text: string; pause: number; br: boolean; beat?: boolean };
 
 // Split at punctuation so each phrase can surface on its own beat (Rhythmic Text, core spec §12).
 // On the black stage the line itself is the sentence, so full stops are not drawn: one that ends the line
-// is dropped, one inside narration or thought becomes a new row, one inside speech becomes a breath (a
-// full-width space, as in subtitles). ？！ keep their mark since they carry tone. The script keeps every 。
-// and the screen-reader text is the raw line.
+// is dropped, one inside narration, thought or speech becomes a new row, one inside a phone line becomes a
+// breath (a full-width space: its readouts come in short bits that would stack into a column). ？！ keep their
+// mark since they carry tone. The script keeps every 。 and the screen-reader text is the raw line.
 export function splitPhrases(text: string, kind: LineKind = 'char'): { text: string; pause: number; br?: boolean }[] {
-  const rows = kind === 'narr' || kind === 'think';
+  const rows = kind !== 'phone';
   const raw: { body: string; marks: string }[] = [];
   const pattern = /([^，。！？；：、…—|]*)((?:[，。！？；：、…—|]+[」』）》]*)*)/g;
   let match: RegExpExecArray | null;
@@ -130,7 +136,8 @@ const MIN_REVEAL_MS = 380;
 const THOUGHT_CHAR_MS_SCALE = 1.1;
 const PHONE_CHAR_MS_SCALE = 0.9;
 
-export function lineTiming(text: string, kind: LineKind, speed: TextSpeed): LineTiming {
+/** `breath`: the pauses between phrases and before the next line, scaled with a scene's pace (paceBreath). */
+export function lineTiming(text: string, kind: LineKind, speed: TextSpeed, breath = 1): LineTiming {
   if (speed === 'instant') {
     // Shown whole; the time it would have taken to type in is added to how long it stays.
     const fast = lineTiming(text, kind, INSTANT_READ_CPS);
@@ -144,10 +151,10 @@ export function lineTiming(text: string, kind: LineKind, speed: TextSpeed): Line
   for (const part of splitPhrases(text, kind)) {
     phrases.push({ text: part.text, at, charMs, ...(part.br && { br: true }) });
     typed = at + [...part.text].length * charMs;
-    at = typed + part.pause;
+    at = typed + part.pause * breath;
   }
   // Done when the last character is in; the next line follows NEW_ROW_PAUSE later, whatever mark this one ends on.
-  return { phrases, revealMs: Math.max(MIN_REVEAL_MS, typed), holdMs: NEW_ROW_PAUSE };
+  return { phrases, revealMs: Math.max(MIN_REVEAL_MS, typed), holdMs: NEW_ROW_PAUSE * breath };
 }
 
 const TALK_BASE_HOLD_MS = 1300;
@@ -175,7 +182,7 @@ export function readingMs(texts: string[], speed: TextSpeed): number {
 }
 
 /** A line heard on an earlier loop, with 聽過的話自動放快 on: it comes and goes at this fraction of its time. */
-export const HEARD_SCALE = 0.35;
+export const HEARD_SCALE = presentation.reading.heardLineTimeScale;
 export function scaleTiming(timing: LineTiming, scale: number): LineTiming {
   return { phrases: timing.phrases.map((phrase) => ({ ...phrase, at: phrase.at * scale, charMs: (phrase.charMs ?? 0) * scale })), revealMs: timing.revealMs * scale, holdMs: timing.holdMs * scale };
 }

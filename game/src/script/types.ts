@@ -31,8 +31,13 @@ export type Cond =
   | { op: 'and' | 'or'; args: Cond[] };
 
 /** A hands-and-ears moment taught once: the first time it comes (or on a line that says `teach: locate` before it). */
-export type InteractLesson = 'locate' | 'approach' | 'hold';
+export type InteractLesson = 'locate' | 'approach' | 'hold' | 'sneak';
 export type Lesson = 'tap' | 'turn' | 'keep' | InteractLesson;
+
+/** 偷偷做: where the one she is hiding from is for a while. `still`: no sound at all (stopped, maybe turned her way). */
+export type SneakLeg = { at: Direction; dist: Distance; for: number; sfx?: SfxId; text?: string; every: number; still: boolean; looks: boolean };
+/** 偷偷做: `at` seconds into the work, her hands make one loud sound (a drawer catching). */
+export type SneakSlip = { at: number; sfx: SfxId; text?: string };
 
 export type LineBeat = {
   k: 'line';
@@ -55,7 +60,7 @@ export type LineBeat = {
   whisper?: boolean;
   /** A first-play lesson: the line waits here, the first time ever, until the player does it once.
    *  'tap' = tap the screen to go on, 'turn' = tap a sound to turn toward it, 'keep' = long-press the line to keep it.
-   *  'locate' / 'approach' / 'hold': says how the moment coming up works, waits for a tap, and that lesson is then given. */
+   *  'locate' / 'approach' / 'hold' / 'sneak': says how the moment coming up works, waits for a tap, and that lesson is then given. */
   teach?: Lesson;
   /** Her phone only: read at full level (true) or quietly (false). Unset, reader.ts phoneMatters decides. */
   loud?: boolean;
@@ -102,6 +107,9 @@ export type Beat =
   /** 聽距離: a sound walks toward her from `at`, one step at a time; she speaks up when it reaches her. Too early it cannot hear her, too late it has gone past. */
   | { k: 'hold'; seconds: number; timeout: number; sfx?: SfxId; at?: Direction; prompt?: string; success: Beat[]; fail: Beat[] }
   | { k: 'approach'; sfx: SfxId; at: Direction; past: Direction; steps: number; interval: number; text?: string; prompt?: string; hit: Beat[]; early: Beat[]; late: Beat[] }
+  /** 偷偷做: held, her hands work (and make a little noise); someone moves around the room on a loop of legs. Working while
+   *  they are close or have gone quiet (`looks`) gets her caught; `slips` are loud moments in the work that make them stop and listen. */
+  | { k: 'sneak'; work: number; timeout: number; sfx: SfxId; text?: string; watch: SneakLeg[]; slips: SneakSlip[]; prompt?: string; success: Beat[]; caught: Beat[]; fail: Beat[] }
   /** 點字板: punch braille cells from the back of the paper (mirrored); cells are dot numbers as they will be read. */
   | { k: 'punch'; cells: number[][]; label?: string; prompt?: string; timeout: number }
   | { k: 'if'; cond: Cond; then: Beat[]; else: Beat[] }

@@ -163,6 +163,7 @@ export const SFX = {
   phone_on_glass: '手機蓋著放到玻璃櫃台上', cough_w: '女人咳嗽（成年）', bike_squeak: '橡膠被捏、摩擦的吱聲',
   scooter_start: '機車發動：第一次沒發起來，第二次才發動',
   drain_cover: '輪胎壓過鬆掉的水溝蓋',
+  body_drag: '人被拖過粗糙的地面：鞋跟和衣服刮過沙礫',
   // her own body and things she drops or hits (plain ids are women's, as above)
   pant: '跑完之後喘不過氣（女聲）',
   gasp: '倒抽一口氣，短而急（女聲）',
@@ -222,7 +223,7 @@ export const SFX_SOURCE: Partial<Record<SfxId, string>> = {
   can_rattle: '空罐子', skate_roll: '滑板', branch_snap: '樹枝', boat_engine: '漁船', ship_horn: '船笛',
   mouse_squeak: '老鼠', air_flow: '空調', power_saw: '電鋸', excavator: '怪手', water_rush: '排水',
   leaf_rustle: '枯葉', fabric_flap: '旗子', wire_whistle: '電線', pebble_roll: '石頭', metal_rattle: '鐵皮',
-  pour_water: '倒水', bamboo_knock: '竹竿', knuckle_knock: '敲桌子', chair_creak: '椅子', cane_scrape: '手杖',
+  pour_water: '倒水', bamboo_knock: '竹竿', knuckle_knock: '敲桌子', chair_creak: '椅子', cane_scrape: '手杖', body_drag: '拖地',
   gravel_step: '碎石', cup_scrape: '杯子', nail_scratch: '指甲', suitcase_roll: '行李箱', phone_on_glass: '手機',
   cough_w: '咳嗽', bike_squeak: '橡膠', scooter_start: '機車', drain_cover: '水溝蓋',
   pant: '喘氣', gasp: '倒抽一口氣', cane_drop: '手杖', metal_hit: '金屬', bag_drop: '包包', lighter_open: '打火機',

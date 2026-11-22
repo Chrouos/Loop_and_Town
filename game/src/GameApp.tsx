@@ -1,3 +1,4 @@
+import { presentation } from './presentation.config';
 import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { createAudioEngine, type AudioEngine, type SfxOpts } from './audio/engine';
 import { VIBRATIONS, type SfxId, type SpatialPos, type VibrationId } from './audio/catalog';
@@ -65,6 +66,20 @@ function vibrate(id: VibrationId) {
   try { navigator.vibrate?.([...VIBRATIONS[id]]); } catch { /* unsupported */ }
 }
 
+const typography = presentation.typography;
+const typographyStyle = {
+  '--serif': `"${typography.story.fontFamily}", "Noto Serif TC", "Songti TC", PMingLiU, serif`,
+  '--screen': `"${typography.phoneFace}", "${typography.story.fontFamily}", monospace`,
+  '--mono': `"${typography.stampFace}", "${typography.story.fontFamily}", sans-serif`,
+  '--furniture': `"${typography.interfaceFace}", "${typography.story.fontFamily}", serif`,
+  '--line': `clamp(${typography.story.fontSize.minRem}rem, ${typography.story.fontSize.vw}vw, ${typography.story.fontSize.maxRem}rem)`,
+  '--narration-scale': typography.narrationScale,
+  '--story-line-height': typography.story.lineHeight,
+  '--phone-size': `${typography.phoneSizeRem}rem`,
+  '--phone-size-max': `${typography.phoneMaxPx}px`,
+  '--small-screen-scale': typography.smallScreenScale,
+} as CSSProperties;
+
 function DeveloperPanel({ director }: { director: Director }) {
   const { textSpeed, pace, pacedSpeed, heartAsked, heartTarget } = director.debugState;
   const { sceneId, phase, center, heart, tension } = director.view;
@@ -101,7 +116,7 @@ export function GameApp({ storage = safeStorage() }: { storage?: Storage }) {
   }, [audio, options, report, storage]);
   useSyncExternalStore(director.subscribe, director.getVersion);
   const view = director.view;
-  const fontStyle = { '--text-scale': FONT_SIZES[director.settings.fontSize].scale } as CSSProperties;
+  const fontStyle = { ...typographyStyle, '--text-scale': FONT_SIZES[director.settings.fontSize].scale } as CSSProperties;
 
   const [screen, setScreen] = useState<Screen>('title');
   // The two corner buttons open two different things: what she carries, and the game's own menu.
@@ -427,7 +442,7 @@ export function GameApp({ storage = safeStorage() }: { storage?: Storage }) {
     // The raw list is for whoever writes the script; a player gets one plain sentence.
     if (!import.meta.env.DEV) return <ScriptBroken errors={report.errors} />;
     return (
-      <div className="lt-overlay" style={{ alignItems: 'flex-start', fontFamily: 'var(--mono)', fontSize: 12, lineHeight: 1.8 }}>
+      <div className="lt-overlay" style={{ ...typographyStyle, alignItems: 'flex-start', fontFamily: 'var(--mono)', fontSize: 12, lineHeight: 1.8 }}>
         <div>劇本有錯誤：</div>
         {report.errors.slice(0, 80).map((error) => <div key={error}>{error}</div>)}
       </div>
@@ -519,8 +534,8 @@ export function GameApp({ storage = safeStorage() }: { storage?: Storage }) {
       >
         <span className="lt-corner-dot" />
       </button>
-      {options.debug && <DeveloperPanel director={director} />}
-      {options.dev && !options.debug && <div className="lt-dev-tension" aria-hidden="true">緊張 {director.tension}</div>}
+      {!menu && options.debug && <DeveloperPanel director={director} />}
+      {!menu && options.dev && !options.debug && <div className="lt-dev-tension" aria-hidden="true">緊張 {director.tension}</div>}
       {/* A save that stops landing mid-play is said once (the newer-build case was already said on the title). */}
       {view.saveProblem === 'failed' && <SaveNotice problem="failed" onDismiss={() => director.dismissSaveProblem()} behind={behind} />}
       {view.keep && <KeepPrompt director={director} memory={view.keep} behind={menu} />}
@@ -895,7 +910,7 @@ function Menu({ director, previousVolumes, tab, onTab: setTab, onClose, onTitle,
         {tab === 'refs' && <References />}
       </div>
       <button type="button" className="lt-close" onClick={onClose}>返回</button>
-      <div className="lt-version">版本 {import.meta.env.VITE_BUILD_VERSION || 'v0.001_261118'}</div>
+      <div className="lt-version">版本 {import.meta.env.VITE_BUILD_VERSION || presentation.version}</div>
     </div>
   );
 }

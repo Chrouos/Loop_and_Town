@@ -40,6 +40,7 @@ export function soundsAround(script: GameScript, sceneId: string): SceneSounds {
           break;
         case 'hold': if (beat.sfx) into.sfx.add(beat.sfx); into.sfx.add('breath'); visit(beat.success, into, follow); visit(beat.fail, into, follow); break;
         case 'approach': into.sfx.add(beat.sfx); visit(beat.hit, into, follow); visit(beat.early, into, follow); visit(beat.late, into, follow); break;
+        case 'sneak': into.sfx.add(beat.sfx); into.sfx.add('heartbeat'); beat.watch.forEach((leg) => { if (leg.sfx) into.sfx.add(leg.sfx); }); beat.slips.forEach((slip) => into.sfx.add(slip.sfx)); visit(beat.success, into, follow); visit(beat.caught, into, follow); visit(beat.fail, into, follow); break;
         case 'if': visit(beat.then, into, follow); visit(beat.else, into, follow); break;
         case 'choice':
           for (const option of beat.options) {

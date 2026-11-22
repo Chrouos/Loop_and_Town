@@ -1,11 +1,12 @@
+import { presentation } from '../presentation.config';
 import type { AudioEngine } from '../audio/engine';
 import { DIRECTIONS, DIRECTION_ANGLE, DISTANCES, SFX_SOURCE, type AmbienceId, type Direction, type SfxId, type VibrationId } from '../audio/catalog';
 import { phoneMatters, readable, TTS_MS_PER_CHAR } from '../audio/reader';
 import { BROADCAST_TIMES } from '../audio/broadcastClips';
 import { condRefs, evalCond, type CondContext } from '../script/conditions';
-import { CHAPTER_NUMERALS, SPEAKER_LABELS, TENSION_MAX, type Beat, type Chapter, type Cond, type ChoiceOption, type EndKind, type DazeLevel, type GameScript, type HeartLevel, type Lesson, type LineBeat, type NoiseLevel, type LineKind, type Pos, type Scene, type ShakeLevel } from '../script/types';
+import { CHAPTER_NUMERALS, SPEAKER_LABELS, TENSION_MAX, type Beat, type Chapter, type Cond, type ChoiceOption, type EndKind, type DazeLevel, type GameScript, type HeartLevel, type Lesson, type LineBeat, type NoiseLevel, type LineKind, type Pos, type Scene, type ShakeLevel, type SneakLeg } from '../script/types';
 import { driftClock, heardClock, planClock, type ClockPlan } from './clock';
-import { HEARD_SCALE, heardTiming, lineTiming, pacedSpeed, readingMs, talkHoldMs, voicedTiming, type LineTiming, type TextSpeed, type Phrase } from './text';
+import { HEARD_SCALE, heardTiming, lineTiming, paceBreath, pacedSpeed, readingMs, talkHoldMs, voicedTiming, type LineTiming, type TextSpeed, type Phrase } from './text';
 import { lineId } from '../script/parse';
 import { HUSH_MS, HUSH_SFX, isVoice, isWhispered, lifeOf, type LifeEvent } from './life';
 import { soundsAround } from './prefetch';
@@ -60,7 +61,7 @@ const TENSION_EASE = 6;
 /** What the day does to her on its own; scripts add their own with `tension:`. */
 /** Gap between the clicks of a locate sound that comes more than once (`times`). */
 const LOCATE_REPEAT_MS = 260;
-const TENSION_AUTO = { locateWrong: 4, locateMiss: 12, locateFound: -4, approachMiss: 10, approachHit: -4, holdLost: 4, holdMiss: 8, holdFound: -6, froze: 5, recallMiss: 4, newPlace: -2 };
+const TENSION_AUTO = { locateWrong: 4, locateMiss: 12, locateFound: -4, approachMiss: 10, approachHit: -4, holdLost: 4, holdMiss: 8, holdFound: -6, sneakDone: -4, sneakCaught: 12, sneakLate: 6, froze: 5, recallMiss: 4, newPlace: -2 };
 /** Midnight: she wakes on the train with some of it still in her chest. */
 const TENSION_SLEEP = 0.6;
 /** Per band: the world's background comes this much more often (interval ×) and louder. */
@@ -77,7 +78,13 @@ export const HOLD_PER_BAND = 0.75;
 const APPROACH_CLOSE = [2, 2, 2, 1];
 /** The first time a moment is taught on screen, the clock waits this long so the lesson can be read before it starts. */
 const LESSON_LEAD_MS = 3000;
-const INTERACT_LESSONS: readonly Lesson[] = ['locate', 'approach', 'hold'];
+const INTERACT_LESSONS: readonly Lesson[] = ['locate', 'approach', 'hold', 'sneak'];
+/** 偷偷做: once they are close or have gone quiet, her hands have this long to stop (by band: wound up, she is slower to notice). */
+export const SNEAK_GRACE_MS = [800, 750, 650, 500];
+/** 偷偷做: a loud slip makes whoever is out there stop and listen this long. */
+export const SNEAK_LISTEN_MS = 2200;
+/** 偷偷做: while she works, her hands make a small sound this often. */
+const SNEAK_HANDS_MS = 900;
 /** Panic with no scripted heart: she still hears her own, faintly, under everything (sound only, the screen stays still). */
 const UNDERTONE = { ms: 760, gain: 0.16, rate: 1.2 };
 /** Tense and up: she hears her own breathing, quicker and shallower the tighter she is. Waiting, with nothing to do, it is louder. */
@@ -194,6 +201,8 @@ export type InteractView =
   | { type: 'approach'; key: number; prompt?: string; lesson?: true }
   /** 屏息: hold on and breathe out slowly; `since` is when this hold began (null = not holding). `seconds` already counts her tension. */
   | { type: 'hold'; key: number; prompt?: string; seconds: number; since: number | null; lesson?: true }
+  /** 偷偷做: held = her hands work; `done` is how many of `work` seconds are behind her, `since` when this stretch began (null = still). */
+  | { type: 'sneak'; key: number; prompt?: string; work: number; done: number; since: number | null; lesson?: true }
   | { type: 'punch'; key: number; cells: number[][]; label?: string; prompt?: string };
 
 export type DirectorOutput = {
@@ -219,14 +228,18 @@ type Run = {
   /** The last line this run said was one heard on an earlier loop: a `pause` after it is shortened too. */
   afterHeard?: boolean;
   // seconds: how long this hold has to last (her tension added); close: how many of the last steps toward her count.
-  pendingInteract?: { beat: InteractBeat; deadline: number; triesLeft: number; start: number; heldFrom?: number; slips?: number; seconds?: number; close?: number };
+  pendingInteract?: { beat: InteractBeat; deadline: number; triesLeft: number; start: number; heldFrom?: number; slips?: number; seconds?: number; close?: number; sneak?: SneakState };
   pendingChoice?: { beat: Extract<Beat, { k: 'choice' }>; options: ChoiceOption[]; deadline: number; fallback: number; recallIndex?: number; remaining?: number };
   // recallIndex: the open memory picker answers this option; -1 = this question takes no memory at all.
 };
 
 const CENTER: Pos = { dir: 'center', dist: 'near' };
 
-type InteractBeat = Extract<Beat, { k: 'touch' | 'locate' | 'approach' | 'punch' | 'hold' }>;
+/** 偷偷做 as it runs: which leg the other one is on (gen changes with every leg, so old leg sounds stop), whether that leg
+ *  sees her, how much of the work is done, and the current stretch of working (press changes on every press and release). */
+type SneakState = { leg: SneakLeg; next: number; gen: number; legStart: number; doneMs: number; heldFrom: number | null; press: number };
+
+type InteractBeat = Extract<Beat, { k: 'touch' | 'locate' | 'approach' | 'punch' | 'hold' | 'sneak' }>;
 /** 聽距離: how far each step lands (audio radius), from the far end of the street to right in front of her. */
 const APPROACH_FAR = 6;
 const APPROACH_NEAR = 0.9;
@@ -813,6 +826,115 @@ export class Director {
     this.advanceTo(this.view.t);
   }
 
+  /**
+   * 偷偷做: held, her hands get on with it. Whoever she is hiding from keeps moving; while they are close or have gone
+   * quiet she has a moment to stop, and if she is still at it after that, she is caught. A slip in the work (a drawer
+   * catching) is loud enough that they stop and listen.
+   */
+  sneakStart(): void {
+    const main = this.runs.get('main');
+    const pending = main?.pendingInteract;
+    const view = this.view.interact;
+    const state = pending?.sneak;
+    if (!main || !pending || !state || pending.beat.k !== 'sneak' || view?.type !== 'sneak' || state.heldFrom !== null) return;
+    const beat = pending.beat;
+    const from = this.view.t;
+    const press = ++state.press;
+    state.heldFrom = from;
+    this.view.interact = { ...view, since: from };
+    const still = () => main.pendingInteract === pending && state.press === press;
+    const hands = (at: number) => this.schedule(at, () => {
+      if (!still()) return;
+      this.out.audio.play(beat.sfx, CENTER, { gain: 0.35 });
+      if (beat.text) this.addPeripheral('sfx', beat.text, CENTER, this.view.t + SNEAK_HANDS_MS * 0.8, undefined, SFX_SOURCE[beat.sfx], lookOf(beat.sfx));
+      hands(at + SNEAK_HANDS_MS);
+    });
+    hands(from);
+    for (const slip of beat.slips) {
+      const into = slip.at * 1000 - state.doneMs;
+      if (into <= 0) continue;
+      this.schedule(from + into, () => {
+        if (!still()) return;
+        this.out.audio.play(slip.sfx, CENTER, { gain: 1 });
+        if (slip.text) this.addPeripheral('sfx', slip.text, CENTER, this.view.t + 1200, undefined, SFX_SOURCE[slip.sfx], lookOf(slip.sfx));
+        this.vibrate('tap');
+        // They heard that: whatever they were doing, they stop and listen, from wherever they are.
+        if (!state.leg.looks) this.sneakLeg(pending, { ...state.leg, for: SNEAK_LISTEN_MS / 1000, still: true, looks: true, sfx: undefined }, state.next, this.view.t);
+        this.bump();
+      });
+    }
+    this.schedule(from + beat.work * 1000 - state.doneMs, () => {
+      if (!still()) return;
+      state.doneMs = beat.work * 1000;
+      this.resolveInteract(main, true);
+      this.advanceTo(this.view.t);
+    });
+    if (state.leg.looks) this.sneakCheck(pending, from + SNEAK_GRACE_MS[this.view.tension]);
+    this.bump();
+  }
+
+  sneakEnd(): void {
+    const main = this.runs.get('main');
+    const pending = main?.pendingInteract;
+    const view = this.view.interact;
+    const state = pending?.sneak;
+    if (!main || !pending || !state || view?.type !== 'sneak' || state.heldFrom === null) return;
+    state.doneMs = Math.min(pending.beat.k === 'sneak' ? pending.beat.work * 1000 : Infinity, state.doneMs + this.view.t - state.heldFrom);
+    state.heldFrom = null;
+    state.press += 1;
+    this.view.interact = { ...view, since: null, done: state.doneMs / 1000 };
+    this.bump();
+  }
+
+  /** One leg of where they are: their sound comes every so often from there (none, if they have gone still). */
+  private sneakLeg(pending: NonNullable<Run['pendingInteract']>, leg: SneakLeg, next: number, at: number): void {
+    const state = pending.sneak!;
+    const beat = pending.beat as Extract<Beat, { k: 'sneak' }>;
+    const key = this.view.interact?.key;
+    const gen = ++state.gen;
+    const live = () => this.runs.get('main')?.pendingInteract === pending && state.gen === gen && this.view.interact?.key === key;
+    state.leg = leg;
+    state.next = next;
+    state.legStart = at;
+    const pos: Pos = { dir: leg.at, dist: leg.dist };
+    if (leg.looks) {
+      // Her heart jumps first: the footsteps are right there, or they have just stopped.
+      this.schedule(at, () => { if (live()) { this.out.audio.play('heartbeat', CENTER, { gain: 0.55, rate: 1.3 }); this.vibrate('tap'); } });
+      if (state.heldFrom !== null) this.sneakCheck(pending, at + SNEAK_GRACE_MS[this.view.tension]);
+    }
+    if (!leg.still && leg.sfx) {
+      const sfx = leg.sfx;
+      const near = leg.dist === 'near' ? 1 : leg.dist === 'mid' ? 0.75 : 0.5;
+      for (let t = 0; t < leg.for * 1000 - 50; t += leg.every * 1000) {
+        this.schedule(at + t, () => {
+          if (!live()) return;
+          this.out.audio.play(sfx, pos, { gain: near * TENSION_EARS[this.view.tension].target });
+          if (leg.text) this.addPeripheral('sfx', leg.text, pos, this.view.t + leg.every * 900, undefined, SFX_SOURCE[sfx], lookOf(sfx));
+          this.ripple(pos, lookOf(sfx));
+          if (key !== undefined) this.maskWithHeart(key, this.view.t + leg.every * 500);
+          this.bump();
+        });
+      }
+    }
+    this.schedule(at + leg.for * 1000, () => {
+      if (!live()) return;
+      this.sneakLeg(pending, beat.watch[next], (next + 1) % beat.watch.length, this.view.t);
+    });
+  }
+
+  /** Still working, with them close or listening, for longer than she had to stop: caught. */
+  private sneakCheck(pending: NonNullable<Run['pendingInteract']>, at: number): void {
+    const state = pending.sneak!;
+    this.schedule(at, () => {
+      const main = this.runs.get('main');
+      if (!main || main.pendingInteract !== pending || pending.beat.k !== 'sneak' || state.heldFrom === null || !state.leg.looks) return;
+      const working = this.view.t - Math.max(state.heldFrom, state.legStart);
+      if (working < SNEAK_GRACE_MS[this.view.tension] - 1) return;
+      this.resolveInteract(main, false, pending.beat.caught);
+      this.advanceTo(this.view.t);
+    });
+  }
+
   private finishInteract(type: InteractView['type'], ok: boolean): void {
     const main = this.runs.get('main');
     if (!main?.pendingInteract || main.pendingInteract.beat.k !== type) return;
@@ -824,7 +946,7 @@ export class Director {
     // The first time ever (unless a line already said it), the moment says how it works. It counts as taught the
     // moment it is shown, like the first wait and the first question, so it can never be said twice; anything on a
     // clock waits a little so the lesson can be read before the steps start or the breath is timed.
-    const lesson = (beat.k === 'locate' || beat.k === 'approach' || beat.k === 'hold') && !this.taught(beat.k);
+    const lesson = (beat.k === 'locate' || beat.k === 'approach' || beat.k === 'hold' || beat.k === 'sneak') && !this.taught(beat.k);
     if (lesson) this.markTaught(beat.k);
     const lead = lesson ? LESSON_LEAD_MS : 0;
     // Wound up, the same moment is harder, never impossible: a hold asks for more breath (and its window grows by as much),
@@ -834,6 +956,7 @@ export class Director {
     // An approach lasts as long as the walk: every step toward her, then three going away.
     const timeoutMs = beat.k === 'approach' ? (beat.steps + APPROACH_PAST.length) * beat.interval * 1000
       : beat.k === 'locate' ? (beat.timeout !== undefined ? beat.timeout * 1000 : Infinity) : (beat.timeout + holdExtra) * 1000;
+    // (sneak: the whole time they are out of the room)
     // (hold: the whole window to get her breath down)
     run.blocked = true;
     run.pendingInteract = {
@@ -854,6 +977,12 @@ export class Director {
     if (beat.k === 'approach') {
       this.view.interact = { type: 'approach', key, prompt: beat.prompt, ...taught };
       this.walkUp(key, beat, t + SHIFT_MS + lead, APPROACH_CLOSE[band]);
+    }
+    if (beat.k === 'sneak') {
+      const pending = run.pendingInteract;
+      pending.sneak = { leg: beat.watch[0], next: 0, gen: 0, legStart: pending.start, doneMs: 0, heldFrom: null, press: 0 };
+      this.view.interact = { type: 'sneak', key, prompt: beat.prompt, work: beat.work, done: 0, since: null, ...taught };
+      this.sneakLeg(pending, beat.watch[0], 1 % beat.watch.length, pending.start);
     }
     this.bump();
   }
@@ -920,9 +1049,12 @@ export class Director {
     if (pending.beat.k === 'locate') this.addTension(ok ? TENSION_AUTO.locateFound : TENSION_AUTO.locateMiss);
     if (pending.beat.k === 'approach') this.addTension(ok ? TENSION_AUTO.approachHit : TENSION_AUTO.approachMiss);
     if (pending.beat.k === 'hold') this.addTension(ok ? TENSION_AUTO.holdFound : TENSION_AUTO.holdMiss);
+    if (pending.beat.k === 'sneak') this.addTension(ok ? TENSION_AUTO.sneakDone : branch ? TENSION_AUTO.sneakCaught : TENSION_AUTO.sneakLate);
     if (pending.beat.k === 'locate' || pending.beat.k === 'hold') run.stack.push({ beats: ok ? pending.beat.success : pending.beat.fail, i: 0 });
     // Nobody spoke up in time: the steps went past and she calls after them.
     if (pending.beat.k === 'approach') run.stack.push({ beats: branch ?? pending.beat.late, i: 0 });
+    // Caught comes in as its own branch; time running out with the work unfinished is `fail`.
+    if (pending.beat.k === 'sneak') run.stack.push({ beats: ok ? pending.beat.success : branch ?? pending.beat.fail, i: 0 });
     run.busyUntil = this.view.t;
     this.bump();
   }
@@ -1245,7 +1377,7 @@ export class Director {
         this.applyChoice(run, option);
       }
       // Hands and ears take their time, but the day does not stop: she gets there on her own, or misses it.
-      if (run.pendingInteract && run.pendingInteract.deadline <= t) this.resolveInteract(run, run.pendingInteract.beat.k !== 'locate' && run.pendingInteract.beat.k !== 'approach' && run.pendingInteract.beat.k !== 'hold');
+      if (run.pendingInteract && run.pendingInteract.deadline <= t) this.resolveInteract(run, run.pendingInteract.beat.k !== 'locate' && run.pendingInteract.beat.k !== 'approach' && run.pendingInteract.beat.k !== 'hold' && run.pendingInteract.beat.k !== 'sneak');
       while (!run.done && !run.blocked && run.busyUntil <= this.view.t && this.view.phase === 'scene') {
         this.finishLine(run);
         this.step(run);
@@ -1348,7 +1480,7 @@ export class Director {
       case 'clock': this.setClock(beat.time); run.busyUntil = t; this.bump(); return;
       case 'cue': this.startThread(beat, t); run.busyUntil = t + 400; return;
       case 'choice': this.offerChoice(run, beat, t); return;
-      case 'touch': case 'locate': case 'approach': case 'punch': case 'hold': this.startInteract(run, beat, t); return;
+      case 'touch': case 'locate': case 'approach': case 'punch': case 'hold': case 'sneak': this.startInteract(run, beat, t); return;
       case 'if': run.stack.push({ beats: evalCond(beat.cond, this.condContext()) ? beat.then : beat.else, i: 0 }); run.busyUntil = t; return;
       case 'set': beat.flags.forEach((flag) => this.flags.add(flag)); run.busyUntil = t; return;
       case 'learn': beat.ids.forEach((id) => this.learn(id)); run.busyUntil = t; return;
@@ -1374,7 +1506,7 @@ export class Director {
     const fast = heardBefore && this.settings.fastHeard;
     run.afterHeard = heardBefore;
     const speed = this.textSpeed();
-    let timing: LineTiming = lineTiming(text, beat.kind, speed);
+    let timing: LineTiming = lineTiming(text, beat.kind, speed, paceBreath(this.settings.textSpeed, this.pace));
     if (skipping) timing = { phrases: timing.phrases.map((phrase) => ({ ...phrase, at: 0 })), revealMs: 0, holdMs: SKIP_LINE_MS };
     else if (fast) timing = heardTiming(timing, text, speed);
     const focused = this.view.focus === run.id && !this.shift;
@@ -1735,6 +1867,7 @@ export class Director {
     if (beat.k === 'locate') return new Set([beat.sfx, ...beat.decoys.map((decoy) => decoy.sfx)]);
     if (beat.k === 'approach') return new Set([beat.sfx]);
     if (beat.k === 'hold' && beat.sfx) return new Set([beat.sfx]);
+    if (beat.k === 'sneak') return new Set([beat.sfx, ...beat.watch.flatMap((leg) => leg.sfx ? [leg.sfx] : []), ...beat.slips.map((slip) => slip.sfx)]);
     return new Set();
   }
 
@@ -2111,6 +2244,7 @@ export function learnIdsOf(chapter: Chapter): string[] {
       if (beat.k === 'if') { if (!replayOnly(beat.cond)) visit(beat.then); visit(beat.else); }
       if (beat.k === 'locate' || beat.k === 'hold') { visit(beat.success); visit(beat.fail); }
       if (beat.k === 'approach') { visit(beat.hit); visit(beat.early); visit(beat.late); }
+      if (beat.k === 'sneak') { visit(beat.success); visit(beat.caught); visit(beat.fail); }
       if (beat.k === 'choice') beat.options.forEach((option) => { if (replayOnly(option.cond)) return; visit(option.then); option.recall?.accept.forEach((entry) => visit(entry.then)); });
     }
   };
@@ -2145,7 +2279,7 @@ const TEACH_GIVE_UP_MS = 25000;
 const SHAKE_VIBRATION: Record<ShakeLevel, VibrationId> = { light: 'thud', hard: 'crash' };
 
 /** 聽過的話自動放快: a `pause` in a stretch she has heard before takes this fraction of its time (lines: heardTiming). */
-const HEARD_PAUSE_SCALE = 0.5;
+const HEARD_PAUSE_SCALE = presentation.reading.heardPauseTimeScale;
 /** Fast-forward: how long a heard line stays, the longest a pause or a sound with a word may hold it up, and the
  *  breath between scenes and a new place's card. Real-time waits are never touched. */
 const SKIP_LINE_MS = 180;

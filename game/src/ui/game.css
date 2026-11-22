@@ -42,30 +42,23 @@
   /* rain and dripping water: greener and paler than the phone */
   --water: #a9c7c4;
   --water-ring: rgba(169, 199, 196, 0.42);
-  --serif: 'LXGW WenKai TC', 'Noto Serif TC', 'Songti TC', 'PMingLiU', serif;
-  /* the narrower faces fall back to WenKai, never to a system font */
-  --mono: 'Noto Sans CJK TC', 'LXGW WenKai TC', sans-serif;
   /* the world's stamps (corner, cards): a cold grey, no warmth; --cold is 5.2:1 on black, never lower */
   --cold: rgba(184, 192, 200, 0.66);
   --cold-soft: rgba(184, 192, 200, 0.84);
   /* a pixel face is only sharp at whole multiples of its 16px grid */
-  --screen: 'Grey Tide Pixel', 'LXGW WenKai TC', monospace;
   --pixel: 16px;
-  --furniture: 'GenWanMin2 TW', 'LXGW WenKai TC', serif;
   --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
   /* Interface words and the small ones (names, the clock, a sound's source): at least 18px on a 1080p desktop
      (Xbox Accessibility Guideline 101), smaller on a phone where the screen is held close. */
   --ui: clamp(0.92rem, 0.55rem + 0.55vw, 1.2rem);
-  /* the story in the middle reads a size above everything around it (Stage.tsx placeSounds mirrors this clamp) */
-  --line: clamp(1.32rem, 2.65vw, 1.84rem);
   --ui-small: clamp(0.78rem, 0.4rem + 0.62vw, 1.15rem);
   color-scheme: dark;
 }
 /* --text-scale is the player's text size (GameApp). A phone-sized screen takes it up to 特大: past that the stage
    has no room; the menu and her memories scroll, so they take it whole. Stage.tsx caps its sums the same way. */
-.lt-app { --ts: var(--text-scale, 1); }
+.lt-app { --ts: var(--text-scale, 1); font-family: var(--serif); }
 @media (max-width: 560px), (max-height: 500px) {
-  .lt-app { --ts: min(var(--text-scale, 1), 1.4); }
+  .lt-app { --ts: min(var(--text-scale, 1), var(--small-screen-scale)); }
   .lt-overlay { --ts: var(--text-scale, 1); }
 }
 
@@ -73,7 +66,6 @@
 html, body, #root { margin: 0; height: 100%; background: var(--bg); }
 body {
   color: var(--ink);
-  font-family: var(--serif);
   overflow: hidden;
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
@@ -178,7 +170,7 @@ button:focus-visible { outline: 2px solid var(--ink-soft); outline-offset: 6px; 
   margin-bottom: 0.9em; opacity: 0; animation: lt-fade-in 600ms var(--ease) forwards;
   text-indent: 0.32em;
 }
-.lt-text { margin: 0; font-size: calc(var(--line) * var(--ts, 1)); line-height: 1.85; font-weight: 400; letter-spacing: 0.06em; text-wrap: balance; line-break: strict; }
+.lt-text { margin: 0; font-size: calc(var(--line) * var(--ts, 1)); line-height: var(--story-line-height); font-weight: 400; letter-spacing: 0.06em; text-wrap: balance; line-break: strict; }
 .lt-sent { display: inline-block; max-width: 100%; margin: 0 0.5em; word-break: keep-all; overflow-wrap: break-word; }
 .lt-line.kind-me .lt-sent:first-child { margin-left: 0; }
 .lt-line.kind-me .lt-sent:last-of-type { margin-right: 0; }
@@ -189,6 +181,21 @@ button:focus-visible { outline: 2px solid var(--ink-soft); outline-offset: 6px; 
    progress a hair under 1, which steps(1, end) rounds down to nothing, and the line stalls there until it is revealed. */
 .lt-char { opacity: 0; animation: lt-char 140ms linear forwards; }
 @keyframes lt-char { from { opacity: 0; } to { opacity: 1; } }
+.lt-line[data-story-animation="none"] :is(.lt-char, .lt-phrase) {
+  animation-duration: 1ms;
+  filter: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .lt-stage:not(.still) .lt-line[data-story-animation="slide-right"]:not(.revealed) :is(.lt-char, .lt-phrase) {
+    position: relative;
+    animation-name: lt-story-slide-right;
+    filter: none;
+  }
+}
+@keyframes lt-story-slide-right {
+  from { opacity: 0; left: -0.25em; }
+  to { opacity: 1; left: 0; }
+}
 .lt-line.revealed .lt-phrase, .lt-line.revealed .lt-char { animation: none; opacity: 1; filter: none; }
 
 /* The quotes ride inside the first and last sentence, so a full row never pushes them onto rows of their own. */
@@ -199,13 +206,16 @@ button:focus-visible { outline: 2px solid var(--ink-soft); outline-offset: 6px; 
 /* Menus, settings and buttons are the game, not the story: the thin Ming. A kept line stays in the story's hand. */
 .lt-overlay, .lt-opt, .lt-close, .lt-calib { font-family: var(--furniture); }
 .lt-mem-text, .lt-recall-text { font-family: var(--serif); }
-.lt-line.kind-narr .lt-text { font-size: calc(var(--line) * 0.88 * var(--ts, 1)); color: rgba(236, 230, 218, 0.8); letter-spacing: 0.1em; font-weight: 300; }
-/* A screen: the pixel face on its grid (16px, 32px once the text is set large), never smoothed into a blur. */
+.lt-line.kind-narr .lt-text { font-size: calc(var(--line) * var(--narration-scale) * var(--ts, 1)); color: rgba(236, 230, 218, 0.8); letter-spacing: 0.1em; font-weight: 300; }
+/* Keep the corner stamps on the pixel grid. Phone dialogue scales separately for readability. */
 .lt-line.kind-phone .lt-text, .lt-where-time, .lt-where-place {
   font-family: var(--screen); font-weight: 400; -webkit-font-smoothing: none; font-smooth: never;
   font-size: var(--pixel); font-size: round(nearest, calc(var(--pixel) * var(--ts, 1)), var(--pixel));
 }
-.lt-line.kind-phone .lt-text { color: var(--phone); letter-spacing: 0.25em; line-height: 2; }
+.lt-line.kind-phone .lt-text {
+  font-size: min(calc(var(--phone-size) * var(--ts, 1)), var(--phone-size-max));
+  color: var(--phone); letter-spacing: 0.25em; line-height: 2;
+}
 .lt-line.kind-phone .lt-label { color: rgba(157, 176, 196, 0.75); }
 /* a voice from before: a softer, handwritten hand, a little warmer, as if worn by being played again */
 .lt-line.voice-past .lt-text { letter-spacing: 0.08em; color: #e6dccb; }
@@ -729,6 +739,12 @@ details.lt-credits { padding: 0; border-bottom: 1px solid var(--ink-ghost); }
 .lt-hold.holding .lt-hold-breath { animation-name: lt-hold-breathe; animation-timing-function: linear; animation-fill-mode: forwards; }
 @keyframes lt-hold-breathe { from { transform: scale(1); opacity: 0.7; } to { transform: scale(0.25); opacity: 0.15; } }
 @media (prefers-reduced-motion: reduce) { .lt-hold.holding .lt-hold-breath { animation: none; opacity: 0.2; } }
+.lt-sneak .lt-locate-prompt { width: min(86vw, 520px); text-align: center; }
+/* 偷偷做: a thin line of how far her hands have got; it only grows while she works. */
+.lt-sneak-work { position: absolute; left: 50%; top: calc(50% + 96px); width: 120px; height: 1px; margin-left: -60px; background: var(--ink-dim); opacity: 0.45; transform-origin: left center; transform: scaleX(var(--from)); pointer-events: none; }
+.lt-sneak.working .lt-sneak-work { animation-name: lt-sneak-grow; animation-timing-function: linear; animation-fill-mode: forwards; opacity: 0.7; }
+@keyframes lt-sneak-grow { from { transform: scaleX(var(--from)); } to { transform: scaleX(1); } }
+@media (prefers-reduced-motion: reduce) { .lt-sneak.working .lt-sneak-work { animation: none; } }
 /* the first time a moment comes, how it works: above its prompt, quiet, gone once it has been done */
 .lt-interact-lesson {
   position: absolute; left: 50%; top: calc(50% - 64px); transform: translate(-50%, -100%); width: min(86vw, 460px);

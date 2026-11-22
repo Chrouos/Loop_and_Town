@@ -1,3 +1,4 @@
+import { presentation } from '../presentation.config';
 import { Fragment, cloneElement, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent, type ReactElement, type RefObject } from 'react';
 import { CARD_MS, CHAPTER_CARD_MS, CHAPTER_PART_MS, ECHO_MS, type Card, type CenterLine, type Director, type InteractView, type Peripheral, type View } from '../engine/director';
 import { interpolateClock, leanOf, placeLabel, type Box } from './geometry';
@@ -8,8 +9,6 @@ import { Rain } from './Rain';
 import { gluePunctuation, type Phrase } from '../engine/text';
 
 const HOLD_MS = 560;
-/** The largest text scale a phone-sized stage takes (the same cap as --ts in game.css). */
-const SMALL_SCREEN_SCALE = 1.4;
 /** Narrower than this, turning toward a sound folds the main conversation out of its way. */
 const NARROW_PX = 600;
 const MOVE_MS = 700;
@@ -107,6 +106,7 @@ const INTERACT_HELP: Record<InteractView['type'], string> = {
   locate: '聽完之後，選聲音傳來的方向。鍵盤可以用方向鍵，兩個一起按是斜的；也可以用數字鍵，或 Q W E、A D、Z X C',
   approach: '聲音到面前時，按空白鍵或點畫面開口',
   hold: '按住空白鍵或畫面不放',
+  sneak: '按住空白鍵或畫面，手才會動；放開就停',
   punch: '用數字鍵 1 到 6 打點',
 };
 
@@ -259,8 +259,10 @@ function placeSounds(root: HTMLElement, periph: Peripheral[], ripples: View['rip
     return { l: r.left - origin.left - pad, t: r.top - origin.top - pad, r: r.right - origin.left + pad, b: r.bottom - origin.top + pad };
   };
   // Room for a typical three-row line with its label and echo, even before a longer one arrives.
-  // game.css --line: clamp(1.32rem, 2.65vw, 1.84rem)
-  const lineH = Math.min(Math.max(21.12, 0.0265 * W), 29.44) * 1.85 * textScale;
+  const { minRem, vw, maxRem } = presentation.typography.story.fontSize;
+  const rem = Number.parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+  const lineSize = Math.min(Math.max(minRem * rem, vw / 100 * W), maxRem * rem);
+  const lineH = lineSize * presentation.typography.story.lineHeight * textScale;
   const halfW = Math.min(0.38 * W, 340);
   const keepOut: Box[] = [{ l: W / 2 - halfW - gap, r: W / 2 + halfW + gap, t: H / 2 - 3.5 * lineH - 30, b: H / 2 + 1.5 * lineH + 26 + gap }];
   root.querySelectorAll('.lt-center .lt-line:not(.leaving) .lt-text, .lt-center .lt-line:not(.leaving) .lt-label, .lt-teach-keep, .lt-choice, .lt-choice-teach, .lt-wait, .lt-where').forEach((el) => keepOut.push(boxOf(el)));
@@ -460,7 +462,7 @@ export function Stage({ director, view, onCapture, firstCueHint, onCueHintShown,
   const placedFor = useRef(screen);
   // A phone-sized stage caps the text size where the layout still holds (matches --ts in game.css).
   const small = typeof window !== 'undefined' && (window.innerWidth <= 560 || window.innerHeight <= 500);
-  const textScale = Math.min(FONT_SIZES[director.settings.fontSize].scale, small ? SMALL_SCREEN_SCALE : Infinity);
+  const textScale = Math.min(FONT_SIZES[director.settings.fontSize].scale, small ? presentation.typography.smallScreenScale : Infinity);
   const placedScale = useRef(textScale);
   useEffect(() => {
     const onResize = () => setScreen((value) => value + 1);
@@ -676,6 +678,10 @@ function Line({ line, role, side = false, director, view, onCapture }: { line: C
   useLayoutEffect(() => {
     const el = ref.current;
     if (role !== 'leaving' || !el?.animate) return;
+    if (line.kind !== 'phone' && presentation.typography.story.exitAnimation === 'none') {
+      el.style.opacity = '0';
+      return;
+    }
     const style = getComputedStyle(el);
     el.animate(
       [{ opacity: style.opacity, filter: style.filter }, { opacity: 0, filter: 'blur(4px)' }],
@@ -703,6 +709,7 @@ function Line({ line, role, side = false, director, view, onCapture }: { line: C
     <div
       ref={ref}
       className={classes}
+      data-story-animation={line.kind === 'phone' ? undefined : presentation.typography.story.animation}
       style={{ ['--echo-ms' as string]: `${ECHO_MS / director.speed}ms` }}
       onPointerDown={start}
       onPointerUp={(event) => { if (timer.current !== null) { cancel(); director.hurry(); event.stopPropagation(); } }}
@@ -817,8 +824,8 @@ function Choices({ director, choice, gone }: { director: Director; choice: NonNu
       {fallback && <span className="lt-sr" id={`lt-choice-fallback-${choice.key}`}>{fallback}</span>}
       {choice.first && (
         <div className="lt-choice-teach" role="status">
-          點一個，就是妳接下來說的話、做的事。
-          {timeoutMs > 0 && <><br />不選，也是一種回答。</>}
+          選擇一個選項
+          {timeoutMs > 0 && <><br />不選，等待，也是一種回答。</>}
         </div>
       )}
     </div>
@@ -843,6 +850,7 @@ const LESSON_KEYS: Record<NonNullable<View['teach']>, string> = {
   locate: '。看完按 Enter 往下',
   approach: '。看完按 Enter 往下',
   hold: '。看完按 Enter 往下',
+  sneak: '。看完按 Enter 往下',
 };
 
 const LESSON_TEXT: Record<Exclude<NonNullable<View['teach']>, 'tap'>, string> = {
