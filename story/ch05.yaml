@@ -33,6 +33,13 @@ scenes:
           - if: "!know.k_tower_kit && know.lead_c5_kit"
             then:
               - think: 他說那個工具箱丟了。斷掉的錶帶他都捨不得丟。
+          - if: "!know.k_yuan_1758 && know.lead_c5_pried"
+            then:
+              - think: 上一次我趁他接電話，翻了櫃台底下的抽屜。複寫紙的藍沾在我手指上，我自己不知道。
+              - think: 晚上我跟他講實話，他說他只信一半。
+          - if: "!know.k_tower_kit && know.lead_c5_caught"
+            then:
+              - think: 上一次他從布簾後面出來，我的手還在他櫃台底下。他沒有罵我，只說要找什麼跟他講。
           - think: 今天，我只想好好跟他吃一頓飯。
         else:
           - narr: 我醒來的時候，手心還是熱的。
@@ -223,6 +230,82 @@ scenes:
       - { sfx: drawer, at: front, dist: near, text: 喀 }
       - narr: 我把筆放回板子旁邊，照原來的方向，把抽屜推回去。
       - pause: 1
+      # 偷偷做：上一輪問工具箱，他說丟了就不再講（lead_c5_kit）。這一輪房仲打來，他去布簾後面接。
+      # 她在櫃台邊（B），淺抽屜在正前方近處；布簾在正前方遠處，工作檯和舊櫃子在中間（docs/scene-layouts.md）。
+      - if: know.lead_c5_kit && !know.k_tower_kit
+        then:
+          - { sfx: phone_ring, at: front, dist: near, text: 鈴—— }
+          - yuan: 房仲。我去後面接，這邊太吵。
+          - { sfx: step_uneven, at: front, dist: near, to: front:far, text: 咚、叩 }
+          - move: { yuan: "front:far" }
+          - { sfx: cloth_rustle, at: front, dist: far, text: 沙, src: 布簾 }
+          - narr: 布簾放下來，他的聲音隔了一層布。
+          - think: 點字板那個抽屜旁邊，還有一個。工程的人來借東西，總會留下一張紙。
+          - choice:
+              timeout: 10
+              default: 1
+              options:
+                - text: （拉開旁邊那個抽屜，摸摸看）
+                  then:
+                    - tension: 4
+                    - narr: 我的膝蓋頂著櫃台下的木板，手指勾住第二個抽屜的把手。
+                    - heart: slow
+                    - sneak:
+                        work: 5
+                        timeout: 40
+                        sfx: paper_rustle
+                        text: 沙
+                        slips:
+                          - { at: 1.5, sfx: drawer, text: 喀啦 }
+                        watch:
+                          - { sfx: murmur_m, at: front, dist: far, for: 3.2, every: 1.6, text: 嗯、嗯 }
+                          - { at: front, dist: far, for: 1.6, still: true }
+                          - { sfx: step_uneven, at: front, dist: mid, for: 1.6, every: 0.8, text: 咚、叩, looks: true }
+                          - { sfx: drawer, at: front, dist: mid, for: 2.4, every: 1.2, text: 喀啦 }
+                          - { sfx: step_uneven, at: front, dist: far, for: 1.6, every: 0.8, text: 咚、叩 }
+                        prompt: 按住翻抽屜。布簾那邊安靜了，或他走出來，就放開
+                        success:
+                          - narr: 一疊收據底下，有一張比較薄、比較滑的紙。背面壓過的筆痕，摸得出來。
+                          - touch:
+                              cells: [鐘, 樓, 舊, 線]
+                              style: groove
+                              prompt: 複寫紙的背面，筆壓過的地方是凹的
+                          - think: 工程的人借走的。借去找鐘樓的舊線。
+                          - narr: 我把紙塞回收據底下，抽屜推回去。
+                          - { sfx: drawer, at: front, dist: near, text: 喀 }
+                          - { sfx: cloth_rustle, at: front, dist: far, text: 沙, src: 布簾 }
+                          - { learn: k_c5_drawer_opened }
+                          - set: c5_snuck
+                        caught:
+                          - { yuan: 妳在找什麼？, at: front, dist: near, shake: light }
+                          - heart: fast
+                          - narr: 他就隔著櫃台站在我前面。我的手還在他的抽屜裡。
+                          - { sfx: drawer, at: front, dist: near, text: 喀 }
+                          - narr: 他把抽屜推回去，推到我的手指那裡停住，等我自己抽出來。
+                          - yuan: 要找什麼，跟我講就好。
+                          - narr: 他的聲音沒有變大。我寧願他變大。
+                          - { think: 布簾什麼時候掀開的，我沒聽見。, learn: lead_c5_caught }
+                          - set: [c5_caught, c5_pried]
+                          - { sfx: tools_clink, at: front, dist: near, text: 叮 }
+                          - narr: 他回去工作檯。整個上午，他只再跟我講過一句話，問我茶要不要加冰。
+                          - goto: c5_noon
+                        fail:
+                          - { sfx: cloth_rustle, at: front, dist: far, text: 沙, src: 布簾 }
+                          - narr: 布簾響了。抽屜我一直沒拉開，手放回櫃台上，掌心貼著玻璃。
+                          - narr: 玻璃被我的手壓出一圈熱。
+                    - if: "!flag.c5_caught"
+                      then:
+                        - { sfx: step_uneven, at: front, dist: far, to: front:near, text: 咚、叩 }
+                        - move: { yuan: front }
+                        - yuan: 他說櫃子清空了再來拍。
+                - text: （手放在櫃台上，等他講完）
+                  then:
+                    - narr: 我把手放在櫃台的玻璃上，聽他在布簾後面說好、好、下禮拜。
+                    - pause: 2
+                    - { sfx: cloth_rustle, at: front, dist: far, text: 沙, src: 布簾 }
+                    - { sfx: step_uneven, at: front, dist: far, to: front:near, text: 咚、叩 }
+                    - move: { yuan: front }
+                    - yuan: 他說櫃子清空了再來拍。
       - narr: 我的手順著櫃子往下。最下層有一塊地方，灰比較薄。
       - narr: 方方正正的。像有東西在這裡放了很多年，最近才被拿走。
       - me: 這裡以前放什麼？
@@ -232,44 +315,79 @@ scenes:
       - if: know.lead_c5_kit
         then:
           - think: 上一次我直接問那是什麼箱子，他就說丟了，之後一個字都不多講。
-      # 關口：直接問，他就把話收回去；點破他捨不得丟，或者等他，他才會自己講。
-      - choice:
-          options:
-            - text: 「斷掉的錶帶，你都沒丟。」
-              then:
+      # 翻過抽屜：複寫紙的藍印在她指腹上，她自己不知道，他看得到。認了，他才講；不認，門關上。兩種他都記著。
+      - if: flag.c5_snuck
+        then:
+          - pause: 1.5
+          - yuan: ……妳的手。
+          - narr: 他握住我的手腕，翻過來。拇指和食指。
+          - yuan: 藍的。複寫紙。
+          - pause: 2
+          - yuan: 妳開了下面那個抽屜。
+          - choice:
+              timeout: 12
+              options:
+                - text: 「對。借用單上，壓著鐘樓的舊線。」
+                  then:
+                    - pause: 3
+                    - narr: 他還握著我的手腕，沒有用力，也沒有放開。
+                    - yuan: 妳想知道，可以問我。
+                    - me: 我問了，你會說丟了。
+                    - pause: 2
+                    - yuan: ……對。我會。
+                    - narr: 他放開手。我手腕上留著他手指的溫度，慢慢涼掉。
+                    - yuan: 好啦。不是丟了。
+                    - set: [c5_kit_open, c5_pried]
+                - text: 「我在找面紙。」
+                  then:
+                    - pause: 1.5
+                    - yuan: 面紙在冰箱上面。
+                    - narr: 他放開我的手腕。
+                    - set: c5_pried
+              silence:
                 - pause: 2
-                - yuan: ……那不一樣。
-                - pause: 1
-                - yuan: 好啦。不是丟了。
-                - set: c5_kit_open
-            # 陷阱：拿上一輪的事逼他，等於說他騙人。門一樣關上。
-            - text: 「那個箱子根本沒丟。你為什麼要騙我？」
-              if: know.lead_c5_kit
-              then:
-                - pause: 1.5
-                - yuan: ……我騙妳？
-                - yuan: 我家的東西，丟了沒丟，是我自己的事。
-                - { sfx: drawer, at: front, dist: near, text: 喀啦 }
-                - narr: 他轉身去拉另一個抽屜，拉得很用力。我的指甲還卡在那塊薄灰的邊上。
-                - tension: 6
-            - text: 「丟了？什麼樣的工具箱？丟去哪裡了？」
-              then:
-                - yuan: 綠色的，鐵的，很重。
-                - yuan: 不是修錶用的那種。
-                - pause: 1.5
-                - yuan: 可能以前整理的時候丟了啦。
-                - { sfx: drawer, at: front, dist: near, text: 喀啦 }
-                - narr: 他背過身去拉抽屜，拉開那一聲比剛剛重。
-                - narr: 我的手指在膝蓋上摳著褲子的縫線。
-                - think: ……三個問題，我一口氣全丟給他了。
-                - tension: 8
-            - text: （不問，等他）
-              then:
-                - pause: 3.5
-                - { sfx: tools_clink, at: front, dist: near, text: 叮 }
-                - narr: 他把一支小螺絲起子放回去，又拿起來。
-                - yuan: ……其實不是丟了。
-                - set: c5_kit_open
+                - narr: 他放開我的手腕，什麼都沒有再問。
+                - set: c5_pried
+      # 關口：直接問，他就把話收回去；點破他捨不得丟，或者等他，他才會自己講。
+      - if: "!flag.c5_snuck"
+        then:
+          - choice:
+              options:
+                - text: 「斷掉的錶帶，你都沒丟。」
+                  then:
+                    - pause: 2
+                    - yuan: ……那不一樣。
+                    - pause: 1
+                    - yuan: 好啦。不是丟了。
+                    - set: c5_kit_open
+                # 陷阱：拿上一輪的事逼他，等於說他騙人。門一樣關上。
+                - text: 「那個箱子根本沒丟。你為什麼要騙我？」
+                  if: know.lead_c5_kit
+                  then:
+                    - pause: 1.5
+                    - yuan: ……我騙妳？
+                    - yuan: 我家的東西，丟了沒丟，是我自己的事。
+                    - { sfx: drawer, at: front, dist: near, text: 喀啦 }
+                    - narr: 他轉身去拉另一個抽屜，拉得很用力。我的指甲還卡在那塊薄灰的邊上。
+                    - tension: 6
+                - text: 「丟了？什麼樣的工具箱？丟去哪裡了？」
+                  then:
+                    - yuan: 綠色的，鐵的，很重。
+                    - yuan: 不是修錶用的那種。
+                    - pause: 1.5
+                    - yuan: 可能以前整理的時候丟了啦。
+                    - { sfx: drawer, at: front, dist: near, text: 喀啦 }
+                    - narr: 他背過身去拉抽屜，拉開那一聲比剛剛重。
+                    - narr: 我的手指在膝蓋上摳著褲子的縫線。
+                    - think: ……三個問題，我一口氣全丟給他了。
+                    - tension: 8
+                - text: （不問，等他）
+                  then:
+                    - pause: 3.5
+                    - { sfx: tools_clink, at: front, dist: near, text: 叮 }
+                    - narr: 他把一支小螺絲起子放回去，又拿起來。
+                    - yuan: ……其實不是丟了。
+                    - set: c5_kit_open
       - if: "!flag.c5_kit_open"
         then:
           - { sfx: tools_clink, at: front, dist: near, text: 叮 }
@@ -1175,7 +1293,17 @@ scenes:
           - yuan: 妳不想講，就不要講。我也有一件事，五年了都沒跟人講。
           - narr: 後來他也沒有講。
           - { think: 他的筷子停了一下。我的也是。, learn: lead_c5_unsaid }
-      - if: flag.c5_truth && !flag.c5_arranged
+      # 早上翻過他的抽屜（不管有沒有被看到、認了沒）：實話他只信一半，那件事留著不講。
+      - if: flag.c5_truth && flag.c5_pried && !flag.c5_arranged
+        then:
+          - pause: 2
+          - yuan: ……妳今天說的那些。很多次的今天。
+          - yuan: 我信一半。
+          - yuan: 早上妳翻我的抽屜，晚上跟我講實話。我不知道哪一個才是妳。
+          - narr: 他夾起一口麵，吹了很久，沒有吃。
+          - narr: 我把兩隻手放到桌子底下，拇指和食指互相搓，搓到發燙。藍的應該早就沒了，我還是一直搓。
+          - { think: 他也有一件事要講。今天，他不會講了。, learn: lead_c5_pried }
+      - if: flag.c5_truth && !flag.c5_arranged && !flag.c5_pried
         then:
           - if: know.k_yuan_1758
             then:

@@ -1,5 +1,8 @@
+import { defaultSettings, FONT_SIZES, type FontSize } from '../presentation.config';
 import { CHAPTER_ORDER, TENSION_MAX, type LineKind } from '../script/types';
 import { TEXT_CPS_MAX, TEXT_CPS_MIN, type TextSpeed } from './text';
+
+export { FONT_SIZES, type FontSize } from '../presentation.config';
 
 export const MEMORY_CAPACITY = 10;
 /** The key stays `-v1` for good: the schema version lives inside the save (`version`), not in its name. */
@@ -23,17 +26,6 @@ export type Memory = {
   loop: number;
   chapter: string;
 };
-
-export const FONT_SIZES = {
-  small: { label: '小', scale: 0.9 },
-  normal: { label: '標準', scale: 1 },
-  large: { label: '大', scale: 1.2 },
-  extraLarge: { label: '特大', scale: 1.4 },
-  // Up to twice the standard size (Xbox Accessibility Guideline 101); a phone-sized stage caps it (game.css --ts).
-  huge: { label: '超大', scale: 1.7 },
-  double: { label: '最大', scale: 2 },
-} as const;
-export type FontSize = keyof typeof FONT_SIZES;
 
 export type Settings = {
   audio: boolean;
@@ -101,7 +93,7 @@ export type GameSave = {
   heard?: string[];
 };
 
-export const DEFAULT_SETTINGS: Settings = { audio: true, volume: 0.8, ambience: 0.7, sfx: 0.85, voice: 0.65, vibration: true, reader: true, motion: true, soundLabels: true, textSpeed: 11, fontSize: 'normal', autoAdvance: true, fastHeard: false, untimedChoices: false };
+export const DEFAULT_SETTINGS: Settings = defaultSettings;
 
 export function freshSave(previous?: Pick<GameSave, 'settings' | 'endings' | 'calibrated' | 'taught'>): GameSave {
   return {
@@ -302,7 +294,7 @@ function settings(value: unknown): Settings {
     (out as Record<string, unknown>)[key] = typeof given === 'number' ? Math.max(0, Math.min(1, given)) : given;
   }
   out.textSpeed = textSpeed(value.textSpeed);
-  if (!Object.prototype.hasOwnProperty.call(FONT_SIZES, out.fontSize)) out.fontSize = 'normal';
+  if (!Object.prototype.hasOwnProperty.call(FONT_SIZES, out.fontSize)) out.fontSize = DEFAULT_SETTINGS.fontSize;
   return out;
 }
 

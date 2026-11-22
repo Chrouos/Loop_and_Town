@@ -53,7 +53,36 @@ it('chapter two, replayed knowing about the east wall photos and his medical met
 });
 
 it('chapter one, replayed knowing what she does at the institute and what 17:58 is to him', () => {
-  const r = replay('1', ['k_research_purpose', 'k_yuan_1758'], ['數位孿生', '你陪我一下就好', '叫他先坐一下', '去舊車站']);
+  const r = replay('1', ['k_research_purpose', 'k_yuan_1758'], ['數位孿生', '你陪我一下就好', '叫他先坐一下', '退潮以後', '去舊車站']);
   expect(r.said).toContain('我以前在那裡做過事。就這樣。');
   expect(r.said).toContain('……這個時間，我都不太想一個人待著。');
+});
+
+// 18:30 in the old hall: what she shouts changes with what later days taught her. 若晴 still dies; the clue differs.
+it('chapter one at 18:30, knowing about the east wall cabinet: she sends 若晴 away from it, and the glass finds her', () => {
+  const r = replay('1', ['k_new_cabinet'], ['離東牆那個櫃子遠一點', '退潮以後', '去舊車站']);
+  expect(r.said).toContain('……妳怎麼知道那邊有櫃子？');
+  expect(r.said).toContain('不是觸電。');
+  expect(r.knows.has('k_c1_moved_her')).toBe(true);
+  expect(r.knows.has('k_c1_called_her')).toBe(false);
+});
+
+it('chapter one at 18:30, after asking 若晴 what she wants: the papers go in her bag and he reads the whole line', () => {
+  const r = replay('1', ['k_c2_never_asked'], ['那疊紙，妳要帶走嗎', '退潮以後', '去舊車站']);
+  expect(r.said).toContain('「只關一條，它會從另一條自己接回來。」');
+  expect(r.knows.has('k_c1_note_full')).toBe(true);
+});
+
+it('chapter one at 18:30, after chapter seven: she only says what she hears, and 若晴 photographs it', () => {
+  const r = replay('1', ['k_dont_become_me'], ['東牆那邊在響', '退潮以後', '去舊車站']);
+  expect(r.said).toContain('她相機裡最後一張，是六點三十分五十九秒拍的。');
+  expect(r.knows.has('k_c1_last_photo')).toBe(true);
+});
+
+it('chapter one at 18:30 the first time: calling her and not calling her are remembered differently', () => {
+  const called = replay('1', [], ['若晴，快過來', '退潮以後', '去舊車站']);
+  expect(called.knows.has('k_c1_called_her')).toBe(true);
+  expect(called.said.some((line) => line.includes('離東牆') || line.includes('東牆那邊在響'))).toBe(false);
+  const still = replay('1', [], ['站著沒動', '退潮以後', '去舊車站']);
+  expect(still.knows.has('k_c1_not_called')).toBe(true);
 });

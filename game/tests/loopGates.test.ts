@@ -13,7 +13,13 @@ function locateAnswer(director: Director, ears: 'right' | 'wrong'): Direction {
   return ears === 'right' ? beat.at : DIRECTIONS[(DIRECTIONS.indexOf(beat.at) + 4) % 8];
 }
 
-function play(chapter: string, policy: Policy, maxLoops: number, ears: 'right' | 'wrong' | ((chLoop: number) => 'right' | 'wrong') = 'right') {
+/** 偷偷做: 'still' never starts; 'careful' works only while nobody is close or listening; 'reckless' never stops. */
+type Hands = 'still' | 'careful' | 'reckless';
+function watched(director: Director): boolean {
+  return (director as unknown as { runs: Map<string, { pendingInteract?: { sneak?: { leg: { looks: boolean } } } }> }).runs.get('main')!.pendingInteract!.sneak!.leg.looks;
+}
+
+function play(chapter: string, policy: Policy, maxLoops: number, ears: 'right' | 'wrong' | ((chLoop: number) => 'right' | 'wrong') = 'right', hands: Hands = 'still') {
   const { script, errors } = loadScriptFromDisk();
   if (errors.length) throw new Error(errors.join('\n'));
   let wall = 0;
@@ -48,6 +54,9 @@ function play(chapter: string, policy: Policy, maxLoops: number, ears: 'right' |
       director.punchDone();
     } else if (view.interact?.type === 'hold') {
       director.holdStart();
+    } else if (view.interact?.type === 'sneak') {
+      if (hands === 'reckless' || (hands === 'careful' && !watched(director))) director.sneakStart();
+      else director.sneakEnd();
     } else {
       director.hurry();
     }
@@ -74,7 +83,7 @@ describe('chapter 4 gates', () => {
       // Saying nothing is not an option on screen: pick nothing and let the time run out.
       if (sceneId === 'c4_police' && chLoop === 1) return -1;
       // At the library she brings the photo: the evidence options no longer sit first, so name it.
-      return prefer(/卡兩次/, /沙沙響/, /我已經聽過好幾次/, /她跟你說過/, /短頭髮/, /颱風封路/, /妳恨她嗎/, /妳答應過她什麼/)(options);
+      return prefer(/卡兩次/, /沙沙響/, /是不是停過電/, /她跟你說過/, /短頭髮/, /颱風封路/, /妳恨她嗎/, /妳答應過她什麼/)(options);
     }, 2);
     expect(result.knowledge.has('lead_c4_drawer')).toBe(true);
     expect(result.knowledge.has('k_recorder_voice')).toBe(true);
@@ -89,7 +98,7 @@ describe('chapter 4 gates', () => {
   it('missing where the drawer was leaves a vague lead; the two catches she did hear still open it next loop', () => {
     const result = play('4', (options, sceneId, chLoop) => {
       if (sceneId === 'c4_police' && chLoop === 1) return -1;
-      return prefer(/卡兩次/, /沙沙響/, /我已經聽過好幾次/, /她跟你說過/, /妳恨她嗎/, /妳答應過她什麼/)(options);
+      return prefer(/卡兩次/, /沙沙響/, /是不是停過電/, /她跟你說過/, /妳恨她嗎/, /妳答應過她什麼/)(options);
     }, 2, 'wrong');
     expect(result.knowledge.has('lead_c4_drawer_lost')).toBe(true);
     expect(result.knowledge.has('lead_c4_drawer')).toBe(false);
@@ -102,10 +111,39 @@ describe('chapter 4 gates', () => {
   it('listening at the door a second time, the catches repeat until she can place them', () => {
     const result = play('4', (options, sceneId) => {
       if (sceneId === 'c4_police') return -1;
-      return prefer(/我已經聽過好幾次/, /她跟你說過/, /妳恨她嗎/, /妳答應過她什麼/)(options);
+      return prefer(/是不是停過電/, /她跟你說過/, /妳恨她嗎/, /妳答應過她什麼/)(options);
     }, 2, (chLoop) => (chLoop === 1 ? 'wrong' : 'right'));
     expect(result.knowledge.has('lead_c4_drawer_lost')).toBe(true);
     expect(result.knowledge.has('lead_c4_drawer')).toBe(true);
+  });
+
+  // 偷偷做: knowing the drawer, the next loop he is called out to the counter and leaves his keys on the desk.
+  const sneaky = (...then: RegExp[]) => (options: string[], sceneId: string, chLoop: number) => {
+    if (sceneId === 'c4_police' && chLoop === 1) return -1;
+    return prefer(/拿起鑰匙/, ...then, /是不是停過電/, /她跟你說過/, /這是第幾次/, /短頭髮/, /颱風封路/, /妳恨她嗎/, /妳答應過她什麼/)(options);
+  };
+
+  it('opening the drawer while he is at the counter, then owning it, gets the tape without the door', () => {
+    const result = play('4', sneaky(/錄音機。裡面那個男人/, /你去櫃台的時候/), 2, 'right', 'careful');
+    // Only a loop that got into the drawer is asked whether she opened it.
+    expect(result.optionsSeen.some((texts) => texts.some((text) => text.includes('你去櫃台的時候')))).toBe(true);
+    expect(result.knowledge.has('k_c4_tape_wind')).toBe(true);
+    expect(result.knowledge.has('k_recorder_voice')).toBe(true);
+    expect(result.knowledge.has('lead_c4_caught')).toBe(false);
+    expect(result.chapter).toBe('5');
+  });
+
+  it('saying it was only her ears, after opening it, gets her shown out with a lead and no tape', () => {
+    const result = play('4', sneaky(/錄音機。裡面那個男人/, /耳朵比較好/), 2, 'right', 'careful');
+    expect(result.knowledge.has('k_c4_tape_wind')).toBe(true);
+    expect(result.knowledge.has('lead_c4_pried')).toBe(true);
+    expect(result.knowledge.has('k_recorder_voice')).toBe(false);
+  });
+
+  it('working on while his steps come back gets her caught: the drawer is locked and she is shown out', () => {
+    const result = play('4', sneaky(), 2, 'right', 'reckless');
+    expect(result.knowledge.has('lead_c4_caught')).toBe(true);
+    expect(result.knowledge.has('k_recorder_voice')).toBe(false);
   });
 
   it('a loop that already has a piece skips the place that gave it', () => {
@@ -124,7 +162,7 @@ describe('chapter 4 gates', () => {
 
   it('one line without evidence gets only part of it, and leaves what to bring next time', () => {
     const result = play('4', (options, sceneId, chLoop) => {
-      if (chLoop === 1) return prefer(/我已經聽過好幾次/, /她跟你說過/, /我沒有別的/, /妳不只是記者/, /妳恨她嗎/)(options);
+      if (chLoop === 1) return prefer(/是不是停過電/, /她跟你說過/, /我沒有別的/, /妳不只是記者/, /妳恨她嗎/)(options);
       return prefer(/卡兩次/, /沙沙響/, /這是第幾次/, /借書卡/, /妳恨她嗎/, /妳答應過她什麼/)(options);
     }, 2);
     // Loop 1: the blackout story, her chief complaint and the public version of the story are all he and she will give.
@@ -172,6 +210,36 @@ describe('chapter 5 gates', () => {
     expect(result.knowledge.has('lead_c5_kit')).toBe(true);
     expect(result.scenesByLoop[0]).toContain('c5_noon');
     expect(result.locatesByLoop[0] ?? 0).toBeGreaterThan(0);
+  });
+
+  // 偷偷做: the loop after he said the box was lost, he takes a call behind the curtain.
+  // Loop 1 keeps it all to herself (no truth, so no 17:58 yet); loop 2 tells him the truth and leaves his evening alone.
+  const drawer = (...then: RegExp[]) => (options: string[], _sceneId: string, chLoop: number) => chLoop === 1
+    ? prefer(/什麼樣的工具箱/, /喝茶，不回答/, /把它留在自己這裡/, /像上次那樣/)(options)
+    : prefer(/拉開旁邊那個抽屜/, ...then, /今天我已經過了很多次呢/, /我把我知道的告訴你/)(options);
+
+  it('going through his drawer and owning it gets the toolbox, but that night the truth only half lands: no 17:58', () => {
+    const result = play('5', drawer(/借用單/), 2, 'right', 'careful');
+    expect(result.optionsSeen.some((texts) => texts.some((text) => text.includes('借用單')))).toBe(true);
+    expect(result.knowledge.has('k_c5_drawer_opened')).toBe(true);
+    expect(result.knowledge.has('k_tower_kit')).toBe(true);
+    expect(result.knowledge.has('lead_c5_pried')).toBe(true);
+    expect(result.knowledge.has('k_yuan_1758')).toBe(false);
+    expect(result.chapter).toBe('5');
+  });
+
+  it('saying she was looking for tissues keeps the toolbox shut as well', () => {
+    const result = play('5', drawer(/面紙/), 2, 'right', 'careful');
+    expect(result.knowledge.has('k_c5_drawer_opened')).toBe(true);
+    expect(result.knowledge.has('k_tower_kit')).toBe(false);
+    expect(result.knowledge.has('lead_c5_pried')).toBe(true);
+  });
+
+  it('caught with her hand in his drawer: nothing more about the box, and 17:58 stays his', () => {
+    const result = play('5', drawer(), 2, 'right', 'reckless');
+    expect(result.knowledge.has('lead_c5_caught')).toBe(true);
+    expect(result.knowledge.has('k_tower_kit')).toBe(false);
+    expect(result.knowledge.has('k_yuan_1758')).toBe(false);
   });
 
   it('throwing last loop at him ("you lied") is a push: the toolbox stays shut', () => {

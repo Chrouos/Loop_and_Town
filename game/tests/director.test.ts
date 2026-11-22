@@ -74,13 +74,14 @@ describe('director', () => {
     expect(splitPhrases('你……|你怎麼會知道，這件事？').map((part) => part.text)).toEqual(['你……', '你怎麼會知道，', '這件事？']);
   });
 
-  it('draws full stops as rows in narration and breaths in speech', () => {
-    const shown = (text: string, kind: 'narr' | 'think' | 'char') => splitPhrases(text, kind).map((part) => part.text + (part.br ? '⏎' : ''));
+  it('draws full stops as rows on the stage and breaths on the phone', () => {
+    const shown = (text: string, kind: 'narr' | 'think' | 'char' | 'phone') => splitPhrases(text, kind).map((part) => part.text + (part.br ? '⏎' : ''));
     expect(shown('知夏是我姊。她死了五年了。', 'think')).toEqual(['知夏是我姊⏎', '她死了五年了']);
     expect(shown('「我想知道。」他很少這樣講話。', 'think')).toEqual(['「我想知道」⏎', '他很少這樣講話']);
-    expect(shown('好。謝謝。', 'char')).toEqual(['好\u3000謝謝']);
-    expect(shown('「資料我先帶回去。妳準備好再找我。」', 'char')).toEqual(['「資料我先帶回去\u3000', '妳準備好再找我」']);
-    expect(shown('妳認識她？我知道。', 'char')).toEqual(['妳認識她？', '我知道']);
+    expect(shown('好。謝謝。', 'char')).toEqual(['好⏎', '謝謝']);
+    expect(shown('「資料我先帶回去。妳準備好再找我。」', 'char')).toEqual(['「資料我先帶回去⏎', '妳準備好再找我」']);
+    expect(shown('十月三日。六點十二分。', 'phone')).toEqual(['十月三日\u3000', '六點十二分']);
+    expect(shown('妳認識她？我知道。', 'char')).toEqual(['妳認識她？⏎', '我知道']);
   });
 
   it('only learns what was heard while focused', () => {

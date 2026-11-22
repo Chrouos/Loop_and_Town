@@ -87,6 +87,8 @@ export function autoplay(options: { seed: number; maxLoops: number; startChapter
       else if (view.interact.type === 'approach') director.approachCall();
       // 屏息: once she starts holding, random play keeps holding until the sound comes through.
       else if (view.interact.type === 'hold') director.holdStart();
+      // 偷偷做: random play starts and stops its hands at random, so it gets caught, runs out of time, or gets it done.
+      else if (view.interact.type === 'sneak') { if (view.interact.since === null) director.sneakStart(); else director.sneakEnd(); }
       else director.locatePick(DIRECTIONS[Math.floor(random() * DIRECTIONS.length)]);
     }
     if (view.recall) {

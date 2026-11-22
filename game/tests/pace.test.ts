@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Director } from '../src/engine/director';
 import { DEFAULT_SETTINGS, freshSave, type GameSave } from '../src/engine/save';
-import { lineTiming, pacedSpeed } from '../src/engine/text';
+import { lineTiming, paceBreath, pacedSpeed } from '../src/engine/text';
 import { buildScript } from '../src/script/validate';
 import { silentAudio } from './harness';
 
@@ -40,6 +40,19 @@ describe('a scene sets its own pace (pace:)', () => {
     expect(pacedSpeed('instant', -3)).toBe('instant');
   });
 
+  it('stretches the pauses between phrases with it, so a comma or a new row is felt too', () => {
+    expect(paceBreath(11, 0)).toBe(1);
+    expect(paceBreath('instant', 5)).toBe(1);
+    expect(paceBreath(11, 5)).toBeCloseTo(11 / 16);
+    expect(paceBreath(11, -2)).toBeCloseTo(11 / 9);
+    expect(paceBreath(4, -3)).toBe(2.5);
+    const line = '妳剛剛不是叫我先出去嗎……妳起來，帶我出去啊。';
+    const own = lineTiming(line, 'me', 11);
+    const fast = lineTiming(line, 'me', 16, paceBreath(11, 5));
+    expect(fast.holdMs).toBeLessThan(own.holdMs);
+    expect(fast.revealMs / own.revealMs).toBeLessThan(0.72);
+  });
+
   it('only takes a whole number from -10 to 10', () => {
     const errorsOf = (pace: string) => buildScript([{ name: 'a.yaml', source: `
 chapter: 1
@@ -74,7 +87,7 @@ scenes:
       if (director.view.center && director.view.teach) director.hurry();
     }
     const own = DEFAULT_SETTINGS.textSpeed as number;
-    const expected = (text: string, cps: number) => lineTiming(text, 'narr', cps).revealMs;
+    const expected = (text: string, cps: number) => lineTiming(text, 'narr', cps, paceBreath(own, cps - own)).revealMs;
     expect(reveal.get('一開始照她自己的速度。')).toBe(expected('一開始照她自己的速度。', own));
     expect(reveal.get('這裡慢下來，一個字一個字。')).toBe(expected('這裡慢下來，一個字一個字。', own - 3));
     expect(reveal.get('這裡快一點。')).toBe(expected('這裡快一點。', own + 2));

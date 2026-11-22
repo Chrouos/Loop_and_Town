@@ -569,6 +569,12 @@ sfx('chair_creak', [C('159645', 0.55, 2.25), C('159645', 3.75, 5.20), C('201992'
     note='a chair creaking under someone shifting and leaning back: a squeaking wooden chair (two takes), a creaky chair, a moaning chair')
 sfx('cane_scrape', [C('792195', 0.58, 1.10), C('792195', 8.32, 8.80), C('792195', 5.58, 5.95), C('792195', 2.18, 2.48)], [792195], st=-21, hp=150, limit=10, fin=0.01, fout=0.06,
     note='a stick dragged and scraped along a sidewalk (four strokes)')
+# body_drag: a body dragged a step across gritty concrete (535762) over a cloth/bag drag foley (481863, at half level),
+# so the heel grit and the clothes on the floor come in one pull. Two pulls cut from different spots of the grit take.
+sfx('body_drag', [lambda: mix(cut('535762', 1.70, 4.60), cut('481863', 0.20, 3.10) * 0.5, at=0.0),
+                  lambda: mix(cut('535762', 3.40, 5.40), cut('481863', 0.40, 2.40) * 0.5, at=0.0)],
+    [535762, 481863], st=-22, hp=90, limit=10, fin=0.04, fout=0.25,
+    note='a body dragged across gritty concrete: heel scrape and grit over a cloth drag (two pulls)')
 sfx('gravel_step', ev('352870', 4, a=4.0, b=30.0, hp=150, max_len=0.45, decay_db=28, min_gap=0.3, fixed=0.42), [352870], st=-21, hp=80, limit=12, peak=-6, fout=0.05,
     note='four single footsteps on a gravel and dirt path, cut from a walk')
 sfx('cup_scrape', [C('207815', 0.05, 1.45), C('207815', 3.30, 4.75), C('585000', 0.15, 0.95), C('120843', 0.03, 0.50)], [207815, 585000, 120843], st=-21, hp=120, fout=0.08,

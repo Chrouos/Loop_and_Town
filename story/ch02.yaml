@@ -32,6 +32,16 @@ scenes:
           - { think: 若晴！, shake: light }
           - think: 她還活著。現在才六點多，她還沒出門，什麼事都還沒發生。
           - think: 晚上她不能去車站。不能讓她去。
+          # 第一章 18:30 喊了她，或是沒喊：兩種都是她自己記得的事。
+          - if: know.k_c1_called_her
+            then:
+              - think: 我叫她快過來。她就跑了，從那面牆前面跑過去。
+              - narr: 我的喉嚨一緊，好像那一聲還卡在裡面，沒有喊完。
+            else:
+              - if: know.k_c1_not_called
+                then:
+                  - think: 她叫我先出去。我站在那裡，連她的名字都沒喊。
+                  - narr: 我把手握起來，指甲掐進手心。
           - tension: 8
           - { sfx: pant, at: center, dist: near, text: 呼、呼 }
           - narr: 我彎下去摸手杖，摸到了又抓不穩，喘得跟跑過步一樣。
@@ -1458,9 +1468,20 @@ scenes:
           - think: 右邊，東側那面牆。跟那天同一個地方。
         else:
           - think: 右邊，東側那面牆，有東西開始響。
+      - if: know.k_c1_wire_floor
+        then:
+          - think: 走道上橫著一條線。第一天我叫她過來，她就是從那上面跑過去的。
+        else:
+          - if: know.k_c1_called_her
+            then:
+              - think: 第一天我叫她過來，她就跑了。
+            else:
+              - if: know.k_c1_not_called
+                then:
+                  - think: 第一天她叫我出去，我一步都沒動。
       - choice:
           timeout: 4
-          default: 2
+          default: 3
           options:
             - text: （往她的聲音衝過去）
               then:
@@ -1472,6 +1493,12 @@ scenes:
             - text: 「若晴！」
               then:
                 - { ruoqing: 蛤？, at: front-right }
+            - text: 「若晴，站著不要動！」
+              if: know.k_c1_called_her
+              then:
+                - { ruoqing: 蛤？什麼？, at: front-right }
+                - { sfx: strap_click, at: front-right, dist: mid, text: 喀 }
+                - narr: 扣子響了一下，就停在窗邊。她真的沒有動。
             - text: （僵在原地）
               then:
                 - narr: 我的腳像被釘在地上，手杖舉在半空，放不下來。

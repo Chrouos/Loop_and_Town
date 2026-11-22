@@ -33,6 +33,7 @@ export const DEFAULT_PROMPT: Record<InteractView['type'], string> = {
   locate: '聲音在哪裡？',
   approach: '等聲音到面前，再開口',
   hold: '按住，慢慢吐氣',
+  sneak: '按住，手才會動',
   punch: '點字板要從背面打，左右是反的',
 };
 
@@ -40,10 +41,11 @@ export const DEFAULT_PROMPT: Record<InteractView['type'], string> = {
  * Said once, the first time each of these moments comes (or on a line that writes `teach: locate` before it).
  * Plain and about the sound, the way someone beside her would say it.
  */
-export const INTERACT_LESSON: Record<'locate' | 'approach' | 'hold', string> = {
+export const INTERACT_LESSON: Record<'locate' | 'approach' | 'hold' | 'sneak', string> = {
   locate: '聲音會一直響。聽它從哪一邊來，就點那一邊。',
   approach: '腳步會越來越近。等到最近的那一兩步，再開口。',
   hold: '按住不要放，慢慢把氣吐掉。撐久一點，很小的聲音才聽得到。',
+  sneak: '按住，手才會動；放開就停。腳步走近，或是聲音忽然停了，就放開。',
 };
 
 /** The lesson, under the moment it is about. */
@@ -68,6 +70,7 @@ export function Interaction({ director, interact }: { director: Director; intera
   if (interact.type === 'locate') return <LocateRing key={interact.key} director={director} interact={interact} />;
   if (interact.type === 'approach') return <ApproachCall key={interact.key} director={director} interact={interact} />;
   if (interact.type === 'hold') return <HoldBreath key={interact.key} director={director} interact={interact} />;
+  if (interact.type === 'sneak') return <SneakHands key={interact.key} director={director} interact={interact} />;
   return <PunchSlate key={interact.key} director={director} interact={interact} />;
 }
 
@@ -332,6 +335,52 @@ function HoldBreath({ director, interact }: { director: Director; interact: Extr
       {interact.lesson && <Lesson type="hold" />}
       <div className="lt-hold-breath" key={interact.since ?? 'idle'} style={{ animationDuration: `${interact.seconds}s` }} aria-hidden="true" />
       <div className="lt-interact-note lt-locate-note" aria-live="polite">{holding ? '不要放開' : '按住畫面不要放'}</div>
+    </div>
+  );
+}
+
+// ───────────────────────── 偷偷做 ─────────────────────────
+
+/** Press and hold (or Space) to keep her hands working; let go to freeze. The thin line is how far the work has got. */
+function SneakHands({ director, interact }: { director: Director; interact: Extract<InteractView, { type: 'sneak' }> }) {
+  useEffect(() => {
+    const down = (event: KeyboardEvent) => {
+      if ((event.key !== ' ' && event.key !== 'Enter') || onOtherControl(event)) return;
+      event.preventDefault();
+      event.stopPropagation();
+      if (!event.repeat) director.sneakStart();
+    };
+    const up = (event: KeyboardEvent) => {
+      if ((event.key !== ' ' && event.key !== 'Enter') || onOtherControl(event)) return;
+      event.preventDefault();
+      director.sneakEnd();
+    };
+    window.addEventListener('keydown', down, true);
+    window.addEventListener('keyup', up, true);
+    return () => { window.removeEventListener('keydown', down, true); window.removeEventListener('keyup', up, true); };
+  }, [director]);
+  const working = interact.since !== null;
+  const from = Math.min(1, interact.done / interact.work);
+  return (
+    <div className={`lt-interact lt-sneak${working ? ' working' : ''}`} onPointerUp={(event) => event.stopPropagation()}>
+      <button
+        type="button"
+        className="lt-hold-pad"
+        aria-label="按住，手才會動；放開就停"
+        onPointerDown={(event) => { event.stopPropagation(); event.currentTarget.setPointerCapture?.(event.pointerId); director.sneakStart(); }}
+        onPointerUp={(event) => { event.stopPropagation(); director.sneakEnd(); }}
+        onPointerCancel={() => director.sneakEnd()}
+        onContextMenu={(event) => event.preventDefault()}
+      />
+      <div className="lt-locate-prompt">{interact.prompt ?? DEFAULT_PROMPT.sneak}</div>
+      {interact.lesson && <Lesson type="sneak" />}
+      <div
+        className="lt-sneak-work"
+        key={interact.since ?? 'still'}
+        style={{ ['--from' as string]: from, animationDuration: `${Math.max(0, interact.work - interact.done)}s` }}
+        aria-hidden="true"
+      />
+      <div className="lt-interact-note lt-locate-note" aria-live="polite">{working ? '手在動' : '停手'}</div>
     </div>
   );
 }

@@ -678,6 +678,7 @@ const BASE_SFX_RECIPES: Record<Exclude<SfxId, AmbientEventId | keyof typeof LIFE
   gravel_step: alike('step_wet', 1.1),
   cup_scrape: alike('chair_scrape', 2.2),
   nail_scratch: alike('pen_scratch', 0.8),
+  body_drag: alike('chair_scrape', 0.8),
   suitcase_roll: alike('cart_roll', 1.2),
   phone_on_glass: alike('cup_set', 0.8),
   cough_w: alike('cough', 1.35),
@@ -2398,6 +2399,7 @@ for (const [id, v] of Object.entries(TRIM) as Array<[SfxId, number]>) SFX_RECIPE
 const ALIKE: Partial<Record<SfxId, [SfxId, number]>> = {
   pour_water: ['water_rush', 1], bamboo_knock: ['house_tick', 1], knuckle_knock: ['house_tick', 1], chair_creak: ['wood_creak', 1],
   cane_scrape: ['chair_scrape', 0.7], gravel_step: ['step_wet', 1], cup_scrape: ['chair_scrape', 0.7], nail_scratch: ['pen_scratch', 1],
+  body_drag: ['chair_scrape', 0.8],
   suitcase_roll: ['cart_roll', 1], phone_on_glass: ['cup_set', 1], cough_w: ['cough', 1], bike_squeak: ['mouse_squeak', 0.7],
   scooter_start: ['boat_engine', 0.8], drain_cover: ['box_close', 1],
   pant: ['breath', 1], gasp: ['breath', 1], cane_drop: ['cane_tap', 1], metal_hit: ['tools_clink', 1], bag_drop: ['thud', 1],

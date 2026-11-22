@@ -52,6 +52,12 @@ scenes:
             then:
               - think: 周警官把我請出門，自己回去拉開了一個抽屜。在哪一邊，我上次沒聽清楚。
               - think: 可是那個抽屜卡了兩次才拉出來。這個我記得。
+          - if: "!know.k_recorder_voice && know.lead_c4_caught"
+            then:
+              - think: 上一次他從背後叫住我，我的手還在抽屜裡。他什麼時候走回來的，我沒聽見。
+          - if: "!know.k_recorder_voice && know.lead_c4_pried"
+            then:
+              - think: 上一次我偷聽了那台錄音機，又跟他說是耳朵好。鑰匙轉了方向，他摸得出來。
           - if: "!know.k_recorder_voice && know.lead_c4_procedure"
             then:
               - think: 我拿檢舉壓周警官，他就只剩規矩。抽屜裡的東西，要拿我在門外聽到的去換。
@@ -306,9 +312,8 @@ scenes:
                 - { sfx: lighter_lid, at: front, dist: near, text: 叮、喀 }
                 - zhiyuan: 在戒。手停不下來。
                 - set: c4_zy_named
-            - text: （等他先開口）
-              then:
-                - zhiyuan: 小姐稍等。這份先打完。
+          silence:
+            - zhiyuan: 小姐稍等。這份先打完。
       # 他今天本來就有自己的事要辦。
       - { sfx: phone_ring, at: front, dist: near, text: 鈴—— }
       - zhiyuan: 派出所。……阿伯喔。
@@ -319,6 +324,103 @@ scenes:
       - narr: 他把剩下那幾行打完，最後一個鍵按得特別用力。
       - { sfx: fan_hum, at: front, dist: near, gain: 0.5, text: 喀 }
       - narr: 他把電扇轉到最弱。我的頭髮不再一直被吹到臉上。
+      # 偷偷做：上一輪在門外聽過抽屜在哪、開之前先響一串鑰匙。這一輪他被叫去前面櫃台，鑰匙留在桌上。
+      # 她蹲在抽屜前，背對著門：櫃台在正後方遠處，走廊在後方，門口就在背後。他的打火機蓋子（k_sig_zhiyuan）是他還在櫃台的聲音。
+      - if: know.lead_c4_drawer && !know.k_recorder_voice
+        then:
+          - { man: 學長，前面有人機車擦撞，要做筆錄。, as: 另一個員警, at: back-right }
+          - { sfx: chair_scrape, at: front, dist: near, text: 嘎 }
+          - zhiyuan: 小姐坐一下。
+          - { sfx: step, at: front, dist: near, to: back:far, text: 叩、叩 }
+          - move: { zhiyuan: "back:far" }
+          - { sfx: key_jingle, at: front, dist: near, gain: 0.4, text: 鏘, src: 鑰匙串 }
+          - narr: 電扇轉過來，桌上有一串東西被吹得碰了一下。
+          - think: 這一聲鏘，上一次在那個抽屜前面響過。
+          - choice:
+              timeout: 10
+              default: 1
+              options:
+                - text: （拿起鑰匙，摸去右手邊最裡面那個抽屜）
+                  then:
+                    - tension: 4
+                    - narr: 我站起來，鑰匙握在手心，握緊，不讓它們互相碰到。
+                    - { sfx: step, at: front-right, dist: near, text: 沙, src: 鞋底 }
+                    - narr: 一張桌子，一個檔案櫃，再過去是牆。我蹲下來，背對著門。
+                    - heart: slow
+                    - sneak:
+                        work: 6
+                        timeout: 40
+                        sfx: cloth_rustle
+                        text: 窸窣
+                        slips:
+                          - { at: 2, sfx: drawer_catch, text: 喀 }
+                          - { at: 3.5, sfx: drawer_catch, text: 喀 }
+                        watch:
+                          - { sfx: lighter_lid, at: back, dist: far, for: 3, every: 1.5, text: 叮、喀 }
+                          - { sfx: murmur_m, at: back, dist: far, for: 3.2, every: 1.6, text: 嗡嗡 }
+                          - { at: back, dist: far, for: 1.8, still: true }
+                          - { sfx: step, at: back, dist: mid, for: 1.6, every: 0.55, text: 叩 }
+                          - { sfx: step, at: back, dist: near, for: 2.2, every: 0.55, text: 叩 }
+                          - { sfx: step, at: back, dist: mid, for: 1.4, every: 0.55, text: 叩 }
+                        prompt: 按住開抽屜。他走近，或聲音停了，就放開
+                        success:
+                          - narr: 第二次卡住之後，抽屜整個滑出來。
+                          - narr: 一疊紙，一包拆開的口香糖。最底下，一個塑膠殼的小方塊，按鍵有點黏。
+                          - think: 只聽一下就好。
+                          - narr: 我把它貼在耳朵上，音量轉到最小。
+                          - { sfx: recorder_click, at: center, dist: near, gain: 0.4, text: 喀 }
+                          - { sfx: tape_hiss, at: center, dist: near, gain: 0.3, text: 沙…… }
+                          - { sfx: wind_gust, at: center, dist: far, gain: 0.3, text: 嗚…… }
+                          - { sfx: bell_toll_far, at: center, dist: far, gain: 0.2, text: 噹…… }
+                          - { narr: 風在很高的地方繞了一圈。後面，有一下很遠的鐘。, learn: k_c4_tape_wind }
+                          - { zhiyuan: ……有人嗎？聽得到嗎？, as: 錄音裡的男聲, at: center, dist: near, via: tape }
+                          - heart: fast
+                          - narr: 我的拇指壓在停止鍵上，壓到指甲發白，一直按不下去。
+                          - think: 這個聲音，剛剛才叫我坐一下。
+                          - { sfx: recorder_click, at: center, dist: near, gain: 0.4, text: 喀 }
+                          - { sfx: step, at: back, dist: far, text: 叩 }
+                          - narr: 我把它塞回最底下，紙蓋回去，抽屜推進去。又卡了兩次。
+                          - { sfx: drawer_catch, variant: 1, at: center, dist: near, text: 喀 }
+                          - { sfx: drawer_catch, variant: 2, at: center, dist: near, text: 喀 }
+                          - narr: 鑰匙放回桌上的時候我才想到，我不知道它本來朝哪一邊。
+                          - { learn: k_c4_drawer_opened }
+                          - set: c4_snuck
+                        caught:
+                          - { zhiyuan: 妳在做什麼？, at: back, dist: near, shake: light }
+                          - heart: pound
+                          - narr: 我的手還在抽屜裡，指尖壓著一疊紙，抽不出來，也放不下去。
+                          - { sfx: step, at: back, dist: near, text: 叩 }
+                          - narr: 他沒有碰我。鑰匙從我手裡被抽走，很慢。
+                          - { sfx: key_jingle, at: center, dist: near, text: 鏘 }
+                          - { sfx: drawer, at: center, dist: near, text: 喀啦 }
+                          - { sfx: lock_turn, at: center, dist: near, text: 喀嚓 }
+                          - zhiyuan: 小姐，案子結了。
+                          - zhiyuan: 妳請回。
+                          - narr: 他的手掌停在我肩膀後面，跟上一次一樣，沒有碰到，一路把我帶到門口。
+                          - { sfx: door_close, at: back, dist: near, text: 碰 }
+                          - narr: 門在背後關上。手一直抖，我把手杖夾在腋下，兩隻手互相握著。
+                          - { think: 他什麼時候走到門口的，我沒聽見。我只聽得到自己的手。, learn: lead_c4_caught }
+                          - if: know.k_medical_records
+                            then:
+                              - goto: c4_call_tingan
+                          - goto: c4_hospital
+                        fail:
+                          - { sfx: step, at: back, dist: mid, text: 叩、叩 }
+                          - narr: 腳步回來了。抽屜還沒拉開。我把鑰匙放回桌上，摸回椅子坐好。
+                          - narr: 手心全是汗，膝蓋上的布濕了兩塊。
+                    - { sfx: step, at: back, dist: mid, to: front:near, text: 叩、叩 }
+                    - move: { zhiyuan: front }
+                    - { sfx: chair_creak, at: front, dist: near, text: 嘎, src: 椅背 }
+                    - zhiyuan: 擦撞而已，兩個都沒事。
+                - text: （坐著，等他回來）
+                  then:
+                    - narr: 我把手放回膝蓋上。鑰匙在電扇底下又碰了一下。
+                    - { sfx: lighter_lid, at: back, dist: far, text: 叮、喀 }
+                    - pause: 3
+                    - { sfx: step, at: back, dist: mid, to: front:near, text: 叩、叩 }
+                    - move: { zhiyuan: front }
+                    - { sfx: chair_creak, at: front, dist: near, text: 嘎, src: 椅背 }
+                    - zhiyuan: 擦撞而已，兩個都沒事。
       - zhiyuan: 什麼事？
       - me: 我姓林。林知夏是我姊。
       - pause: 1.5
@@ -342,25 +444,22 @@ scenes:
       - choice:
           timeout: 28
           options:
-            - text: 「十八點三十一分。我已經聽過好幾次了。」
+            # 她以家屬的身分問五年前那個傍晚。停電沒公開，她講不出從哪裡知道，他就只能講到這裡。
+            - text: 「她出事那天傍晚，鎮上是不是停過電？」
               then:
-                - zhiyuan: 什麼意思？
-                - if: know.k_in_station_hall
-                  then:
-                    - me: 有一次，停電，還有相機背帶的扣子一直響。
-                  else:
-                    - me: 有一次，整座鎮停了一拍。冰箱的嗡嗡聲斷掉，過一下又自己轉起來。
-                - if: know.k_maintenance_passage
-                  then:
-                    - me: 另一次，很深的地方有東西倒下來。
-                  else:
-                    - me: 另一次，咖啡機斷電，然後很遠的地方有警笛。
-                - me: 還有一次什麼都沒有，只有一個嗡鳴。
-                - pause: 3
-                - zhiyuan: 五年前那次停電，報告裡有寫。
-                - zhiyuan: 沒有對外公開。
                 - pause: 1.5
-                - zhiyuan: 可是妳講的是妳聽到的。聽到的東西，我沒辦法拿去做什麼。
+                - { sfx: lighter_open, at: front, dist: near, text: 喀 }
+                - narr: 打火機的蓋子掀開以後，一直沒有蓋回去。
+                - zhiyuan: 誰跟妳講的？
+                - me: 沒有人。
+                - zhiyuan: 停電那段，報告裡有寫，沒有對外公開。
+                - zhiyuan: 寫的是供電異常，跟死因沒有關係。
+                - pause: 1.5
+                - zhiyuan: 妳問這個要做什麼？
+                - me: 我想知道她最後聽到的是什麼。
+                - { sfx: lighter_lid, at: front, dist: near, text: 喀 }
+                - zhiyuan: 我到的時候已經七點了。那時候她聽到什麼，沒有人知道。
+                - zhiyuan: 歹勢。妳講不出是從哪裡聽來的，我就只能講到這裡。
             - text: 「你等一下會往右走到最裡面，拉開一個要卡兩次才出得來的抽屜。」
               if: know.lead_c4_drawer
               then:
@@ -393,6 +492,48 @@ scenes:
                 - zhiyuan: 妳知道我會開它。那又怎樣？
                 - zhiyuan: 那個抽屜放的是我的私人物品，跟這個案子沒有關係。
                 - set: c4_zy_drawer
+            # 偷聽過那台錄音機：直接講。他摸得出鑰匙轉了方向；認了，他才拿出來。
+            - text: 「你抽屜最底下那台錄音機。裡面那個男人，是你。」
+              if: flag.c4_snuck
+              then:
+                - pause: 3
+                - { sfx: lighter_open, at: front, dist: near, text: 喀 }
+                - narr: 打火機的蓋子掀開了，一直沒有蓋回去。
+                - { sfx: key_jingle, at: front, dist: near, text: 鏘 }
+                - zhiyuan: 我出去的時候，鑰匙的齒是朝牆壁的。
+                - zhiyuan: 現在朝我。
+                - pause: 1.5
+                - zhiyuan: 妳開了我的抽屜。
+                - choice:
+                    timeout: 12
+                    options:
+                      - text: 「對。你去櫃台的時候。」
+                        then:
+                          - pause: 2.5
+                          - { sfx: lighter_lid, at: front, dist: near, text: 喀 }
+                          - narr: 蓋子按回去了，很輕。
+                          - zhiyuan: ……我也是。
+                          - zhiyuan: 這五年，我都是等所裡沒人，才敢拿出來按。
+                          - me: 那個聲音——
+                          - zhiyuan: 我知道。
+                          - pause: 1.5
+                          - zhiyuan: 妳等一下。這次我拿給妳。
+                          - set: c4_zy_open
+                      - text: 「我耳朵比較好。坐在這裡就聽得到。」
+                        then:
+                          - pause: 2
+                          - zhiyuan: 耳朵再好，也聽不到鑰匙轉了方向。
+                          - { sfx: key_jingle, at: front, dist: near, text: 鏘 }
+                          - narr: 鑰匙串收進他的口袋。
+                          - zhiyuan: 妳請回。
+                          - set: [c4_zy_shut, c4_zy_pried]
+                    silence:
+                      - pause: 3
+                      - zhiyuan: 不用回答。
+                      - { sfx: key_jingle, at: front, dist: near, text: 鏘 }
+                      - narr: 鑰匙串收進他的口袋。
+                      - zhiyuan: 妳請回。
+                      - set: [c4_zy_shut, c4_zy_pried]
             - text: 「她的錶停在十八點三十一分，筆記本背面也寫滿了。這還叫意外？」
               if: know.k_watch_1831 && know.k_notebook_1831
               then:
@@ -494,6 +635,16 @@ scenes:
           - { sfx: light_buzz, at: left, dist: near, text: 滋滋 }
           - narr: 門在背後關上。走廊的日光燈滋滋響，聽不到予安的聲音，大概出去講電話了。
           - tension: 8
+          - if: flag.c4_zy_pried
+            then:
+              - { sfx: typing, at: front, dist: far, gain: 0.4, text: 噠……噠 }
+              - narr: 我把耳朵貼上門板。他回去打字了。鑰匙在他口袋裡，抽屜一次都沒有響。
+              - think: 那個聲音我聽到了。可是錄音裡為什麼是他，要他自己講才算。
+              - { think: 我偷聽，又說是耳朵好。, learn: lead_c4_pried }
+              - if: know.k_medical_records
+                then:
+                  - goto: c4_call_tingan
+              - goto: c4_hospital
           - if: flag.c4_zy_shut
             then:
               - { sfx: typing, at: front, dist: far, gain: 0.4, text: 噠……噠 }
@@ -609,7 +760,11 @@ scenes:
           - zhiyuan: 講實在的，不是在確認。
           - zhiyuan: 我自己只聽過一次。之後就不敢再按了。
       - pause: 2
-      - narr: 我摸到它。塑膠殼的邊角磨圓了，按鍵有點黏。
+      - if: flag.c4_snuck
+        then:
+          - narr: 十分鐘前我才摸過它。這一次，是他推到我面前的。
+        else:
+          - narr: 我摸到它。塑膠殼的邊角磨圓了，按鍵有點黏。
       - zhiyuan: 妳要聽嗎？
       - me: 要。
       - { sfx: tape_rewind, at: front, dist: near, text: 嘰嘰嘰嘰—— }
@@ -630,7 +785,9 @@ scenes:
       - pause: 2.5
       - think: 那時候，鐘樓還有鐘。
       - pause: 2
-      - think: 我以為，下一個聲音會是她。
+      - if: "!flag.c4_snuck"
+        then:
+          - think: 我以為，下一個聲音會是她。
       - heart: slow
       - narr: 我兩隻手壓著桌緣，壓到木頭的紋路印進指腹。
       - pause: 2
@@ -638,7 +795,11 @@ scenes:
       - { sfx: static_burst, at: front, dist: near, text: 嘶 }
       - pause: 1
       - narr: 聲音很低，一個字一個字分得很開。
-      - me: 這是你的聲音。
+      - if: flag.c4_snuck
+        then:
+          - narr: 跟剛剛一樣的聲音。這一次，他坐在我對面聽。
+        else:
+          - me: 這是你的聲音。
       - { sfx: recorder_click, at: front, dist: near, text: 喀 }
       - pause: 2
       - { sfx: lighter_lid, at: front, dist: near, text: 叮——喀 }

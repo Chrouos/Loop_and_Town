@@ -801,6 +801,7 @@ export function scriptedSfx(scene: Pick<Scene, 'beats' | 'threads'>): ReadonlySe
         case 'locate': out.add(beat.sfx); for (const decoy of beat.decoys) out.add(decoy.sfx); visit(beat.success); visit(beat.fail); break;
         case 'hold': if (beat.sfx) out.add(beat.sfx); visit(beat.success); visit(beat.fail); break;
         case 'approach': out.add(beat.sfx); visit(beat.hit); visit(beat.early); visit(beat.late); break;
+        case 'sneak': out.add(beat.sfx); beat.watch.forEach((leg) => { if (leg.sfx) out.add(leg.sfx); }); beat.slips.forEach((slip) => out.add(slip.sfx)); visit(beat.success); visit(beat.caught); visit(beat.fail); break;
         case 'if': visit(beat.then); visit(beat.else); break;
         case 'choice':
           for (const option of beat.options) {

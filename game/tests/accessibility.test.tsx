@@ -432,6 +432,24 @@ describe('title and calibration', () => {
 });
 
 describe('developer data panel', () => {
+  it.each([
+    ['?debug', '.lt-dev-panel'],
+    ['?dev', '.lt-dev-tension'],
+  ])('keeps the menu version clear in %s mode', (search, selector) => {
+    history.replaceState(null, '', `/${search}`);
+    try {
+      mount();
+      expect(container.querySelector(selector)).not.toBeNull();
+      flushSync(() => button('選單').click());
+      expect(container.querySelector('.lt-version')?.textContent).toContain('版本');
+      expect(container.querySelector(selector)).toBeNull();
+      flushSync(() => button('返回').click());
+      expect(container.querySelector(selector)).not.toBeNull();
+    } finally {
+      history.replaceState(null, '', '/');
+    }
+  });
+
   it.each(['', '?dev'])('requires the debug parameter (%s)', (search) => {
     history.replaceState(null, '', `/${search}`);
     try {
